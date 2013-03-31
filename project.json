@@ -1,0 +1,10 @@
+{
+
+"build": {
+	"editor": [ "public/js/editor.js" ],
+	"server": "server.js"
+},
+
+"port": 9001
+
+}
