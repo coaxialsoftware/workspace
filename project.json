@@ -5,6 +5,9 @@
 	"server": "server.js"
 },
 
-"port": 9001
+"port": 9001,
+"ignore": [
+	".git", "node_modules"
+]
 
 }

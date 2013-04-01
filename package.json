@@ -4,11 +4,7 @@
 	"author": "Giancarlo Bellido <giancarlo@coaxialhost.com>",
 	"version": "0.0.1",
 	"private": true,
-	"preferGlobal": true,
 	"dependencies": {
 		"express": "3.x"
-	},
-	"bin": {
-		"editor.js", "./bin/editor"
 	}
 }
