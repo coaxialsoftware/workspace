@@ -7,7 +7,7 @@ var
 		setTimeout(fn, 100);
 	},
 
-	Command = j5ui.Widget.extend({
+	CommandBar = j5ui.Widget.extend({
 
 		element: '#command',
 
@@ -19,7 +19,7 @@ var
 			console.log(cmd);
 		},
 
-		init: function Command()
+		init: function CommandBar()
 		{
 			j5ui.Widget.apply(this);
 			this.on('keypress', this.on_key, this);
@@ -68,12 +68,12 @@ var
 		}
 	}),
 
-	Search = Command.extend({
+	SearchBar = CommandBar.extend({
 		element: '#search',
 
-		init: function Search()
+		init: function SearchBar()
 		{
-			Command.apply(this);
+			CommandBar.apply(this);
 			this.on('keyup', this.on_keyup, this);
 		},
 
@@ -131,7 +131,7 @@ var
 		var
 			hash = location.hash.substr(1)
 		;
-			document.title = hash;
+			this.filename = document.title = hash;
 			j5ui.get('/file/' + hash, this.on_file.bind(this));
 		},
 
@@ -165,7 +165,8 @@ var
 			session = editor.getSession(),
 			hash = location.hash.substr(1)
 		;
-			this.filename = hash;
+			this.filename = hash || 'Untitled';
+			document.title = this.filename;
 
 			editor.setTheme('ace/theme/twilight');
 			editor.container.style.fontSize = '16px';
@@ -194,8 +195,8 @@ var
 		
 		init: function Project()
 		{
-			this.command = new Command();
-			this.search = new Search();
+			this.command = new CommandBar();
+			this.search = new SearchBar();
 			this._mask = j5ui.id('mask');
 			this.init_hash();
 			this.init_editor();

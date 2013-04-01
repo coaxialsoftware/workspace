@@ -8,11 +8,16 @@ var
 
 	app = express(),
 	server = app.listen(project.config.port),
-	address = server.address()
+	address = server.address(),
+
+	static_dir = __dirname + '/../public'
 ;
 
 app.use(express.compress());
-app.use(express.static('public'));
+
+console.log('Serving static content from ' + static_dir);
+app.use(express.static(static_dir));
+
 app.use(express.bodyParser());
 
 app.get('/project/*', function(req, res)
@@ -20,7 +25,9 @@ app.get('/project/*', function(req, res)
 var
 	result = project.to_json()
 ;
-	result.content = project.get_file(req.params[0]).toString();
+	if (req.params[0])
+		result.content = project.get_file(req.params[0]).toString();
+
 	res.send(result);
 });
 
