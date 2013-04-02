@@ -11,46 +11,61 @@ var
 		
 	}),
 
-	CommandBar = j5ui.Widget.extend({
+	Bar = j5ui.Widget.extend({
+	
+		/**
+		 * When a key is pressed and its found here the 
+		 * function will be called. Use keys function to
+		 * assign more bindings.
+		 *
+		 * @private
+		 */
+		_keys: null,
 
-		element: '#command',
-
-		run: function()
-		{
-		var
-			parse = this.element.value.split(/\s/),
-			cmd = project.commands[parse[0]]
-		;
-			if (cmd)
-				cmd.apply(project, parse);
-			else
-				j5ui.alert('Unknown Command: ' + parse);
-		},
-
-		init: function CommandBar()
+		init: function Bar()
 		{
 			j5ui.Widget.apply(this);
-			this.on('keypress', this.on_key, this);
+
+			this._keys = {
+			// TODO Use Key constants
+			27: function() { this.hide(); },
+			13: function() { this.run(); this.hide(); },
+			8: function() {
+				if (this.element.value==='')
+					this.hide();
+				}
+			};
+
+			this.on('keypress', this.on_key_press, this);
 			this.on('keydown', this.on_key, this);
+		},
+
+		on_key_press: function(ev)
+		{
+			if (this.on_key(ev)!==false &&
+				this.on_change &&
+				this.element.value!==this._value
+			) {
+				this.on_change(this.element.value);
+				this._value = this.element.value;
+			}
 		},
 
 		on_key: function(ev)
 		{
-			if (ev.keyCode===27) 
+		var
+			fn = this._keys[ev.keyCode]
+		;
+			if (fn)
 			{
-				this.hide();
-				return false;
-			} else if (ev.keyCode===9)
-				return false;
-			else if (ev.keyCode===13)
-			{
-				this.run();
-				this.hide();
-				return false;
-			} else if (ev.keyCode===27) {
-				this.hide();
+				fn.apply(this, [ ev ]);
 				return false;
 			}
+		},
+
+		keys: function(k)
+		{
+			j5ui.extend(this._keys, k);
 		},
 		
 		show: function()
@@ -76,22 +91,35 @@ var
 		}
 	}),
 
-	SearchBar = CommandBar.extend({
+	CommandBar = Bar.extend({
+
+		element: '#command',
+
+		run: function()
+		{
+		var
+			parse = this.element.value.split(/\s/),
+			cmd = project.commands[parse[0]]
+		;
+			if (cmd)
+				cmd.apply(project, parse);
+			else
+				j5ui.alert('Unknown Command: ' + parse);
+		}
+
+	}),
+
+	SearchBar = Bar.extend({
 		element: '#search',
 
-		init: function SearchBar()
+		run: function()
 		{
-			CommandBar.apply(this);
-			this.on('keyup', this.on_keyup, this);
+			
 		},
 
-		on_keyup: function(ev)
+		on_change: function(val)
 		{
-			if (this.element.value!==this._value)
-			{
-				project.editor.find(new RegExp(this.element.value));
-				this._value = this.element.value;
-			}
+			project.editor.find(new RegExp(val));
 		}
 		
 	}),
