@@ -2,6 +2,7 @@
 <head>
 	<link href="http://localhost/j5ui/build/j5ui.css" rel="stylesheet" />
 	<link href="http://localhost/j5ui/themes/silk/silk.css" rel="stylesheet" />
+	<link href="styles.css" rel="stylesheet" />
 
 	<script src="js/ace.js"></script>
 	<script src="js/theme-twilight.js" type="text/javascript"></script>
@@ -10,31 +11,10 @@
 	<script src="http://localhost/j5ui/build/j5ui.js"></script>
 
 	<script src="js/editor.js"></script>
-	<style>
-		#editor { 
-			position: absolute; left: 0; top: 0; right: 0; bottom: 0; 
-		}
-		#command, #search { 
-			display: none; position: absolute; 
-			left: 0; bottom: 0; right: 0; color: #eee;
-			height: 24px; border: 0; 
-			background-color: rgba(44, 62, 80, 0.6);
-			z-index: 10; outline: none; font-family: monospace;
-		}
-		#search { 
-			background-color: rgba(142, 68, 173, 0.6);
-		}
-		#mask { 
-			position: absolute; top: 0; right: 0; bottom: 0; left: 0;
-			background: rgba(0,0,0,0.5); font: 20px Verdana;
-			color: #eee; text-align: center; line-height: 100%;
-			z-index: 20;
-		}
-	</style>
 </head>
 <body>
 	<div id="mask">Loading...</div>
-	<div id="editor"></div>
+	<div class="editor"></div>
 	<input id="command" type="text" />
 	<input id="search" type="text" />
 </body>

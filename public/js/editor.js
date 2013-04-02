@@ -7,10 +7,6 @@ var
 		setTimeout(fn, 100);
 	},
 
-	Command = j5ui.Class.extend({
-		
-	}),
-
 	Bar = j5ui.Widget.extend({
 	
 		/**
@@ -36,19 +32,7 @@ var
 				}
 			};
 
-			this.on('keypress', this.on_key_press, this);
-			this.on('keydown', this.on_key, this);
-		},
-
-		on_key_press: function(ev)
-		{
-			if (this.on_key(ev)!==false &&
-				this.on_change &&
-				this.element.value!==this._value
-			) {
-				this.on_change(this.element.value);
-				this._value = this.element.value;
-			}
+			this.on('keyup', this.on_key, this);
 		},
 
 		on_key: function(ev)
@@ -56,11 +40,22 @@ var
 		var
 			fn = this._keys[ev.keyCode]
 		;
+			if (this.hidden)
+				return;
+
 			if (fn)
 			{
 				fn.apply(this, [ ev ]);
-				return false;
+			} else if (
+				this.on_change && 
+				this.element.value!==this._value
+			) {
+				this.on_change(this.element.value);
+				this._value = this.element.value;
 			}
+
+			ev.stopPropagation();
+			return false;
 		},
 
 		keys: function(k)
@@ -72,6 +67,7 @@ var
 		{
 			this.element.value = '';
 			this.element.style.display = 'block';
+			this.hidden = false;
 			this.focus();
 		},
 
@@ -86,7 +82,9 @@ var
 		hide: function()
 		{
 			this.element.style.display = 'none';
-			project.editor.focus();
+			this.hidden = true;
+			if (project.editor)
+				project.editor.focus();
 			return false;
 		}
 	}),
@@ -99,7 +97,7 @@ var
 		{
 		var
 			parse = this.element.value.split(/\s/),
-			cmd = project.commands[parse[0]]
+			cmd = Commands[parse[0]]
 		;
 			if (cmd)
 				cmd.apply(project, parse);
@@ -124,13 +122,40 @@ var
 		
 	}),
 
-	File = j5ui.Class.extend({
+	Editor = j5ui.Widget.extend({
+		
+	}),
+
+	File = Editor.extend({
 		
 		filename: null,
+		filetype: null,
+		editor: null,
+		session: null,
+
+		show_command: function(char)
+		{
+			if (char===':')
+				project.command.show();
+			else if (char==='/')
+				project.search.show();
+		},
 
 		init: function File(filename)
 		{
+		var
+			editor = this.editor = ace.edit('editor'),
+			session = editor.getSession()
+		;
 			this.filename = filename;
+			this.file = new File(hash);
+
+			editor.setTheme('ace/theme/twilight');
+			editor.container.style.fontSize = '16px';
+			editor.setKeyboardHandler('ace/keyboard/vim');
+			editor.showCommandLine = this.show_command.bind(this);
+
+			editor.on('focus', this.on_focus.bind(this));
 		},
 
 		load: function()
@@ -147,44 +172,72 @@ var
 			);
 		},
 
-		on_file: function(content)
+		get_type: function()
 		{
-			project.editor.setValue(content);
+		},
+
+		on_file: function(res)
+		{
+			this.editor.setValue(res.content);
+			this.editor.selection.clearSelection();
 		},
 
 		on_write: function(content)
 		{
 			j5ui.info('File saved.');
+		},
+
+		on_focus: function()
+		{
+			project.set_editor(this);
 		}
 		
 	}),
+
+	/**
+	 * Handles URL Hash
+	 */
+	Hash = j5ui.Class.extend({
+
+		on_hash: function(ev, a)
+		{
+		/*var
+			hash = location.hash.substr(1)
+		;
+			this.file = new File(hash);
+			this.file.load();
+			*/
+		},
+
+		init: function Hash()
+		{
+			window.addEventListener(
+				'hashchange', this.on_hash.bind(this)
+			);
+		}
+	}),
+
+	Commands = {
+		w: function() { this.file.write(); },
+		e: function() { this.file.load(); },
+		tabe: function(action, filename)
+		{
+			window.open('/#' + filename);
+		}
+	},
 
 	Project = j5ui.Class.extend({
 
 		config: null,
 		command: null,
 		search: null,
-		editor: null,
-		session: null,
 
 		_mask: null,
 
-		commands: {
-			w: function() { this.file.write(); },
-			e: function() { this.file.load(); },
-			tabe: function(action, filename)
-			{
-				window.open('/#' + filename);
-			}
-		},
-
-		on_hash: function(ev, a)
+		set_editor: function(editor)
 		{
-		var
-			hash = location.hash.substr(1)
-		;
-			this.file = new File(hash);
-			this.file.load();
+			this.editor = editor;
+			document.title = editor.filename;
 		},
 
 		mask: function()
@@ -199,50 +252,8 @@ var
 
 		on_project: function(w)
 		{
-		var
-			editor = this.editor
-		;
 			this.config = w;
-			editor.setValue(w.content);
-			editor.selection.clearSelection();
-
 			this.unmask();
-			editor.focus();
-		},
-
-		init_editor: function()
-		{
-		var
-			editor = this.editor = ace.edit('editor'),
-			session = editor.getSession(),
-			hash = location.hash.substr(1)
-		;
-			this.file = new File(hash);
-			document.title = hash || 'Untitled';
-
-			editor.setTheme('ace/theme/twilight');
-			editor.container.style.fontSize = '16px';
-			editor.setKeyboardHandler('ace/keyboard/vim');
-			editor.showCommandLine = this.command_line.bind(this);
-
-			//session.setMode('ace/mode/javascript');
-
-			j5ui.get('/project/' + hash, this.on_project.bind(this));
-		},
-
-		command_line: function(val)
-		{
-			if (val===':')
-				this.command.show();
-			else if (val==='/')
-				this.search.show();
-		},
-
-		init_hash: function()
-		{
-			window.addEventListener(
-				'hashchange', this.on_hash.bind(this)
-			);
 		},
 
 		on_error: function(msg, url, line)
@@ -251,20 +262,34 @@ var
 			console.error(msg);
 		},
 
+		on_key: function(ev)
+		{
+			if (ev.shiftKey)
+			{
+				if (ev.keyCode===186)
+					this.command.show();
+			} else
+				console.log('Project.on_key', ev);
+		},
+
 		init_events: function()
 		{
 			window.addEventListener('error', this.on_error.bind(this));
+			window.addEventListener('keyup', this.on_key.bind(this));
 		},
 		
 		init: function Project()
 		{
+			this.commands = Commands;
+
 			this.command = new CommandBar();
 			this.search = new SearchBar();
 			this._mask = j5ui.id('mask');
+			this.hash = new Hash();
 
-			this.init_hash();
-			this.init_editor();
 			this.init_events();
+
+			j5ui.get('/project/', this.on_project.bind(this));
 		}
 
 	}),

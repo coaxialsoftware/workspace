@@ -20,21 +20,21 @@ app.use(express.static(static_dir));
 
 app.use(express.bodyParser());
 
-app.get('/project/*', function(req, res)
+app.get('/project', function(req, res)
 {
 var
 	result = project.to_json()
 ;
-	if (req.params[0])
-		result.content = project.get_file(req.params[0]).toString();
-
 	res.send(result);
 });
 
 app.get('/file/*', function(req, res)
 {
-	res.set('Content-Type', 'text/plain');
-	res.send(project.get_file(req.params[0]));
+var
+	result = project.get_file(req.params[0])
+;
+	res.set('Content-Type', 'application/json');
+	res.send(result);
 });
 
 app.post('/file/*', function(req, res)
