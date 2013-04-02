@@ -39,7 +39,12 @@ app.get('/file/*', function(req, res)
 
 app.post('/file/*', function(req, res)
 {
-	res.send(req.body);
+	if (req.body && req.body.content)
+	{
+		project.put_file(req.params[0], req.body.content);
+	}
+
+	res.send({ success: true });
 });
 
 console.log("Listening to port " + address.port);

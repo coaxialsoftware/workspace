@@ -7,6 +7,10 @@ var
 		setTimeout(fn, 100);
 	},
 
+	Command = j5ui.Class.extend({
+		
+	}),
+
 	CommandBar = j5ui.Widget.extend({
 
 		element: '#command',
@@ -14,9 +18,13 @@ var
 		run: function()
 		{
 		var
-			cmd = this.element.value.split(/\s/)
+			parse = this.element.value.split(/\s/),
+			cmd = project.commands[parse[0]]
 		;
-			console.log(cmd);
+			if (cmd)
+				cmd.apply(project, parse);
+			else
+				j5ui.alert('Unknown Command: ' + parse);
 		},
 
 		init: function CommandBar()
@@ -88,6 +96,41 @@ var
 		
 	}),
 
+	File = j5ui.Class.extend({
+		
+		filename: null,
+
+		init: function File(filename)
+		{
+			this.filename = filename;
+		},
+
+		load: function()
+		{
+			j5ui.get('/file/' + this.filename, this.on_file.bind(this));
+		},
+
+		write: function()
+		{
+			j5ui.post(
+				'/file/' + this.filename, 
+				{ content: project.editor.getValue() }, 
+				this.on_write.bind(this)
+			);
+		},
+
+		on_file: function(content)
+		{
+			project.editor.setValue(content);
+		},
+
+		on_write: function(content)
+		{
+			j5ui.info('File saved.');
+		}
+		
+	}),
+
 	Project = j5ui.Class.extend({
 
 		config: null,
@@ -95,35 +138,16 @@ var
 		search: null,
 		editor: null,
 		session: null,
-		filename: null,
 
 		_mask: null,
 
 		commands: {
-			w: function() {
-				this.write();
+			w: function() { this.file.write(); },
+			e: function() { this.file.load(); },
+			tabe: function(action, filename)
+			{
+				window.open('/#' + filename);
 			}
-		},
-
-		write: function()
-		{
-			this.mask();
-			j5ui.post(
-				'/file/' + this.filename, 
-				{ content: this.editor.getValue() }, 
-				this.on_write.bind(this)
-			);
-		},
-
-		on_write: function(content)
-		{
-			console.log(content);
-			this.unmask()
-		},
-		
-		on_file: function(content)
-		{
-			this.editor.setValue(content);
 		},
 
 		on_hash: function(ev, a)
@@ -131,8 +155,8 @@ var
 		var
 			hash = location.hash.substr(1)
 		;
-			this.filename = document.title = hash;
-			j5ui.get('/file/' + hash, this.on_file.bind(this));
+			this.file = new File(hash);
+			this.file.load();
 		},
 
 		mask: function()
@@ -165,15 +189,15 @@ var
 			session = editor.getSession(),
 			hash = location.hash.substr(1)
 		;
-			this.filename = hash || 'Untitled';
-			document.title = this.filename;
+			this.file = new File(hash);
+			document.title = hash || 'Untitled';
 
 			editor.setTheme('ace/theme/twilight');
 			editor.container.style.fontSize = '16px';
 			editor.setKeyboardHandler('ace/keyboard/vim');
 			editor.showCommandLine = this.command_line.bind(this);
 
-			session.setMode('ace/mode/javascript');
+			//session.setMode('ace/mode/javascript');
 
 			j5ui.get('/project/' + hash, this.on_project.bind(this));
 		},
@@ -192,14 +216,27 @@ var
 				'hashchange', this.on_hash.bind(this)
 			);
 		},
+
+		on_error: function(msg, url, line)
+		{
+			j5ui.error(msg);
+			console.error(msg);
+		},
+
+		init_events: function()
+		{
+			window.addEventListener('error', this.on_error.bind(this));
+		},
 		
 		init: function Project()
 		{
 			this.command = new CommandBar();
 			this.search = new SearchBar();
 			this._mask = j5ui.id('mask');
+
 			this.init_hash();
 			this.init_editor();
+			this.init_events();
 		}
 
 	}),
