@@ -8,6 +8,10 @@ body {
 	min-height: 100px;
 }
 
+#project {
+	background-color: rgba(41, 128, 185, 0.6);
+}
+
 #command, #search { 
 	display: none; position: absolute; 
 	left: 0; bottom: 0; right: 0; color: #eee;

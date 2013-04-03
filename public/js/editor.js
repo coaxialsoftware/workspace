@@ -96,13 +96,14 @@ var
 		run: function()
 		{
 		var
-			parse = this.element.value.split(/\s/),
+			val = this.element.value,
+			parse = val.split(/\s/),
 			cmd = Commands[parse[0]]
 		;
 			if (cmd)
 				cmd.apply(project, parse);
 			else
-				j5ui.alert('Unknown Command: ' + parse);
+				j5ui.alert('Unknown Command: ' + val);
 		}
 
 	}),
@@ -124,6 +125,7 @@ var
 
 	Editor = j5ui.Widget.extend({
 		
+	}, {
 	}),
 
 	File = Editor.extend({
@@ -172,10 +174,6 @@ var
 			);
 		},
 
-		get_type: function()
-		{
-		},
-
 		on_file: function(res)
 		{
 			this.editor.setValue(res.content);
@@ -218,12 +216,19 @@ var
 	}),
 
 	Commands = {
+	/*
 		w: function() { this.file.write(); },
 		e: function() { this.file.load(); },
 		tabe: function(action, filename)
 		{
-			window.open('/#' + filename);
+			//window.open('/#' + filename);
 		}
+		*/
+	},
+
+	KeyBindings = {
+		
+
 	},
 
 	Project = j5ui.Class.extend({
@@ -237,7 +242,7 @@ var
 		set_editor: function(editor)
 		{
 			this.editor = editor;
-			document.title = editor.filename;
+			document.title = this.config.name + ' - ' + editor.filename;
 		},
 
 		mask: function()
@@ -253,6 +258,9 @@ var
 		on_project: function(w)
 		{
 			this.config = w;
+			
+			document.title = this.config.name;
+
 			this.unmask();
 		},
 
