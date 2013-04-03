@@ -10,13 +10,15 @@ var
 	server = app.listen(project.config.port),
 	address = server.address(),
 
-	static_dir = __dirname + '/../public'
+	rootdir = __dirname + '/..'
 ;
 
 app.use(express.compress());
 
-console.log('Serving static content from ' + static_dir);
-app.use(express.static(static_dir));
+console.log('Serving public');
+app.use(express.static(rootdir + '/public'));
+console.log('Serving dependecies');
+app.use(express.static(rootdir + '/node_modules'));
 
 app.use(express.bodyParser());
 
