@@ -199,6 +199,7 @@ IDE.Editor.Source = IDE.Editor.extend({
 
 	write: function()
 	{
+		this.file.content = this.editor.getValue();
 		this.file.save();
 	},
 	
@@ -229,7 +230,25 @@ ide.plugin('editor.source', {
 	
 	edit: function(file)
 	{
-		ide.workspace.add(new IDE.Editor.Source({ file: file }));
+		this.editor = new IDE.Editor.Source({ file: file });
+		ide.workspace.add(this.editor);
+	},
+
+	cmd: function(cmd)
+	{
+		if (ide.editor !== this.editor)
+			return;
+
+		if (cmd[0]==='w')
+			this.editor.write();
+		else if (cmd[0]==='q')
+			this.editor.close();
+		else if (!isNaN(cmd[0]))
+			this.editor.editor.gotoLine(cmd[0]);
+		else
+			return;
+
+		return true;
 	}
 
 });

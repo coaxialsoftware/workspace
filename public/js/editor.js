@@ -50,8 +50,9 @@ window.IDE = j5ui.Class.extend({
 		{
 			cmd.apply(this, parse);
 		}
-		else if (!isNaN(val))
-			project.editor && project.editor.editor.gotoLine(val);
+		else if (this.plugins.cmd(parse))
+		{
+		}
 		else
 			j5ui.alert('Unknown Command: ' + val);
 
@@ -72,17 +73,7 @@ window.IDE = j5ui.Class.extend({
 	tabe: function()
 	{
 		this.edit.apply(this, arguments);
-	},
-
-	q: function(p)
-	{
-		if (project.editor)
-			project.editor.close();
-	},
-
-	w: function() { ide.editor.write(); },
-
-	e: function() { this.file.load(); }
+	}
 
 }, {
 	
@@ -123,9 +114,14 @@ window.IDE = j5ui.Class.extend({
 		{
 			j5ui.post(
 				'/file?n=' + encodeURIComponent(this.filename), 
-				{ content: this.editor.getValue() }, 
+				{ content: this.content }, 
 				this.on_write.bind(this)
 			);
+		},
+
+		on_write: function()
+		{
+			this.fire('write');
 		}
 
 	}),
@@ -180,10 +176,26 @@ window.IDE = j5ui.Class.extend({
 			this._plugins = {};
 		},
 
+		cmd: function(cmd)
+		{
+		var
+			result
+		;
+			this.each(function(plug)
+			{
+				return result = plug.cmd(cmd);
+			});
+			
+			return result;
+		},
+
 		each: function(fn)
 		{
 			for (var i in this._plugins)
-				fn.bind(this)(this._plugins[i]);
+			{
+				if (fn.bind(this)(this._plugins[i]))
+					break;
+			}
 		},
 	
 		edit: function(file)
