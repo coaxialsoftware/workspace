@@ -1,424 +1,228 @@
 
-j5ui(function()
-{
-var
-	refer = function(fn, t)
+
+window.IDE = j5ui.Class.extend({
+
+	project: null,
+	workspace: null,
+	plugins: null,
+
+	set_editor: function(editor)
 	{
-		setTimeout(fn, t || 100);
+		this.editor = editor;
+		document.title = this.project.name + ' - ' + editor.filename;
 	},
 
-	Bar = j5ui.Widget.extend({
+	_on_project: function()
+	{
+		this.plugins.setup();
+
+		j5ui.id('mask').style.display = 'none';
+	},
+
+	_start: function()
+	{
+		this.project = new IDE.Project();
+		this.project.on('load', this._on_project.bind(this));
+		this.workspace = new IDE.Workspace();
+	},
+
+	init: function IDE()
+	{
+		this.plugins = new IDE.PluginManager(this);
+		window.addEventListener('load', this._start.bind(this));
+	},
+
+	/**
+	 * Registers plugin
+	 */
+	plugin: function(name, klass)
+	{
+		this.plugins.register(name, IDE.Plugin.extend(klass));
+	},
+
+	eval: function(val)
+	{
+	var
+		parse = val.split(/\s/),
+		cmd = this[parse[0]]
+	;
+		if (typeof cmd === 'function')
+		{
+			cmd.apply(this, parse);
+		}
+		else if (!isNaN(val))
+			project.editor && project.editor.editor.gotoLine(val);
+		else
+			j5ui.alert('Unknown Command: ' + val);
+
+		console.log(val);
+	},
+
+	edit: function()
+	{
+		for (i=1; i<arguments.length; i++)
+			this.project.open(arguments[i], this.edit_file.bind(this));
+	},
+
+	edit_file: function(file)
+	{
+		this.plugins.edit(file);
+	},
+
+	tabe: function()
+	{
+		this.edit.apply(this, arguments);
+	},
+
+	q: function(p)
+	{
+		if (project.editor)
+			project.editor.close();
+	},
+
+	w: function() { project.editor.write(); },
+
+	e: function() { this.file.load(); }
+
+}, {
 	
-		/**
-		 * When a key is pressed and its found here the 
-		 * function will be called. Use keys function to
-		 * assign more bindings.
-		 *
-		 * @private
-		 */
-		_keys: null,
-
-		/**
-		 * Previous Value
-		 */
-		_value: '',
-
-		init: function Bar()
+	Plugin: j5ui.Class.extend({
+	
+		shortcut: null,
+		invoke: null,
+		
+		init: function Plugin(ide)
 		{
-			j5ui.Widget.apply(this);
-
-			this._keys = {
-			// TODO Use Key constants
-			27: function() { this.hide(); },
-			13: function() { this.run(); this.hide(); },
-			8: function() {
-				if (this._value==='')
-					this.hide();
-				},
-			9: function() {
-				this.on_complete && this.on_complete();
-			}
-			};
-
-			this.on('keyup', this.on_key);
-			this.on('keydown', this.on_keydown);
 		},
 
-		on_keydown: function(ev)
+		edit: function(file)
 		{
-			if (ev.keyCode===9)
-				ev.preventDefault();
-		},
-
-		on_key: function(ev)
-		{
-		var
-			fn = this._keys[ev.keyCode]
-		;
-			if (this.hidden)
-				return;
-
-			if (fn)
-			{
-				fn.apply(this, [ ev ]);
-			} else if (
-				this.on_change && 
-				this.element.value!==this._value
-			) {
-				this.on_change(this.element.value);
-			} 
-
-			this._value = this.element.value;
-			ev.stopPropagation();
 			return false;
 		},
 
-		keys: function(k)
+		setup: function()
 		{
-			j5ui.extend(this._keys, k);
-		},
-		
-		show: function()
-		{
-			this.element.value = '';
-			this.element.style.display = 'block';
-			this.hidden = false;
-			this.focus();
-		},
-
-		focus: function()
-		{
-		var
-			el = this.element
-		;
-			refer(function() { el.focus(); });
-		},
-
-		hide: function()
-		{
-			this.element.style.display = 'none';
-			this.hidden = true;
-			if (project.editor)
-				project.editor.focus();
-			return false;
-		}
-	}),
-
-	CommandBar = Bar.extend({
-
-		element: '#command',
-
-		run: function()
-		{
-			Commands.run(this.element.value);
 		}
 
 	}),
+	
+	Workspace: j5ui.Container.extend({
 
-	SearchBar = Bar.extend({
-		element: '#search',
+		element: '#workspace',
+		layout: j5ui.Layout.HBox,
 
-		run: function()
-		{
-			
-		},
-
-		on_change: function(val)
-		{
-			project.editor.editor.find(new RegExp(val));
-		}
-		
 	}),
 
-	Editor = j5ui.Widget.extend({
+	File: j5ui.Observable.extend({
 
-		init: function Editor(p)
-		{
-			j5ui.Widget.apply(this, arguments);
-
-		},
-
-		on_focus: function()
-		{
-			project.set_editor(this);
-		},
-
-		get_status: function()
-		{
-		}
-		
-		
-	}, {
-		create: function(filename, el)
-		{
-			return new FileEditor({ filename: filename, element: el });
-		}
-	}),
-
-	FileEditor = Editor.extend({
-		
-		filename: null,
-		filetype: null,
-		editor: null,
-		session: null,
-		modes: {
-		},
-
-		show_command: function(char)
-		{
-			if (char===':')
-				project.command.show();
-			else if (char==='/')
-				project.search.show();
-		},
-
-		setup: function File()
-		{
-		var
-			editor = this.editor = ace.edit(this.element),
-			session = editor.getSession()
-		;
-			editor.setTheme('ace/theme/twilight');
-			editor.container.style.fontSize = '16px';
-			editor.setKeyboardHandler('ace/keyboard/vim');
-			editor.setBehavioursEnabled(true);
-			editor.setDisplayIndentGuides(false);
-			
-			session.setUseSoftTabs(false);
-			editor.showCommandLine = this.show_command.bind(this);
-
-			editor.on('focus', this.on_focus.bind(this));
-console.log(this.filename);
-			if (this.filename)
-				this.load();
-		},
-
-		focus: function()
-		{
-			this.editor.focus();
-			this.editor.resize();
-		},
-
-		load: function()
-		{
-			j5ui.get('/file?n=' + encodeURIComponent(this.filename), this.on_file.bind(this));
-		},
-
-		close: function()
-		{
-			this.editor.destroy();
-			this.remove();
-		},
-
-		write: function()
+		save: function()
 		{
 			j5ui.post(
 				'/file?n=' + encodeURIComponent(this.filename), 
 				{ content: this.editor.getValue() }, 
 				this.on_write.bind(this)
 			);
-		},
-
-		get_status: function()
-		{
-			return this.editor.$vimModeHandler.getStatusText();
-		},
-
-		set_mode: function()
-		{
-		var
-			mode = this.modes[this.mime]
-		;
-			if (!mode)
-				mode = 'ace/mode/' + this.mime.split('/')[1];
-
-			this.editor.session.setMode(mode);
-		},
-
-		on_file: function(res)
-		{
-			this.editor.setValue(res.content.toString());
-			this.editor.selection.clearSelection();
-			this.mime = res.mime;
-			this.filename = res.filename;
-			this.set_mode();
-		},
-
-		on_write: function(content)
-		{
-			j5ui.info('File saved.');
 		}
 
 	}),
 
-	/**
-	 * Handles URL Hash
-	 */
-	Hash = j5ui.Class.extend({
+	Project: j5ui.Observable.extend({
 
-		on_hash: function(ev, a)
-		{
-		/*var
-			hash = location.hash.substr(1)
-		;
-			this.file = new File(hash);
-			this.file.load();
-			*/
-		},
-
-		init: function Hash()
-		{
-			window.addEventListener(
-				'hashchange', this.on_hash.bind(this)
-			);
-		}
-	}),
-
-	Commands = {
-		
-		run: function(val)
+		open: function(filename, callback)
 		{
 		var
-			parse = val.split(/\s/),
-			cmd = Commands[parse[0]]
-		;
-			if (cmd)
+			me = this,
+			url = '/file?n=' + encodeURIComponent(filename),
+			fn = function(file)
 			{
-				cmd.apply(project, [ parse ]);
+				me.on_file(file, callback);
 			}
-			else if (!isNaN(val))
-				project.editor && project.editor.editor.gotoLine(val);
+		;
+			j5ui.get(url, fn); 
+		},
+
+		on_file: function(file, callback)
+		{
+			if (file.success)
+			{
+				callback(new IDE.File(file));	
+			}
 			else
-				j5ui.alert('Unknown Command: ' + val);
-
-			console.log(val);
-		},
-
-		tabe: function(p)
-		{
-			project.workspace.edit(p[1]);
-		},
-
-		q: function(p)
-		{
-			if (project.editor)
-				project.editor.close();
-		},
-
-		w: function() { project.editor.write(); }
-	/*
-		e: function() { this.file.load(); },
-		*/
-	},
-
-	KeyBindings = {
-		
-
-	},
-
-	Workspace = j5ui.Container.extend({
-
-		element: '#workspace',
-
-		setup: function()
-		{
-		},
-
-		layout: j5ui.Layout.HBox,
-
-		edit: function(filename)
-		{
-		var
-			div = j5ui.dom('DIV'),
-			editor = Editor.create(filename, div)
-		;
-			this.add(editor);
-			refer(function() { editor.focus(); }, 350);
-		}
-
-	}),
-
-	Project = j5ui.Class.extend({
-
-		config: null,
-		command: null,
-		search: null,
-		workspace: null,
-
-		_mask: null,
-		_info: null,
-
-		set_editor: function(editor)
-		{
-		var
-			status = editor.get_status()
-		;
-			this.editor = editor;
-			document.title = this.config.name + ' - ' + editor.filename;
-			this._info.innerHTML = editor.filename + (status ? ': ' + status : '');
-		},
-
-		mask: function()
-		{
-			this._mask.style.display = 'block';
-		},
-
-		unmask: function()
-		{
-			this._mask.style.display = 'none';
+				throw new Error("Could not open file: " + file.filename);
 		},
 
 		on_project: function(w)
 		{
-			this.config = w;
-			
-			document.title = this.config.name;
-
-			this.unmask();
+			j5ui.extend(this, w);
+			this.fire('load');
 		},
 
-		on_error: function(msg, url, line)
-		{
-			j5ui.error(msg);
-			console.error(msg);
-		},
-
-		on_key: function(ev)
-		{
-			if (ev.shiftKey)
-			{
-				if (ev.keyCode===186)
-					this.command.show();
-			} 
-		},
-
-		init_events: function()
-		{
-			window.addEventListener('error', this.on_error.bind(this));
-			window.addEventListener('keyup', this.on_key.bind(this));
-		},
-		
 		init: function Project()
 		{
-			this.commands = Commands;
-
-			this.command = new CommandBar();
-			this.search = new SearchBar();
-			this.hash = new Hash();
-			this.workspace = new Workspace();
-
-			this._mask = j5ui.id('mask');
-			this._info = j5ui.id('info');
-
-			this.init_events();
-
-			j5ui.get('/project/', this.on_project.bind(this));
+			j5ui.Observable.apply(this);
+			j5ui.get('/project', this.on_project.bind(this));
 		}
 
 	}),
 
-	project = window.project = new Project()
-;
+	PluginManager: j5ui.Class.extend({
+	
+		_plugins: null,
+		ide: null,
+	
+		init: function PluginManager(ide)
+		{
+			this.ide = ide;
+			this._plugins = {};
+		},
 
+		each: function(fn)
+		{
+			for (var i in this._plugins)
+				fn.bind(this)(this._plugins[i]);
+		},
+	
+		edit: function(file)
+		{
+			this.each(function(plug) {
+				plug.edit(file);
+			});
+		},
 
+		get_shortcut: function(ev)
+		{
+			return (ev.shiftKey ? 'shift-' : '') +
+				(ev.ctrlKey ? 'ctrl-' : '') + 
+				(ev.altKey ? 'alt-' : '') + 
+				ev.keyCode;
+		},
+		
+		on_key: function(ev)
+		{
+		var
+			key = this.get_shortcut(ev);
+		;
+			this.each(function(plug)
+			{
+				if (plug.shortcut===key)
+					plug.invoke();
+			});
+		},
+		
+		setup: function()
+		{
+			window.addEventListener('keyup', this.on_key.bind(this));
+			this.each(function(plug) {
+				plug.setup();
+			});
+		},
+		
+		register: function(name, klass)
+		{
+			this._plugins[name] = new klass(this.ide);
+		}
+
+	})
 });
+
+var ide = new IDE();

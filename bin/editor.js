@@ -36,7 +36,7 @@ var
 	result = project.get_file(req.query.n)
 ;
 	result.mime = express.mime.lookup(result.filename);
-	res.set('Content-Type', 'application/json');
+	result.success = true;
 	res.send(result);
 });
 
