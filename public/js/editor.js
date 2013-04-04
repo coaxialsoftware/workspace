@@ -9,7 +9,7 @@ window.IDE = j5ui.Class.extend({
 	set_editor: function(editor)
 	{
 		this.editor = editor;
-		document.title = this.project.name + ' - ' + editor.filename;
+		document.title = this.project.name + ' - ' + editor.file.filename;
 	},
 
 	_on_project: function()
@@ -80,7 +80,7 @@ window.IDE = j5ui.Class.extend({
 			project.editor.close();
 	},
 
-	w: function() { project.editor.write(); },
+	w: function() { ide.editor.write(); },
 
 	e: function() { this.file.load(); }
 
@@ -101,6 +101,10 @@ window.IDE = j5ui.Class.extend({
 		},
 
 		setup: function()
+		{
+		},
+
+		cmd: function(command)
 		{
 		}
 

@@ -48,6 +48,10 @@ IDE.Bar = j5ui.Widget.extend({
 			},
 		9: function() {
 			this.on_complete && this.on_complete();
+		},
+		219: function(ev) {
+			if (ev.ctrlKey)
+				this.hide();
 		}
 		};
 	
@@ -150,15 +154,6 @@ IDE.Editor.Source = IDE.Editor.extend({
 	session: null,
 	modes: { },
 
-	show_command: function(char)
-	{
-		// TODO
-		if (char===':')
-			ide.plugin.command.invoke();
-		else if (char==='/')
-			ide.plugin.command.invoke();
-	},
-
 	setup: function()
 	{
 	var
@@ -174,12 +169,20 @@ IDE.Editor.Source = IDE.Editor.extend({
 		session.setUseSoftTabs(false);
 
 		editor.selection.clearSelection();
-		editor.showCommandLine = this.show_command.bind(this);
-
 		editor.on('focus', this.on_focus.bind(this));
 
 		this.set_mode();
-		j5ui.refer(this.focus.bind(this));
+		this.on('keyup', this._on_keyup);
+		j5ui.refer(this.focus.bind(this), 350);
+	},
+
+	_on_keyup: function(ev)
+	{
+		if (this.get_state()==='insertMode')
+		{
+			ev.stopPropagation();
+			return false;
+		}
 	},
 
 	focus: function()
@@ -197,6 +200,11 @@ IDE.Editor.Source = IDE.Editor.extend({
 	write: function()
 	{
 		this.file.save();
+	},
+	
+	get_state: function()
+	{
+		return this.editor.keyBinding.$data.state;
 	},
 
 	get_status: function()
