@@ -30,21 +30,21 @@ var
 	res.send(result);
 });
 
-app.get('/file/*', function(req, res)
+app.get('/file', function(req, res)
 {
 var
-	result = project.get_file(req.params[0])
+	result = project.get_file(req.query.n)
 ;
 	result.mime = express.mime.lookup(result.filename);
 	res.set('Content-Type', 'application/json');
 	res.send(result);
 });
 
-app.post('/file/*', function(req, res)
+app.post('/file', function(req, res)
 {
 	if (req.body && req.body.content)
 	{
-		project.put_file(req.params[0], req.body.content);
+		project.put_file(req.query.n, req.body.content);
 	}
 
 	res.send({ success: true });
