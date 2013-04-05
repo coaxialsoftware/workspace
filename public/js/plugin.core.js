@@ -18,6 +18,12 @@ IDE.Editor = j5ui.Widget.extend({
 		
 });
 
+IDE.Panel = j5ui.Widget.extend({
+	
+	css: 'ide-panel'
+	
+});
+
 IDE.Bar = j5ui.Widget.extend({
 
 	/**
@@ -57,6 +63,12 @@ IDE.Bar = j5ui.Widget.extend({
 	
 		this.on('keyup', this.on_key);
 		this.on('keydown', this.on_keydown);
+		this.on('blur', this.on_blur);
+	},
+	
+	on_blur: function()
+	{
+		this.hide();	
 	},
 
 	on_keydown: function(ev)
@@ -123,7 +135,7 @@ IDE.Bar = j5ui.Widget.extend({
 IDE.Bar.Command = IDE.Bar.extend({
 
 	element: j5ui.html('<input id="command" />'),
-
+	
 	run: function()
 	{
 		ide.eval(this.element.value);
@@ -131,9 +143,34 @@ IDE.Bar.Command = IDE.Bar.extend({
 
 });
 
+IDE.Bar.Evaluate = IDE.Bar.extend({
+	
+	element: j5ui.html('<input id="evaluate" />'),
+	
+	encode: function(response)
+	{
+		return response.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;');
+	},
+	
+	run: function()
+	{
+	var
+		el = j5ui.dom('DIV'),
+		response = eval(this.element.value)
+	;
+		if (response === undefined)
+			return;
+			
+		//el.innerHTML = this.encode(response);
+		//ide.workspace.add(new IDE.Panel({element: el}));
+		j5ui.info(response);
+	}
+	
+})
+
 IDE.Bar.Search = IDE.Bar.extend({
 	
-	element: j5ui.html('<div id="#search"></div>'),
+	element: j5ui.html('<input id="search" />'),
 
 	run: function()
 	{
@@ -142,7 +179,8 @@ IDE.Bar.Search = IDE.Bar.extend({
 
 	on_change: function(val)
 	{
-		project.editor.editor.find(new RegExp(val));
+		if (ide.editor)
+			ide.editor.find(new RegExp(val));
 	}
 
 });
@@ -152,7 +190,34 @@ IDE.Editor.Source = IDE.Editor.extend({
 	file: null,
 	editor: null,
 	session: null,
-	modes: { },
+	
+	modeByMime: { },
+	modeByExt: {
+		ch: 'csharp',
+		c: 'c_cpp',
+		cc: 'c_cpp',
+		cpp: 'c_cpp',
+		cxx: 'c_cpp',
+		h: 'c_cpp',
+		hh: 'c_cpp',
+		hpp: 'c_cpp',
+		clj: 'clojure',
+		js: 'javascript',
+		json: 'json',
+		md: 'markdown',
+		php: 'php',
+		php5: 'php',
+		py: 'python',
+		r: 'r',
+		ru: 'ruby',
+		rb: 'ruby',
+		sh: 'sh',
+		bash: 'sh',
+		rhtml: 'rhtml'
+	},
+	modeByFile: { 
+		Rakefile: 'ruby'
+	},
 
 	setup: function()
 	{
@@ -160,20 +225,20 @@ IDE.Editor.Source = IDE.Editor.extend({
 		editor = this.editor = ace.edit(this.element),
 		session = editor.getSession()
 	;
-		editor.setValue(this.file.content);
 		editor.setTheme('ace/theme/twilight');
 		editor.container.style.fontSize = '16px';
 		editor.setKeyboardHandler('ace/keyboard/vim');
 		editor.setBehavioursEnabled(true);
 		editor.setDisplayIndentGuides(false);
 		session.setUseSoftTabs(false);
+		session.setValue(this.file.content);
 
 		editor.selection.clearSelection();
 		editor.on('focus', this.on_focus.bind(this));
 
 		this.set_mode();
 		this.on('keyup', this._on_keyup);
-		j5ui.refer(this.focus.bind(this), 350);
+		j5ui.refer(this.focus.bind(this), 250);
 	},
 
 	_on_keyup: function(ev)
@@ -184,17 +249,28 @@ IDE.Editor.Source = IDE.Editor.extend({
 			return false;
 		}
 	},
+	
+	on_focus: function()
+	{
+		IDE.Editor.prototype.on_focus.apply(this);
+		this.editor.resize();
+	},
+	
+	find: function(n)
+	{
+		this.editor.find(n);
+	},
 
 	focus: function()
 	{
 		this.editor.focus();
-		this.editor.resize();
 	},
 
 	close: function()
 	{
 		this.editor.destroy();
 		this.remove();
+		this.fire('close', [ this ]);
 	},
 
 	write: function()
@@ -216,41 +292,94 @@ IDE.Editor.Source = IDE.Editor.extend({
 	set_mode: function()
 	{
 	var
-		mode = this.modes[this.file.mime]
+		mode = this.modeByMime[this.file.mime] ||
+			this.modeByExt[this.file.ext] ||
+			this.modeByFile[this.file.filename] ||
+			this.file.mime.split('/')[1]
 	;
-		if (!mode)
-			mode = 'ace/mode/' + this.file.mime.split('/')[1];
 
-		this.editor.session.setMode(mode);
+		this.editor.session.setMode('ace/mode/' + mode);
 	}
 
 });
 
 ide.plugin('editor.source', {
 	
+	editors: [],
+	
 	edit: function(file)
 	{
-		this.editor = new IDE.Editor.Source({ file: file });
-		ide.workspace.add(this.editor);
+	var
+		editor = new IDE.Editor.Source({ file: file })
+	;
+		this.editors.push(editor);
+		editor.on('close', this.on_close.bind(this));
+		ide.workspace.add(editor);
+	},
+
+	on_close: function(editor)
+	{
+		this.editors.splice(this.editors.indexOf(editor), 1);
 	},
 
 	cmd: function(cmd)
 	{
-		if (ide.editor !== this.editor)
-			return;
+	var
+		l = this.editors.length,
+		editor
+	;
+		while (l--)
+			if (ide.editor===this.editors[l])
+			{
+				editor = this.editors[l];
+				
+				if (cmd[0]==='w')
+					editor.write();
+				else if (cmd[0]==='q')
+					editor.close();
+				else if (!isNaN(cmd[0]))
+					editor.editor.gotoLine(cmd[0]);
+				else
+					return;
 
-		if (cmd[0]==='w')
-			this.editor.write();
-		else if (cmd[0]==='q')
-			this.editor.close();
-		else if (!isNaN(cmd[0]))
-			this.editor.editor.gotoLine(cmd[0]);
-		else
-			return;
-
-		return true;
+				return true;
+			}
 	}
 
+});
+
+ide.plugin('eval', {
+	
+	shortcut: 'shift-49',
+	
+	invoke: function()
+	{
+		this.bar.show();
+	},
+	
+	setup: function()
+	{
+		this.bar = new IDE.Bar.Evaluate();
+		document.body.appendChild(this.bar.element);
+	}
+	
+});
+
+ide.plugin('search', {
+	
+	shortcut: '191',
+	
+	invoke: function()
+	{
+		this.bar.show();
+	},
+	
+	setup: function()
+	{
+		this.bar = new IDE.Bar.Search();
+		document.body.appendChild(this.bar.element);
+	}
+	
 });
 
 ide.plugin('command', {
@@ -272,10 +401,10 @@ ide.plugin('command', {
 
 ide.plugin('error', {
 	
-	_error: function(msg, url, line)
+	_error: function(error, url, line)
 	{
-		j5ui.error(msg);
-		console.error(msg);
+		j5ui.error(error.message);
+		console.error(error);
 	},
 
 	setup: function()
@@ -284,3 +413,11 @@ ide.plugin('error', {
 	}
 
 });
+
+ide.plugin('welcome', {
+	
+	setup: function()
+	{
+		j5ui.alert('Welcome ' + ide.project.env.USER);
+	}
+})

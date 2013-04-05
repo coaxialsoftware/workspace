@@ -109,6 +109,12 @@ window.IDE = j5ui.Class.extend({
 	}),
 
 	File: j5ui.Observable.extend({
+		
+		init: function File(p)
+		{
+			j5ui.Observable.apply(this, [p]);
+			this.ext = this.filename.split('.')	.pop();
+		},
 
 		save: function()
 		{
@@ -122,6 +128,7 @@ window.IDE = j5ui.Class.extend({
 		on_write: function()
 		{
 			this.fire('write');
+			j5ui.info('File ' + this.filename + ' saved.');
 		}
 
 	}),
@@ -183,7 +190,7 @@ window.IDE = j5ui.Class.extend({
 		;
 			this.each(function(plug)
 			{
-				return result = plug.cmd(cmd);
+				return (result = plug.cmd(cmd));
 			});
 			
 			return result;
@@ -216,7 +223,7 @@ window.IDE = j5ui.Class.extend({
 		on_key: function(ev)
 		{
 		var
-			key = this.get_shortcut(ev);
+			key = this.get_shortcut(ev)
 		;
 			this.each(function(plug)
 			{

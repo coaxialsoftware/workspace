@@ -8,28 +8,36 @@ body {
 	top: 0; left:0; bottom: 0; right: 0;
 }
 
-#workspace > div { 
+#workspace > div, .ide-panel { 
 	border-radius: 8px;
 	min-height: 100px; border: 6px solid transparent;
 	font-size: 16px;
 
-	transition: height 0.3s;
+	transition: height 0.2s, width 0.2;
+}
+
+.ide-panel {
+	min-height: auto; background-color: rgba(44,62, 80, 0.8);
+	color: #eee; padding: 6px;
 }
 
 #project {
-	background-color: rgba(41, 128, 185, 0.6);
+	background-color: rgba(41, 128, 185, 0.8);
 }
 
-#command, #search { 
+#command, #search, #evaluate { 
 	display: none; position: absolute; 
 	left: 0; bottom: 0; right: 0; color: #eee;
 	height: 24px; border: 0; 
-	background-color: rgba(44, 62, 80, 0.6);
+	background-color: rgba(44, 62, 80, 0.7);
 	z-index: 10; outline: none; font-family: monospace;
 	border-radius: 0; padding: 1px 0;
 }
 #search { 
-	background-color: rgba(142, 68, 173, 0.6);
+	background-color: rgba(142, 68, 173, 0.7);
+}
+#evaluate {
+	background-color: rgba(22, 160, 133, 0.7);
 }
 
 #info { 
