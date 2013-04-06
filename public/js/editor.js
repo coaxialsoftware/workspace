@@ -105,6 +105,17 @@ window.IDE = j5ui.Class.extend({
 
 		element: '#workspace',
 		layout: j5ui.Layout.Smart,
+		
+		init: function Workspace(p)
+		{
+			j5ui.Container.apply(this, arguments);
+			this.on('remove_child', this.on_remove_child);
+		},
+		
+		on_remove_child: function()
+		{
+			this.children[0] && this.children[0].focus();
+		}
 
 	}),
 
