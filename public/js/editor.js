@@ -5,6 +5,9 @@ window.IDE = j5ui.Class.extend({
 	project: null,
 	workspace: null,
 	plugins: null,
+	
+	_info: null,
+	_infoTimeout: null,
 
 	set_editor: function(editor)
 	{
@@ -24,6 +27,27 @@ window.IDE = j5ui.Class.extend({
 		this.project = new IDE.Project();
 		this.project.on('load', this._on_project.bind(this));
 		this.workspace = new IDE.Workspace();
+		
+		this._info = j5ui.id('info');
+	},
+	
+	info: function(msg)
+	{
+	var
+		me = this
+	;
+	
+		this._info.innerHTML = msg;
+		this._info.style.display = 'block';
+
+		if (this._infoTimeout)
+			clearTimeout(this._infoTimeout);
+			
+		this._infoTimeout = setTimeout(function() {
+			me._info.style.display = 'none';
+		}, 1000)
+		
+		return this;
 	},
 
 	init: function IDE()
@@ -110,8 +134,16 @@ window.IDE = j5ui.Class.extend({
 		{
 			j5ui.Container.apply(this, arguments);
 			this.on('remove_child', this.on_remove_child);
+			this.on('add_child', this.on_add_child);
 		},
-		
+
+		on_add_child: function(c)
+		{
+			c.on('mousemove', function() {
+				ide.info(this.get_info());
+			});
+		},
+	
 		on_remove_child: function()
 		{
 			this.children[0] && this.children[0].focus();

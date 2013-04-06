@@ -102,6 +102,11 @@ IDE.Editor.Source = IDE.Editor.extend({
 	{
 		return this.editor.$vimModeHandler.getStatusText();
 	},
+	
+	get_info: function()
+	{
+		return this.file.filename;
+	},
 
 	set_mode: function()
 	{
