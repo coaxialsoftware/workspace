@@ -204,6 +204,7 @@ window.IDE = j5ui.Class.extend({
 		on_project: function(w)
 		{
 			j5ui.extend(this, w);
+			this.files_text = this.files.join("\n");
 			this.fire('load');
 		},
 

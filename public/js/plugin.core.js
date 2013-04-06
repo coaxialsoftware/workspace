@@ -53,7 +53,14 @@ IDE.Bar = j5ui.Widget.extend({
 				this.hide();
 			},
 		9: function() {
-			this.on_complete && this.on_complete();
+		var 
+			el = this.element,
+			i = el.value.lastIndexOf(' ', el.selectionStart)+1,
+			text = ''
+		;
+			text = el.value.substr(i, el.selectionStart-i);
+				
+			this.on_complete && this.on_complete(text, i, el.selectionStart);
 		},
 		219: function(ev) {
 			if (ev.ctrlKey)
@@ -86,13 +93,12 @@ IDE.Bar = j5ui.Widget.extend({
 			return;
 
 		if (fn)
-		{
 			fn.apply(this, [ ev ]);
-		} else if (
-			this.on_change && 
-			this.element.value!==this._value
-		) {
-			this.on_change(this.element.value);
+		
+		if (this.element.value!==this._value) 
+		{
+			this._lastSearch = null;
+			this.on_change && this.on_change(this.element.value);
 		} 
 
 		this._value = this.element.value;
@@ -139,6 +145,24 @@ IDE.Bar.Command = IDE.Bar.extend({
 	run: function()
 	{
 		ide.eval(this.element.value);
+	},
+	
+	on_complete: function(s, start, end)
+	{
+	var
+		val = this.element.value,
+		match
+	;
+		if (!this._lastSearch)
+		{
+			this._lastSearch = ide.project.files_text.match(new RegExp('^' + s + '[^/\n]*$', 'mg'));
+			this._lastSearchStart = start;
+			this._lastSearchIndex = 0;
+		} else if (this._lastSearchIndex===this._lastSearch.length)
+			this._lastSearchIndex = 0;
+		
+		match = this._lastSearch[this._lastSearchIndex++];
+		this._value = this.element.value = val.slice(0, start) + match + val.slice(end);
 	}
 
 });
@@ -161,8 +185,6 @@ IDE.Bar.Evaluate = IDE.Bar.extend({
 		if (response === undefined)
 			return;
 			
-		//el.innerHTML = this.encode(response);
-		//ide.workspace.add(new IDE.Panel({element: el}));
 		j5ui.info(response);
 	}
 	
@@ -174,7 +196,6 @@ IDE.Bar.Search = IDE.Bar.extend({
 
 	run: function()
 	{
-		
 	},
 
 	on_change: function(val)
