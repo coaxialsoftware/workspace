@@ -104,7 +104,7 @@ window.IDE = j5ui.Class.extend({
 	Workspace: j5ui.Container.extend({
 
 		element: '#workspace',
-		layout: j5ui.Layout.HBox,
+		layout: j5ui.Layout.Smart,
 
 	}),
 
