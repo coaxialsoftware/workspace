@@ -1,5 +1,5 @@
 
-IDE.Editor.Source = IDE.Editor.extend({
+ide.Editor.Source = ide.Editor.extend({
 		
 	file: null,
 	editor: null,
@@ -33,6 +33,28 @@ IDE.Editor.Source = IDE.Editor.extend({
 		Rakefile: 'ruby'
 	},
 
+	commands: {
+
+		q: function() 
+		{
+			this.close();
+		},
+
+		w: function()
+		{
+			this.write();
+		}
+
+	},
+
+	cmd: function(fn)
+	{
+		if (!isNaN(fn))
+			return function() { this.editor.gotoLine(fn); };
+
+		return this.commands[fn];
+	},
+
 	setup: function()
 	{
 	var
@@ -44,18 +66,26 @@ IDE.Editor.Source = IDE.Editor.extend({
 		editor.setKeyboardHandler('ace/keyboard/vim');
 		editor.setBehavioursEnabled(true);
 		editor.setDisplayIndentGuides(false);
+		
 		session.setUseSoftTabs(false);
+		session.setUseWrapMode(true);
 		session.setValue(this.file.content);
+		
+		session.on('changeAnnotation', this.on_annotation.bind(this));
 
 		editor.selection.clearSelection();
 		editor.on('focus', this.on_focus.bind(this));
 
 		this.set_mode();
-		this.on('keyup', this._on_keyup);
+		this.on('keyup', this.on_keyup);
 		j5ui.refer(this.focus.bind(this), 250);
 	},
+	
+	on_annotation: function(ev, session)
+	{
+	},
 
-	_on_keyup: function(ev)
+	on_keyup: function(ev)
 	{
 		if (this.get_state()==='insertMode')
 		{
@@ -66,7 +96,7 @@ IDE.Editor.Source = IDE.Editor.extend({
 	
 	on_focus: function()
 	{
-		IDE.Editor.prototype.on_focus.apply(this);
+		ide.Editor.prototype.on_focus.apply(this);
 		this.editor.resize();
 	},
 	
@@ -89,8 +119,16 @@ IDE.Editor.Source = IDE.Editor.extend({
 
 	write: function()
 	{
+	var
+		annotations = this.editor.session.getAnnotations()
+	;
+	
 		this.file.content = this.editor.getValue();
 		this.file.save();
+		
+		annotations.forEach(function(a) {
+			j5ui.alert((a.row+1) + ': ' + a.text);
+		});
 	},
 	
 	get_state: function()
@@ -122,14 +160,19 @@ IDE.Editor.Source = IDE.Editor.extend({
 
 });
 
-ide.plugin('editor.source', {
+ide.plugins.register('editor.source', ide.Plugin.extend({
 	
 	editors: [],
+	
+	start: function()
+	{
+		
+	},
 	
 	edit: function(file)
 	{
 	var
-		editor = new IDE.Editor.Source({ file: file })
+		editor = new ide.Editor.Source({ file: file })
 	;
 		this.editors.push(editor);
 		editor.on('close', this.on_close.bind(this));
@@ -139,30 +182,6 @@ ide.plugin('editor.source', {
 	on_close: function(editor)
 	{
 		this.editors.splice(this.editors.indexOf(editor), 1);
-	},
-
-	cmd: function(cmd)
-	{
-	var
-		l = this.editors.length,
-		editor
-	;
-		while (l--)
-			if (ide.editor===this.editors[l])
-			{
-				editor = this.editors[l];
-				
-				if (cmd[0]==='w')
-					editor.write();
-				else if (cmd[0]==='q')
-					editor.close();
-				else if (!isNaN(cmd[0]))
-					editor.editor.gotoLine(cmd[0]);
-				else
-					return;
-
-				return true;
-			}
 	}
 
-});
+}));

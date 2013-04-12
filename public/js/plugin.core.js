@@ -1,30 +1,19 @@
 
-IDE.Editor = j5ui.Widget.extend({
+ide.Editor = j5ui.Widget.extend({
 
 	init: function Editor(p)
 	{
 		j5ui.Widget.apply(this, arguments);
-
 	},
 
-	on_focus: function()
-	{
+	on_focus: function() 
+	{ 
 		ide.set_editor(this);
-	},
-
-	get_status: function()
-	{
 	}
-		
-});
-
-IDE.Panel = j5ui.Widget.extend({
-	
-	css: 'ide-panel'
 	
 });
 
-IDE.Bar = j5ui.Widget.extend({
+ide.Bar = j5ui.Widget.extend({
 
 	/**
 	 * When a key is pressed and its found here the 
@@ -39,6 +28,11 @@ IDE.Bar = j5ui.Widget.extend({
 	 * Previous Value
 	 */
 	_value: '',
+	
+	invoke: function()
+	{
+		this.show();
+	},
 
 	init: function Bar()
 	{
@@ -134,17 +128,68 @@ IDE.Bar = j5ui.Widget.extend({
 		if (ide.editor)
 			ide.editor.focus();
 		return false;
+	},
+	
+	start: function()
+	{
+		document.body.appendChild(this.element);
 	}
 
 });
 
-IDE.Bar.Command = IDE.Bar.extend({
+ide.Bar.Command = ide.Bar.extend({
 
 	element: j5ui.html('<input id="command" />'),
+	shortcut: "shift-186",
+
+	scan: function(text)
+	{
+		return text.split(' ');
+	},
+
+	parse: function(text)
+	{
+	var
+		cmd = this.scan(text),
+		fn = ide.commands[cmd[0]],
+		scope = ide
+	;
+		if (fn)
+		{
+			if (typeof(fn)==='string')
+				fn = ide.commands[fn];
+		} else if (ide.editor)
+		{
+			fn = ide.editor.cmd(cmd[0]);
+			scope = ide.editor;
+		}
+	
+		cmd.shift();
+
+		return { 
+			fn: fn,
+			args: cmd,
+			scope: scope
+		};
+	},
 	
 	run: function()
 	{
-		ide.eval(this.element.value);
+	var
+		val = this.element.value,
+		cmd
+	;
+		if (val==='')
+			return;
+
+		cmd = this.parse(val);
+
+		if (!cmd.fn)
+			j5ui.alert('Unknown Command: ' + val);
+		else
+			cmd.fn.apply(cmd.scope, cmd.args);
+
+		console.log(val);
 	},
 	
 	on_complete: function(s, start, end)
@@ -160,6 +205,9 @@ IDE.Bar.Command = IDE.Bar.extend({
 			this._lastSearchIndex = 0;
 		} else if (this._lastSearchIndex===this._lastSearch.length)
 			this._lastSearchIndex = 0;
+
+		if (!this._lastSearch)
+			return;
 		
 		match = this._lastSearch[this._lastSearchIndex++];
 		this._value = this.element.value = val.slice(0, start) + match + val.slice(end);
@@ -167,8 +215,9 @@ IDE.Bar.Command = IDE.Bar.extend({
 
 });
 
-IDE.Bar.Evaluate = IDE.Bar.extend({
+ide.Bar.Evaluate = ide.Bar.extend({
 	
+	shortcut: 'shift-49',
 	element: j5ui.html('<input id="evaluate" />'),
 	
 	encode: function(response)
@@ -188,14 +237,16 @@ IDE.Bar.Evaluate = IDE.Bar.extend({
 		j5ui.info(response);
 	}
 	
-})
+});
 
-IDE.Bar.Search = IDE.Bar.extend({
+ide.Bar.Search = ide.Bar.extend({
 	
 	element: j5ui.html('<input id="search" />'),
+	shortcut: '191',
 
 	run: function()
 	{
+		//ide.editor.editor.findAll(new RegExp(this.element.value));
 	},
 
 	on_change: function(val)
@@ -206,59 +257,11 @@ IDE.Bar.Search = IDE.Bar.extend({
 
 });
 
+ide.plugins.register('evaluate', ide.Bar.Evaluate);
+ide.plugins.register('search', ide.Bar.Search);	
+ide.plugins.register('command', ide.Bar.Command);
 
-ide.plugin('eval', {
-	
-	shortcut: 'shift-49',
-	
-	invoke: function()
-	{
-		this.bar.show();
-	},
-	
-	setup: function()
-	{
-		this.bar = new IDE.Bar.Evaluate();
-		document.body.appendChild(this.bar.element);
-	}
-	
-});
-
-ide.plugin('search', {
-	
-	shortcut: '191',
-	
-	invoke: function()
-	{
-		this.bar.show();
-	},
-	
-	setup: function()
-	{
-		this.bar = new IDE.Bar.Search();
-		document.body.appendChild(this.bar.element);
-	}
-	
-});
-
-ide.plugin('command', {
-	
-	shortcut: "shift-186",
-
-	invoke: function()
-	{
-		this.bar.show();
-	},
-	
-	setup: function()
-	{
-		this.bar = new IDE.Bar.Command();
-		document.body.appendChild(this.bar.element);
-	}
-
-});
-
-ide.plugin('error', {
+ide.plugins.register('error', ide.Plugin.extend({
 	
 	_error: function(error, url, line)
 	{
@@ -266,9 +269,9 @@ ide.plugin('error', {
 		console.error(error);
 	},
 
-	setup: function()
+	start: function()
 	{
 		window.addEventListener('error', this._error.bind(this));
 	}
 
-});
+}));

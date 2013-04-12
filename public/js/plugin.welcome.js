@@ -1,8 +1,9 @@
 
-ide.plugin('welcome', {
+ide.plugins.register('welcome', ide.Plugin.extend({
 	
-	setup: function()
+	start: function()
 	{
 		j5ui.alert('Welcome ' + ide.project.env.USER);
 	}
-});
+
+}));

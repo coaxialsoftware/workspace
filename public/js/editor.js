@@ -1,128 +1,95 @@
+/**
+ * @license
+ * 
+ */
+ 
+(function(window) {
 
-
-window.IDE = j5ui.Class.extend({
+var ide = window.ide = {
 
 	project: null,
 	workspace: null,
 	plugins: null,
-	
-	_info: null,
-	_infoTimeout: null,
+	info: null,
+	hash: null,
 
+	open: function(filename)
+	{
+	var
+		cb = function(f) { ide.plugins.edit(f); }
+	;
+		ide.project.open(filename, cb);
+	},
+	
 	set_editor: function(editor)
 	{
 		this.editor = editor;
-		document.title = this.project.name + ' - ' + editor.file.filename;
+		window.title = editor.get_info();
 	},
 
-	_on_project: function()
-	{
-		this.plugins.setup();
+	Hash: j5ui.Class.extend({
 
-		j5ui.id('mask').style.display = 'none';
-	},
-
-	_start: function()
-	{
-		this.project = new IDE.Project();
-		this.project.on('load', this._on_project.bind(this));
-		this.workspace = new IDE.Workspace();
-		
-		this._info = j5ui.id('info');
-	},
-	
-	info: function(msg)
-	{
-	var
-		me = this
-	;
-	
-		this._info.innerHTML = msg;
-		this._info.style.display = 'block';
-
-		if (this._infoTimeout)
-			clearTimeout(this._infoTimeout);
-			
-		this._infoTimeout = setTimeout(function() {
-			me._info.style.display = 'none';
-		}, 1000)
-		
-		return this;
-	},
-
-	init: function IDE()
-	{
-		this.plugins = new IDE.PluginManager(this);
-		window.addEventListener('load', this._start.bind(this));
-	},
-
-	/**
-	 * Registers plugin
-	 */
-	plugin: function(name, klass)
-	{
-		this.plugins.register(name, IDE.Plugin.extend(klass));
-	},
-
-	eval: function(val)
-	{
-	var
-		parse = val.split(/\s/),
-		cmd = this[parse[0]]
-	;
-		if (typeof cmd === 'function')
+		decode: function()
 		{
-			cmd.apply(this, parse);
-		}
-		else if (this.plugins.cmd(parse))
+		var
+			h = window.location.hash.substr(1)
+		;
+			return (h && JSON.parse(h)) || {};
+		},
+
+		encode: function(obj)
 		{
+			return JSON.stringify(obj);
+		},
+
+		init: function Hash()
+		{
+		var
+			hash = this.decode()
+		;
+			if (hash.file)
+				ide.open(hash.file);
 		}
-		else
-			j5ui.alert('Unknown Command: ' + val);
 
-		console.log(val);
-	},
+	}),
 
-	edit: function()
-	{
-		for (i=1; i<arguments.length; i++)
-			this.project.open(arguments[i], this.edit_file.bind(this));
-	},
-
-	edit_file: function(file)
-	{
-		this.plugins.edit(file);
-	},
-
-	tabe: function()
-	{
-		this.edit.apply(this, arguments);
-	}
-
-}, {
-	
 	Plugin: j5ui.Class.extend({
 	
 		shortcut: null,
 		invoke: null,
 		
-		init: function Plugin(ide)
-		{
-		},
-
 		edit: function(file)
 		{
 			return false;
 		},
 
-		setup: function()
-		{
-		},
+		start: function() { }
 
-		cmd: function(command)
+	}),
+
+	Info: j5ui.Widget.extend({
+		
+		_infoTimeout: null,
+
+		element: '#info',
+
+		show: function(msg)
 		{
+		var
+			me = this
+		;
+			this.element.innerHTML = msg;
+			this.element.style.display = 'block';
+
+			if (this._infoTimeout)
+				clearTimeout(this._infoTimeout);
+				
+			this._infoTimeout = setTimeout(function() {
+				me.hide();
+			}, 1000);
+			
+			return this;
 		}
-
 	}),
 	
 	Workspace: j5ui.Container.extend({
@@ -139,14 +106,24 @@ window.IDE = j5ui.Class.extend({
 
 		on_add_child: function(c)
 		{
-			c.on('mousemove', function() {
-				ide.info(this.get_info());
-			});
+			c.on('mousemove', this.on_editor_mouseover);
+			c.on('focus', this.on_editor_focus, this);
+		},
+
+		on_editor_mouseover: function()
+		{
+			ide.info.show(this.get_info());
 		},
 	
 		on_remove_child: function()
 		{
 			this.children[0] && this.children[0].focus();
+		},
+
+		on_editor_focus: function(editor)
+		{
+			this.editor = editor;
+			document.title = this.project.name + ' - ' + editor.file.filename;
 		}
 
 	}),
@@ -195,7 +172,7 @@ window.IDE = j5ui.Class.extend({
 		{
 			if (file.success)
 			{
-				callback(new IDE.File(file));	
+				callback(new ide.File(file));	
 			}
 			else
 				throw new Error("Could not open file: " + file.filename);
@@ -219,25 +196,10 @@ window.IDE = j5ui.Class.extend({
 	PluginManager: j5ui.Class.extend({
 	
 		_plugins: null,
-		ide: null,
 	
-		init: function PluginManager(ide)
+		init: function PluginManager()
 		{
-			this.ide = ide;
 			this._plugins = {};
-		},
-
-		cmd: function(cmd)
-		{
-		var
-			result
-		;
-			this.each(function(plug)
-			{
-				return (result = plug.cmd(cmd));
-			});
-			
-			return result;
 		},
 
 		each: function(fn)
@@ -252,7 +214,7 @@ window.IDE = j5ui.Class.extend({
 		edit: function(file)
 		{
 			this.each(function(plug) {
-				plug.edit(file);
+				plug.edit && plug.edit(file);
 			});
 		},
 
@@ -271,25 +233,45 @@ window.IDE = j5ui.Class.extend({
 		;
 			this.each(function(plug)
 			{
-				if (plug.shortcut===key)
+				if (plug.shortcut===key && plug.invoke)
 					plug.invoke();
 			});
 		},
 		
-		setup: function()
+		start: function()
 		{
 			window.addEventListener('keyup', this.on_key.bind(this));
 			this.each(function(plug) {
-				plug.setup();
+				plug.start && plug.start();
 			});
 		},
 		
 		register: function(name, klass)
 		{
-			this._plugins[name] = new klass(this.ide);
+			this._plugins[name] = new klass();
 		}
 
 	})
-});
+},
+	_start= function()
+	{
+		ide.workspace = new ide.Workspace();
+		ide.info = new ide.Info();
+		ide._info = j5ui.id('info');
+	},
+	
+	_on_project= function()
+	{
+		ide.plugins.start();
+		j5ui.id('mask').style.display = 'none';
+	}
+;
 
-var ide = new IDE();
+	ide.plugins = new ide.PluginManager();
+	ide.project = new ide.Project();
+	ide.hash = new ide.Hash();
+	ide.project.on('load', _on_project);
+	
+	window.addEventListener('load', _start);
+
+})(this);
