@@ -4,6 +4,7 @@ ide.Editor.Source = ide.Editor.extend({
 	file: null,
 	editor: null,
 	session: null,
+	mode: null,
 	
 	modeByMime: { },
 	modeByExt: {
@@ -117,12 +118,19 @@ ide.Editor.Source = ide.Editor.extend({
 		this.fire('close', [ this ]);
 	},
 
+	remove_trailing: function(value)
+	{
+		this.editor.replaceAll('', { needle: /[\t ]+$/ });
+	},
+
 	write: function()
 	{
 	var
 		annotations = this.editor.session.getAnnotations()
 	;
-	
+		if (this.mode==='javascript')
+			this.remove_trailing();
+
 		this.file.content = this.editor.getValue();
 		this.file.save();
 		
@@ -149,7 +157,7 @@ ide.Editor.Source = ide.Editor.extend({
 	set_mode: function()
 	{
 	var
-		mode = this.modeByMime[this.file.mime] ||
+		mode = this.mode = this.modeByMime[this.file.mime] ||
 			this.modeByExt[this.file.ext] ||
 			this.modeByFile[this.file.filename] ||
 			this.file.mime.split('/')[1]

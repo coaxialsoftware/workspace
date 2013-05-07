@@ -24,7 +24,7 @@ var ide = window.ide = {
 	set_editor: function(editor)
 	{
 		this.editor = editor;
-		window.title = editor.get_info();
+		window.document.title = editor.get_info();
 	},
 
 	Hash: j5ui.Class.extend({
