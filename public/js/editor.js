@@ -47,8 +47,7 @@ var ide = window.ide = {
 		var
 			hash = this.decode()
 		;
-			if (hash.file)
-				ide.open(hash.file);
+			this.data = hash;
 		}
 
 	}),
@@ -122,8 +121,7 @@ var ide = window.ide = {
 
 		on_editor_focus: function(editor)
 		{
-			this.editor = editor;
-			document.title = this.project.name + ' - ' + editor.file.filename;
+			ide.set_editor(editor);
 		}
 
 	}),
@@ -181,11 +179,12 @@ var ide = window.ide = {
 		on_project: function(w)
 		{
 			j5ui.extend(this, w);
+
 			this.files_text = this.files.join("\n");
 			this.fire('load');
 		},
 
-		init: function Project()
+		init: function Project(name)
 		{
 			j5ui.Observable.apply(this);
 			j5ui.get('/project', this.on_project.bind(this));
@@ -255,9 +254,19 @@ var ide = window.ide = {
 },
 	_start= function()
 	{
+	var
+		hash = ide.hash.data
+	;
 		ide.workspace = new ide.Workspace();
 		ide.info = new ide.Info();
-		ide._info = j5ui.id('info');
+
+		document.title = 'ide.js';
+
+		if (hash.file)
+			ide.open(hash.file);
+
+		ide.project = new ide.Project(hash.project);
+		ide.project.on('load', _on_project);
 	},
 	
 	_on_project= function()
@@ -268,9 +277,7 @@ var ide = window.ide = {
 ;
 
 	ide.plugins = new ide.PluginManager();
-	ide.project = new ide.Project();
 	ide.hash = new ide.Hash();
-	ide.project.on('load', _on_project);
 	
 	window.addEventListener('load', _start);
 
