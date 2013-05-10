@@ -132,6 +132,14 @@ var ide = window.ide = {
 	}),
 
 	File: j5ui.Observable.extend({
+
+		/**
+		 * File contents
+		 */
+		content: null,
+		filename: null,
+		mime: null,
+		stat: null,
 		
 		init: function File(p)
 		{
@@ -141,8 +149,12 @@ var ide = window.ide = {
 
 		save: function()
 		{
+		var
+			mtime = (new Date(this.stat.mtime)).getTime()
+		;
 			j5ui.post(
-				'/file?n=' + encodeURIComponent(this.filename), 
+				'/file?n=' + encodeURIComponent(this.filename) + 
+				'&t=' + encodeURIComponent(mtime),
 				{ content: this.content }, 
 				this.on_write.bind(this)
 			);
@@ -152,6 +164,7 @@ var ide = window.ide = {
 		{
 			if (result.success)
 			{
+				this.stat = result.stat;
 				this.fire('write');
 				j5ui.info('File ' + this.filename + ' saved.');
 			} else
