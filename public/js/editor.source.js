@@ -6,7 +6,9 @@ ide.Editor.Source = ide.Editor.extend({
 	session: null,
 	mode: null,
 	
-	modeByMime: { },
+	modeByMime: {
+		"text/plain": "text"
+	},
 	modeByExt: {
 		ch: 'csharp',
 		c: 'c_cpp',
@@ -28,7 +30,8 @@ ide.Editor.Source = ide.Editor.extend({
 		rb: 'ruby',
 		sh: 'sh',
 		bash: 'sh',
-		rhtml: 'rhtml'
+		rhtml: 'rhtml',
+		txt: 'text'
 	},
 	modeByFile: { 
 		Rakefile: 'ruby'

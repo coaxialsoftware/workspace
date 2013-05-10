@@ -39,7 +39,12 @@ var ide = window.ide = {
 
 		encode: function(obj)
 		{
-			return JSON.stringify(obj);
+		var
+			hash = j5ui.extend({}, this.data)
+		;
+			j5ui.extend(hash, obj);
+
+			return JSON.stringify(hash);
 		},
 
 		init: function Hash()
@@ -131,7 +136,7 @@ var ide = window.ide = {
 		init: function File(p)
 		{
 			j5ui.Observable.apply(this, [p]);
-			this.ext = this.filename.split('.')	.pop();
+			this.ext = this.filename.split('.').pop();
 		},
 
 		save: function()
@@ -143,10 +148,14 @@ var ide = window.ide = {
 			);
 		},
 
-		on_write: function()
+		on_write: function(result)
 		{
-			this.fire('write');
-			j5ui.info('File ' + this.filename + ' saved.');
+			if (result.success)
+			{
+				this.fire('write');
+				j5ui.info('File ' + this.filename + ' saved.');
+			} else
+				j5ui.error(result.error);
 		}
 
 	}),
@@ -157,7 +166,7 @@ var ide = window.ide = {
 		{
 		var
 			me = this,
-			url = '/file?n=' + encodeURIComponent(filename),
+			url = '/file?n=' + encodeURIComponent(this.path + '/' + filename),
 			fn = function(file)
 			{
 				me.on_file(file, callback);
@@ -187,7 +196,7 @@ var ide = window.ide = {
 		init: function Project(name)
 		{
 			j5ui.Observable.apply(this);
-			j5ui.get('/project', this.on_project.bind(this));
+			j5ui.get('/project' + (name ? '?n=' + name : ''), this.on_project.bind(this));
 		}
 
 	}),
@@ -260,11 +269,6 @@ var ide = window.ide = {
 		ide.workspace = new ide.Workspace();
 		ide.info = new ide.Info();
 
-		document.title = 'ide.js';
-
-		if (hash.file)
-			ide.open(hash.file);
-
 		ide.project = new ide.Project(hash.project);
 		ide.project.on('load', _on_project);
 	},
@@ -273,6 +277,9 @@ var ide = window.ide = {
 	{
 		ide.plugins.start();
 		j5ui.id('mask').style.display = 'none';
+
+		if (ide.hash.data.file)
+			ide.open(ide.hash.data.file);
 	}
 ;
 
