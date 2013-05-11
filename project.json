@@ -6,6 +6,7 @@
 },
 
 "port": 9001,
-"ignore": [ ".git", "node_modules" ]
+"ignore": [ ".git", "node_modules" ],
+"plugins": [ "js/plugin.tern.js" ]
 
 }

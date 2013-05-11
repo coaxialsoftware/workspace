@@ -12,6 +12,7 @@ var ide = window.ide = {
 	plugins: null,
 	info: null,
 	hash: null,
+	loader: null,
 
 	open: function(filename)
 	{
@@ -164,7 +165,8 @@ var ide = window.ide = {
 		{
 			if (result.success)
 			{
-				this.stat = result.stat;
+				j5ui.extend(this, result);
+
 				this.fire('write');
 				j5ui.info('File ' + this.filename + ' saved.');
 			} else
@@ -259,12 +261,28 @@ var ide = window.ide = {
 			});
 		},
 
-		start: function()
+		/**
+		 * Loads plugins from project config
+		 */
+		load_plugins: function()
 		{
 			window.addEventListener('keyup', this.on_key.bind(this));
 			this.each(function(plug) {
 				plug.start && plug.start();
 			});
+
+		},
+
+		start: function()
+		{
+		var
+			plugins = ide.project.plugins,
+			i
+		;
+			for (i in plugins)
+				ide.loader.script(plugins[i]);
+
+			ide.loader.ready(this.load_plugins.bind(this));
 		},
 
 		register: function(name, klass)
@@ -298,6 +316,7 @@ var ide = window.ide = {
 
 	ide.plugins = new ide.PluginManager();
 	ide.hash = new ide.Hash();
+	ide.loader = new Loader();
 
 	window.addEventListener('load', _start);
 
