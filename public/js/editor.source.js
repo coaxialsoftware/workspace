@@ -75,20 +75,26 @@ ide.Editor.Source = ide.Editor.extend({
 		session.setUseWrapMode(true);
 		session.setValue(this.file.content);
 		
-		session.on('changeAnnotation', this.on_annotation.bind(this));
+		//session.on('changeAnnotation', this.on_annotation.bind(this));
 
 		editor.selection.clearSelection();
 		editor.on('focus', this.on_focus.bind(this));
+		editor.on('changeSelection', this.on_selection.bind(this));
 
 		this.set_mode();
 		this.on('keyup', this.on_keyup);
 		j5ui.refer(this.focus.bind(this), 250);
 	},
-	
-	on_annotation: function(ev, session)
-	{
-	},
 
+	on_selection: function(ev, editor)
+	{
+	var
+		ann = this.get_annotation(editor.getCursorPosition().row)
+	;
+		if (ann)
+			ide.info.show(ann.text.join('<br/>'));
+	},
+	
 	on_keyup: function(ev)
 	{
 		if (this.get_state()==='insertMode')
@@ -103,10 +109,15 @@ ide.Editor.Source = ide.Editor.extend({
 		ide.Editor.prototype.on_focus.apply(this);
 		this.editor.resize();
 	},
+
+	get_annotation: function(row)
+	{
+		return this.editor.renderer.$gutterLayer.$annotations[row];
+	},
 	
 	find: function(n)
 	{
-		this.editor.find(n);
+		this.editor.find({ needle: n });
 	},
 
 	focus: function()

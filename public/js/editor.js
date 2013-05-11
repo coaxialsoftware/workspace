@@ -1,8 +1,8 @@
 /**
  * @license
- * 
+ *
  */
- 
+
 (function(window) {
 
 var ide = window.ide = {
@@ -20,7 +20,7 @@ var ide = window.ide = {
 	;
 		ide.project.open(filename, cb);
 	},
-	
+
 	set_editor: function(editor)
 	{
 		this.editor = editor;
@@ -58,10 +58,10 @@ var ide = window.ide = {
 	}),
 
 	Plugin: j5ui.Class.extend({
-	
+
 		shortcut: null,
 		invoke: null,
-		
+
 		edit: function(file)
 		{
 			return false;
@@ -72,7 +72,7 @@ var ide = window.ide = {
 	}),
 
 	Info: j5ui.Widget.extend({
-		
+
 		_infoTimeout: null,
 
 		element: '#info',
@@ -87,20 +87,20 @@ var ide = window.ide = {
 
 			if (this._infoTimeout)
 				clearTimeout(this._infoTimeout);
-				
+
 			this._infoTimeout = setTimeout(function() {
 				me.hide();
 			}, 1000);
-			
+
 			return this;
 		}
 	}),
-	
+
 	Workspace: j5ui.Container.extend({
 
 		element: '#workspace',
 		layout: j5ui.Layout.Smart,
-		
+
 		init: function Workspace(p)
 		{
 			j5ui.Container.apply(this, arguments);
@@ -118,7 +118,7 @@ var ide = window.ide = {
 		{
 			ide.info.show(this.get_info());
 		},
-	
+
 		on_remove_child: function()
 		{
 			this.children[0] && this.children[0].focus();
@@ -140,7 +140,7 @@ var ide = window.ide = {
 		filename: null,
 		mime: null,
 		stat: null,
-		
+
 		init: function File(p)
 		{
 			j5ui.Observable.apply(this, [p]);
@@ -150,12 +150,12 @@ var ide = window.ide = {
 		save: function()
 		{
 		var
-			mtime = (new Date(this.stat.mtime)).getTime()
+			mtime = this.new ? false : (new Date(this.stat.mtime)).getTime()
 		;
 			j5ui.post(
-				'/file?n=' + encodeURIComponent(this.filename) + 
-				'&t=' + encodeURIComponent(mtime),
-				{ content: this.content }, 
+				'/file?n=' + encodeURIComponent(this.filename) +
+				(mtime ? '&t=' + encodeURIComponent(mtime) : ''),
+				{ content: this.content },
 				this.on_write.bind(this)
 			);
 		},
@@ -185,14 +185,14 @@ var ide = window.ide = {
 				me.on_file(file, callback);
 			}
 		;
-			j5ui.get(url, fn); 
+			j5ui.get(url, fn);
 		},
 
 		on_file: function(file, callback)
 		{
 			if (file.success)
 			{
-				callback(new ide.File(file));	
+				callback(new ide.File(file));
 			}
 			else
 				throw new Error("Could not open file: " + file.filename);
@@ -215,9 +215,9 @@ var ide = window.ide = {
 	}),
 
 	PluginManager: j5ui.Class.extend({
-	
+
 		_plugins: null,
-	
+
 		init: function PluginManager()
 		{
 			this._plugins = {};
@@ -231,7 +231,7 @@ var ide = window.ide = {
 					break;
 			}
 		},
-	
+
 		edit: function(file)
 		{
 			this.each(function(plug) {
@@ -242,11 +242,11 @@ var ide = window.ide = {
 		get_shortcut: function(ev)
 		{
 			return (ev.shiftKey ? 'shift-' : '') +
-				(ev.ctrlKey ? 'ctrl-' : '') + 
-				(ev.altKey ? 'alt-' : '') + 
+				(ev.ctrlKey ? 'ctrl-' : '') +
+				(ev.altKey ? 'alt-' : '') +
 				ev.keyCode;
 		},
-		
+
 		on_key: function(ev)
 		{
 		var
@@ -258,7 +258,7 @@ var ide = window.ide = {
 					plug.invoke();
 			});
 		},
-		
+
 		start: function()
 		{
 			window.addEventListener('keyup', this.on_key.bind(this));
@@ -266,7 +266,7 @@ var ide = window.ide = {
 				plug.start && plug.start();
 			});
 		},
-		
+
 		register: function(name, klass)
 		{
 			this._plugins[name] = new klass();
@@ -285,7 +285,7 @@ var ide = window.ide = {
 		ide.project = new ide.Project(hash.project);
 		ide.project.on('load', _on_project);
 	},
-	
+
 	_on_project= function()
 	{
 		ide.plugins.start();
@@ -298,7 +298,7 @@ var ide = window.ide = {
 
 	ide.plugins = new ide.PluginManager();
 	ide.hash = new ide.Hash();
-	
+
 	window.addEventListener('load', _start);
 
 })(this);
