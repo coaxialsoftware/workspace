@@ -91,7 +91,7 @@ window.Loader = j5ui.Class.extend(/** @scope Loader.prototype */{
 		return result;
 	},
 
-	json: function(src)
+	data: function(src, parse)
 	{
 	var
 		me = this,
@@ -109,7 +109,9 @@ window.Loader = j5ui.Class.extend(/** @scope Loader.prototype */{
 				{
 					result.ready = true;
 					result.raw = xhr.responseText;
-					result.json = JSON.parse(result.raw);
+
+					if (parse)
+						parse(result);
 
 					if (me.on_source)
 						me.on_source(xhr);
@@ -121,6 +123,13 @@ window.Loader = j5ui.Class.extend(/** @scope Loader.prototype */{
 		}
 
 		return result;
+	},
+
+	json: function(src)
+	{
+		return this.data(src, function(result) {
+			result.json = JSON.parse(result.raw);
+		});
 	},
 
 	script: function(src)

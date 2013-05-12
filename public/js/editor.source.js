@@ -1,11 +1,11 @@
 
 ide.Editor.Source = ide.Editor.extend({
-		
+
 	file: null,
 	editor: null,
 	session: null,
 	mode: null,
-	
+
 	modeByMime: {
 		"text/plain": "text"
 	},
@@ -33,13 +33,13 @@ ide.Editor.Source = ide.Editor.extend({
 		rhtml: 'rhtml',
 		txt: 'text'
 	},
-	modeByFile: { 
+	modeByFile: {
 		Rakefile: 'ruby'
 	},
 
 	commands: {
 
-		q: function() 
+		q: function()
 		{
 			this.close();
 		},
@@ -59,6 +59,16 @@ ide.Editor.Source = ide.Editor.extend({
 		return this.commands[fn];
 	},
 
+	get_value: function()
+	{
+		return this.editor.getValue();
+	},
+
+	get_position: function()
+	{
+		return this.editor.getCursorPosition();
+	},
+
 	setup: function()
 	{
 	var
@@ -70,11 +80,11 @@ ide.Editor.Source = ide.Editor.extend({
 		editor.setKeyboardHandler('ace/keyboard/vim');
 		editor.setBehavioursEnabled(true);
 		editor.setDisplayIndentGuides(false);
-		
+
 		session.setUseSoftTabs(false);
 		session.setUseWrapMode(true);
 		session.setValue(this.file.content);
-		
+
 		//session.on('changeAnnotation', this.on_annotation.bind(this));
 
 		editor.selection.clearSelection();
@@ -94,7 +104,7 @@ ide.Editor.Source = ide.Editor.extend({
 		if (ann)
 			ide.info.show(ann.text.join('<br/>'));
 	},
-	
+
 	on_keyup: function(ev)
 	{
 		if (this.get_state()==='insertMode')
@@ -103,7 +113,7 @@ ide.Editor.Source = ide.Editor.extend({
 			return false;
 		}
 	},
-	
+
 	on_focus: function()
 	{
 		ide.Editor.prototype.on_focus.apply(this);
@@ -114,7 +124,7 @@ ide.Editor.Source = ide.Editor.extend({
 	{
 		return this.editor.renderer.$gutterLayer.$annotations[row];
 	},
-	
+
 	find: function(n)
 	{
 		this.editor.find({ needle: n });
@@ -147,12 +157,12 @@ ide.Editor.Source = ide.Editor.extend({
 
 		this.file.content = this.editor.getValue();
 		this.file.save();
-		
+
 		annotations.forEach(function(a) {
 			j5ui.alert((a.row+1) + ': ' + a.text);
 		});
 	},
-	
+
 	get_state: function()
 	{
 		return this.editor.keyBinding.$data.state;
@@ -162,7 +172,7 @@ ide.Editor.Source = ide.Editor.extend({
 	{
 		return this.editor.$vimModeHandler.getStatusText();
 	},
-	
+
 	get_info: function()
 	{
 		return this.file.filename;
@@ -183,14 +193,14 @@ ide.Editor.Source = ide.Editor.extend({
 });
 
 ide.plugins.register('editor.source', ide.Plugin.extend({
-	
+
 	editors: [],
-	
+
 	start: function()
 	{
-		
+
 	},
-	
+
 	edit: function(file)
 	{
 	var

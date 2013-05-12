@@ -165,6 +165,7 @@ var ide = window.ide = {
 		{
 			if (result.success)
 			{
+				delete result.success;
 				j5ui.extend(this, result);
 
 				this.fire('write');
