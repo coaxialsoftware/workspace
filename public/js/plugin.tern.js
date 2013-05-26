@@ -66,14 +66,7 @@ ide.plugins.register('tern', ide.Plugin.extend({
 	;
 		this.files = {};
 
-		l.script("tern/node_modules/acorn/acorn.js");
-		l.script("tern/node_modules/acorn/acorn_loose.js");
-		l.script("tern/node_modules/acorn/util/walk.js");
-
-		l.script('tern/lib/tern.js');
-		l.script('tern/lib/def.js');
-		l.script('tern/lib/jsdoc.js');
-		l.script('tern/lib/infer.js');
+		l.script('js/tern.js');
 
 		this.load_files(config.files);
 
