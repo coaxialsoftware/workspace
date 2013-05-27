@@ -2,18 +2,35 @@
 (function() {
 
 var
-	QuickViewPlugin = ide.Plugin.extend({
+	Viewer = ide.Viewer = ide.Plugin.extend({
 
+		quickview: null,
 		mime: null,
 		token_type: null,
 		test: null,
 
-		start: function()
+		init: function()
 		{
 			this.quickview = ide.plugins._plugins.quickview;
 			this.quickview.register(
 				this.mime, this.token_type, this
 			);
+		}
+
+	}),
+
+	CSSViewer = Viewer.extend({
+
+		mime: 'text/css',
+		token_type: 'constant.numeric',
+
+		test: function(token)
+		{
+			if (/#[a-fA-F0-9]+$/.test(token.value))
+			{
+				this.quickview.color(token.value);
+				return true;
+			}
 		}
 
 	})
@@ -40,7 +57,6 @@ ide.plugins.register('quickview', ide.Plugin.extend({
 			for (i in viewers)
 				if (viewers[i].test(token))
 					return;
-		console.log(token);
 	},
 
 	register: function(mime, type, plugin)
@@ -55,28 +71,15 @@ ide.plugins.register('quickview', ide.Plugin.extend({
 	start: function()
 	{
 		ide.on('tokenchange', this.on_token.bind(this));
+
+		// Load default viewers
+		new CSSViewer();
 	},
 
 	color: function(color)
 	{
 		j5ui.info('<div style="width: 100%; height: 32px; background-color: ' +
 			color+ ';"></div>');
-	}
-
-}));
-
-ide.plugins.register('quickview.css', QuickViewPlugin.extend({
-
-	mime: 'text/css',
-	token_type: 'constant.numeric',
-
-	test: function(token)
-	{
-		if (/#[a-fA-F0-9]+$/.test(token.value))
-		{
-			this.quickview.color(token.value);
-			return true;
-		}
 	}
 
 }));
