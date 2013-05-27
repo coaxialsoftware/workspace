@@ -5,7 +5,7 @@
 
 (function(window) {
 
-var ide = window.ide = {
+var ide = window.ide = new j5ui.Observable({
 
 	project: null,
 	workspace: null,
@@ -292,7 +292,7 @@ var ide = window.ide = {
 		}
 
 	})
-},
+}),
 	_start= function()
 	{
 	var

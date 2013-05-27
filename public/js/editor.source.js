@@ -6,6 +6,9 @@ ide.Editor.Source = ide.Editor.extend({
 	session: null,
 	mode: null,
 
+	// Stores previous token. Used by tokenchange event.
+	_old_token: null,
+
 	modeByMime: {
 		"text/plain": "text"
 	},
@@ -99,10 +102,18 @@ ide.Editor.Source = ide.Editor.extend({
 	on_selection: function(ev, editor)
 	{
 	var
-		ann = this.get_annotation(editor.getCursorPosition().row)
+		pos = editor.getCursorPosition(),
+		ann = this.get_annotation(pos.row),
+		token = editor.session.getTokenAt(pos.row, pos.column)
 	;
 		if (ann)
 			ide.info.show(ann.text.join('<br/>'));
+
+		if (token !== this._old_token)
+		{
+			ide.fire('tokenchange', [ this, token ]);
+			this._old_token = token;
+		}
 	},
 
 	on_keyup: function(ev)
