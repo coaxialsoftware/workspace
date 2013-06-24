@@ -94,9 +94,16 @@ ide.Editor.Source = ide.Editor.extend({
 		editor.on('focus', this.on_focus.bind(this));
 		editor.on('changeSelection', this.on_selection.bind(this));
 
+		window.addEventListener('beforeunload', this.on_beforeunload.bind(this));
+
 		this.set_mode();
 		this.on('keyup', this.on_keyup);
 		j5ui.refer(this.focus.bind(this), 250);
+	},
+
+	on_beforeunload: function(ev)
+	{
+		this.close();
 	},
 
 	on_selection: function(ev, editor)
@@ -148,6 +155,9 @@ ide.Editor.Source = ide.Editor.extend({
 
 	close: function()
 	{
+		if (this.changed() && !confirm("File has changed. Are you sure?"))
+			return;
+
 		this.editor.destroy();
 		this.remove();
 		this.fire('close', [ this ]);
@@ -172,6 +182,11 @@ ide.Editor.Source = ide.Editor.extend({
 		annotations.forEach(function(a) {
 			j5ui.alert((a.row+1) + ': ' + a.text);
 		});
+	},
+
+	changed: function()
+	{
+		return this.file.content !== this.editor.getValue();
 	},
 
 	get_state: function()
