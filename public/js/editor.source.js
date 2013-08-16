@@ -207,9 +207,9 @@ ide.Editor.Source = ide.Editor.extend({
 	set_mode: function()
 	{
 	var
-		mode = this.mode = this.modeByMime[this.file.mime] ||
+		mode = this.mode = this.modeByFile[this.file.filename] ||
+			this.modeByMime[this.file.mime] ||
 			this.modeByExt[this.file.ext] ||
-			this.modeByFile[this.file.filename] ||
 			this.file.mime.split('/')[1]
 	;
 

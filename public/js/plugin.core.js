@@ -6,17 +6,17 @@ ide.Editor = j5ui.Widget.extend({
 		j5ui.Widget.apply(this, arguments);
 	},
 
-	on_focus: function() 
-	{ 
+	on_focus: function()
+	{
 		ide.set_editor(this);
 	}
-	
+
 });
 
 ide.Bar = j5ui.Widget.extend({
 
 	/**
-	 * When a key is pressed and its found here the 
+	 * When a key is pressed and its found here the
 	 * function will be called. Use keys function to
 	 * assign more bindings.
 	 *
@@ -28,7 +28,7 @@ ide.Bar = j5ui.Widget.extend({
 	 * Previous Value
 	 */
 	_value: '',
-	
+
 	invoke: function()
 	{
 		this.show();
@@ -47,13 +47,13 @@ ide.Bar = j5ui.Widget.extend({
 				this.hide();
 			},
 		9: function() {
-		var 
+		var
 			el = this.element,
 			i = el.value.lastIndexOf(' ', el.selectionStart)+1,
 			text = ''
 		;
 			text = el.value.substr(i, el.selectionStart-i);
-				
+
 			this.on_complete && this.on_complete(text, i, el.selectionStart);
 		},
 		219: function(ev) {
@@ -61,15 +61,15 @@ ide.Bar = j5ui.Widget.extend({
 				this.hide();
 		}
 		};
-	
+
 		this.on('keyup', this.on_key);
 		this.on('keydown', this.on_keydown);
 		this.on('blur', this.on_blur);
 	},
-	
+
 	on_blur: function()
 	{
-		this.hide();	
+		this.hide();
 	},
 
 	on_keydown: function(ev)
@@ -88,12 +88,12 @@ ide.Bar = j5ui.Widget.extend({
 
 		if (fn)
 			fn.apply(this, [ ev ]);
-		
-		if (this.element.value!==this._value) 
+
+		if (this.element.value!==this._value)
 		{
 			this._lastSearch = null;
 			this.on_change && this.on_change(this.element.value);
-		} 
+		}
 
 		this._value = this.element.value;
 		ev.stopPropagation();
@@ -104,7 +104,7 @@ ide.Bar = j5ui.Widget.extend({
 	{
 		j5ui.extend(this._keys, k);
 	},
-	
+
 	show: function()
 	{
 		this.element.value = '';
@@ -129,7 +129,7 @@ ide.Bar = j5ui.Widget.extend({
 			ide.editor.focus();
 		return false;
 	},
-	
+
 	start: function()
 	{
 		document.body.appendChild(this.element);
@@ -163,16 +163,16 @@ ide.Bar.Command = ide.Bar.extend({
 			fn = ide.editor.cmd(cmd[0]);
 			scope = ide.editor;
 		}
-	
+
 		cmd.shift();
 
-		return { 
+		return {
 			fn: fn,
 			args: cmd,
 			scope: scope
 		};
 	},
-	
+
 	run: function()
 	{
 	var
@@ -191,7 +191,7 @@ ide.Bar.Command = ide.Bar.extend({
 
 		console.log(val);
 	},
-	
+
 	on_complete: function(s, start, end)
 	{
 	var
@@ -208,7 +208,7 @@ ide.Bar.Command = ide.Bar.extend({
 
 		if (!this._lastSearch)
 			return;
-		
+
 		match = this._lastSearch[this._lastSearchIndex++];
 		this._value = this.element.value = val.slice(0, start) + match + val.slice(end);
 	}
@@ -216,15 +216,15 @@ ide.Bar.Command = ide.Bar.extend({
 });
 
 ide.Bar.Evaluate = ide.Bar.extend({
-	
+
 	shortcut: 'shift-49',
 	element: j5ui.html('<input id="evaluate" />'),
-	
+
 	encode: function(response)
 	{
 		return response.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;');
 	},
-	
+
 	run: function()
 	{
 	var
@@ -233,14 +233,14 @@ ide.Bar.Evaluate = ide.Bar.extend({
 	;
 		if (response === undefined)
 			return;
-			
+
 		j5ui.info(response);
 	}
-	
+
 });
 
 ide.Bar.Search = ide.Bar.extend({
-	
+
 	element: j5ui.html('<input id="search" />'),
 	shortcut: '191',
 
@@ -251,18 +251,27 @@ ide.Bar.Search = ide.Bar.extend({
 
 	on_change: function(val)
 	{
+	var
+		regex
+	;
 		if (ide.editor)
-			ide.editor.find(new RegExp(val));
+		{
+			// Try with a regex first, if it is invalid, just use a string
+			try { regex = new RegExp(val); }
+			catch(e) { regex = val; }
+
+			ide.editor.find(regex);
+		}
 	}
 
 });
 
 ide.plugins.register('evaluate', ide.Bar.Evaluate);
-ide.plugins.register('search', ide.Bar.Search);	
+ide.plugins.register('search', ide.Bar.Search);
 ide.plugins.register('command', ide.Bar.Command);
 
 ide.plugins.register('error', ide.Plugin.extend({
-	
+
 	_error: function(error, url, line)
 	{
 		j5ui.error(error.message);
