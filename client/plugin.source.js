@@ -1,4 +1,6 @@
 
+(function(ide, j5ui, ace) {
+
 ide.Editor.Source = ide.Editor.extend({
 
 	file: null,
@@ -101,7 +103,7 @@ ide.Editor.Source = ide.Editor.extend({
 		j5ui.refer(this.focus.bind(this), 250);
 	},
 
-	on_beforeunload: function(ev)
+	on_beforeunload: function()
 	{
 		this.close();
 	},
@@ -155,7 +157,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 	close: function()
 	{
-		if (this.changed() && !confirm("File has changed. Are you sure?"))
+		if (this.changed() && !window.confirm("File has changed. Are you sure?"))
 			return;
 
 		this.editor.destroy();
@@ -163,7 +165,7 @@ ide.Editor.Source = ide.Editor.extend({
 		this.fire('close', [ this ]);
 	},
 
-	remove_trailing: function(value)
+	remove_trailing: function()
 	{
 		this.editor.replaceAll('', { needle: /[\t ]+$/ });
 	},
@@ -243,3 +245,5 @@ ide.plugins.register('editor.source', ide.Plugin.extend({
 	}
 
 }));
+
+})(this.ide, this.j5ui, this.ace);

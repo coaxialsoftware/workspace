@@ -1,5 +1,5 @@
 
-(function() {
+(function(ide, j5ui) {
 
 var
 	Viewer = ide.Viewer = ide.Plugin.extend({
@@ -84,4 +84,4 @@ ide.plugins.register('quickview', ide.Plugin.extend({
 
 }));
 
-})();
+})(window.ide, window.j5ui);

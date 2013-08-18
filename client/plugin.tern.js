@@ -1,4 +1,6 @@
 
+(function(ide) {
+
 ide.plugins.register('tern', ide.Plugin.extend({
 
 	files: null,
@@ -28,9 +30,8 @@ ide.plugins.register('tern', ide.Plugin.extend({
 		}
 	},
 
-	request_callback: function(err, result)
+	request_callback: function() //err, result)
 	{
-		console.log(result);
 	},
 
 	on_ready: function()
@@ -42,7 +43,7 @@ ide.plugins.register('tern', ide.Plugin.extend({
 		for (i in this.defs)
 			defs.push(this.defs[i].json);
 
-		this.server = new tern.Server({
+		this.server = new window.tern.Server({
 			async: true,
 			defs: defs
 		});
@@ -61,8 +62,7 @@ ide.plugins.register('tern', ide.Plugin.extend({
 	{
 	var
 		config = this.config = ide.project['plugin.tern'] || {},
-		l = this.loader = new Loader(),
-		i
+		l = this.loader = new window.Loader()
 	;
 		this.files = {};
 
@@ -78,3 +78,5 @@ ide.plugins.register('tern', ide.Plugin.extend({
 	}
 
 }));
+
+})(window.ide);

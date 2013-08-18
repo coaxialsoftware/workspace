@@ -46,8 +46,8 @@ app.get('/file', function(req, res)
 
 app.post('/file', function(req, res)
 {
-	editor.put_file(req.query.n, req.query.t, req.body && req.body.content, 
-		function(result)
+	editor.put_file(req.query.n, req.query.t, req.body && req.body.content,
+	function(result)
 		{
 			res.send(result);
 		}

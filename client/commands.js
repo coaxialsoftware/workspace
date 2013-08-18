@@ -1,4 +1,5 @@
 
+(function(ide) {
 
 ide.commands = {
 
@@ -9,7 +10,7 @@ ide.commands = {
 
 	edit: function()
 	{
-		for (i=0; i<arguments.length; i++)
+		for (var i=0; i<arguments.length; i++)
 			ide.open(arguments[i]);
 	},
 	
@@ -26,3 +27,5 @@ ide.commands = {
 	}
 
 };
+
+})(this.ide);

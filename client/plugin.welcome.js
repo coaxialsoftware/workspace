@@ -1,4 +1,6 @@
 
+(function(ide, j5ui) {
+
 ide.plugins.register('welcome', ide.Plugin.extend({
 	
 	start: function()
@@ -8,3 +10,5 @@ ide.plugins.register('welcome', ide.Plugin.extend({
 	}
 
 }));
+
+})(window.ide, window.j5ui);

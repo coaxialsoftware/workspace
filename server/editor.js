@@ -9,21 +9,19 @@ var
 	Editor = function()
 	{
 	var
-		config = this.config = {}
+		config = this.config = {
+			version: 0.1,
+			port: 9001,
+			files: [],
+			name: 'ide.js',
+			path: process.cwd()
+		}
 	;
 		console.log('Loading global settings...');
 		common.extend(config, common.load_json('~/.ide.js/config.json'));
 
-		if (config.port===undefined)
-			config.port = 9001;
-
-		config.files = [];
-		config.name = 'ide.js';
-
 		this._projects = {};
 		this.projects = [];
-
-		config.path = process.cwd();
 	}
 ;
 
@@ -139,7 +137,9 @@ common.extend(Editor.prototype, {
 		if (!name)
 			return this;
 
-		return this._projects[name] = new Project(name);
+		project = this._projects[name] = new Project(name);
+
+		return project;
 	},
 
 	to_json: function()
