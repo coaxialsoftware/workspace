@@ -1,5 +1,6 @@
 
 (function(ide, j5ui) {
+"use strict";
 
 ide.plugins.register('welcome', ide.Plugin.extend({
 	

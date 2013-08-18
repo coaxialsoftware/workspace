@@ -1,5 +1,6 @@
 
 (function(ide, j5ui, ace) {
+"use strict";
 
 ide.Editor.Source = ide.Editor.extend({
 

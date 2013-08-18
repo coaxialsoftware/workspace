@@ -1,5 +1,6 @@
 
 (function(ide) {
+"use strict";
 
 ide.commands = {
 

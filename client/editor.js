@@ -4,6 +4,7 @@
  */
 
 (function(window, j5ui) {
+"use strict";
 
 var ide = window.ide = new j5ui.Observable({
 

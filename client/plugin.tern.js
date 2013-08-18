@@ -1,5 +1,6 @@
 
 (function(ide) {
+"use strict";
 
 ide.plugins.register('tern', ide.Plugin.extend({
 
@@ -65,8 +66,6 @@ ide.plugins.register('tern', ide.Plugin.extend({
 		l = this.loader = new window.Loader()
 	;
 		this.files = {};
-
-		l.script('js/tern.js');
 
 		this.load_files(config.files);
 

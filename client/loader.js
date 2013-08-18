@@ -2,6 +2,7 @@
  * @license Copyright 2010-2012, Giancarlo F Bellido.
  */
 (function(window, j5ui, undefined) {
+"use strict";
 
 /**
  * @class

@@ -1,5 +1,6 @@
 
 (function(ide, j5ui) {
+"use strict";
 
 var
 	Viewer = ide.Viewer = ide.Plugin.extend({

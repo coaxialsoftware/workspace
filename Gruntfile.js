@@ -6,7 +6,7 @@ module.exports = function(grunt) {
 			client: {
 				options: { jshintrc: 'client/.jshintrc' },
 				src: [
-					'client/loader.js', 
+					'client/loader.js',
 					'client/editor.js',
 					'client/commands.js',
 					'client/plugin*.js'
@@ -36,7 +36,16 @@ module.exports = function(grunt) {
 					'node_modules/ace/build/src/ace.js',
 					'node_modules/ace/build/src/theme-twilight.js',
 					'node_modules/ace/build/src/keybinding-vim.js',
-					'node_modules/j5ui/build/j5ui-all.js'
+					'node_modules/j5ui/build/j5ui-all.js',
+
+					'node_modules/tern/node_modules/acorn/acorn.js',
+					'node_modules/tern/node_modules/acorn/acorn_loose.js',
+					'node_modules/tern/node_modules/acorn/util/walk.js',
+					'node_modules/tern/lib/signal.js',
+					'node_modules/tern/lib/tern.js',
+					'node_modules/tern/lib/def.js',
+					'node_modules/tern/lib/jsdoc.js',
+					'node_modules/tern/lib/infer.js'
 				],
 				dest: 'public/js/libs.js'
 			}
@@ -52,7 +61,7 @@ module.exports = function(grunt) {
 		watch: {
 			client: {
 				files: '<%= jshint.client.src %>',
-				tasks: [ 'default:client' ]
+				tasks: [ 'jshint:client', 'concat:client' ]
 			}
 		}
 
