@@ -55,7 +55,11 @@ module.exports = function(grunt) {
 		uglify: {
 			client: {
 				compress: true,
-				files: { 'public/js/ide.js': 'public/js/ide.min.js' }
+				files: { 'public/js/ide.min.js': 'public/js/ide.js' }
+			},
+			libs: {
+				compress: true,
+				files: { 'public/js/libs.min.js': 'public/js/libs.js' }
 			}
 		},
 
