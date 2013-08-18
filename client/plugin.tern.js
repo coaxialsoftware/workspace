@@ -18,7 +18,6 @@ ide.plugins.register('tern', ide.Plugin.extend({
 		if (this.server && file && file.mime==="application/javascript")
 		{
 			this.server.addFile(ide.editor.file.filename, ide.editor.get_value());
-
 			pos = ide.editor.get_position();
 
 			this.server.request({
@@ -31,8 +30,11 @@ ide.plugins.register('tern', ide.Plugin.extend({
 		}
 	},
 
-	request_callback: function() //err, result)
+	request_callback: function(err, result)
 	{
+		if (result && result.completions.length)
+		{
+		}
 	},
 
 	on_ready: function()

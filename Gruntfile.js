@@ -36,6 +36,7 @@ module.exports = function(grunt) {
 					'node_modules/ace/build/src/ace.js',
 					'node_modules/ace/build/src/theme-twilight.js',
 					'node_modules/ace/build/src/keybinding-vim.js',
+
 					'node_modules/j5ui/build/j5ui-all.js',
 
 					'node_modules/tern/node_modules/acorn/acorn.js',
