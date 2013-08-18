@@ -39,6 +39,12 @@ module.exports = function(grunt) {
 
 					'node_modules/j5ui/build/j5ui-all.js',
 
+				],
+				dest: 'public/js/libs.js'
+			},
+
+			tern: {
+				src: [
 					'node_modules/tern/node_modules/acorn/acorn.js',
 					'node_modules/tern/node_modules/acorn/acorn_loose.js',
 					'node_modules/tern/node_modules/acorn/util/walk.js',
@@ -48,7 +54,7 @@ module.exports = function(grunt) {
 					'node_modules/tern/lib/jsdoc.js',
 					'node_modules/tern/lib/infer.js'
 				],
-				dest: 'public/js/libs.js'
+				dest: 'public/js/tern.js'
 			}
 		},
 

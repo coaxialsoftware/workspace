@@ -69,6 +69,7 @@ ide.plugins.register('tern', ide.Plugin.extend({
 	;
 		this.files = {};
 
+		l.script('js/tern.js');
 		this.load_files(config.files);
 
 		this.defs = {
