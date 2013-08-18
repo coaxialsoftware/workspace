@@ -81,6 +81,7 @@ ide.Editor.Source = ide.Editor.extend({
 		editor = this.editor = ace.edit(this.element),
 		session = editor.getSession()
 	;
+		ace.config.set('basePath', 'ace/build/src');
 		editor.setTheme('ace/theme/twilight');
 		editor.container.style.fontSize = '16px';
 		editor.setKeyboardHandler('ace/keyboard/vim');
