@@ -49,18 +49,18 @@ common.extend(Project.prototype, {
 		{
 			file = dir + files[i];
 
-			if (this.config.ignore.indexOf(file)===-1)
-			{
-				result.push(file = dir + files[i]);
+			if (this.config.ignore.indexOf(file)!==-1)
+				continue;
 
-				try {
-					stat = fs.statSync(this.path + '/' + file);
-					if (stat.isDirectory())
-						this.walk(file + '/', result);
-				} catch(e)
-				{
-					console.log(e);
-				}
+			result.push(file = dir + files[i]);
+
+			try {
+				stat = fs.statSync(this.path + '/' + file);
+				if (stat.isDirectory())
+					this.walk(file + '/', result);
+			} catch(e)
+			{
+				console.log(e);
 			}
 		}
 

@@ -21,7 +21,7 @@ module.exports = function(grunt) {
 		concat: {
 			client: {
 				src: '<%= jshint.client.src %>',
-				dest: 'public/js/ide.js'
+				dest: 'public/build/ide.js'
 			},
 			css: {
 				src: [
@@ -29,7 +29,7 @@ module.exports = function(grunt) {
 					'node_modules/j5ui/themes/silk/silk.css',
 					'client/styles.css'
 				],
-				dest: 'public/ide.css'
+				dest: 'public/build/ide.css'
 			},
 			libs: {
 				src: [
@@ -40,7 +40,7 @@ module.exports = function(grunt) {
 					'node_modules/j5ui/build/j5ui-all.js',
 
 				],
-				dest: 'public/js/libs.js'
+				dest: 'public/build/libs.js'
 			},
 
 			tern: {
@@ -54,18 +54,18 @@ module.exports = function(grunt) {
 					'node_modules/tern/lib/jsdoc.js',
 					'node_modules/tern/lib/infer.js'
 				],
-				dest: 'public/js/tern.js'
+				dest: 'public/build/tern.js'
 			}
 		},
 
 		uglify: {
 			client: {
 				compress: true,
-				files: { 'public/js/ide.min.js': 'public/js/ide.js' }
+				files: { 'public/build/ide.min.js': 'public/build/ide.js' }
 			},
 			libs: {
 				compress: true,
-				files: { 'public/js/libs.min.js': 'public/js/libs.js' }
+				files: { 'public/build/libs.min.js': 'public/build/libs.js' }
 			}
 		},
 
