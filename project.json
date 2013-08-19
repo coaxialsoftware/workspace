@@ -1,12 +1,5 @@
 {
 
-"ignore": [ ".git", "node_modules" ],
-"plugins": [ "js/plugin.tern.js" ],
-
-"plugin.tern": {
-	"files": [
-		"j5ui/build/j5ui-all.js"
-	]
-}
+"ignore": [ ".git", "node_modules" ]
 
 }

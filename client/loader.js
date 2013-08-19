@@ -1,7 +1,8 @@
 /**
  * @license Copyright 2010-2012, Giancarlo F Bellido.
  */
-(function(window, undefined) {
+(function(window, j5ui, undefined) {
+"use strict";
 
 /**
  * @class
@@ -156,4 +157,4 @@ window.Loader = j5ui.Class.extend(/** @scope Loader.prototype */{
 
 });
 
-})(this);
+})(this, this.j5ui);
