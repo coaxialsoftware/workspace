@@ -10,6 +10,8 @@ ide.plugins.register('tern', ide.Plugin.extend({
 
 	shortcut: "ctrl-32",
 
+	selectBox: null,
+
 	invoke: function()
 	{
 	var
@@ -68,6 +70,7 @@ ide.plugins.register('tern', ide.Plugin.extend({
 		l = this.loader = new window.Loader()
 	;
 		this.files = {};
+		this.selectBox = document.createElement('SELECT');
 
 		l.script('js/tern.js');
 		this.load_files(config.files);
