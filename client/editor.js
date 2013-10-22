@@ -577,8 +577,13 @@ var ide = window.ide = new j5ui.Observable({
 
 		on_change: function(val)
 		{
+		var
+			regex
+		;
+			try { regex = new RegExp(val); } catch(e) { regex = val; }
+
 			if (ide.editor)
-				ide.editor.find(new RegExp(val));
+				ide.editor.find(regex);
 		}
 
 	});

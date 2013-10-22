@@ -72,7 +72,7 @@ ide.plugins.register('tern', ide.Plugin.extend({
 		this.files = {};
 		this.selectBox = document.createElement('SELECT');
 
-		l.script('js/tern.js');
+		l.script('build/tern.js');
 		this.load_files(config.files);
 
 		this.defs = {
