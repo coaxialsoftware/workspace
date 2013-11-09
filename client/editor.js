@@ -3,7 +3,7 @@
  *
  */
 
-(function(window, j5ui) {
+(function(window, j5ui, Backbone) {
 "use strict";
 
 var ide = window.ide = new j5ui.Observable({
@@ -73,28 +73,27 @@ var ide = window.ide = new j5ui.Observable({
 
 	}),
 
-	Info: j5ui.Widget.extend({
+	Info: Backbone.View.extend({
 
 		_infoTimeout: null,
 
-		element: '#info',
+		el: '#info',
 
 		show: function(msg)
 		{
 		var
 			me = this
 		;
-			this.element.innerHTML = msg;
-			this.element.style.display = 'block';
+			me.$el.html(msg).show();
 
-			if (this._infoTimeout)
-				clearTimeout(this._infoTimeout);
+			if (me._infoTimeout)
+				clearTimeout(me._infoTimeout);
 
-			this._infoTimeout = setTimeout(function() {
-				me.hide();
+			me._infoTimeout = setTimeout(function() {
+				me.$el.hide();
 			}, 1000);
 
-			return this;
+			return me;
 		}
 	}),
 
@@ -607,4 +606,4 @@ var ide = window.ide = new j5ui.Observable({
 
 	}));
 
-})(this, this.j5ui);
+})(this, this.j5ui, this.Backbone);
