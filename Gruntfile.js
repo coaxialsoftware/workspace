@@ -55,6 +55,11 @@ module.exports = function(grunt) {
 				dest: 'public/build/libs.js'
 			},
 
+			tern_ecma5: {
+				src: [ 'node_modules/tern/defs/ecma5.json' ],
+				dest: 'public/build/ecma5.json'
+			},
+
 			tern: {
 				src: [
 					'node_modules/tern/node_modules/acorn/acorn.js',
