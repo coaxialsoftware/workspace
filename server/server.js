@@ -15,7 +15,8 @@ var
 app.use(express.compress());
 
 app.use(express.static(rootdir + '/public'));
-//app.use(express.static(rootdir + '/node_modules'));
+console.log('Serving dependecies');
+app.use(express.static(rootdir + '/bower_components'));
 
 process.title = 'ide.js:' + address.port;
 app.use(express.bodyParser());

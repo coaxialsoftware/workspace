@@ -76,7 +76,7 @@ ide.plugins.register('tern', ide.Plugin.extend({
 		this.load_files(config.files);
 
 		this.defs = {
-			ecma5: l.json('tern/defs/ecma5.json')
+			ecma5: l.json('build/ecma5.json')
 		};
 
 		l.ready(this.on_ready.bind(this));

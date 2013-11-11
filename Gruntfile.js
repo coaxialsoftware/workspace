@@ -2,6 +2,14 @@ module.exports = function(grunt) {
 
 	grunt.initConfig({
 
+		path: {
+			ace: "bower_components/ace-builds/src",
+			backbone: "bower_components/backbone",
+			underscore: "bower_components/underscore",
+			jquery: "bower_components/jquery",
+			j5ui: "../j5ui/src"
+		},
+
 		jshint: {
 			client: {
 				options: { jshintrc: 'client/.jshintrc' },
@@ -25,22 +33,31 @@ module.exports = function(grunt) {
 			},
 			css: {
 				src: [
-					'node_modules/j5ui/build/j5ui.css',
-					'node_modules/j5ui/themes/silk/silk.css',
+					'<%= path.j5ui %>/j5ui.css',
+					'<%= path.j5ui %>/../themes/silk/silk.css',
 					'client/styles.css'
 				],
 				dest: 'public/build/ide.css'
 			},
 			libs: {
 				src: [
-					'node_modules/ace/build/src/ace.js',
-					'node_modules/ace/build/src/theme-twilight.js',
-					'node_modules/ace/build/src/keybinding-vim.js',
+					'<%= path.ace %>/ace.js',
+					'<%= path.ace %>/theme-twilight.js',
+					'<%= path.ace %>/keybinding-vim.js',
+					
+					'<%= path.jquery %>/jquery.js',
+					'<%= path.underscore %>/underscore.js',
+					'<%= path.backbone %>/backbone.js',
 
-					'node_modules/j5ui/build/j5ui-all.js',
-
+					'<%= path.j5ui %>/j5ui.js',
+					'<%= path.j5ui %>/j5ui-layout.js'
 				],
 				dest: 'public/build/libs.js'
+			},
+
+			tern_ecma5: {
+				src: [ 'node_modules/tern/defs/ecma5.json' ],
+				dest: 'public/build/ecma5.json'
 			},
 
 			tern: {

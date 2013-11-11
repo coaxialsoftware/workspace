@@ -3,7 +3,7 @@
  *
  */
 
-(function(window, j5ui) {
+(function(window, j5ui, Backbone) {
 "use strict";
 
 var ide = window.ide = new j5ui.Observable({
@@ -73,28 +73,22 @@ var ide = window.ide = new j5ui.Observable({
 
 	}),
 
-	Info: j5ui.Widget.extend({
+	Info: Backbone.View.extend({
 
-		_infoTimeout: null,
+		_delay: 1000,
 
-		element: '#info',
+		el: '#info',
 
 		show: function(msg)
 		{
 		var
 			me = this
 		;
-			this.element.innerHTML = msg;
-			this.element.style.display = 'block';
+			me.$el.html(msg).show()
+				.delay(me._delay).fadeOut()
+			;
 
-			if (this._infoTimeout)
-				clearTimeout(this._infoTimeout);
-
-			this._infoTimeout = setTimeout(function() {
-				me.hide();
-			}, 1000);
-
-			return this;
+			return me;
 		}
 	}),
 
@@ -334,13 +328,13 @@ var ide = window.ide = new j5ui.Observable({
 		{
 			ide.set_editor(this);
 		}
-		
+
 	});
 
 	ide.Bar = j5ui.Widget.extend({
 
 		/**
-		 * When a key is pressed and its found here the 
+		 * When a key is pressed and its found here the
 		 * function will be called. Use keys function to
 		 * assign more bindings.
 		 *
@@ -352,7 +346,7 @@ var ide = window.ide = new j5ui.Observable({
 		 * Previous Value
 		 */
 		_value: '',
-		
+
 		invoke: function()
 		{
 			this.show();
@@ -377,7 +371,7 @@ var ide = window.ide = new j5ui.Observable({
 				text = ''
 			;
 				text = el.value.substr(i, el.selectionStart-i);
-					
+
 				if (this.on_complete)
 					this.on_complete(text, i, el.selectionStart);
 			},
@@ -386,12 +380,12 @@ var ide = window.ide = new j5ui.Observable({
 					this.hide();
 			}
 			};
-		
+
 			this.on('keyup', this.on_key);
 			this.on('keydown', this.on_keydown);
 			this.on('blur', this.on_blur);
 		},
-		
+
 		on_blur: function()
 		{
 			this.hide();
@@ -413,7 +407,7 @@ var ide = window.ide = new j5ui.Observable({
 
 			if (fn)
 				fn.apply(this, [ ev ]);
-			
+
 			if (this.element.value!==this._value)
 			{
 				this._lastSearch = null;
@@ -430,7 +424,7 @@ var ide = window.ide = new j5ui.Observable({
 		{
 			j5ui.extend(this._keys, k);
 		},
-		
+
 		show: function()
 		{
 			this.element.value = '';
@@ -455,7 +449,7 @@ var ide = window.ide = new j5ui.Observable({
 				ide.editor.focus();
 			return false;
 		},
-		
+
 		start: function()
 		{
 			document.body.appendChild(this.element);
@@ -489,7 +483,7 @@ var ide = window.ide = new j5ui.Observable({
 				fn = ide.editor.cmd(cmd[0]);
 				scope = ide.editor;
 			}
-		
+
 			cmd.shift();
 
 			return {
@@ -498,7 +492,7 @@ var ide = window.ide = new j5ui.Observable({
 				scope: scope
 			};
 		},
-		
+
 		run: function()
 		{
 		var
@@ -517,7 +511,7 @@ var ide = window.ide = new j5ui.Observable({
 
 			window.console.log(val);
 		},
-		
+
 		on_complete: function(s, start, end)
 		{
 		var
@@ -534,7 +528,7 @@ var ide = window.ide = new j5ui.Observable({
 
 			if (!this._lastSearch)
 				return;
-			
+
 			match = this._lastSearch[this._lastSearchIndex++];
 			this._value = this.element.value = val.slice(0, start) + match + val.slice(end);
 		}
@@ -542,15 +536,15 @@ var ide = window.ide = new j5ui.Observable({
 	});
 
 	ide.Bar.Evaluate = ide.Bar.extend({
-		
+
 		shortcut: 'shift-49',
 		element: j5ui.html('<input id="evaluate" />'),
-		
+
 		encode: function(response)
 		{
 			return response.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;');
 		},
-		
+
 		run: function()
 		{
 		/*jshint evil: true */
@@ -559,14 +553,14 @@ var ide = window.ide = new j5ui.Observable({
 		;
 			if (response === undefined)
 				return;
-				
+
 			j5ui.info(response);
 		}
-		
+
 	});
 
 	ide.Bar.Search = ide.Bar.extend({
-		
+
 		element: j5ui.html('<input id="search" />'),
 		shortcut: '191',
 
@@ -593,7 +587,7 @@ var ide = window.ide = new j5ui.Observable({
 	ide.plugins.register('command', ide.Bar.Command);
 
 	ide.plugins.register('error', ide.Plugin.extend({
-		
+
 		_error: function(error) //, url, line)
 		{
 			j5ui.error(error.message);
@@ -607,4 +601,4 @@ var ide = window.ide = new j5ui.Observable({
 
 	}));
 
-})(this, this.j5ui);
+})(this, this.j5ui, this.Backbone);

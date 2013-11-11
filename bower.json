@@ -1,0 +1,22 @@
+{
+  "name": "ide.js",
+  "version": "0.5.0",
+  "main": "server/server.js",
+  "keywords": [
+    "nodejs",
+    "based",
+    "IDE"
+  ],
+  "authors": [
+    "Giancarlo Bellido"
+  ],
+  "license": "Other",
+  "private": true,
+
+  "dependencies": {
+    "ace-builds": "*",
+    "backbone": "*",
+    "jquery": "*",
+    "underscore": "*"
+  }
+}
