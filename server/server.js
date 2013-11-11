@@ -14,10 +14,8 @@ var
 
 app.use(express.compress());
 
-console.log('Serving public');
 app.use(express.static(rootdir + '/public'));
-console.log('Serving dependecies');
-app.use(express.static(rootdir + '/node_modules'));
+//app.use(express.static(rootdir + '/node_modules'));
 
 process.title = 'ide.js:' + address.port;
 app.use(express.bodyParser());
@@ -30,10 +28,12 @@ app.get('/home', function(req, res)
 app.get('/project', function(req, res)
 {
 var
-	name = req.query.n,
-	project = editor.load_project(name)
+	name = req.query.n
 ;
-	res.send(project.to_json());
+	editor.load_project(name, function(project)
+	{
+		res.send(project.to_json());
+	});
 });
 
 app.get('/file', function(req, res)

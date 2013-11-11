@@ -9,15 +9,14 @@ exports.extend = function(obj, p)
 		obj[i] = p[i];
 };
 
-exports.load_json = function(filename)
+exports.load_json = function(filename, callback)
 {
-var
-	result
-;
-	if (fs.existsSync(filename))
-		result = JSON.parse(fs.readFileSync(filename, 'utf8'));
-
-	return result;
+	if (callback)
+		fs.readFile(filename, 'utf8', function(err, data) {
+			callback(err ? undefined : JSON.parse(data));
+		});
+	else if (fs.existsSync(filename))
+		return JSON.parse(fs.readFileSync(filename, 'utf8'));
 };
-	
+
 

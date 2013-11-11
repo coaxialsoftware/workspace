@@ -17,8 +17,9 @@ var
 			path: process.cwd()
 		}
 	;
+		console.log(config.name + ' v' + config.version);
 		console.log('Loading global settings...');
-		common.extend(config, common.load_json('~/.ide.js/config.json'));
+		common.extend(this.config, common.load_json('~/.ide.js/config.json'));
 		console.log('Loading workspace settings...');
 		common.extend(config, common.load_json('workspace.json'));
 
@@ -57,24 +58,29 @@ common.extend(Editor.prototype, {
 	var
 		result = {
 			success: true
-		},
-		stat
+		}
 	;
-		if (fs.existsSync(file))
+		fs.stat(file, function(err, stat)
 		{
-			stat = fs.statSync(file);
+			if (err)
+				return callback(this.error(err));
 
 			if (mtime !== (stat.mtime.getTime()+''))
 				return callback(this.error("File contents have changed."));
-		}
 
-		console.log('Writing ' + file + '(' + content.length + ')');
+			console.log('Writing ' + file + '(' + content.length + ')');
 
-		fs.writeFile(file, content, function(err)
-		{
-			result.stat = fs.statSync(file);
-			result.new = false;
-			callback(err ? this.error(err) : result);
+			fs.writeFile(file, content, function(err)
+			{
+				if (err)
+					callback(this.error(err));
+				else
+					fs.stat(file, function(err, stat) {
+						result.stat = stat;
+						result.new = false;
+						callback(err ? this.error(err) : result);
+					});
+			});
 		});
 	},
 
@@ -128,20 +134,15 @@ common.extend(Editor.prototype, {
 	},
 
 	// TODO Cleanup...
-	load_project: function(name)
+	load_project: function(name, callback)
 	{
 	var
-		project = name && this._projects[name]
+		project = name ? this._projects[name] : this
 	;
-		if (project)
-			return project;
+		if (!project)
+			project = this._projects[name] = new Project(name);
 
-		if (!name)
-			return this;
-
-		project = this._projects[name] = new Project(name);
-
-		return project;
+		callback(project);
 	},
 
 	to_json: function()
