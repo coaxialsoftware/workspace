@@ -44,7 +44,7 @@ module.exports = function(grunt) {
 					'<%= path.ace %>/ace.js',
 					'<%= path.ace %>/theme-twilight.js',
 					'<%= path.ace %>/keybinding-vim.js',
-					
+
 					'<%= path.jquery %>/jquery.js',
 					'<%= path.underscore %>/underscore.js',
 					'<%= path.backbone %>/backbone.js',
@@ -88,8 +88,13 @@ module.exports = function(grunt) {
 
 		watch: {
 			client: {
-				files: '<%= jshint.client.src %>',
+				files: [ '<%= jshint.client.src %>' ],
 				tasks: [ 'jshint:client', 'concat:client' ]
+			},
+
+			css: {
+				files: '<%= concat.css.src %>',
+				tasks: [ 'concat:css' ]
 			}
 		}
 
