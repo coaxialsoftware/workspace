@@ -4,7 +4,7 @@ var
 
 	Project = exports.Project = function(path)
 	{
-		this.path = path;
+		this.path = this.name = path;
 	}
 ;
 
@@ -15,11 +15,11 @@ common.extend(Project.prototype, {
 	var
 		config = this.config = {}
 	;
-		console.log('Loading global settings...');
+		this.log('Loading global settings...');
 		common.extend(config, common.load_json('~/.ide.js/config.json'));
-		console.log('Loading settings from project.json');
+		this.log('Loading settings from project.json');
 		common.extend(config, common.load_json(this.path + '/project.json'));
-		console.log('Loading settings from package.json');
+		this.log('Loading settings from package.json');
 		common.extend(config, common.load_json(this.path + '/package.json'));
 
 		if (!config.ignore)
@@ -35,6 +35,11 @@ common.extend(Project.prototype, {
 	log: function(msg)
 	{
 		console.log("[" + this.name + '] ' + msg);
+	},
+
+	error: function(msg)
+	{
+		console.error("[" + this.name + '] ' + msg);
 	},
 
 	walk: function(dir, result)
@@ -60,7 +65,7 @@ common.extend(Project.prototype, {
 					this.walk(file + '/', result);
 			} catch(e)
 			{
-				console.log(e);
+				this.error(e);
 			}
 		}
 

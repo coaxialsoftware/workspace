@@ -17,9 +17,9 @@ var
 			path: process.cwd()
 		}
 	;
-		console.log('Loading global settings...');
+		this.log('Loading global settings...');
 		common.extend(config, common.load_json('~/.ide.js/config.json'));
-		console.log('Loading workspace settings...');
+		this.log('Loading workspace settings...');
 		common.extend(config, common.load_json('workspace.json'));
 
 		this._projects = {};
@@ -35,6 +35,11 @@ common.extend(Editor.prototype, {
 	// Array of project names
 	projects: null,
 
+	log: function(msg)
+	{
+		console.log("[ide.js] " + msg);	
+	},
+
 	load: function()
 	{
 	var
@@ -48,7 +53,7 @@ common.extend(Editor.prototype, {
 
 	error: function(err)
 	{
-		console.error(err);
+		console.error('[ide.js] ERROR ' + err);
 		return { error: err, success: false };
 	},
 
@@ -68,7 +73,7 @@ common.extend(Editor.prototype, {
 				return callback(this.error("File contents have changed."));
 		}
 
-		console.log('Writing ' + file + '(' + content.length + ')');
+		this.log('Writing ' + file + '(' + content.length + ')');
 
 		fs.writeFile(file, content, function(err)
 		{
@@ -85,7 +90,7 @@ common.extend(Editor.prototype, {
 	;
 		if (fs.existsSync(fn))
 		{
-			console.log('Opening file: ' + fn);
+			this.log('Opening file: ' + fn);
 			result.stat = fs.statSync(fn);
 
 			result.content = result.stat.isDirectory() ?
