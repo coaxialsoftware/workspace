@@ -1,16 +1,27 @@
 
 var
 	express = require('express'),
-	http = require('http'),
 
 	editor = require('./editor.js').editor,
 
+	protocol = require(editor.config.https ? 'https' : 'http'),
+
 	app = express(),
-	server = http.createServer(app).listen(editor.config.port),
+	server = (editor.config.https ? 
+		protocol.createServer(editor.config.https, app) :
+		protocol.createServer(app))
+			.listen(editor.config.port),
+
 	address = server.address(),
 
 	rootdir = __dirname + '/..'
 ;
+
+if (editor.config.password)
+{
+	console.log("Basic Authentication Enabled for user: " + editor.config.user);
+	app.use(express.basicAuth(editor.config.user, editor.config.password));
+}
 
 app.use(express.compress());
 
@@ -18,6 +29,7 @@ console.log('Serving public');
 app.use(express.static(rootdir + '/public'));
 console.log('Serving dependecies');
 app.use(express.static(rootdir + '/bower_components'));
+
 
 process.title = 'ide.js:' + address.port;
 app.use(express.bodyParser());

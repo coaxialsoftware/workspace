@@ -6,7 +6,7 @@
 (function(window, j5ui, Backbone) {
 "use strict";
 
-var ide = window.ide = new j5ui.Observable({
+var ide = window.ide = new Backbone.View({
 
 	project: null,
 	workspace: null,
