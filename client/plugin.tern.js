@@ -64,13 +64,13 @@ ide.plugins.register('tern', ide.Plugin.extend({
 	start: function()
 	{
 	var
-		config = this.config = ide.project['plugin.tern'] || {},
+		//config = this.config = ide.project['plugin.tern'] || {},
 		l = this.loader = new window.Loader()
 	;
 		this.files = {};
 
-		l.script('build/tern.js');
-		this.load_files(config.files);
+		//l.script('build/tern.js');
+		//this.load_files(config.files);
 
 		this.defs = {
 			ecma5: l.json('build/ecma5.json')

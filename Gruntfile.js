@@ -27,10 +27,21 @@ module.exports = function(grunt) {
 		},
 
 		concat: {
-			client: {
-				src: '<%= jshint.client.src %>',
-				dest: 'public/build/ide.js'
+
+			tern: {
+				src: [
+					'node_modules/tern/node_modules/acorn/acorn.js',
+					'node_modules/tern/node_modules/acorn/acorn_loose.js',
+					'node_modules/tern/node_modules/acorn/util/walk.js',
+					'node_modules/tern/lib/signal.js',
+					'node_modules/tern/lib/tern.js',
+					'node_modules/tern/lib/def.js',
+					'node_modules/tern/lib/jsdoc.js',
+					'node_modules/tern/lib/infer.js'
+				],
+				dest: 'public/build/tern.js'
 			},
+
 			css: {
 				src: [
 					'<%= path.j5ui %>/j5ui.css',
@@ -39,6 +50,7 @@ module.exports = function(grunt) {
 				],
 				dest: 'public/build/ide.css'
 			},
+
 			libs: {
 				src: [
 					'<%= path.ace %>/ace.js',
@@ -55,34 +67,24 @@ module.exports = function(grunt) {
 				dest: 'public/build/libs.js'
 			},
 
+			client: {
+				src: [ '<%=concat.libs.dest %>',
+					'<%= concat.tern.dest %>', '<%= jshint.client.src %>' ],
+				dest: 'public/build/ide.js'
+			},
+
+
 			tern_ecma5: {
 				src: [ 'node_modules/tern/defs/ecma5.json' ],
 				dest: 'public/build/ecma5.json'
-			},
-
-			tern: {
-				src: [
-					'node_modules/tern/node_modules/acorn/acorn.js',
-					'node_modules/tern/node_modules/acorn/acorn_loose.js',
-					'node_modules/tern/node_modules/acorn/util/walk.js',
-					'node_modules/tern/lib/signal.js',
-					'node_modules/tern/lib/tern.js',
-					'node_modules/tern/lib/def.js',
-					'node_modules/tern/lib/jsdoc.js',
-					'node_modules/tern/lib/infer.js'
-				],
-				dest: 'public/build/tern.js'
 			}
+
 		},
 
 		uglify: {
 			client: {
 				compress: true,
 				files: { 'public/build/ide.min.js': 'public/build/ide.js' }
-			},
-			libs: {
-				compress: true,
-				files: { 'public/build/libs.min.js': 'public/build/libs.js' }
 			}
 		},
 
@@ -90,6 +92,11 @@ module.exports = function(grunt) {
 			client: {
 				files: [ '<%= jshint.client.src %>' ],
 				tasks: [ 'jshint:client', 'concat:client' ]
+			},
+
+			server: {
+				files: '<%= jshint.server.src %>',
+				tasks: 'jshint:server'
 			},
 
 			css: {

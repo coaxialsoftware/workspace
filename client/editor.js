@@ -6,7 +6,7 @@
 (function(window, j5ui, Backbone) {
 "use strict";
 
-var ide = window.ide = new Backbone.View({
+var ide = window.ide = new (Backbone.View.extend({
 
 	project: null,
 	workspace: null,
@@ -127,87 +127,55 @@ var ide = window.ide = new Backbone.View({
 
 	}),
 
-	File: j5ui.Observable.extend({
+	File: Backbone.Model.extend({
 
-		/**
-		 * File contents
-		 */
-		content: null,
-		filename: null,
-		mime: null,
-		stat: null,
-
-		init: function File(p)
-		{
-			j5ui.Observable.apply(this, [p]);
-			this.ext = this.filename.split('.').pop();
-		},
-
-		save: function()
+		idAttribute: 'filename',
+		
+		url: function()
 		{
 		var
-			mtime = this.new ? false : (new Date(this.stat.mtime)).getTime()
+			stat = this.get('stat'),
+			mtime = stat ? (new Date(stat.mtime)).getTime() : false
 		;
-			j5ui.post(
-				'/file?n=' + encodeURIComponent(this.filename) +
-				(mtime ? '&t=' + encodeURIComponent(mtime) : ''),
-				{ content: this.content },
-				this.on_write.bind(this)
-			);
-		},
-
-		on_write: function(result)
-		{
-			if (result.success)
-			{
-				delete result.success;
-				j5ui.extend(this, result);
-
-				this.fire('write');
-				j5ui.info('File ' + this.filename + ' saved.');
-			} else
-				j5ui.error(result.error);
+			return '/file?n=' + this.get('path') + '/' +
+				this.id + '&t=' + mtime;
 		}
 
 	}),
 
-	Project: j5ui.Observable.extend({
+	Project: Backbone.Model.extend({
 
+		idAttribute: 'name',
+
+		url: function()
+		{
+			return '/project' + (this.id ? '?n=' + this.id : '');
+		},
+
+		constructor: function()
+		{
+			Backbone.Model.prototype.constructor.apply(this, arguments);
+			this.on('sync', this.on_project);
+		},
+
+		/**
+		 * Open a file
+		 */
 		open: function(filename, callback)
 		{
 		var
-			me = this,
-			url = '/file?n=' + encodeURIComponent(this.path + '/' + filename),
-			fn = function(file)
-			{
-				me.on_file(file, callback);
-			}
+			file = new ide.File(filename)
 		;
-			j5ui.get(url, fn);
+			if (callback)
+				file.on('sync', callback);
+
+			return file.fetch();
 		},
 
-		on_file: function(file, callback)
+		on_project: function()
 		{
-			if (file.success)
-			{
-				callback(new ide.File(file));
-			}
-			else
-				throw new Error("Could not open file: " + file.filename);
-		},
-
-		on_project: function(w)
-		{
-			j5ui.extend(this, w);
-
-			this.files_text = this.files.join("\n");
-			this.fire('load');
-		},
-
-		init: function Project(name)
-		{
-			j5ui.Observable.apply(this);
-			j5ui.get('/project' + (name ? '?n=' + name : ''), this.on_project.bind(this));
+			this.files_text = this.get('files').join("\n");
+			this.trigger('load');
 		}
 
 	}),
@@ -288,7 +256,7 @@ var ide = window.ide = new Backbone.View({
 		}
 
 	})
-}),
+}))(),
 	_start= function()
 	{
 	var
@@ -298,7 +266,8 @@ var ide = window.ide = new Backbone.View({
 		ide.info = new ide.Info();
 
 		ide.project = new ide.Project(hash.project);
-		ide.project.on('load', _on_project);
+		ide.project.fetch();
+		ide.project.on('sync', _on_project);
 	},
 
 	_on_project= function()
@@ -508,8 +477,6 @@ var ide = window.ide = new Backbone.View({
 				j5ui.alert('Unknown Command: ' + val);
 			else
 				cmd.fn.apply(cmd.scope, cmd.args);
-
-			window.console.log(val);
 		},
 
 		on_complete: function(s, start, end)
