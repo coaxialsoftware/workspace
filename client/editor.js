@@ -147,7 +147,7 @@ var ide = window.ide = new (Backbone.View.extend({
 			response.ext = /(?:\.([^.]+))?$/.exec(response.filename)[1];
 			return response;
 		},
-		
+
 		url: function()
 		{
 		var
@@ -290,7 +290,7 @@ var ide = window.ide = new (Backbone.View.extend({
 	_on_project= function()
 	{
 		ide.plugins.start();
-		j5ui.id('mask').style.display = 'none';
+		$('#mask').hide();
 
 		if (ide.hash.data.file)
 			ide.open(ide.hash.data.file);
@@ -408,7 +408,7 @@ var ide = window.ide = new (Backbone.View.extend({
 
 		keys: function(k)
 		{
-			j5ui.extend(this._keys, k);
+			$.extend(this._keys, k);
 		},
 
 		show: function()
@@ -424,7 +424,7 @@ var ide = window.ide = new (Backbone.View.extend({
 		var
 			el = this.element
 		;
-			j5ui.refer(function() { el.focus(); });
+			setTimeout(function() { el.focus(); });
 		},
 
 		hide: function()
