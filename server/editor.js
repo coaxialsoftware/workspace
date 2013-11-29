@@ -37,7 +37,7 @@ common.extend(Editor.prototype, {
 
 	log: function(msg)
 	{
-		console.log("[ide.js] " + msg);	
+		console.log("[ide.js] " + msg);
 	},
 
 	load: function()

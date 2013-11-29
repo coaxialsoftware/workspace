@@ -11,6 +11,13 @@ Installation
 	bower install
 	grunt minify
 
+Global Settings
+---------------
+
+~/.ide.js/config.json
+
+Whatever is in this file will be the template for project.json
+
 
 Define a Workspace (optional)
 -----------------------------

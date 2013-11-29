@@ -10,17 +10,21 @@ var
 
 common.extend(Project.prototype, {
 
+	loadConfig: function(file)
+	{
+		this.log('Loading config file: ' + file);
+		common.extend(this.config, common.load_json(file));
+	},
+
 	load: function()
 	{
 	var
 		config = this.config = {}
 	;
-		this.log('Loading global settings...');
-		common.extend(config, common.load_json('~/.ide.js/config.json'));
-		this.log('Loading settings from project.json');
-		common.extend(config, common.load_json(this.path + '/project.json'));
-		this.log('Loading settings from package.json');
-		common.extend(config, common.load_json(this.path + '/package.json'));
+
+		this.loadConfig('~/.ide.js/config.json');
+		this.loadConfig(this.path + '/project.json');
+		this.loadConfig(this.path + '/package.json');
 
 		if (!config.ignore)
 			config.ignore = [];

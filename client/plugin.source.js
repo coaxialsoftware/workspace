@@ -90,7 +90,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 		session.setUseSoftTabs(false);
 		session.setUseWrapMode(true);
-		session.setValue(this.file.content);
+		session.setValue(this.file.get('content'));
 
 		//session.on('changeAnnotation', this.on_annotation.bind(this));
 
@@ -122,7 +122,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 		if (token !== this._old_token)
 		{
-			ide.fire('tokenchange', [ this, token ]);
+			ide.trigger('tokenchange', [ this, token ]);
 			this._old_token = token;
 		}
 	},
@@ -180,7 +180,7 @@ ide.Editor.Source = ide.Editor.extend({
 		if (this.mode==='javascript')
 			this.remove_trailing();
 
-		this.file.content = this.editor.getValue();
+		this.file.set('content', this.editor.getValue());
 		this.file.save();
 
 		annotations.forEach(function(a) {
@@ -190,7 +190,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 	changed: function()
 	{
-		return this.file.content !== this.editor.getValue();
+		return this.file.get('content') !== this.editor.getValue();
 	},
 
 	get_state: function()
@@ -205,16 +205,17 @@ ide.Editor.Source = ide.Editor.extend({
 
 	get_info: function()
 	{
-		return this.file.filename;
+		return this.file.get('filename');
 	},
 
 	set_mode: function()
 	{
 	var
-		mode = this.mode = this.modeByFile[this.file.filename] ||
-			this.modeByMime[this.file.mime] ||
-			this.modeByExt[this.file.ext] ||
-			this.file.mime.split('/')[1]
+		f = this.file.attributes,
+		mode = this.mode = this.modeByFile[f.filename] ||
+			this.modeByMime[f.mime] ||
+			this.modeByExt[f.ext] ||
+			f.mime.split('/')[1]
 	;
 
 		this.editor.session.setMode('ace/mode/' + mode);

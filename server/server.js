@@ -2,6 +2,8 @@
 var
 	express = require('express'),
 	editor = require('./editor.js').editor,
+	fs = require('fs'),
+
 	protocol = require(editor.config.https ? 'https' : 'http'),
 	app = express(),
 
