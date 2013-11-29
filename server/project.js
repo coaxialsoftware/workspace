@@ -4,7 +4,7 @@ var
 
 	Project = exports.Project = function(path)
 	{
-		this.path = path;
+		this.path = this.name = path;
 	}
 ;
 
@@ -39,6 +39,11 @@ common.extend(Project.prototype, {
 		console.log("[" + this.name + '] ' + msg);
 	},
 
+	error: function(msg)
+	{
+		console.error("[" + this.name + '] ' + msg);
+	},
+
 	walk: function(dir, result)
 	{
 	var
@@ -62,7 +67,7 @@ common.extend(Project.prototype, {
 					this.walk(file + '/', result);
 			} catch(e)
 			{
-				this.log(e);
+				this.error(e);
 			}
 		}
 

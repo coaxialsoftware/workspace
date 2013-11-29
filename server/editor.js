@@ -17,10 +17,9 @@ var
 			path: process.cwd()
 		}
 	;
-		console.log(config.name + ' v' + config.version);
-		console.log('Loading global settings...');
-		common.extend(this.config, common.load_json('~/.ide.js/config.json'));
-		console.log('Loading workspace settings...');
+		this.log('Loading global settings...');
+		common.extend(config, common.load_json('~/.ide.js/config.json'));
+		this.log('Loading workspace settings...');
 		common.extend(config, common.load_json('workspace.json'));
 
 		this._projects = {};
@@ -36,6 +35,11 @@ common.extend(Editor.prototype, {
 	// Array of project names
 	projects: null,
 
+	log: function(msg)
+	{
+		console.log("[ide.js] " + msg);	
+	},
+
 	load: function()
 	{
 	var
@@ -49,7 +53,7 @@ common.extend(Editor.prototype, {
 
 	error: function(err)
 	{
-		console.error(err);
+		console.error('[ide.js] ERROR ' + err);
 		return { error: err, success: false };
 	},
 
@@ -67,6 +71,12 @@ common.extend(Editor.prototype, {
 
 			if (mtime !== (stat.mtime.getTime()+''))
 				return callback(this.error("File contents have changed."));
+<<<<<<< HEAD
+=======
+		}
+
+		this.log('Writing ' + file + '(' + content.length + ')');
+>>>>>>> 25d157fedf4526639c61c2c010246a03eb53c2bd
 
 			console.log('Writing ' + file + '(' + content.length + ')');
 
@@ -91,7 +101,7 @@ common.extend(Editor.prototype, {
 	;
 		if (fs.existsSync(fn))
 		{
-			console.log('Opening file: ' + fn);
+			this.log('Opening file: ' + fn);
 			result.stat = fs.statSync(fn);
 
 			result.content = result.stat.isDirectory() ?

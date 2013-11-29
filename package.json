@@ -1,5 +1,5 @@
 {
-	"name": "editor",
+	"name": "ide.js",
 	"description": "Javascript Editor",
 	"author": "Giancarlo Bellido <giancarlo@coaxialhost.com>",
 	"version": "0.5.0",
