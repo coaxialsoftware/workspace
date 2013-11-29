@@ -3,7 +3,7 @@
  *
  */
 
-(function(window, j5ui, Backbone) {
+(function(window, j5ui, Backbone, $) {
 "use strict";
 
 var ide = window.ide = new (Backbone.View.extend({
@@ -21,6 +21,7 @@ var ide = window.ide = new (Backbone.View.extend({
 		cb = function(f) { ide.plugins.edit(f); }
 	;
 		ide.project.open(filename, cb);
+		ide.hash.set({ file: filename });
 	},
 
 	set_editor: function(editor)
@@ -42,11 +43,16 @@ var ide = window.ide = new (Backbone.View.extend({
 		encode: function(obj)
 		{
 		var
-			hash = j5ui.extend({}, this.data)
+			hash = $.extend({}, this.data, obj)
 		;
-			j5ui.extend(hash, obj);
 
 			return JSON.stringify(hash);
+		},
+
+		set: function(obj)
+		{
+			$.extend(this.data,obj);
+			window.location.hash = this.encode();
 		},
 
 		init: function Hash()
@@ -130,6 +136,17 @@ var ide = window.ide = new (Backbone.View.extend({
 	File: Backbone.Model.extend({
 
 		idAttribute: 'filename',
+
+		isNew: function()
+		{
+			return this.attributes.new;
+		},
+
+		parse: function(response)
+		{
+			response.ext = /(?:\.([^.]+))?$/.exec(response.filename)[1];
+			return response;
+		},
 		
 		url: function()
 		{
@@ -137,15 +154,15 @@ var ide = window.ide = new (Backbone.View.extend({
 			stat = this.get('stat'),
 			mtime = stat ? (new Date(stat.mtime)).getTime() : false
 		;
-			return '/file?n=' + this.get('path') + '/' +
-				this.id + '&t=' + mtime;
+			return '/file?p=' + this.get('path') +
+				'&n=' + this.id + '&t=' + mtime;
 		}
 
 	}),
 
 	Project: Backbone.Model.extend({
 
-		idAttribute: 'name',
+		idAttribute: 'path',
 
 		url: function()
 		{
@@ -164,12 +181,12 @@ var ide = window.ide = new (Backbone.View.extend({
 		open: function(filename, callback)
 		{
 		var
-			file = new ide.File(filename)
+			file = new ide.File({
+				path: this.get('path'),
+				filename: filename
+			})
 		;
-			if (callback)
-				file.on('sync', callback);
-
-			return file.fetch();
+			return file.fetch({ success: callback });
 		},
 
 		on_project: function()
@@ -265,7 +282,7 @@ var ide = window.ide = new (Backbone.View.extend({
 		ide.workspace = new ide.Workspace();
 		ide.info = new ide.Info();
 
-		ide.project = new ide.Project(hash.project);
+		ide.project = new ide.Project({ path: hash.project });
 		ide.project.fetch();
 		ide.project.on('sync', _on_project);
 	},
@@ -568,4 +585,4 @@ var ide = window.ide = new (Backbone.View.extend({
 
 	}));
 
-})(this, this.j5ui, this.Backbone);
+})(this, this.j5ui, this.Backbone, this.jQuery);

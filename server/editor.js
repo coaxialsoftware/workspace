@@ -51,15 +51,36 @@ common.extend(Editor.prototype, {
 		return config;
 	},
 
+	handle_get_file: function(req, res)
+	{
+		this.get_file(req.query, function(result)
+		{
+			res.send(result);
+		});
+	},
+
+	handle_write_file: function(req, res)
+	{
+		this.put_file(req.query, req.body && req.body.content,
+		function(result)
+			{
+				res.send(result);
+			}
+		);
+	},
+
 	error: function(err)
 	{
 		console.error('[ide.js] ERROR ' + err);
 		return { error: err, success: false };
 	},
 
-	put_file: function(file, mtime, content, callback)
+	put_file: function(query, content, callback)
 	{
 	var
+		me = this,
+		file = (query.p ? query.p+'/' : '') + query.n,
+		mtime = query.t,
 		result = {
 			success: true
 		}
@@ -67,31 +88,32 @@ common.extend(Editor.prototype, {
 		fs.stat(file, function(err, stat)
 		{
 			if (err)
-				return callback(this.error(err));
+				return callback(me.error(err));
 
 			if (mtime !== (stat.mtime.getTime()+''))
-				return callback(this.error("File contents have changed."));
+				return callback(me.error("File contents have changed."));
 
-			this.log('Writing ' + file + '(' + content.length + ')');
+			me.log('Writing ' + file + '(' + content.length + ')');
 
 			fs.writeFile(file, content, function(err)
 			{
 				if (err)
-					callback(this.error(err));
+					callback(me.error(err));
 				else
 					fs.stat(file, function(err, stat) {
 						result.stat = stat;
 						result.new = false;
-						callback(err ? this.error(err) : result);
+						callback(err ? me.error(err) : result);
 					});
 			});
 		});
 	},
 
-	get_file: function(fn, callback)
+	get_file: function(query, callback)
 	{
 	var
-		result = { }
+		result = { },
+		fn = (query.p ? query.p + '/' : '') + query.n
 	;
 		if (fs.existsSync(fn))
 		{
@@ -109,7 +131,8 @@ common.extend(Editor.prototype, {
 			result.new = true;
 		}
 
-		result.filename = fn;
+		result.filename = query.n;
+		result.path = query.p;
 		result.mime = mime.lookup(fn);
 		result.success = true;
 

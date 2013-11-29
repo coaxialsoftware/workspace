@@ -71,22 +71,8 @@ var
 	});
 });
 
-app.get('/file', function(req, res)
-{
-	editor.get_file(req.query.n, function(result)
-	{
-		res.send(result);
-	});
-});
-
-app.post('/file', function(req, res)
-{
-	editor.put_file(req.query.n, req.query.t, req.body && req.body.content,
-	function(result)
-		{
-			res.send(result);
-		}
-	);
-});
+app.get('/file', editor.handle_get_file.bind(editor));
+app.post('/file', editor.handle_write_file.bind(editor));
+app.put('/file', editor.handle_write_file.bind(editor));
 
 editor.log("Listening to port " + address.port);

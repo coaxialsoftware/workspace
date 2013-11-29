@@ -122,7 +122,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 		if (token !== this._old_token)
 		{
-			ide.trigger('tokenchange', [ this, token ]);
+			ide.trigger('tokenchange', this, token);
 			this._old_token = token;
 		}
 	},
