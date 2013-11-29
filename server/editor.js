@@ -71,14 +71,8 @@ common.extend(Editor.prototype, {
 
 			if (mtime !== (stat.mtime.getTime()+''))
 				return callback(this.error("File contents have changed."));
-<<<<<<< HEAD
-=======
-		}
 
-		this.log('Writing ' + file + '(' + content.length + ')');
->>>>>>> 25d157fedf4526639c61c2c010246a03eb53c2bd
-
-			console.log('Writing ' + file + '(' + content.length + ')');
+			this.log('Writing ' + file + '(' + content.length + ')');
 
 			fs.writeFile(file, content, function(err)
 			{
