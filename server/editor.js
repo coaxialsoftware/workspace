@@ -61,7 +61,10 @@ common.extend(Editor.prototype, {
 
 	handle_write_file: function(req, res)
 	{
-		this.put_file(req.query, req.body && req.body.content,
+		if (!req.body)
+			return res.send(this.error("Invalid request."));
+
+		this.put_file(req.query, req.body,
 		function(result)
 			{
 				res.send(result);
@@ -75,25 +78,27 @@ common.extend(Editor.prototype, {
 		return { error: err, success: false };
 	},
 
-	put_file: function(query, content, callback)
+	put_file: function(query, body, callback)
 	{
 	var
 		me = this,
+		content = body.content,
 		file = (query.p ? query.p+'/' : '') + query.n,
 		mtime = query.t,
+		project = me._projects[query.p] || me,
 		result = {
 			success: true
 		}
 	;
 		fs.stat(file, function(err, stat)
 		{
-			if (err)
+			if (err && !(err.code==='ENOENT' && body.new))
 				return callback(me.error(err));
 
-			if (mtime !== (stat.mtime.getTime()+''))
+			if (stat && (mtime !== (stat.mtime.getTime()+'')))
 				return callback(me.error("File contents have changed."));
 
-			me.log('Writing ' + file + '(' + content.length + ')');
+			project.log('Writing ' + file + '(' + content.length + ')');
 
 			fs.writeFile(file, content, function(err)
 			{

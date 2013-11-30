@@ -14,7 +14,7 @@ ide.commands = {
 		for (var i=0; i<arguments.length; i++)
 			ide.open(arguments[i]);
 	},
-	
+
 	e: 'edit',
 
 	tabe: function(name)
@@ -24,7 +24,7 @@ ide.commands = {
 
 	project: function(name)
 	{
-		window.open('#' + ide.hash.encode({ project: name, file: undefined }));
+		window.open('#' + ide.hash.encode({ project: name, file: null }));
 	}
 
 };
