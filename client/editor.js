@@ -137,6 +137,21 @@ var ide = window.ide = new (Backbone.View.extend({
 
 		idAttribute: 'filename',
 
+		initialize: function()
+		{
+			this.on('error', this._onError);
+		},
+
+		_onSync: function()
+		{
+			j5ui.info('File ' + this.id + ' saved.');
+		},
+
+		_onError: function()
+		{
+			j5ui.error('Error saving file: ' + this.id);
+		},
+
 		isNew: function()
 		{
 			return this.attributes.new;

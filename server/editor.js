@@ -22,6 +22,9 @@ var
 		this.log('Loading workspace settings...');
 		common.extend(config, common.load_json('workspace.json'));
 
+		// Make sure password is not there
+		delete this.config.password;
+
 		this._projects = {};
 		this.projects = [];
 	}
