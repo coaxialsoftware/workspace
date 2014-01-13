@@ -32,6 +32,8 @@ var ide = window.ide = new (Backbone.View.extend({
 
 	Hash: j5ui.Class.extend({
 
+		data: null,
+
 		decode: function()
 		{
 		var

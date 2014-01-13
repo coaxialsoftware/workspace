@@ -1,5 +1,5 @@
 {
 
-"ignore": [ ".git", "node_modules" ]
+"ignore": [ ".git", "node_modules", "bower_components" ]
 
 }
