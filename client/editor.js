@@ -16,6 +16,8 @@ var ide = window.ide = new (Backbone.View.extend({
 	loader: null,
 
 	alert: j5ui.alert,
+	error: j5ui.error,
+	notify: j5ui.info,
 
 	open: function(filename)
 	{
@@ -111,12 +113,12 @@ var ide = window.ide = new (Backbone.View.extend({
 
 		_onSync: function()
 		{
-			j5ui.info('File ' + this.id + ' saved.');
+			ide.notify('File ' + this.id + ' saved.');
 		},
 
 		_onError: function()
 		{
-			j5ui.error('Error saving file: ' + this.id);
+			ide.error('Error saving file: ' + this.id);
 		},
 
 		isNew: function()
@@ -507,7 +509,7 @@ var ide = window.ide = new (Backbone.View.extend({
 			cmd = this.parse(val);
 
 			if (!cmd.fn)
-				j5ui.alert('Unknown Command: ' + val);
+				ide.alert('Unknown Command: ' + val);
 			else
 				cmd.fn.apply(cmd.scope, cmd.args);
 		},
@@ -554,7 +556,7 @@ var ide = window.ide = new (Backbone.View.extend({
 			if (response === undefined)
 				return;
 
-			j5ui.info(response);
+			ide.notify(response);
 		}
 
 	});

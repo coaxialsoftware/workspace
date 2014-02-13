@@ -1,5 +1,5 @@
 
-(function(ide, j5ui, ace) {
+(function(ide, ace) {
 "use strict";
 
 ide.Editor.Source = ide.Editor.extend({
@@ -102,7 +102,8 @@ ide.Editor.Source = ide.Editor.extend({
 
 		this.set_mode();
 		this.on('keyup', this.on_keyup);
-		j5ui.refer(this.focus.bind(this), 250);
+
+		window.setTimeout(this.focus.bind(this), 250);
 
 		this.findNextFix();
 	},
@@ -196,7 +197,7 @@ ide.Editor.Source = ide.Editor.extend({
 		this.file.save();
 
 		annotations.forEach(function(a) {
-			j5ui.alert((a.row+1) + ': ' + a.text);
+			ide.alert((a.row+1) + ': ' + a.text);
 		});
 	},
 
@@ -261,4 +262,4 @@ ide.plugins.register('editor.source', ide.Plugin.extend({
 
 }));
 
-})(this.ide, this.j5ui, this.ace);
+})(this.ide, this.ace);

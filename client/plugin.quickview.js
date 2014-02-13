@@ -1,5 +1,5 @@
 
-(function(ide, j5ui) {
+(function(ide) {
 "use strict";
 
 var
@@ -79,10 +79,10 @@ ide.plugins.register('quickview', ide.Plugin.extend({
 
 	color: function(color)
 	{
-		j5ui.info('<div style="width: 100%; height: 32px; background-color: ' +
+		ide.notify('<div style="width: 100%; height: 32px; background-color: ' +
 			color+ ';"></div>');
 	}
 
 }));
 
-})(window.ide, window.j5ui);
+})(window.ide);

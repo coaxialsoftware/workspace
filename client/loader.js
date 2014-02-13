@@ -1,14 +1,19 @@
 /**
  * @license Copyright 2010-2012, Giancarlo F Bellido.
  */
-(function(window, j5ui, undefined) {
+(function(window, _, undefined) {
 "use strict";
 
-/**
- * @class
- */
-window.Loader = j5ui.Class.extend(/** @scope Loader.prototype */{
+function Loader(p)
+{
+	if (p)
+		_.extend(this, p);
 
+	this.sources = {};
+	this.start = new Date();
+}
+
+_.extend(Loader.prototype, {
 	EVENT: {
 		IMG: 'load',
 		AUDIO: 'canplaythrough',
@@ -27,14 +32,6 @@ window.Loader = j5ui.Class.extend(/** @scope Loader.prototype */{
 	on_source: null,
 	/**Fires when all assets are loaded. */
 	on_ready: null,
-
-	init: function ideLoader(p)
-	{
-		j5ui.Class.apply(this, [ p ]);
-
-		this.sources = {};
-		this.start = new Date();
-	},
 
 	_check_ready: function()
 	{
@@ -69,7 +66,7 @@ window.Loader = j5ui.Class.extend(/** @scope Loader.prototype */{
 	;
 		if (!result)
 		{
-			result = j5ui.dom(tag);
+			result = document.createElement(tag);
 			this.sources[src] = source = { el: result };
 
 			result.addEventListener(this.EVENT[tag], function() {
@@ -157,4 +154,6 @@ window.Loader = j5ui.Class.extend(/** @scope Loader.prototype */{
 
 });
 
-})(this, this.j5ui);
+window.Loader = Loader;
+
+})(this, this._);
