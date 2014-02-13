@@ -3,7 +3,7 @@
  *
  */
 
-(function(window, j5ui, Backbone, $) {
+(function(window, _, Backbone, $, j5ui) {
 "use strict";
 
 var ide = window.ide = new (Backbone.View.extend({
@@ -14,6 +14,8 @@ var ide = window.ide = new (Backbone.View.extend({
 	info: null,
 	hash: null,
 	loader: null,
+
+	alert: j5ui.alert,
 
 	open: function(filename)
 	{
@@ -30,44 +32,7 @@ var ide = window.ide = new (Backbone.View.extend({
 		window.document.title = editor.get_info();
 	},
 
-	Hash: j5ui.Class.extend({
-
-		data: null,
-
-		decode: function()
-		{
-		var
-			h = window.location.hash.substr(1)
-		;
-			return (h && JSON.parse(h)) || {};
-		},
-
-		encode: function(obj)
-		{
-		var
-			hash = $.extend({}, this.data, obj)
-		;
-
-			return JSON.stringify(hash);
-		},
-
-		set: function(obj)
-		{
-			$.extend(this.data,obj);
-			window.location.hash = this.encode();
-		},
-
-		init: function Hash()
-		{
-		var
-			hash = this.decode()
-		;
-			this.data = hash;
-		}
-
-	}),
-
-	Plugin: j5ui.Class.extend({
+	Plugin: Backbone.View.extend({
 
 		shortcut: null,
 		invoke: null,
@@ -314,8 +279,44 @@ var ide = window.ide = new (Backbone.View.extend({
 	}
 ;
 
+	function Hash()
+	{
+	var
+		hash = this.decode()
+	;
+		this.data = hash;
+	}
+
+	_.extend(Hash.prototype, {
+
+		data: null,
+
+		decode: function()
+		{
+		var
+			h = window.location.hash.substr(1)
+		;
+			return (h && JSON.parse(h)) || {};
+		},
+
+		encode: function(obj)
+		{
+		var
+			hash = $.extend({}, this.data, obj)
+		;
+
+			return JSON.stringify(hash);
+		},
+
+		set: function(obj)
+		{
+			$.extend(this.data,obj);
+			window.location.hash = this.encode();
+		}
+	});
+
 	ide.plugins = new ide.PluginManager();
-	ide.hash = new ide.Hash();
+	ide.hash = new Hash();
 	ide.loader = new window.Loader();
 
 	window.addEventListener('load', _start);
@@ -334,7 +335,7 @@ var ide = window.ide = new (Backbone.View.extend({
 
 	});
 
-	ide.Bar = j5ui.Widget.extend({
+	ide.Bar = Backbone.View.extend({
 
 		/**
 		 * When a key is pressed and its found here the
@@ -355,10 +356,8 @@ var ide = window.ide = new (Backbone.View.extend({
 			this.show();
 		},
 
-		init: function Bar()
+		initialize: function Bar()
 		{
-			j5ui.Widget.apply(this);
-
 			this._keys = {
 			// TODO Use Key constants
 			27: function() { this.hide(); },
@@ -369,7 +368,7 @@ var ide = window.ide = new (Backbone.View.extend({
 				},
 			9: function() {
 			var
-				el = this.element,
+				el = this.el,
 				i = el.value.lastIndexOf(' ', el.selectionStart)+1,
 				text = ''
 			;
@@ -384,9 +383,9 @@ var ide = window.ide = new (Backbone.View.extend({
 			}
 			};
 
-			this.on('keyup', this.on_key);
-			this.on('keydown', this.on_keydown);
-			this.on('blur', this.on_blur);
+			this.$el.on('keyup', this.on_key.bind(this));
+			this.$el.on('keydown', this.on_keydown.bind(this));
+			this.$el.on('blur', this.on_blur.bind(this));
 		},
 
 		on_blur: function()
@@ -411,14 +410,14 @@ var ide = window.ide = new (Backbone.View.extend({
 			if (fn)
 				fn.apply(this, [ ev ]);
 
-			if (this.element.value!==this._value)
+			if (this.el.value!==this._value)
 			{
 				this._lastSearch = null;
 				if (this.on_change)
-					this.on_change(this.element.value);
+					this.on_change(this.el.value);
 			}
 
-			this._value = this.element.value;
+			this._value = this.el.value;
 			ev.stopPropagation();
 			return false;
 		},
@@ -430,8 +429,7 @@ var ide = window.ide = new (Backbone.View.extend({
 
 		show: function()
 		{
-			this.element.value = '';
-			this.element.style.display = 'block';
+			this.$el.val('').show();
 			this.hidden = false;
 			this.focus();
 		},
@@ -439,14 +437,15 @@ var ide = window.ide = new (Backbone.View.extend({
 		focus: function()
 		{
 		var
-			el = this.element
+			el = this.el
 		;
 			setTimeout(function() { el.focus(); });
 		},
 
 		hide: function()
 		{
-			this.element.style.display = 'none';
+			this.$el.hide();
+
 			this.hidden = true;
 			if (ide.editor)
 				ide.editor.focus();
@@ -455,14 +454,14 @@ var ide = window.ide = new (Backbone.View.extend({
 
 		start: function()
 		{
-			document.body.appendChild(this.element);
+			document.body.appendChild(this.el);
 		}
 
 	});
 
 	ide.Bar.Command = ide.Bar.extend({
 
-		element: j5ui.html('<input id="command" />'),
+		el: $('<input id="command" />'),
 		shortcut: "shift-186",
 
 		scan: function(text)
@@ -499,7 +498,7 @@ var ide = window.ide = new (Backbone.View.extend({
 		run: function()
 		{
 		var
-			val = this.element.value,
+			val = this.el.value,
 			cmd
 		;
 			if (val==='')
@@ -516,7 +515,7 @@ var ide = window.ide = new (Backbone.View.extend({
 		on_complete: function(s, start, end)
 		{
 		var
-			val = this.element.value,
+			val = this.el.value,
 			match
 		;
 			if (!this._lastSearch)
@@ -531,7 +530,7 @@ var ide = window.ide = new (Backbone.View.extend({
 				return;
 
 			match = this._lastSearch[this._lastSearchIndex++];
-			this._value = this.element.value = val.slice(0, start) + match + val.slice(end);
+			this._value = this.el.value = val.slice(0, start) + match + val.slice(end);
 		}
 
 	});
@@ -539,7 +538,7 @@ var ide = window.ide = new (Backbone.View.extend({
 	ide.Bar.Evaluate = ide.Bar.extend({
 
 		shortcut: 'shift-49',
-		element: j5ui.html('<input id="evaluate" />'),
+		el: $('<input id="evaluate" />'),
 
 		encode: function(response)
 		{
@@ -550,7 +549,7 @@ var ide = window.ide = new (Backbone.View.extend({
 		{
 		/*jshint evil: true */
 		var
-			response = eval(this.element.value)
+			response = eval(this.el.value)
 		;
 			if (response === undefined)
 				return;
@@ -562,12 +561,11 @@ var ide = window.ide = new (Backbone.View.extend({
 
 	ide.Bar.Search = ide.Bar.extend({
 
-		element: j5ui.html('<input id="search" />'),
+		el: $('<input id="search" />'),
 		shortcut: '191',
 
 		run: function()
 		{
-			//ide.editor.editor.findAll(new RegExp(this.element.value));
 		},
 
 		on_change: function(val)
@@ -575,7 +573,7 @@ var ide = window.ide = new (Backbone.View.extend({
 		var
 			regex
 		;
-			try { regex = new RegExp(val); } catch(e) { regex = val; }
+			try { regex = new RegExp(val, 'm'); } catch(e) { regex = val; }
 
 			if (ide.editor)
 				ide.editor.find(regex);
@@ -591,7 +589,6 @@ var ide = window.ide = new (Backbone.View.extend({
 
 		_error: function(error) //, url, line)
 		{
-			j5ui.error(error.message);
 			window.console.error(error);
 		},
 
@@ -602,4 +599,4 @@ var ide = window.ide = new (Backbone.View.extend({
 
 	}));
 
-})(this, this.j5ui, this.Backbone, this.jQuery);
+})(this, this._, this.Backbone, this.jQuery, this.j5ui);

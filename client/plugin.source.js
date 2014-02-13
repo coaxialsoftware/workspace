@@ -103,6 +103,17 @@ ide.Editor.Source = ide.Editor.extend({
 		this.set_mode();
 		this.on('keyup', this.on_keyup);
 		j5ui.refer(this.focus.bind(this), 250);
+
+		this.findNextFix();
+	},
+
+	findNextFix: function()
+	{
+		this.editor.findNext = function(options, animate)
+		{
+			this.find({skipCurrent: true, backwards: false, start:null},
+				options, animate);
+		};
 	},
 
 	on_beforeunload: function()
@@ -150,6 +161,7 @@ ide.Editor.Source = ide.Editor.extend({
 	find: function(n)
 	{
 		this.editor.find({ needle: n });
+		this.editor.$search.$options.start = null;
 	},
 
 	focus: function()

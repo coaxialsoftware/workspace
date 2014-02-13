@@ -73,6 +73,10 @@ module.exports = function(grunt) {
 				dest: 'public/build/ide.js'
 			},
 
+			debug: {
+				src: '<%= jshint.client.src %>',
+				dest: 'public/build/debug.js'
+			},
 
 			tern_ecma5: {
 				src: [ 'node_modules/tern/defs/ecma5.json' ],
