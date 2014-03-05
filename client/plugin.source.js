@@ -1,5 +1,5 @@
 
-(function(ide, ace) {
+(function(ide, ace, _) {
 "use strict";
 
 ide.Editor.Source = ide.Editor.extend({
@@ -75,12 +75,14 @@ ide.Editor.Source = ide.Editor.extend({
 		return this.editor.getCursorPosition();
 	},
 
-	setup: function()
+	initialize: function(p)
 	{
 	var
-		editor = this.editor = ace.edit(this.element),
+		editor = this.editor = ace.edit(this.el),
 		session = editor.getSession()
 	;
+		_.extend(this, p);
+
 		ace.config.set('basePath', 'ace-builds/src');
 		editor.setTheme('ace/theme/twilight');
 		editor.container.style.fontSize = '16px';
@@ -262,4 +264,4 @@ ide.plugins.register('editor.source', ide.Plugin.extend({
 
 }));
 
-})(this.ide, this.ace);
+})(this.ide, this.ace, this._);

@@ -3,10 +3,13 @@
  *
  */
 
-(function(window, _, Backbone, $, j5ui) {
+(function(window, _, Backbone, $) {
 "use strict";
 
-var ide = window.ide = new (Backbone.View.extend({
+var
+	_nots,
+
+	ide = window.ide = new (Backbone.View.extend({
 
 	project: null,
 	workspace: null,
@@ -15,9 +18,29 @@ var ide = window.ide = new (Backbone.View.extend({
 	hash: null,
 	loader: null,
 
-	alert: j5ui.alert,
-	error: j5ui.error,
-	notify: j5ui.info,
+	alert: function(message)
+	{
+		ide.notify(message, 'ide-alert');
+	},
+
+	error: function(message)
+	{
+		ide.notify(message, 'ide-error');
+	},
+
+	notify: function(message, kls)
+	{
+		kls = kls || 'info';
+
+	var
+		span = $('<div class="ide-notification ' + (kls || 'ide-info') +
+			'">' + message + '</div>')
+	;
+		_nots.prepend(span);
+		window.setTimeout(function() {
+			span.remove();
+		}, 3000);
+	},
 
 	open: function(filename)
 	{
@@ -67,14 +90,84 @@ var ide = window.ide = new (Backbone.View.extend({
 		}
 	}),
 
-	Workspace: j5ui.Container.extend({
+	Workspace: Backbone.View.extend({
 
-		element: '#workspace',
-		layout: j5ui.Layout.Smart,
+		el: '#workspace',
 
-		init: function Workspace()
+		layout: function(el)
 		{
-			j5ui.Container.apply(this, arguments);
+		var
+			i=0,
+			child = el.children,
+			l = child.length,
+			result, w
+		;
+			switch (l)
+			{
+			case 0: return;
+			case 1: return [{ left: 0, top: 0, height: '100%', width: '100%' }];
+			case 2: return [
+					{ left: 0, top: 0, height: '100%', width: '50%' },
+					{ left: '50%', top: 0, height: '100%', width: '50%' }
+				];
+			}
+
+			w = Math.floor(100 / (Math.ceil(l/2)));
+			result = [];
+
+			if (l % 2)
+			{
+				i = w;
+				result.push({ left: 0, top: 0, height: '100%', width: w + '%'});
+			}
+
+			for (; i<100; i+=w)
+				result.push(
+					{ left: i+'%', top: 0, width: w + '%', height: '50%' },
+					{ left: i+'%', top: '50%', width: w + '%', height: '50%' }
+				);
+
+			return result;
+		},
+
+		_do_layout: function()
+		{
+		var
+			child = this.children,
+			layout,
+			i = 0
+		;
+			if (!this.layout)
+				return;
+
+			layout = this.layout(this.el);
+
+			for (; i<child.length; i++)
+				child[i].$el.css(layout[i]);
+		},
+
+		add: function(item)
+		{
+			this.children.push(item);
+			this.$el.append(item.el);
+
+			this._do_layout();
+			this.trigger('add_child', item);
+
+			return this;
+		},
+
+		remove_child: function(item)
+		{
+			this.children.splice(this.children.indexOf(item), 1);
+			this.trigger('remove_child', item);
+			this._do_layout();
+			return this;
+		},
+
+		initialize: function Workspace()
+		{
+			this.children = [];
 			this.on('remove_child', this.on_remove_child);
 			this.on('add_child', this.on_add_child);
 		},
@@ -181,14 +274,40 @@ var ide = window.ide = new (Backbone.View.extend({
 
 	}),
 
-	PluginManager: j5ui.Class.extend({
+	PluginManager: function()
+	{
+		this._plugins = {};
+	}
+
+}))(),
+	_start= function()
+	{
+	var
+		hash = ide.hash.data
+	;
+		ide.workspace = new ide.Workspace();
+		ide.info = new ide.Info();
+
+		_nots = $('<div id="ide-notifications">').appendTo(window.document.body);
+
+		ide.project = new ide.Project({ path: hash.project });
+		ide.project.fetch();
+		ide.project.on('sync', _on_project);
+	},
+
+	_on_project= function()
+	{
+		ide.plugins.start();
+		$('#mask').hide();
+
+		if (ide.hash.data.file)
+			ide.open(ide.hash.data.file);
+	}
+;
+
+	_.extend(ide.PluginManager.prototype, {
 
 		_plugins: null,
-
-		init: function PluginManager()
-		{
-			this._plugins = {};
-		},
 
 		each: function(fn)
 		{
@@ -256,30 +375,7 @@ var ide = window.ide = new (Backbone.View.extend({
 			this._plugins[name] = new Klass();
 		}
 
-	})
-}))(),
-	_start= function()
-	{
-	var
-		hash = ide.hash.data
-	;
-		ide.workspace = new ide.Workspace();
-		ide.info = new ide.Info();
-
-		ide.project = new ide.Project({ path: hash.project });
-		ide.project.fetch();
-		ide.project.on('sync', _on_project);
-	},
-
-	_on_project= function()
-	{
-		ide.plugins.start();
-		$('#mask').hide();
-
-		if (ide.hash.data.file)
-			ide.open(ide.hash.data.file);
-	}
-;
+	});
 
 	function Hash()
 	{
@@ -323,12 +419,7 @@ var ide = window.ide = new (Backbone.View.extend({
 
 	window.addEventListener('load', _start);
 
-	ide.Editor = j5ui.Widget.extend({
-
-		init: function Editor()
-		{
-			j5ui.Widget.apply(this, arguments);
-		},
+	ide.Editor = Backbone.View.extend({
 
 		on_focus: function()
 		{
@@ -601,4 +692,4 @@ var ide = window.ide = new (Backbone.View.extend({
 
 	}));
 
-})(this, this._, this.Backbone, this.jQuery, this.j5ui);
+})(this, this._, this.Backbone, this.jQuery);

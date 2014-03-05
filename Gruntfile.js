@@ -6,8 +6,7 @@ module.exports = function(grunt) {
 			ace: "bower_components/ace-builds/src",
 			backbone: "bower_components/backbone",
 			underscore: "bower_components/underscore",
-			jquery: "bower_components/jquery",
-			j5ui: "../j5ui/src"
+			jquery: "bower_components/jquery"
 		},
 
 		jshint: {
@@ -44,8 +43,6 @@ module.exports = function(grunt) {
 
 			css: {
 				src: [
-					'<%= path.j5ui %>/j5ui.css',
-					'<%= path.j5ui %>/../themes/silk/silk.css',
 					'client/styles.css'
 				],
 				dest: 'public/build/ide.css'
@@ -59,10 +56,7 @@ module.exports = function(grunt) {
 
 					'<%= path.jquery %>/jquery.js',
 					'<%= path.underscore %>/underscore.js',
-					'<%= path.backbone %>/backbone.js',
-
-					'<%= path.j5ui %>/j5ui.js',
-					'<%= path.j5ui %>/j5ui-layout.js'
+					'<%= path.backbone %>/backbone.js'
 				],
 				dest: 'public/build/libs.js'
 			},

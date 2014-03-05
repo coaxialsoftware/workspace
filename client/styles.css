@@ -80,6 +80,22 @@ h2 {
 	z-index: 20;
 }
 
+/* NOTIFICATIONS */
+#ide-notification { 
+	position: fixed; top: 10px; right: 10px; overflow: visible; width: 300px; z-index: 9000;
+	text-align: right;
+}
+
+#ide-notification > div, .j5ui-popup {
+	display: none; padding: 8px;
+	min-width: 200px; display: inline-block;
+	border-radius: 8px;
+}
+
+.ide-info { background-color: rgba(52, 152, 219, 0.8); }
+.ide-error { background-color: rgba(231, 76, 60, 0.8); }
+.ide-alert { background-color: rgba(241, 196, 15, 0.8); color: #333; }
+
 /* EDITOR STYLES */
 .ace_gutter { border-radius: 8px 0 0 8px; }
 .ace_scrollbar { border-radius: 0 8px 8px 0; }
