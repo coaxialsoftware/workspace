@@ -179,7 +179,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 		this.editor.destroy();
 		this.remove();
-		this.fire('close', [ this ]);
+		this.trigger('close', this);
 	},
 
 	remove_trailing: function()

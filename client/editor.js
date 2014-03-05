@@ -151,6 +151,8 @@ var
 			this.children.push(item);
 			this.$el.append(item.el);
 
+			item.on('close', this.remove_child, this);
+
 			this._do_layout();
 			this.trigger('add_child', item);
 
@@ -160,15 +162,18 @@ var
 		remove_child: function(item)
 		{
 			this.children.splice(this.children.indexOf(item), 1);
-			this.trigger('remove_child', item);
+			if (this.children[0])
+				this.children[0].focus();
 			this._do_layout();
+
+			this.trigger('remove_child', item);
+
 			return this;
 		},
 
 		initialize: function Workspace()
 		{
 			this.children = [];
-			this.on('remove_child', this.on_remove_child);
 			this.on('add_child', this.on_add_child);
 		},
 
@@ -181,11 +186,6 @@ var
 		on_editor_mouseover: function()
 		{
 			ide.info.show(this.get_info());
-		},
-
-		on_remove_child: function()
-		{
-			if (this.children[0]) this.children[0].focus();
 		},
 
 		on_editor_focus: function(editor)

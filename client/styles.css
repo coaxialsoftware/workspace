@@ -86,7 +86,7 @@ h2 {
 	text-align: right;
 }
 
-#ide-notification > div, .j5ui-popup {
+#ide-notification > div {
 	display: none; padding: 8px;
 	min-width: 200px; display: inline-block;
 	border-radius: 8px;
