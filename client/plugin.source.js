@@ -170,6 +170,7 @@ ide.Editor.Source = ide.Editor.extend({
 	focus: function()
 	{
 		this.editor.focus();
+		this.trigger('focus', this);
 	},
 
 	close: function()

@@ -30,16 +30,11 @@ var
 
 	notify: function(message, kls)
 	{
-		kls = kls || 'info';
-
 	var
 		span = $('<div class="ide-notification ' + (kls || 'ide-info') +
 			'">' + message + '</div>')
 	;
-		_nots.prepend(span);
-		window.setTimeout(function() {
-			span.remove();
-		}, 3000);
+		span.prependTo(_nots).delay(3000).remove();
 	},
 
 	open: function(filename)
@@ -179,7 +174,7 @@ var
 
 		on_add_child: function(c)
 		{
-			c.on('mousemove', this.on_editor_mouseover);
+			c.$el.on('mousemove', this.on_editor_mouseover.bind(c));
 			c.on('focus', this.on_editor_focus, this);
 		},
 
@@ -288,7 +283,7 @@ var
 		ide.workspace = new ide.Workspace();
 		ide.info = new ide.Info();
 
-		_nots = $('<div id="ide-notifications">').appendTo(window.document.body);
+		_nots = $('<div id="ide-notification">').appendTo(window.document.body);
 
 		ide.project = new ide.Project({ path: hash.project });
 		ide.project.fetch();

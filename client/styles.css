@@ -1,6 +1,7 @@
 
 body {
 	background-color: #7F8C8D; padding: 0;
+	font-family: Verdana, sans-serif;
 }
 
 #workspace {
@@ -22,7 +23,6 @@ h2 {
 }
 
 #workspace > div, .ide-panel { 
-	border-radius: 8px;
 	min-height: 100px; border: 3px solid transparent;
 	font-size: 16px;
 
@@ -86,7 +86,7 @@ h2 {
 	text-align: right;
 }
 
-#ide-notification > div {
+#ide-notification > div, .ide-popup {
 	display: none; padding: 8px;
 	min-width: 200px; display: inline-block;
 	border-radius: 8px;
