@@ -103,7 +103,7 @@ ide.Editor.Source = ide.Editor.extend({
 		window.addEventListener('beforeunload', this.on_beforeunload.bind(this));
 
 		this.set_mode();
-		this.on('keyup', this.on_keyup);
+		this.$el.on('keyup', this.on_keyup.bind(this));
 
 		window.setTimeout(this.focus.bind(this), 250);
 
