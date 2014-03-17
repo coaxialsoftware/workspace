@@ -12,5 +12,14 @@
 	<div id="mask">Loading...</div>
 	<div id="info" class="ide-popup"></div>
 	<div id="workspace"></div>
+	<div id="projects"></div>
+	
+	<script id="tpl-project" type="text/template">
+	<div class="project">
+		<a class="content" href="javascript: ide.commands.project('<%= path %>')">
+			<h3><%= path %></h3>
+		</a>
+	</div>
+	</script>
 </body>
 </html>

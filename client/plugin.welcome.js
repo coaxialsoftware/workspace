@@ -1,24 +1,32 @@
 
-(function(ide, _) {
+(function(ide, _, $) {
 "use strict";
 
 ide.plugins.register('welcome', ide.Plugin.extend({
-
-	template: null,
 
 	start: function()
 	{
 		ide.alert('Welcome ' + ide.project.get('env').USER);
 		window.document.title = ide.project.get('name');
 
-		_.each(ide.project.get('projects'), this.renderProjects, this);
+		this.renderProjects(ide.project.get('projects'));
 	},
 
-	renderProjects: function()
+	renderProjects: function(projects)
 	{
-		//ide.workspace.$el.append()
+		if (!projects)
+			return;
+
+	var
+		tplProject = _.template($('#tpl-project').html()),
+		container = $('#projects')
+	;
+
+		_.each(projects, function(p) {
+			container.append(tplProject(p));
+		});
 	}
 
 }));
 
-})(window.ide, this._);
+})(window.ide, this._, this.jQuery);

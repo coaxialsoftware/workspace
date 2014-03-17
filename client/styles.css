@@ -2,6 +2,7 @@
 body {
 	background-color: #7F8C8D; padding: 0;
 	font-family: Verdana, sans-serif;
+	font-size: 12px;
 }
 
 #workspace {
@@ -22,6 +23,11 @@ h2 {
 	color: rgba(255, 255, 255, 0.4);
 }
 
+h3 {
+	font-size: 18px;
+	color: #bdc3c7;
+}
+
 #workspace > div, .ide-panel { 
 	min-height: 100px; border: 3px solid transparent;
 	font-size: 16px;
@@ -35,6 +41,39 @@ h2 {
 	background-color: rgb(44, 62, 80);
 	background-color: rgba(44,62, 80, 0.8);
 	color: #eee; padding: 6px;
+}
+
+#projects > .project {
+	box-sizing: border-box;
+	display: inline-block;
+	width: 33%; height: 200px;
+	font-size: 12px;
+	border-style: solid;
+	border-color: transparent;
+	border-width: 0 8px 8px 0;
+	transition: width 0.5s;
+}
+
+#projects .content {
+	padding: 10px;
+	background-color: rgba(41, 128, 185, 0.9);
+	height: 100%; width: 100%;
+	border: 1px solid rgb(52, 152, 219);
+	box-sizing: border-box;
+	display: block;
+	text-decoration: none;
+	transition: background-color 0.5s;
+}
+
+#projects .content:hover {
+	background-color: rgba(52, 152, 219,0.9);	
+}
+
+#projects {
+	left: 50px; top: 200px;
+	right: 42px; 
+	font-size: 0;
+	position: absolute;
 }
 
 #project {
@@ -99,3 +138,24 @@ h2 {
 /* EDITOR STYLES */
 .ace_gutter { border-radius: 8px 0 0 8px; }
 .ace_scrollbar { border-radius: 0 8px 8px 0; }
+
+@media (min-width: 980px) {
+	
+	#projects > .project {
+		width: 25%;
+	}
+	
+}
+
+@media (max-width: 800px) {
+	#projects > .project {
+		width: 50%;
+	}
+}
+
+@media (max-width: 500px) {
+	
+	#projects > .project {
+		width: 100%;
+	}
+}
