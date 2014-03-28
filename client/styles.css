@@ -26,6 +26,7 @@ h2 {
 h3 {
 	font-size: 18px;
 	color: #bdc3c7;
+	margin: 0;
 }
 
 #workspace > div, .ide-panel { 
@@ -158,4 +159,14 @@ h3 {
 	#projects > .project {
 		width: 100%;
 	}
+}
+
+.label {
+	font-size: 10px; border-radius: 4px; 
+	background-color: #999; color: #fff;
+	padding: 4px; float: right; margin: 0 2px;
+}
+
+.label-success {
+	background-color: #5cb85c;
 }

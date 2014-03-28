@@ -31,6 +31,8 @@ server = (editor.config.https ?
 		.listen(editor.config.port)
 ;
 
+delete editor.config.https;
+
 address = server.address();
 
 if (!address)

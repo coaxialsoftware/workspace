@@ -158,6 +158,10 @@ common.extend(Editor.prototype, {
 		for (i=0; i<files.length;i++)
 		{
 			path = files[i];
+
+			if (!fs.statSync(path).isDirectory())
+				continue;
+
 			projects[path] = {
 				path: path,
 				is_git: fs.existsSync(path+'/.git'),
