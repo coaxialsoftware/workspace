@@ -13,10 +13,13 @@ exports.load_json = function(filename, callback)
 {
 	if (callback)
 		fs.readFile(filename, 'utf8', function(err, data) {
-			callback(err ? undefined : JSON.parse(data));
+			callback(err ? false : JSON.parse(data));
 		});
-	else if (fs.existsSync(filename))
-		return JSON.parse(fs.readFileSync(filename, 'utf8'));
+	else
+		return fs.existsSync(filename) ?
+			JSON.parse(fs.readFileSync(filename, 'utf8')) :
+			false
+		;
 };
 
 

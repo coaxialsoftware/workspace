@@ -21,11 +21,17 @@
 				<% if (is_git) { %>
 					<span class="label label-success">git</span>
 				<% } %>
-				<% if (typeof package !== 'undefined') { %>
+				<% if (package) { %>
 					<span class="label">npm</span>
+				<% } %>
+				<% if (project) { %>
+					<span class="label">ide</span>
 				<% } %>
 				<%= path %>
 			</h3>
+			<p>
+				<%= package ? package.description : '' %>
+			</p>
 		</a>
 	</div>
 	</script>

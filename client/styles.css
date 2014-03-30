@@ -46,7 +46,8 @@ h3 {
 
 #projects > .project {
 	box-sizing: border-box;
-	display: inline-block;
+	display: block;
+	float: left;
 	width: 33%; height: 200px;
 	font-size: 12px;
 	border-style: solid;
@@ -64,6 +65,7 @@ h3 {
 	display: block;
 	text-decoration: none;
 	transition: background-color 0.5s;
+	color: #eee;
 }
 
 #projects .content:hover {

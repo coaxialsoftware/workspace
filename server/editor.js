@@ -165,7 +165,8 @@ common.extend(Editor.prototype, {
 			projects[path] = {
 				path: path,
 				is_git: fs.existsSync(path+'/.git'),
-				package: common.load_json(path+'/package.json')
+				package: common.load_json(path+'/package.json'),
+				project: common.load_json(path+'/project.json')
 			};
 		}
 
