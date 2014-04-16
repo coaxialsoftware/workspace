@@ -49,9 +49,9 @@ if (editor.config.password)
 app.use(express.compress());
 
 editor.log('Serving public');
-app.use(express.static(rootdir + '/public'));
+app.use(express.static(rootdir + '/public', { maxAge: 86400000 }));
 editor.log('Serving dependecies');
-app.use(express.static(rootdir + '/bower_components'));
+app.use(express.static(rootdir + '/bower_components', { maxAge: 86400000 }));
 
 
 process.title = 'ide.js:' + address.port;
