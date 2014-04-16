@@ -29,6 +29,13 @@ h3 {
 	margin: 0;
 }
 
+h4 {
+	font-size: 14px;
+	color: #bdc3c7;
+	margin: 0;
+	overflow: hidden;
+}
+
 #workspace > div, .ide-panel { 
 	min-height: 100px; border: 3px solid transparent;
 	font-size: 16px;
@@ -44,7 +51,7 @@ h3 {
 	color: #eee; padding: 6px;
 }
 
-#projects > .project {
+#projects > .project, #projects > .file {
 	box-sizing: border-box;
 	display: block;
 	float: left;
@@ -53,8 +60,14 @@ h3 {
 	border-style: solid;
 	border-color: transparent;
 	border-width: 0 8px 8px 0;
-	transition: width 0.5s;
+	transition: width 0.5s, opacity 0.5s;
 }
+
+#projects > .file {
+	height: 45px;
+}
+
+#projects h4 { height: 18px; }
 
 #projects .content {
 	padding: 10px;
@@ -77,6 +90,8 @@ h3 {
 	right: 42px; 
 	font-size: 0;
 	position: absolute;
+	transition: opacity 0.5s;
+	opacity: 0;
 }
 
 #project {
@@ -144,21 +159,21 @@ h3 {
 
 @media (min-width: 980px) {
 	
-	#projects > .project {
+	#projects > .project, #projects > .file {
 		width: 25%;
 	}
 	
 }
 
 @media (max-width: 800px) {
-	#projects > .project {
+	#projects > .project, #projects > .file {
 		width: 50%;
 	}
 }
 
 @media (max-width: 500px) {
 	
-	#projects > .project {
+	#projects > .project, #projects > .file {
 		width: 100%;
 	}
 }
