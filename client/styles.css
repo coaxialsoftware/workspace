@@ -128,6 +128,10 @@ h4 {
 	transition: opacity 0.1s; z-index: 30;
 }
 
+#info:hover {
+	display: block !important; opacity: 1 !important;
+}
+
 #mask { 
 	position: absolute; top: 0; right: 0; bottom: 0; left: 0;
 	background: rgb(0,0,0);
@@ -146,12 +150,12 @@ h4 {
 #ide-notification > div, .ide-popup {
 	display: none; padding: 8px;
 	min-width: 200px; display: inline-block;
-	border-radius: 8px;
+	border-radius: 8px; margin-bottom: 4px;
 }
 
 .ide-info { background-color: rgba(52, 152, 219, 0.8); }
 .ide-error { background-color: rgba(231, 76, 60, 0.8); }
-.ide-alert { background-color: rgba(241, 196, 15, 0.8); color: #333; }
+.ide-warn{ background-color: rgba(241, 196, 15, 0.8); color: #333; }
 
 /* EDITOR STYLES */
 .ace_gutter { border-radius: 8px 0 0 8px; }

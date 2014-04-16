@@ -20,21 +20,24 @@ var
 
 	alert: function(message)
 	{
-		ide.notify(message, 'ide-alert');
+		ide.notify(message, 'warn');
 	},
 
 	error: function(message)
 	{
-		ide.notify(message, 'ide-error');
+		ide.notify(message, 'error');
 	},
 
 	notify: function(message, kls)
 	{
+		kls = kls || 'info';
 	var
-		span = $('<div class="ide-notification ' + (kls || 'ide-info') +
+		span = $('<div class="ide-notification ide-' + kls +
 			'">' + message + '</div>')
 	;
-		span.prependTo(_nots).delay(3000).remove();
+		span.prependTo(_nots).delay(3000)
+			.slideUp(function() { span.remove(); });
+		window.console[kls](message);
 	},
 
 	open: function(filename)
