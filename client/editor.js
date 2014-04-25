@@ -422,6 +422,11 @@ var
 		on_focus: function()
 		{
 			ide.set_editor(this);
+		},
+
+		get_info: function()
+		{
+
 		}
 
 	});

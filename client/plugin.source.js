@@ -2,6 +2,12 @@
 (function(ide, ace, _) {
 "use strict";
 
+/**
+ * Events:
+ *
+ * tokenchange
+ * cursorchange
+ */
 ide.Editor.Source = ide.Editor.extend({
 
 	file: null,
@@ -75,6 +81,23 @@ ide.Editor.Source = ide.Editor.extend({
 		return this.editor.getCursorPosition();
 	},
 
+	enable_autocompletion: function()
+	{
+		this.editor.commands.addCommand({
+			name: 'startAutocomplete',
+			bindKey: 'Ctrl-Space|Alt-Space',
+			exec: function(editor)
+			{
+				ide.trigger('autocomplete', editor);
+			}
+		});
+	},
+
+	on_scroll: function()
+	{
+		ide.trigger('scroll', this);
+	},
+
 	initialize: function(p)
 	{
 	var
@@ -99,6 +122,7 @@ ide.Editor.Source = ide.Editor.extend({
 		editor.selection.clearSelection();
 		editor.on('focus', this.on_focus.bind(this));
 		editor.on('changeSelection', this.on_selection.bind(this));
+		editor.renderer.scrollBar.element.addEventListener('scroll', this.on_scroll.bind(this));
 
 		window.addEventListener('beforeunload', this.on_beforeunload.bind(this));
 
@@ -106,8 +130,8 @@ ide.Editor.Source = ide.Editor.extend({
 		this.$el.on('keyup', this.on_keyup.bind(this));
 
 		window.setTimeout(this.focus.bind(this), 250);
-
 		this.findNextFix();
+		this.enable_autocompletion();
 	},
 
 	findNextFix: function()
@@ -129,16 +153,18 @@ ide.Editor.Source = ide.Editor.extend({
 	var
 		pos = editor.getCursorPosition(),
 		ann = this.get_annotation(pos.row),
-		token = editor.session.getTokenAt(pos.row, pos.column)
+		token = editor.session.getTokenAt(pos.row, pos.column+1)
 	;
 		if (ann)
 			ide.info.show(ann.text.join('<br/>'));
 
 		if (token !== this._old_token)
 		{
-			ide.trigger('tokenchange', this, token);
+			ide.trigger('tokenchange', this, token, pos);
 			this._old_token = token;
 		}
+
+		ide.trigger('cursorchange', this, pos);
 	},
 
 	on_keyup: function(ev)

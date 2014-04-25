@@ -89,7 +89,7 @@ module.exports = function(grunt) {
 		watch: {
 			client: {
 				files: [ '<%= jshint.client.src %>' ],
-				tasks: [ 'jshint:client', 'concat:client' ]
+				tasks: [ 'jshint:client', 'concat:client', 'concat:debug' ]
 			},
 
 			server: {
