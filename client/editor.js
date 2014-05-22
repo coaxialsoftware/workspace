@@ -178,17 +178,11 @@ var
 		on_add_child: function(c)
 		{
 			c.$el.on('mousemove', this.on_editor_mouseover.bind(c));
-			c.on('focus', this.on_editor_focus, this);
 		},
 
 		on_editor_mouseover: function()
 		{
 			ide.info.show(this.get_info());
-		},
-
-		on_editor_focus: function(editor)
-		{
-			ide.set_editor(editor);
 		}
 
 	}),
@@ -204,12 +198,20 @@ var
 
 		_onSync: function()
 		{
+			this.trigger('write');
 			ide.notify('File ' + this.id + ' saved.');
 		},
 
 		_onError: function()
 		{
 			ide.error('Error saving file: ' + this.id);
+		},
+
+		save: function()
+		{
+			Backbone.Model.prototype.save.call(this, null, {
+				success: this._onSync.bind(this)
+			});
 		},
 
 		isNew: function()
@@ -419,14 +421,15 @@ var
 
 	ide.Editor = Backbone.View.extend({
 
-		on_focus: function()
-		{
-			ide.set_editor(this);
-		},
-
 		get_info: function()
 		{
 
+		},
+
+		focus: function()
+		{
+			ide.set_editor(this);
+			this.trigger('focus');
 		}
 
 	});
@@ -578,7 +581,7 @@ var
 					fn = ide.commands[fn];
 			} else if (ide.editor)
 			{
-				fn = ide.editor.cmd(cmd[0]);
+				fn = ide.editor.cmd && ide.editor.cmd(cmd[0]);
 				scope = ide.editor;
 			}
 
@@ -643,7 +646,7 @@ var
 
 		run: function()
 		{
-		/*jshint evil: true */
+		/*jshint evil:true */
 		var
 			response = eval(this.el.value)
 		;

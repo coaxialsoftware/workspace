@@ -180,7 +180,7 @@ common.extend(Editor.prototype, {
 		project = name ? this._projects[name] : this
 	;
 		if (!project)
-			project = this._projects[name] = new Project(name);
+			project = this._projects[name] = new Project(name, this);
 
 		callback(project);
 	},

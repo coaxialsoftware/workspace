@@ -6,9 +6,57 @@ var Assistant = ide.Editor.extend({
 
 });
 
+var Live = ide.Editor.extend({
+
+	initialize: function(options)
+	{
+		options.editor.on('write', this.refresh, this);
+
+		this.on('click', this.on_focus);
+		this.options = options;
+		this.render();
+	},
+
+	on_focus: function()
+	{
+		this.focus();
+	},
+
+	render: function()
+	{
+		var iframe = this.$iframe = $('<IFRAME>');
+		var input = this.$input = $('<input value="' + this.options.url + '">');
+
+		iframe.attr('src', this.options.url);
+		input.attr('readonly', 'readonly');
+
+		this.$el.addClass('ide-live')
+			.append(input)
+			.append(iframe)
+		;
+	},
+
+	refresh: function()
+	{
+		this.$iframe.attr('src', this.$input.val());
+	}
+
+});
+
+// Assistant instance
+var assist;
+
 ide.commands.assist = function()
 {
-	ide.workspace.add(new Assistant());
+	ide.workspace.add(assist || (assist = new Assistant()));
+};
+
+ide.commands.live = function(url)
+{
+	ide.workspace.add(new Live({
+		url: url,
+		editor: ide.editor
+	}));
 };
 
 ide.plugins.register('tern', ide.Plugin.extend({

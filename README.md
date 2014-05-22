@@ -36,6 +36,10 @@ workspace.json
 		"https": {
 			cert: "certificate file",
 			key: "key file"
+		},
+		
+		// project.json defaults
+		"default_settings": {
 		}
 	}
 

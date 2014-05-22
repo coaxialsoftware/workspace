@@ -2,9 +2,10 @@ var
 	fs = require('fs'),
 	common = require('./common.js'),
 
-	Project = exports.Project = function(path)
+	Project = exports.Project = function(path, editor)
 	{
 		this.path = this.name = path;
+		this.editor = editor;
 	}
 ;
 
@@ -19,10 +20,15 @@ common.extend(Project.prototype, {
 	load: function()
 	{
 	var
-		config = this.config = {}
+		config = this.config = {},
+		defaults = this.editor.config.project_defaults
 	;
+		if (defaults)
+		{
+			this.log('Loading default settings from workspace.');
+			common.extend(this.config, defaults);
+		}
 
-		this.loadConfig('~/.ide.js/config.json');
 		this.loadConfig(this.path + '/project.json');
 		this.loadConfig(this.path + '/package.json');
 

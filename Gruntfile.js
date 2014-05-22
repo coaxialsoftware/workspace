@@ -54,7 +54,7 @@ module.exports = function(grunt) {
 					'<%= path.ace %>/theme-twilight.js',
 					'<%= path.ace %>/keybinding-vim.js',
 
-					'<%= path.jquery %>/jquery.js',
+					'<%= path.jquery %>/dist/jquery.js',
 					'<%= path.underscore %>/underscore.js',
 					'<%= path.backbone %>/backbone.js'
 				],

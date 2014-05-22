@@ -129,6 +129,8 @@ ide.Editor.Source = ide.Editor.extend({
 		this.set_mode();
 		this.$el.on('keyup', this.on_keyup.bind(this));
 
+		this.file.on('write', this.trigger.bind(this, 'write'));
+
 		window.setTimeout(this.focus.bind(this), 250);
 		this.findNextFix();
 		this.enable_autocompletion();
@@ -178,8 +180,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 	on_focus: function()
 	{
-		ide.Editor.prototype.on_focus.apply(this);
-		this.editor.resize();
+		this.focus(true);
 	},
 
 	get_annotation: function(row)
@@ -193,10 +194,14 @@ ide.Editor.Source = ide.Editor.extend({
 		this.editor.$search.$options.start = null;
 	},
 
-	focus: function()
+	focus: function(ignore)
 	{
-		this.editor.focus();
-		this.trigger('focus', this);
+		ide.Editor.prototype.focus.apply(this);
+
+		if (!ignore)
+			this.editor.focus();
+
+		this.editor.resize();
 	},
 
 	close: function()
