@@ -430,6 +430,13 @@ var
 		{
 			ide.set_editor(this);
 			this.trigger('focus');
+		},
+
+		close: function()
+		{
+			// Remove first so do_layout of workspace works.
+			this.remove();
+			this.trigger('close', this);
 		}
 
 	});

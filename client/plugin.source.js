@@ -51,11 +51,6 @@ ide.Editor.Source = ide.Editor.extend({
 
 	commands: {
 
-		q: function()
-		{
-			this.close();
-		},
-
 		w: function()
 		{
 			this.write();
@@ -210,8 +205,7 @@ ide.Editor.Source = ide.Editor.extend({
 			return;
 
 		this.editor.destroy();
-		this.remove();
-		this.trigger('close', this);
+		ide.Editor.prototype.close.call(this);
 	},
 
 	remove_trailing: function()

@@ -17,6 +17,13 @@ ide.commands = {
 
 	e: 'edit',
 
+	q: function()
+	{
+		if (ide.editor)
+			ide.editor.close();
+	},
+
+
 	tabe: function(name)
 	{
 		window.open('#' + ide.hash.encode({ file: name }));

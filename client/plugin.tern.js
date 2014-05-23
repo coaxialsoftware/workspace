@@ -12,7 +12,7 @@ var Live = ide.Editor.extend({
 	{
 		options.editor.on('write', this.refresh, this);
 
-		this.on('click', this.on_focus);
+		this.$el.on('click', this.on_focus.bind(this));
 		this.options = options;
 		this.render();
 	},
