@@ -31,8 +31,8 @@ var Live = ide.Editor.extend({
 		input.attr('readonly', 'readonly');
 
 		this.$el.addClass('ide-live')
-			.append(input)
 			.append(iframe)
+			.append(input)
 		;
 	},
 

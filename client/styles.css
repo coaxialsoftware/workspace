@@ -243,4 +243,5 @@ h4 {
 	background-color: rgb(44, 62, 80);
 	background-color: rgba(44, 62, 80, 0.7);
 	z-index: 5;
+	position: absolute; top: 0;
 }
