@@ -1,6 +1,12 @@
 
 var
 	express = require('express'),
+
+	// Middleware
+	compression = require('compression'),
+	bodyParser = require('body-parser'),
+	basicAuth = require('basic-auth-connect'),
+
 	editor = require('./editor.js').editor,
 	fs = require('fs'),
 
@@ -43,10 +49,13 @@ if (!address)
 if (editor.config.password)
 {
 	editor.log("Basic Authentication Enabled for user: " + editor.config.user);
-	app.use(express.basicAuth(editor.config.user, editor.config.password));
+	app.use(basicAuth(editor.config.user, editor.config.password));
+
+	// Make sure password is not there
+	delete editor.config.password;
 }
 
-app.use(express.compress());
+app.use(compression());
 
 editor.log('Serving public');
 app.use(express.static(rootdir + '/public', { maxAge: 86400000 }));
@@ -55,7 +64,7 @@ app.use(express.static(rootdir + '/bower_components', { maxAge: 86400000 }));
 
 
 process.title = 'ide.js:' + address.port;
-app.use(express.bodyParser());
+app.use(bodyParser({ extended: true }));
 
 app.get('/home', function(req, res)
 {

@@ -22,12 +22,19 @@ var Live = ide.Editor.extend({
 		this.focus();
 	},
 
+	getUrl: function()
+	{
+		var random = Math.random().toString(36);
+		return this.options.url + (this.options.url.indexOf('?') === -1 ?
+			'?random=' : '&random=') + random;
+	},
+
 	render: function()
 	{
 		var iframe = this.$iframe = $('<IFRAME>');
 		var input = this.$input = $('<input value="' + this.options.url + '">');
 
-		iframe.attr('src', this.options.url);
+		iframe.attr('src', this.getUrl());
 		input.attr('readonly', 'readonly');
 
 		this.$el.addClass('ide-live')
@@ -38,7 +45,7 @@ var Live = ide.Editor.extend({
 
 	refresh: function()
 	{
-		this.$iframe.attr('src', this.$input.val());
+		this.$iframe.attr('src', this.getUrl());
 	}
 
 });
@@ -189,7 +196,7 @@ ide.plugins.register('tern', ide.Plugin.extend({
 			.mousedown(this.on_click.bind(this))
 		;
 
-		ide.on('cursorchange', this.on_cursorchange, this);
+		//ide.on('cursorchange', this.on_cursorchange, this);
 		ide.on('autocomplete', this.invoke, this);
 		ide.on('scroll', function() {
 			this.selectBox.hide();

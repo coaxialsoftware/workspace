@@ -2,7 +2,7 @@
 var
 	fs = require('fs'),
 	common = require('./common'),
-	mime = require('express').mime,
+	mime = require('mime'),
 
 	Project = require('./project').Project,
 
@@ -21,9 +21,6 @@ var
 		common.extend(config, common.load_json('~/.ide.js/config.json'));
 		this.log('Loading workspace settings...');
 		common.extend(config, common.load_json('workspace.json'));
-
-		// Make sure password is not there
-		delete this.config.password;
 
 		this._projects = {};
 		this.projects = [];
