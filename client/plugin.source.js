@@ -236,7 +236,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 	get_state: function()
 	{
-		return this.editor.keyBinding.$data.state;
+		return this.editor.keyBinding.$data.vimState;
 	},
 
 	get_status: function()
