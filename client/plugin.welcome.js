@@ -68,15 +68,10 @@ ide.plugins.register('welcome', ide.Plugin.extend({
 	renderFiles: function(files)
 	{
 	var
-		tpl = _.template($('#tpl-file').html()),
+		tpl = _.template($('#tpl-files').html()),
 		me = this
 	;
-
-		_.each(files, function(p) {
-			me.$el.append(tpl({
-				path: p
-			}));
-		});
+		me.$el.html(tpl({ files: files }));
 
 		me.$('.content').click(function(ev) {
 			ide.commands.edit(ev.currentTarget.dataset.path);

@@ -17,6 +17,17 @@ common.extend(Project.prototype, {
 		common.extend(this.config, common.load_json(file));
 	},
 
+	loadIgnore: function(config)
+	{
+		if (!config.ignore)
+			config.ignore = /^\.git|^\.svn|node_modules|bower_components/;
+		else if (config.ignore instanceof Array)
+		{
+			config.ignore = new RegExp('^(?:' + config.ignore.join('|') + ')');
+		}
+
+	},
+
 	load: function()
 	{
 	var
@@ -32,8 +43,7 @@ common.extend(Project.prototype, {
 		this.loadConfig(this.path + '/project.json');
 		this.loadConfig(this.path + '/package.json');
 
-		if (!config.ignore)
-			config.ignore = [];
+		this.loadIgnore(config);
 
 		config.files = this.files();
 		config.env = process.env;
@@ -58,7 +68,8 @@ common.extend(Project.prototype, {
 	{
 	var
 		files = fs.readdirSync(this.path + '/' + dir),
-		i, stat, file
+		i, stat, file,
+		ignore = this.config.ignore
 	;
 		result = result || [];
 
@@ -66,7 +77,7 @@ common.extend(Project.prototype, {
 		{
 			file = dir + files[i];
 
-			if (this.config.ignore.indexOf(file)!==-1)
+			if (ignore && ignore.test(file))
 				continue;
 
 			result.push(file = dir + files[i]);

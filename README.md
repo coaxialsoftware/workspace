@@ -25,7 +25,7 @@ Define a Workspace (optional)
 workspace.json
 
 	{
-		// Optional for basic authentication
+		// Optional for basic authentication.
 		"user": "username",
 		"password": "password",
 		
@@ -38,7 +38,7 @@ workspace.json
 			key: "key file"
 		},
 		
-		// project.json defaults
+		// project.json default settings. See project.json for details.
 		"default_settings": {
 		}
 	}
@@ -53,10 +53,11 @@ the project fields.
 project.json
 
 {
-	"ignore": [ "files to ignore for autocompletion" ]
+	"ignore": Regex | Array of file names
+		Files to ignore. If an Array is passed, it will be converted to a regex.
 }
 
 Startup
 -------
 
-From the workspace folder call bin/ide.js
+From the workspace folder call node bin/ide.js

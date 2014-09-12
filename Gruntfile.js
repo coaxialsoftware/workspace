@@ -75,6 +75,16 @@ module.exports = function(grunt) {
 			tern_ecma5: {
 				src: [ 'node_modules/tern/defs/ecma5.json' ],
 				dest: 'public/build/ecma5.json'
+			},
+
+			html: {
+				src: [ 'client/html/index.html', 'client/html/templates.html' ],
+				dest: 'public/index.html'
+			},
+
+			htmldbg: {
+				src: [ 'client/html/debug.html', 'client/html/templates.html' ],
+				dest: 'public/debug.html'
 			}
 
 		},
@@ -100,6 +110,11 @@ module.exports = function(grunt) {
 			css: {
 				files: '<%= concat.css.src %>',
 				tasks: [ 'concat:css' ]
+			},
+
+			html: {
+				files: [ '<%= concat.html.src %>', 'client/html/debug.html' ],
+				tasks: [ 'concat:html', 'concat:htmldbg' ]
 			}
 		}
 
