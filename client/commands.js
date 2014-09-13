@@ -26,7 +26,7 @@ ide.commands = {
 
 	tabe: function(name)
 	{
-		window.open('#' + ide.hash.encode({ file: name }));
+		window.open('#' + ide.hash.encode({ file: name || "" }));
 	},
 
 	project: function(name)

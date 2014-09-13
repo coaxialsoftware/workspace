@@ -389,12 +389,21 @@ var
 
 		data: null,
 
+		clean: function(hash)
+		{
+			for (var i in hash)
+				if (!hash[i])
+					delete hash[i];
+
+			return hash;
+		},
+
 		decode: function()
 		{
 		var
-			h = window.location.hash.substr(1)
+			h = '{'+window.location.hash.substr(1)+'}'
 		;
-			return (h && JSON.parse(h)) || {};
+			return (h && this.clean(JSON.parse(h))) || {};
 		},
 
 		encode: function(obj)
@@ -402,8 +411,9 @@ var
 		var
 			hash = $.extend({}, this.data, obj)
 		;
+			hash = JSON.stringify(this.clean(hash));
 
-			return JSON.stringify(hash);
+			return hash.slice(1, hash.length-1);
 		},
 
 		set: function(obj)
