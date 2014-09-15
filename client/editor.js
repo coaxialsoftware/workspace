@@ -409,10 +409,9 @@ var
 		encode: function(obj)
 		{
 		var
-			hash = $.extend({}, this.data, obj)
+			data = $.extend({}, this.data, obj),
+			hash = JSON.stringify(this.clean(data))
 		;
-			hash = JSON.stringify(this.clean(hash));
-
 			return hash.slice(1, hash.length-1);
 		},
 
