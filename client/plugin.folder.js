@@ -21,6 +21,7 @@ ide.Editor.Folder = ide.Editor.extend({
 		me.$el.addClass('ide-panel').html(tpl(this.file.attributes));
 
 		me.$('.content').click(function(ev) {
+			me.close();
 			ide.commands.edit(ev.currentTarget.dataset.path);
 		});
 	}
