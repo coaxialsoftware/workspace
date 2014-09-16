@@ -124,8 +124,9 @@ common.extend(Editor.prototype, {
 		{
 			this.log('Opening file: ' + fn);
 			result.stat = fs.statSync(fn);
+			result.directory = result.stat.isDirectory();
 
-			result.content = result.stat.isDirectory() ?
+			result.content = result.directory ?
 				fs.readdirSync(fn)
 			:
 				result.content = fs.readFileSync(fn, 'utf8')

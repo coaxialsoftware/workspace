@@ -18,37 +18,6 @@ ide.Editor.Source = ide.Editor.extend({
 	// Stores previous token. Used by tokenchange event.
 	_old_token: null,
 
-	modeByMime: {
-		"text/plain": "text"
-	},
-	modeByExt: {
-		ch: 'csharp',
-		c: 'c_cpp',
-		cc: 'c_cpp',
-		cpp: 'c_cpp',
-		cxx: 'c_cpp',
-		h: 'c_cpp',
-		hh: 'c_cpp',
-		hpp: 'c_cpp',
-		clj: 'clojure',
-		js: 'javascript',
-		json: 'json',
-		md: 'markdown',
-		php: 'php',
-		php5: 'php',
-		py: 'python',
-		r: 'r',
-		ru: 'ruby',
-		rb: 'ruby',
-		sh: 'sh',
-		bash: 'sh',
-		rhtml: 'rhtml',
-		txt: 'text'
-	},
-	modeByFile: {
-		Rakefile: 'ruby'
-	},
-
 	commands: {
 
 		w: function()
@@ -252,13 +221,8 @@ ide.Editor.Source = ide.Editor.extend({
 	set_mode: function()
 	{
 	var
-		f = this.file.attributes,
-		mode = this.mode = this.modeByFile[f.filename] ||
-			this.modeByMime[f.mime] ||
-			this.modeByExt[f.ext] ||
-			f.mime.split('/')[1]
+		mode = this.mode = ide.filetype(this.file)
 	;
-
 		this.editor.session.setMode('ace/mode/' + mode);
 	}
 
@@ -273,7 +237,7 @@ ide.plugins.register('editor.source', ide.Plugin.extend({
 
 	},
 
-	edit: function(file)
+	openEditor: function(file)
 	{
 	var
 		editor = new ide.Editor.Source({ file: file })
@@ -281,6 +245,15 @@ ide.plugins.register('editor.source', ide.Plugin.extend({
 		this.editors.push(editor);
 		editor.on('close', this.on_close.bind(this));
 		ide.workspace.add(editor);
+	},
+
+	edit: function(file)
+	{
+		if (!file.get('directory'))
+		{
+			this.openEditor(file);
+			return true;
+		}
 	},
 
 	on_close: function(editor)

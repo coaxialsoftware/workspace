@@ -11,20 +11,21 @@ ide.plugins.register('welcome', ide.Plugin.extend({
 	var
 		p = ide.project,
 		projects = p.get('projects'),
-		files = p.get('files')
+		user = p.get('env').USER,
+		project = p.get('name')
 	;
 		this.setElement('#projects');
 
-		ide.alert('Welcome ' + ide.project.get('env').USER);
-		window.document.title = ide.project.get('name');
+		if (user)
+			ide.alert('Welcome ' + user);
+		if (project)
+			window.document.title = project;
 
 		if (ide.workspace.children.length)
 			return;
 
 		if (projects)
 			this.renderProjects(projects);
-		else if (files)
-			this.renderFiles(files);
 
 		if (!ide.hash.data.file)
 			this.show();
@@ -62,19 +63,6 @@ ide.plugins.register('welcome', ide.Plugin.extend({
 
 		container.find('.content').click(function(ev) {
 			ide.commands.project(ev.currentTarget.dataset.path);
-		});
-	},
-
-	renderFiles: function(files)
-	{
-	var
-		tpl = _.template($('#tpl-files').html()),
-		me = this
-	;
-		me.$el.html(tpl({ files: files }));
-
-		me.$('.content').click(function(ev) {
-			ide.commands.edit(ev.currentTarget.dataset.path);
 		});
 	}
 

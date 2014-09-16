@@ -60,9 +60,14 @@ var
 		shortcut: null,
 		invoke: null,
 
-		edit: function()
+		hide: function()
 		{
-			return false;
+			this.$el.hide().css('opacity', 0);
+		},
+
+		show: function()
+		{
+			this.$el.show().css('opacity', 1);
 		},
 
 		start: function() { }
@@ -173,16 +178,6 @@ var
 		{
 			this.children = [];
 			this.on('add_child', this.on_add_child);
-		},
-
-		on_add_child: function(c)
-		{
-			c.$el.on('mousemove', this.on_editor_mouseover.bind(c));
-		},
-
-		on_editor_mouseover: function()
-		{
-			ide.info.show(this.get_info());
 		}
 
 	}),
@@ -194,6 +189,9 @@ var
 		initialize: function()
 		{
 			this.on('error', this._onError);
+
+			if (!this.id)
+				this.id = '.';
 		},
 
 		_onSync: function()
@@ -309,6 +307,9 @@ var
 
 		_plugins: null,
 
+		/**
+		 * Iterates through plugins and stops if fn returns true.
+		 */
 		each: function(fn)
 		{
 			for (var i in this._plugins)
@@ -321,7 +322,8 @@ var
 		edit: function(file)
 		{
 			this.each(function(plug) {
-				if (plug.edit) plug.edit(file);
+				if (plug.edit)
+					return plug.edit(file);
 			});
 		},
 
@@ -428,7 +430,12 @@ var
 
 	window.addEventListener('load', _start);
 
-	ide.Editor = Backbone.View.extend({
+	ide.Editor = ide.Plugin.extend({
+
+		edit: function()
+		{
+			return false;
+		},
 
 		get_info: function()
 		{

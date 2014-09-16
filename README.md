@@ -61,3 +61,15 @@ Startup
 -------
 
 From the workspace folder call node bin/ide.js
+
+Commands
+--------
+
+Press ":" in normal mode to get the command bar.
+
+e
+	Open File
+tabe
+	Open File in new Tab
+q
+	Quit

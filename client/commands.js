@@ -11,8 +11,11 @@ ide.commands = {
 
 	edit: function()
 	{
-		for (var i=0; i<arguments.length; i++)
-			ide.open(arguments[i]);
+		if (arguments.length)
+			for (var i=0; i<arguments.length; i++)
+				ide.open(arguments[i]);
+		else
+			ide.open();
 	},
 
 	e: 'edit',
