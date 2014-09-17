@@ -9,7 +9,7 @@
 var
 	_nots,
 
-	ide = window.ide = new (Backbone.View.extend({
+	ide = window.ide = new (Backbone.View.extend({ /** @lends ide */
 
 	project: null,
 	workspace: null,
