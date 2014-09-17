@@ -403,9 +403,16 @@ var
 		decode: function()
 		{
 		var
-			h = '{'+window.location.hash.substr(1)+'}'
+			h = '{'+window.location.hash.substr(1)+'}',
+			result
 		;
-			return (h && this.clean(JSON.parse(h))) || {};
+			try {
+				result = (h && this.clean(JSON.parse(h)));
+			} catch (e) {
+				window.location.hash = '';
+			} finally {
+				return result || {};
+			}
 		},
 
 		encode: function(obj)
