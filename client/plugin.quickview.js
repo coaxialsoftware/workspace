@@ -10,7 +10,7 @@ var
 		token_type: null,
 		test: null,
 
-		init: function()
+		initialize: function()
 		{
 			this.quickview = ide.plugins._plugins.quickview;
 			this.quickview.register(

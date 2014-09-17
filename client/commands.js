@@ -4,11 +4,6 @@
 
 ide.commands = {
 
-	info: function(msg)
-	{
-		ide.info.show(msg);
-	},
-
 	edit: function()
 	{
 		if (arguments.length)
@@ -20,12 +15,22 @@ ide.commands = {
 
 	e: 'edit',
 
+	"q!": function()
+	{
+		if (ide.editor)
+			ide.editor.close(true);
+	},
+
 	q: function()
 	{
 		if (ide.editor)
 			ide.editor.close();
 	},
 
+	help: function(topic)
+	{
+		window.open('/docs/index.html#' + topic);
+	},
 
 	tabe: function(name)
 	{

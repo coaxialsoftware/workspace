@@ -10,7 +10,6 @@
  */
 ide.Editor.Source = ide.Editor.extend({
 
-	file: null,
 	editor: null,
 	session: null,
 	mode: null,
@@ -168,9 +167,9 @@ ide.Editor.Source = ide.Editor.extend({
 		this.editor.resize();
 	},
 
-	close: function()
+	close: function(force)
 	{
-		if (this.changed() && !window.confirm("File has changed. Are you sure?"))
+		if (!force && this.changed() && !window.confirm("File has changed. Are you sure?"))
 			return;
 
 		this.editor.destroy();
@@ -215,7 +214,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 	get_info: function()
 	{
-		return this.file.get('filename');
+		return this.file.get('filename') + ' [' + this.file.get('path') + ']';
 	},
 
 	set_mode: function()

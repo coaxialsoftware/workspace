@@ -248,6 +248,12 @@ var
 		{
 			Backbone.Model.prototype.constructor.apply(this, arguments);
 			this.on('sync', this.on_project);
+			this.on('error', this.on_error);
+		},
+
+		on_error: function()
+		{
+			ide.error('Could not load Project: ' + this.id);
 		},
 
 		/**
@@ -439,6 +445,8 @@ var
 
 	ide.Editor = ide.Plugin.extend({
 
+		file: null,
+
 		edit: function()
 		{
 			return false;
@@ -446,7 +454,7 @@ var
 
 		get_info: function()
 		{
-
+			return this.file.get('filename') + ' [' + this.file.get('path') + ']';
 		},
 
 		focus: function()
