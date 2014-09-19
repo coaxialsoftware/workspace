@@ -48,7 +48,8 @@ h4 {
 }
 
 .ide-panel {
-	color: #eee; padding: 6px;
+	color: #eee; padding: 6px; overflow: hidden;
+	outline: 0 solid #eee;
 }
 
 #projects > .project, .file {
@@ -83,6 +84,7 @@ h4 {
 	text-decoration: none;
 	transition: background-color 0.5s;
 	color: #eee;
+	cursor: pointer;
 }
 
 #projects .content:hover, .file > .content:hover {

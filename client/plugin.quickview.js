@@ -1,7 +1,7 @@
 
-(function(ide) {
+(function() {
 "use strict";
-
+/*
 var
 	Viewer = ide.Viewer = ide.Plugin.extend({
 
@@ -9,6 +9,12 @@ var
 		mime: null,
 		token_type: null,
 		test: null,
+
+		color: function(color)
+		{
+			ide.notify('<div style="width: 100%; height: 32px; background-color: ' +
+				color+ ';"></div>');
+		},
 
 		initialize: function()
 		{
@@ -29,7 +35,7 @@ var
 		{
 			if (/#[a-fA-F0-9]+$/.test(token.value))
 			{
-				this.quickview.color(token.value);
+				this.color(token.value);
 				return true;
 			}
 		}
@@ -37,7 +43,7 @@ var
 	})
 ;
 
-ide.plugins.register('quickview', ide.Plugin.extend({
+ide.plugins.register('quickview', new ide.Plugin({
 
 	viewers: {},
 
@@ -75,14 +81,10 @@ ide.plugins.register('quickview', ide.Plugin.extend({
 
 		// Load default viewers
 		new CSSViewer();
-	},
-
-	color: function(color)
-	{
-		ide.notify('<div style="width: 100%; height: 32px; background-color: ' +
-			color+ ';"></div>');
 	}
 
+
 }));
+*/
 
 })(window.ide);

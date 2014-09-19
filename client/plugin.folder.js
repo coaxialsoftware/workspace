@@ -2,33 +2,33 @@
 (function(ide, $, _) {
 "use strict";
 
-ide.Editor.Folder = ide.Editor.extend({
+ide.FileList = ide.Editor.extend({
 
-	file: null,
+	title: null,
+	path: null,
+	files: null,
+	on_click: null,
 
-	initialize: function(p)
-	{
-		this.file = p.file;
-		this.render();
-	},
-
-	render: function()
+	setup: function()
 	{
 	var
 		tpl = _.template($('#tpl-files').html()),
 		me = this
 	;
-		me.$el.addClass('ide-panel').html(tpl(this.file.attributes));
+		me.$el.addClass('ide-panel').html(tpl(me));
 
 		me.$('.content').click(function(ev) {
+			if (me.on_click)
+				me.on_click(ev.currentTarget.dataset.path);
+			else
+				ide.commands.edit(ev.currentTarget.dataset.path);
 			me.close();
-			ide.commands.edit(ev.currentTarget.dataset.path);
 		});
 	}
-
 });
 
-ide.plugins.register('editor.folder', ide.Plugin.extend({
+
+ide.plugins.register('editor.folder', new ide.Plugin({
 
 	edit: function(file)
 	{
@@ -36,7 +36,11 @@ ide.plugins.register('editor.folder', ide.Plugin.extend({
 
 		if (file.get('directory'))
 		{
-			editor = new ide.Editor.Folder({ file: file });
+			editor = new ide.FileList({
+				files: file.get('content'),
+				title: file.get('filename'),
+				path: file.get('filename')
+			});
 			ide.workspace.add(editor);
 			return true;
 		}

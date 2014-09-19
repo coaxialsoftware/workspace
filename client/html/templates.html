@@ -1,10 +1,10 @@
 
 
 <script id="tpl-files" type="text/template">
-<h3><%= filename %></h3>
-<% _.each(content, function(file) { %>
+<h3><%= title %></h3>
+<% _.each(files, function(file) { %>
 <div class="file">
-	<a class="content" href="javascript:" title="<%=filename + '/' + file%>" data-path="<%=filename + '/' + file%>">
+	<a class="content" title="<%=path + '/' + file%>" data-path="<%=path + '/' + file%>">
 		<h4><%= file %></h4>
 	</a>
 </div>

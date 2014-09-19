@@ -1,5 +1,5 @@
 
-(function(ide, ace, _) {
+(function(ide, ace) {
 "use strict";
 
 /**
@@ -61,14 +61,12 @@ ide.Editor.Source = ide.Editor.extend({
 		ide.trigger('scroll', this);
 	},
 
-	initialize: function(p)
+	setup: function()
 	{
 	var
 		editor = this.editor = ace.edit(this.el),
 		session = editor.getSession()
 	;
-		_.extend(this, p);
-
 		ace.config.set('basePath', 'ace-builds/src');
 		editor.setTheme('ace/theme/twilight');
 		editor.container.style.fontSize = '16px';
@@ -227,14 +225,9 @@ ide.Editor.Source = ide.Editor.extend({
 
 });
 
-ide.plugins.register('editor.source', ide.Plugin.extend({
+ide.plugins.register('editor.source', new ide.Plugin({
 
 	editors: [],
-
-	start: function()
-	{
-
-	},
 
 	openEditor: function(file)
 	{
@@ -262,4 +255,4 @@ ide.plugins.register('editor.source', ide.Plugin.extend({
 
 }));
 
-})(this.ide, this.ace, this._);
+})(this.ide, this.ace);

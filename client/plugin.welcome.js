@@ -2,7 +2,7 @@
 (function(ide, _, $) {
 "use strict";
 
-ide.plugins.register('welcome', ide.Plugin.extend({
+ide.plugins.register('welcome', new ide.Plugin({
 
 	el: '#projects',
 
@@ -14,7 +14,7 @@ ide.plugins.register('welcome', ide.Plugin.extend({
 		user = p.get('env').USER,
 		project = p.get('name')
 	;
-		this.setElement('#projects');
+		this.$el = $(this.el);
 
 		if (user)
 			ide.alert('Welcome ' + user);

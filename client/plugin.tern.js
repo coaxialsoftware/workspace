@@ -66,7 +66,7 @@ ide.commands.live = function(url)
 	}));
 };
 
-ide.plugins.register('tern', ide.Plugin.extend({
+ide.plugins.register('tern', new ide.Plugin({
 
 	files: null,
 	server: null,

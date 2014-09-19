@@ -51,28 +51,18 @@ var
 
 	set_editor: function(editor)
 	{
+		var info = editor.get_info();
 		this.editor = editor;
-		window.document.title = editor.get_info();
+		window.document.title = info;
+
+		if (info)
+			ide.info.show(info);
 	},
 
-	Plugin: Backbone.View.extend({
-
-		shortcut: null,
-		invoke: null,
-
-		hide: function()
-		{
-			this.$el.hide().css('opacity', 0);
-		},
-
-		show: function()
-		{
-			this.$el.show().css('opacity', 1);
-		},
-
-		start: function() { }
-
-	}),
+	Plugin: function(p)
+	{
+		_.extend(this, p);
+	},
 
 	Info: Backbone.View.extend({
 
@@ -189,9 +179,6 @@ var
 		initialize: function()
 		{
 			this.on('error', this._onError);
-
-			if (!this.id)
-				this.id = '.';
 		},
 
 		_onSync: function()
@@ -308,6 +295,12 @@ var
 			ide.open(ide.hash.data.file);
 	}
 ;
+	_.extend(ide.Plugin.prototype, {
+		shortcut: null,
+		invoke: null,
+
+		start: function() { }
+	});
 
 	_.extend(ide.PluginManager.prototype, {
 
@@ -378,9 +371,9 @@ var
 			ide.loader.ready(this.load_plugins.bind(this));
 		},
 
-		register: function(name, Klass)
+		register: function(name, plugin)
 		{
-			this._plugins[name] = new Klass();
+			this._plugins[name] = plugin;
 		}
 
 	});
@@ -443,18 +436,34 @@ var
 
 	window.addEventListener('load', _start);
 
-	ide.Editor = ide.Plugin.extend({
+	ide.Editor = Backbone.View.extend({
 
 		file: null,
 
-		edit: function()
+		initialize: function(p)
 		{
-			return false;
+			_.extend(this, p);
+
+			this.$el.on('click', this.focus.bind(this));
+			this.setup();
+		},
+
+		hide: function()
+		{
+			this.$el.hide().css('opacity', 0);
+		},
+
+		show: function()
+		{
+			this.$el.show().css('opacity', 1);
 		},
 
 		get_info: function()
 		{
-			return this.file.get('filename') + ' [' + this.file.get('path') + ']';
+			return this.file ?
+				(this.file.get('filename') + ' [' + this.file.get('path') + ']')
+			:
+				'';
 		},
 
 		focus: function()
@@ -576,7 +585,8 @@ var
 		var
 			el = this.el
 		;
-			setTimeout(function() { el.focus(); });
+			//setTimeout(function() { el.focus(); });
+			el.focus();
 		},
 
 		hide: function()
@@ -672,30 +682,6 @@ var
 
 	});
 
-	ide.Bar.Evaluate = ide.Bar.extend({
-
-		shortcut: 'shift-49',
-		el: $('<input id="evaluate" />'),
-
-		encode: function(response)
-		{
-			return response.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;');
-		},
-
-		run: function()
-		{
-		/*jshint evil:true */
-		var
-			response = eval(this.el.value)
-		;
-			if (response === undefined)
-				return;
-
-			ide.notify(response);
-		}
-
-	});
-
 	ide.Bar.Search = ide.Bar.extend({
 
 		el: $('<input id="search" />'),
@@ -712,28 +698,13 @@ var
 		;
 			try { regex = new RegExp(val, 'm'); } catch(e) { regex = val; }
 
-			if (ide.editor)
+			if (ide.editor && ide.editor.find)
 				ide.editor.find(regex);
 		}
 
 	});
 
-	ide.plugins.register('evaluate', ide.Bar.Evaluate);
-	ide.plugins.register('search', ide.Bar.Search);
-	ide.plugins.register('command', ide.Bar.Command);
-
-	ide.plugins.register('error', ide.Plugin.extend({
-
-		_error: function(error) //, url, line)
-		{
-			window.console.error(error);
-		},
-
-		start: function()
-		{
-			window.addEventListener('error', this._error.bind(this));
-		}
-
-	}));
+	ide.plugins.register('search', new ide.Bar.Search());
+	ide.plugins.register('command', new ide.Bar.Command());
 
 })(this, this._, this.Backbone, this.jQuery);
