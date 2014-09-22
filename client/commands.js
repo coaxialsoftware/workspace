@@ -29,7 +29,7 @@ ide.commands = {
 
 	help: function(topic)
 	{
-		window.open('/docs/index.html#' + topic);
+		window.open('/docs/index.html#' + (topic || ''));
 	},
 
 	tabe: function(name)

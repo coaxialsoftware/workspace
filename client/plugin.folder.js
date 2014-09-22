@@ -41,7 +41,8 @@ ide.FileList = ide.Editor.extend({
 				me.on_click(ev.currentTarget.dataset.path);
 			else
 				ide.commands.edit(ev.currentTarget.dataset.path);
-			me.close();
+
+			ide.workspace.remove(me);
 		});
 	}
 });

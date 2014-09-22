@@ -227,15 +227,11 @@ ide.Editor.Source = ide.Editor.extend({
 
 ide.plugins.register('editor.source', new ide.Plugin({
 
-	editors: [],
-
 	openEditor: function(file)
 	{
 	var
 		editor = new ide.Editor.Source({ file: file })
 	;
-		this.editors.push(editor);
-		editor.on('close', this.on_close.bind(this));
 		ide.workspace.add(editor);
 	},
 
@@ -246,11 +242,6 @@ ide.plugins.register('editor.source', new ide.Plugin({
 			this.openEditor(file);
 			return true;
 		}
-	},
-
-	on_close: function(editor)
-	{
-		this.editors.splice(this.editors.indexOf(editor), 1);
 	}
 
 }));

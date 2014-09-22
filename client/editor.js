@@ -9,7 +9,9 @@
 var
 	_nots,
 
-	ide = window.ide = new (Backbone.View.extend({ /** @lends ide */
+	ide =
+	/** @namespace */
+	window.ide = new (Backbone.View.extend({ /** @lends ide */
 
 	project: null,
 	workspace: null,
@@ -53,7 +55,7 @@ var
 	{
 		var info = editor.get_info();
 		this.editor = editor;
-		window.document.title = info;
+		window.document.title = info || 'ide.js';
 
 		if (info)
 			ide.info.show(info);
@@ -64,7 +66,7 @@ var
 		_.extend(this, p);
 	},
 
-	Info: Backbone.View.extend({
+	Info: Backbone.View.extend({ /** @lends ide.Info# */
 
 		_delay: 1000,
 
@@ -145,6 +147,7 @@ var
 			this.$el.append(item.el);
 			this._do_layout();
 			this.trigger('add_child', item);
+			item.focus();
 
 			return this;
 		},
@@ -171,7 +174,6 @@ var
 		initialize: function Workspace()
 		{
 			this.children = [];
-			this.on('add_child', this.on_add_child);
 		}
 
 	}),
@@ -299,7 +301,7 @@ var
 			ide.open(ide.hash.data.file);
 	}
 ;
-	_.extend(ide.Plugin.prototype, {
+	_.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 		shortcut: null,
 		invoke: null,
 		/// Object of commands to add to ide.commands
