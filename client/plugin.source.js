@@ -168,7 +168,7 @@ ide.Editor.Source = ide.Editor.extend({
 	close: function(force)
 	{
 		if (!force && this.changed() && !window.confirm("File has changed. Are you sure?"))
-			return;
+			return false;
 
 		this.editor.destroy();
 		ide.Editor.prototype.close.call(this);

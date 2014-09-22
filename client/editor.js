@@ -143,20 +143,24 @@ var
 		{
 			this.children.push(item);
 			this.$el.append(item.el);
-
-			item.on('close', this.remove_child, this);
-
 			this._do_layout();
 			this.trigger('add_child', item);
 
 			return this;
 		},
 
-		remove_child: function(item)
+		remove: function(item, force)
 		{
+			if (item.close(force)===false)
+				return;
+
 			this.children.splice(this.children.indexOf(item), 1);
+
 			if (this.children[0])
 				this.children[0].focus();
+			else
+				ide.editor = null;
+
 			this._do_layout();
 
 			this.trigger('remove_child', item);
@@ -376,7 +380,7 @@ var
 		_registerCommand: function(plugin, name, fn)
 		{
 			if (ide.commands[name])
-				window.console.warn('[plugin ' + name +
+				window.console.warn('[' + plugin +
 				'] Overriding command ' + name);
 
 			ide.commands[name] = fn;
@@ -387,7 +391,7 @@ var
 			this._plugins[name] = plugin;
 
 			for (var i in plugin.commands)
-				this._registerCommand(plugin, i, plugin.commands[i]);
+				this._registerCommand(name, i, plugin.commands[i]);
 		}
 
 	});

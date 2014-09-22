@@ -17,14 +17,12 @@ ide.commands = {
 
 	"q!": function()
 	{
-		if (ide.editor)
-			ide.editor.close(true);
+		ide.workspace.remove(ide.editor, true);
 	},
 
 	q: function()
 	{
-		if (ide.editor)
-			ide.editor.close();
+		ide.workspace.remove(ide.editor);
 	},
 
 	help: function(topic)
