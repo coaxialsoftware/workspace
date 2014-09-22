@@ -298,6 +298,8 @@ var
 	_.extend(ide.Plugin.prototype, {
 		shortcut: null,
 		invoke: null,
+		/// Object of commands to add to ide.commands
+		commands: null,
 
 		start: function() { }
 	});
@@ -371,9 +373,21 @@ var
 			ide.loader.ready(this.load_plugins.bind(this));
 		},
 
+		_registerCommand: function(plugin, name, fn)
+		{
+			if (ide.commands[name])
+				window.console.warn('[plugin ' + name +
+				'] Overriding command ' + name);
+
+			ide.commands[name] = fn;
+		},
+
 		register: function(name, plugin)
 		{
 			this._plugins[name] = plugin;
+
+			for (var i in plugin.commands)
+				this._registerCommand(plugin, i, plugin.commands[i]);
 		}
 
 	});
@@ -439,6 +453,12 @@ var
 	ide.Editor = Backbone.View.extend({
 
 		file: null,
+
+		/**
+		 * Handles commands
+		 * @type {Function}
+		 */
+		cmd: null,
 
 		initialize: function(p)
 		{

@@ -1,14 +1,16 @@
 
 
-<script id="tpl-files" type="text/template">
-<h3><%= title %></h3>
-<% _.each(files, function(file) { %>
+<script id="tpl-file" type="text/template">
 <div class="file">
 	<a class="content" title="<%=path + '/' + file%>" data-path="<%=path + '/' + file%>">
 		<h4><%= file %></h4>
 	</a>
 </div>
-<% }) %>
+</script>
+
+<script id="tpl-filelist" type="text/template">
+<h3><%= title %></h3>
+<%= content %>
 </script>
 	
 <script id="tpl-project" type="text/template">
