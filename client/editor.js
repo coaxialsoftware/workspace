@@ -13,6 +13,7 @@ var
 	/** @namespace */
 	window.ide = new (Backbone.View.extend({ /** @lends ide */
 
+	/** Current opened project */
 	project: null,
 	workspace: null,
 	plugins: null,
@@ -310,7 +311,7 @@ var
 		start: function() { }
 	});
 
-	_.extend(ide.PluginManager.prototype, {
+	_.extend(ide.PluginManager.prototype, { /** @lends ide.PLuginManager# */
 
 		_plugins: null,
 
