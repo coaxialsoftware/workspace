@@ -63,11 +63,14 @@ ide.plugins.register('find', new ide.Plugin({
 				return regex.test(val);
 			});
 
-			ide.workspace.add(new ide.FileList({
-				files: files,
-				title: 'find ' + mask,
-				path: '.'
-			}));
+			if (files.length===1)
+				ide.open(files[0]);
+			else
+				ide.workspace.add(new ide.FileList({
+					files: files,
+					title: 'find ' + mask,
+					path: '.'
+				}));
 		}
 	}
 

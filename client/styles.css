@@ -69,10 +69,6 @@ h4 {
 	border-right: 0;
 }
 
-.file > .content {
-	min-height: 45px;
-}
-
 .ide-panel > h3 { margin: 4px 4px 8px 4px; }
 
 #projects h4 { height: 18px; }
@@ -89,6 +85,11 @@ h4 {
 	color: #eee;
 	cursor: pointer;
 }
+
+.file > .content {
+	min-height: 0;
+}
+
 
 #projects .content:hover, .file > .content:hover {
 	background-color: rgba(52, 152, 219,0.9);	
