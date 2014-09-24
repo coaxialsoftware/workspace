@@ -11,7 +11,7 @@ var
 
 	ide =
 	/** @namespace */
-	window.ide = new (Backbone.View.extend({ /** @lends window.ide */
+	window.ide = new (Backbone.View.extend({ /** @lends ide */
 
 	/** Current opened project */
 	project: null,
@@ -86,7 +86,7 @@ var
 		}
 	}),
 
-	Workspace: Backbone.View.extend({
+	Workspace: Backbone.View.extend({ /** @lends ide.Workspace# */
 
 		el: '#workspace',
 
@@ -179,7 +179,7 @@ var
 
 	}),
 
-	File: Backbone.Model.extend({
+	File: Backbone.Model.extend({ /** @lends ide.File# */
 
 		idAttribute: 'filename',
 
@@ -229,7 +229,7 @@ var
 
 	}),
 
-	Project: Backbone.Model.extend({
+	Project: Backbone.Model.extend({ /** @lends ide.Project */
 
 		idAttribute: 'path',
 
@@ -315,7 +315,7 @@ var
 		start: function() { }
 	});
 
-	_.extend(ide.PluginManager.prototype, { /** @lends ide.PLuginManager# */
+	_.extend(ide.PluginManager.prototype, { /** @lends ide.PluginManager# */
 
 		_plugins: null,
 
