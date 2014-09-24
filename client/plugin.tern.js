@@ -1,4 +1,4 @@
-
+/*
 (function(ide, _, $) {
 "use strict";
 
@@ -212,3 +212,4 @@ ide.plugins.register('tern', new ide.Plugin({
 }));
 
 })(window.ide, window._, window.jQuery);
+*/

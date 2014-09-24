@@ -308,6 +308,10 @@ var
 		/// Object of commands to add to ide.commands
 		commands: null,
 
+		/**
+		 * Starts Plugin when all other plugins are loaded.
+		 * @param settings Settings specified in the project. The name of the plugin will be used.
+		 */
 		start: function() { }
 	});
 
@@ -322,7 +326,7 @@ var
 		{
 			for (var i in this._plugins)
 			{
-				if (fn.bind(this)(this._plugins[i]))
+				if (fn.bind(this)(this._plugins[i], i))
 					break;
 			}
 		},
@@ -361,9 +365,9 @@ var
 		load_plugins: function()
 		{
 			window.addEventListener('keyup', this.on_key.bind(this));
-			this.each(function(plug) {
+			this.each(function(plug, name) {
 				if (plug.start)
-					plug.start();
+					plug.start(ide.project[name]);
 			});
 
 		},

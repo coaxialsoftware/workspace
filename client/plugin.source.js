@@ -225,7 +225,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 });
 
-ide.plugins.register('editor.source', new ide.Plugin({
+ide.plugins.register('editor', new ide.Plugin({
 
 	openEditor: function(file)
 	{

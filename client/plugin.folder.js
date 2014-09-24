@@ -43,13 +43,20 @@ ide.FileList = ide.Editor.extend({
 				ide.commands.edit(ev.currentTarget.dataset.path);
 
 			ide.workspace.remove(me);
-		});
+		}).eq(0).focus();
 	}
 });
 
 ide.plugins.register('find', new ide.Plugin({
 
 	commands: {
+
+		/** @lends ide.commands */
+
+		/**
+		 * Finds file by mask and displays all matches, if only one found it will
+		 * automatically open it.
+		 */
 		find: function(mask)
 		{
 		var
@@ -72,6 +79,7 @@ ide.plugins.register('find', new ide.Plugin({
 					path: '.'
 				}));
 		}
+
 	}
 
 }));
