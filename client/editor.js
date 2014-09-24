@@ -11,7 +11,7 @@ var
 
 	ide =
 	/** @namespace */
-	window.ide = new (Backbone.View.extend({ /** @lends ide */
+	window.ide = new (Backbone.View.extend({ /** @lends window.ide */
 
 	/** Current opened project */
 	project: null,
