@@ -128,19 +128,20 @@ var
 		_do_layout: function()
 		{
 		var
-			child = this.children,
+			me = this,
+			child = me.children,
 			layout,
 			i = 0
 		;
-			if (!this.layout)
+			if (!me.layout)
 				return;
 
-			layout = this.layout(this.el);
+			layout = me.layout(me.el);
 
 			for (; i<child.length; i++)
 				child[i].$el.css(layout[i]);
 
-			this.trigger('layout');
+			setTimeout(function() { me.trigger('layout'); });
 		},
 
 		load: function()
