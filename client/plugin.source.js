@@ -118,7 +118,7 @@ ide.Editor.Source = ide.Editor.extend({
 		ann = this.get_annotation(pos.row),
 		token = editor.session.getTokenAt(pos.row, pos.column+1)
 	;
-		if (ann)
+		if (ann && this.get_state() !== 'insertMode')
 			ide.info.show(ann.text.join('<br/>'));
 
 		if (token !== this._old_token)
