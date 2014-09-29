@@ -48,6 +48,8 @@ h4 {
 	overflow: auto;
 }
 
+#workspace > .ace_editor { overflow: hidden; }
+
 .ide-panel {
 	color: #eee; padding: 6px;
 	outline: 0 solid #eee;

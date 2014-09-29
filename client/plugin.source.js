@@ -91,6 +91,7 @@ ide.Editor.Source = ide.Editor.extend({
 		this.$el.on('keyup', this.on_keyup.bind(this));
 
 		this.file.on('write', this.trigger.bind(this, 'write'));
+		ide.workspace.on('layout', this.editor.resize, this.editor);
 
 		window.setTimeout(this.focus.bind(this), 250);
 		this.findNextFix();

@@ -139,6 +139,8 @@ var
 
 			for (; i<child.length; i++)
 				child[i].$el.css(layout[i]);
+
+			this.trigger('layout');
 		},
 
 		load: function()
@@ -295,7 +297,7 @@ var
 
 		on_error: function()
 		{
-			ide.error('Could not load Project: ' + this.id);
+			ide.error('Error loading Project: ' + this.id);
 		},
 
 		/**
