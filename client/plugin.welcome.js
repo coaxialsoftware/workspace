@@ -28,7 +28,7 @@ ide.plugins.register('welcome', new ide.Plugin({
 		if (projects)
 			this.renderProjects(projects);
 
-		if (!ide.hash.data.file)
+		if (!ide.workspace.children.length)
 			this.show();
 
 		ide.workspace.on('add_child', this.hide, this);
