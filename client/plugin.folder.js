@@ -72,6 +72,8 @@ ide.plugins.register('find', new ide.Plugin({
 
 			if (files.length===1)
 				ide.open(files[0]);
+			else if (files.length===0)
+				ide.notify('No files found that match "' + mask + '"');
 			else
 				ide.workspace.add(new ide.FileList({
 					files: files,
