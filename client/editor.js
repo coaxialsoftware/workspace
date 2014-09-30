@@ -229,7 +229,7 @@ var
 
 	}),
 
-	Project: Backbone.Model.extend({ /** @lends ide.Project */
+	Project: Backbone.Model.extend({ /** @lends ide.Project# */
 
 		idAttribute: 'path',
 
@@ -455,13 +455,18 @@ var
 		}
 	});
 
+	/// Plugin Manager
 	ide.plugins = new ide.PluginManager();
+
+	/// Hash Manager
 	ide.hash = new Hash();
+
+	/// Asset/Script Loader
 	ide.loader = new window.Loader();
 
 	window.addEventListener('load', _start);
 
-	ide.Editor = Backbone.View.extend({
+	ide.Editor = Backbone.View.extend({ /** @lends ide.Editor# */
 
 		file: null,
 
@@ -512,7 +517,7 @@ var
 
 	});
 
-	ide.Bar = Backbone.View.extend({
+	ide.Bar = Backbone.View.extend({ /** @lends ide.Bar# */
 
 		/**
 		 * When a key is pressed and its found here the
@@ -637,7 +642,7 @@ var
 
 	});
 
-	ide.Bar.Command = ide.Bar.extend({
+	ide.Bar.Command = ide.Bar.extend({ /** @lends ide.Bar.Command# */
 
 		el: $('<input id="command" />'),
 		shortcut: "shift-186",
@@ -713,7 +718,7 @@ var
 
 	});
 
-	ide.Bar.Search = ide.Bar.extend({
+	ide.Bar.Search = ide.Bar.extend({ /** @lends ide.Bar.Search# */
 
 		el: $('<input id="search" />'),
 		shortcut: '191',
