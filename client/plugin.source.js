@@ -1,5 +1,5 @@
 
-(function(ide, ace) {
+(function(ide, ace, require) {
 "use strict";
 
 /**
@@ -13,6 +13,9 @@ ide.Editor.Source = ide.Editor.extend({
 	editor: null,
 	session: null,
 	mode: null,
+
+	// contents of local clipboard
+	_clipboard: null,
 
 	// Stores previous token. Used by tokenchange event.
 	_old_token: null,
@@ -82,6 +85,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 		editor.selection.clearSelection();
 		editor.on('focus', this.on_focus.bind(this));
+		editor.on('copy', this.on_copy.bind(this));
 		editor.on('changeSelection', this.on_selection.bind(this));
 		editor.renderer.scrollBar.element.addEventListener('scroll', this.on_scroll.bind(this));
 
@@ -91,10 +95,17 @@ ide.Editor.Source = ide.Editor.extend({
 		this.$el.on('keyup', this.on_keyup.bind(this));
 
 		this.file.on('write', this.trigger.bind(this, 'write'));
+		ide.workspace.on('layout', this.editor.resize, this.editor);
 
 		window.setTimeout(this.focus.bind(this), 250);
 		this.findNextFix();
 		this.enable_autocompletion();
+		this.registers = require('ace/keyboard/vim/registers');
+	},
+
+	on_copy: function(text)
+	{
+		this._clipboard = window.localStorage['ide.plugin.source.clipboard'] = text;
 	},
 
 	findNextFix: function()
@@ -118,7 +129,7 @@ ide.Editor.Source = ide.Editor.extend({
 		ann = this.get_annotation(pos.row),
 		token = editor.session.getTokenAt(pos.row, pos.column+1)
 	;
-		if (ann)
+		if (ann && this.get_state() !== 'insertMode')
 			ide.info.show(ann.text.join('<br/>'));
 
 		if (token !== this._old_token)
@@ -142,6 +153,13 @@ ide.Editor.Source = ide.Editor.extend({
 	on_focus: function()
 	{
 		this.focus(true);
+
+		var cb = window.localStorage['ide.plugin.source.clipboard'];
+
+		if (this.registers._default.text !== cb)
+		{
+			this.registers._default.text = cb;
+		}
 	},
 
 	get_annotation: function(row)
@@ -246,4 +264,4 @@ ide.plugins.register('editor', new ide.Plugin({
 
 }));
 
-})(this.ide, this.ace);
+})(this.ide, this.ace, this.require);

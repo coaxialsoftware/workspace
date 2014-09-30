@@ -34,12 +34,12 @@ ide.commands = {
 
 	tabe: function(name)
 	{
-		window.open('#' + ide.hash.encode({ file: name || false }));
+		window.open('#' + ide.workspace.hash.encode({ f: name || false }));
 	},
 
 	project: function(name)
 	{
-		window.open('#' + ide.hash.encode({ project: name, file: null }));
+		window.open('#' + ide.workspace.hash.encode({ p: name, f: null }));
 	}
 
 };

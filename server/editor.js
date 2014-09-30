@@ -120,7 +120,7 @@ common.extend(Editor.prototype, {
 		result = { },
 		fn = (query.p ? query.p + '/' : '') + query.n
 	;
-		if (fs.existsSync(fn))
+		if (query.n && fs.existsSync(fn))
 		{
 			this.log('Opening file: ' + fn);
 			result.stat = fs.statSync(fn);
