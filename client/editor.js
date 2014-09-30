@@ -326,6 +326,7 @@ var
 	PluginManager: function()
 	{
 		this._plugins = {};
+		this._shortcuts = {};
 	}
 
 }))(),
@@ -354,6 +355,12 @@ var
 	_.extend(ide.PluginManager.prototype, { /** @lends ide.PluginManager# */
 
 		_plugins: null,
+
+		/**
+		 * List of system shortcuts. Added by plugins with the shortcut property
+		 * defined.
+		 */
+		_shortcuts: null,
 
 		/**
 		 * Iterates through plugins and stops if fn returns true.
@@ -386,13 +393,14 @@ var
 		on_key: function(ev)
 		{
 		var
-			key = this.get_shortcut(ev)
+			key = this.get_shortcut(ev),
+			fn = this._shortcuts[key]
 		;
-			this.each(function(plug)
+			if (fn)
 			{
-				if (plug.shortcut===key && plug.invoke)
-					plug.invoke();
-			});
+				fn();
+				ev.preventDefault();
+			}
 		},
 
 		/**
@@ -400,7 +408,7 @@ var
 		 */
 		load_plugins: function()
 		{
-			window.addEventListener('keyup', this.on_key.bind(this));
+			window.addEventListener('keydown', this.on_key.bind(this));
 			this.each(function(plug, name) {
 				if (plug.start)
 					plug.start(ide.project[name]);
@@ -429,12 +437,23 @@ var
 			ide.commands[name] = fn;
 		},
 
+		_registerShortcut: function(key, name, plugin)
+		{
+			if (key in this._shortcuts)
+				window.console.warn('[' + plugin + '] Overriding shortcut ' + key);
+
+			this._shortcuts[key] = plugin.invoke.bind(plugin);
+		},
+
 		register: function(name, plugin)
 		{
 			this._plugins[name] = plugin;
 
 			for (var i in plugin.commands)
 				this._registerCommand(name, i, plugin.commands[i]);
+
+			if (plugin.shortcut)
+				this._registerShortcut(plugin.shortcut, name, plugin);
 		}
 
 	});

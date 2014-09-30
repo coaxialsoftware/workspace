@@ -32,7 +32,7 @@ h3 {
 
 h4 {
 	font-size: 14px;
-	color: #bdc3c7;
+	color: #ddd;
 	margin: 0;
 	overflow: hidden;
 }
@@ -93,6 +93,10 @@ h4 {
 	min-height: 0;
 }
 
+#projects .content:hover, .file > .content {
+	background-color: rgba(117, 117, 117, 0.5);
+	border: 1px solid #424242;
+}
 
 #projects .content:hover, .file > .content:hover {
 	background-color: rgba(52, 152, 219,0.9);	
@@ -258,3 +262,12 @@ h4 {
 	z-index: 5;
 	position: absolute; top: 0;
 }
+
+#workspace > div:nth-child(2) { background-color: #263238; }
+#workspace > div:nth-child(3) { background-color: #001d10; }
+#workspace > div:nth-child(4) { background-color: #002024; }
+#workspace > div:nth-child(5) { background-color: #010062; }
+
+.ace-twilight .ace_gutter { background-color: rgba(35,35,35,0.6) !important; }
+
+
