@@ -64,6 +64,7 @@
 		{
 			if (ev.keyCode===9)
 				ev.preventDefault();
+			ev.stopPropagation();
 		},
 
 		on_key: function(ev)

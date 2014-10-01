@@ -27,6 +27,11 @@ ide.commands = {
 			ide.workspace.remove(ide.editor);
 	},
 
+	qa: function()
+	{
+		ide.workspace.close_all();
+	},
+
 	help: function(topic)
 	{
 		window.open('/docs/index.html#' + (topic || ''));

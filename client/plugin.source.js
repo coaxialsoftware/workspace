@@ -92,7 +92,7 @@ ide.Editor.Source = ide.Editor.extend({
 		window.addEventListener('beforeunload', this.on_beforeunload.bind(this));
 
 		this.set_mode();
-		this.$el.on('keyup', this.on_keyup.bind(this));
+		this.$el.on('keydown', this.on_keyup.bind(this));
 
 		this.file.on('write', this.trigger.bind(this, 'write'));
 		ide.workspace.on('layout', this.editor.resize, this.editor);
@@ -119,7 +119,8 @@ ide.Editor.Source = ide.Editor.extend({
 
 	on_beforeunload: function()
 	{
-		this.close();
+		if (this.close()===false)
+			return 'File has changed. Are you sure?';
 	},
 
 	on_selection: function(ev, editor)
@@ -146,7 +147,6 @@ ide.Editor.Source = ide.Editor.extend({
 		if (this.get_state()==='insertMode')
 		{
 			ev.stopPropagation();
-			return false;
 		}
 	},
 
@@ -230,7 +230,9 @@ ide.Editor.Source = ide.Editor.extend({
 
 	get_info: function()
 	{
-		return this.file.get('filename') + ' [' + this.file.get('path') + ']';
+		return (this.changed() ? '+ ' : '') +
+			(this.file.get('filename') || '[No Name]') +
+			' [' + this.file.get('path') + ']';
 	},
 
 	set_mode: function()

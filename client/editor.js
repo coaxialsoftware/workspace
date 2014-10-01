@@ -181,6 +181,11 @@ var
 			this.hash.set({ f: files });
 		},
 
+		close_all: function()
+		{
+			this.children.concat().forEach(this.remove.bind(this));
+		},
+
 		add: function(item)
 		{
 			this.children.push(item);
@@ -340,7 +345,10 @@ var
 
 ;
 	_.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
+
+		/** If key is pressed, invoke function will be called. */
 		shortcut: null,
+		/** Function to call when shortcut key is pressed. */
 		invoke: null,
 		/// Object of commands to add to ide.commands
 		commands: null,
