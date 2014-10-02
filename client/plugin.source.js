@@ -14,9 +14,6 @@ ide.Editor.Source = ide.Editor.extend({
 	session: null,
 	mode: null,
 
-	// contents of local clipboard
-	_clipboard: null,
-
 	// Stores previous token. Used by tokenchange event.
 	_old_token: null,
 
@@ -81,11 +78,10 @@ ide.Editor.Source = ide.Editor.extend({
 		session.setUseWrapMode(true);
 		session.setValue(this.file.get('content'));
 
-		//session.on('changeAnnotation', this.on_annotation.bind(this));
-
 		editor.selection.clearSelection();
 		editor.on('focus', this.on_focus.bind(this));
-		editor.on('copy', this.on_copy.bind(this));
+		editor.on('blur', this.on_blur.bind(this));
+
 		editor.on('changeSelection', this.on_selection.bind(this));
 		editor.renderer.scrollBar.element.addEventListener('scroll', this.on_scroll.bind(this));
 
@@ -103,9 +99,9 @@ ide.Editor.Source = ide.Editor.extend({
 		this.registers = require('ace/keyboard/vim/registers');
 	},
 
-	on_copy: function(text)
+	on_blur: function()
 	{
-		this._clipboard = window.localStorage['ide.plugin.source.clipboard'] = text;
+		window.localStorage['ide.plugin.source.clipboard'] = this.registers._default.text;
 	},
 
 	findNextFix: function()
