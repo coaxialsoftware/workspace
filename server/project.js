@@ -21,18 +21,19 @@ common.extend(Project.prototype, {
 
 	loadIgnore: function(config)
 	{
-		if (!config.ignore)
+		config.ignore = config.ignore ||
+			(fs.existsSync(this.path + '/.gitignore') ?
+				fs.readFileSync(this.path + '/.gitignore', 'utf8')
+					.trim().split("\n") :
+				'git svn node_modules bower_components')
+		;
+
+		if (config.ignore instanceof Array)
 		{
-			if (fs.existsSync(this.path + '/.gitignore'))
-			{
-				config.ignore = '+(' +
-					fs.readFileSync(this.path + '/.gitignore', 'utf8')
-					.replace(/\n/g, '|')
-					.replace(/\/\s*|/g, '')
-					+ ')'
-				;
-			} else
-				config.ignore = 'git svn node_modules bower_components';
+			config.ignore = '+(' +
+				config.ignore.join('|')
+				.replace(/\/\s*|/g, '') + ')'
+			;
 		}
 
 		this.ignore = new minimatch.Minimatch(config.ignore);

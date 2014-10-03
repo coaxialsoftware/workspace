@@ -51,7 +51,7 @@ ide.plugins.register('shell', new ide.Plugin({
 			ide.shell('grep', [
 				term,
 				'-0rnIoP',
-				exclude ? '--exclude="' + exclude.replace(/"/g, '\"')  + '"' : undefined,
+				exclude ? '--exclude="' + exclude.replace(/"/g, '\"') + '"' : undefined,
 				path
 			],
 				function(a) {
