@@ -83,6 +83,8 @@ var
 });
 
 app.get('/file', editor.handle_get_file.bind(editor));
+
+app.post('/shell', editor.handle_shell.bind(editor));
 app.post('/file', editor.handle_write_file.bind(editor));
 app.put('/file', editor.handle_write_file.bind(editor));
 

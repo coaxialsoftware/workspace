@@ -10,7 +10,8 @@
 		"body-parser": "*",
 		"basic-auth-connect": "*",
 		"mime": "*",
-		"tern": "*"
+		"tern": "*",
+		"minimatch": "*"
 	},
 
 	"devDependencies": {

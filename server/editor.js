@@ -51,6 +51,44 @@ common.extend(Editor.prototype, {
 		return config;
 	},
 
+	/**
+	 * GET Request.
+	 *
+	 * q: Arguments
+	 * c: Command
+	 */
+	handle_shell: function(req, res)
+	{
+	var
+		me = this,
+		query = req.body.q,
+		command, process
+	;
+		if (!req.body.c)
+			return res.send(this.error('shell: Invalid command.'));
+
+		command = req.body.c + (query ? ' ' + query.join(' ') : '');
+
+		this.log('shell: ' + command);
+		process = require('child_process').spawn(
+			req.body.c, req.body.q, { detached: true, stdio: [ 'ignore' ] }
+		);
+		process.stdout.on('data', function(data) {
+			if (!res.headersSent)
+				res.writeHead(200);
+			res.write(data);
+		});
+		process.stderr.on('data', function(data) {
+			if (!res.headersSent)
+				res.writeHead(500);
+			res.write(data);
+		});
+		process.on('close', function(code) {
+			res.end();
+			me.log('shell: ' + command + ' returned with status ' + code);
+		});
+	},
+
 	handle_get_file: function(req, res)
 	{
 		this.get_file(req.query, function(result)
@@ -178,7 +216,10 @@ common.extend(Editor.prototype, {
 		project = name ? this._projects[name] : this
 	;
 		if (!project)
+		{
 			project = this._projects[name] = new Project(name, this);
+			project.load();
+		}
 
 		callback(project);
 	},
