@@ -37,21 +37,29 @@ ide.plugins.register('shell', new ide.Plugin({
 		{
 		var
 			pos = 0,
+			exclude = ide.project.get('ignore'),
+			path = ide.project.get('path'),
+			ignore = ide.project.get('ignore_regex'),
+
 			editor = new ide.FileList({
 				file_template: '#tpl-grep',
 				title: 'grep ' + term,
-				on_click: function() { }
-			}),
-			exclude = ide.project.get('ignore'),
-			path = ide.project.get('path')
+				path: new RegExp('^' + path + '/'),
+				on_click: function() { },
+				ignore: ignore ? new RegExp(ignore) : undefined
+			})
 		;
+			if (exclude instanceof Array)
+				exclude = exclude.map(function(f) {
+					return '--exclude="' + f.replace(/"/g, '\\"') + '"';
+				});
 
 			ide.workspace.add(editor);
 
 			ide.shell('grep', [
 				term,
 				'-0rnIoP',
-				exclude ? '--exclude="' + exclude.replace(/"/g, '\"') + '"' : undefined,
+				exclude ? exclude.join(' ') : undefined,
 				path
 			],
 				function(a) {

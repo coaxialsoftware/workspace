@@ -25,7 +25,10 @@ ide.FileList = ide.Editor.extend({
 		i = 0
 	;
 		for (; i<files.length;i++)
-			result += tpl({ path: this.path, file: files[i] });
+			result += tpl({
+				path: this.path, file: files[i],
+				ignore: this.ignore
+			});
 
 		this.$('.filelist-content').append(result);
 	},

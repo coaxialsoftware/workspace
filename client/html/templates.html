@@ -8,9 +8,12 @@
 </script>
 
 <script id="tpl-grep" type="text/template">
+<% var filename = file.replace(path, ''); %>
+<% if (!ignore || !ignore.test(filename)) { %>
 <div class="file">
-	<a class="content"><%- file %></a>
+	<a class="content"><%- filename %></a>
 </div>
+<% } %>
 </script>
 
 <script id="tpl-filelist" type="text/template">

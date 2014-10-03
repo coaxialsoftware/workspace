@@ -33,18 +33,18 @@ common.extend(Project.prototype, {
 
 		if (config.ignore instanceof Array)
 		{
-			config.ignore = '^(' + config.ignore
+			config.ignore_regex = '^(' + config.ignore
 				.join('|')
 				.replace(/\./g, "\\.")
 				.replace(/\*/g, '.*')
 				.replace(/\/\s*\|/g, '|')
 				.replace(/\/$/, '')
 				.replace(/[-[\]{}()+,^$#\s]/g, "\\$&") +
-				')$'
+				')'
 			;
 		}
 
-		this.ignore = new RegExp(config.ignore);
+		this.ignore = new RegExp(config.ignore_regex);
 	},
 
 	load: function(callback)
