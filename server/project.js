@@ -1,7 +1,5 @@
 var
 	fs = require('fs'),
-	minimatch = require('minimatch'),
-
 	common = require('./common.js'),
 
 	Project = exports.Project = function(path, editor)
@@ -21,22 +19,32 @@ common.extend(Project.prototype, {
 
 	loadIgnore: function(config)
 	{
-		config.ignore = config.ignore ||
-			(fs.existsSync(this.path + '/.gitignore') ?
-				fs.readFileSync(this.path + '/.gitignore', 'utf8')
-					.trim().split("\n") :
-				'git svn node_modules bower_components')
-		;
+		if (!config.ignore)
+		{
+			config.ignore = [ '.*' ];
+
+			if (fs.existsSync(this.path + '/.gitignore'))
+			{
+				config.ignore = config.ignore.concat(
+					fs.readFileSync(this.path + '/.gitignore', 'utf8')
+					.trim().split("\n"));
+			}
+		}
 
 		if (config.ignore instanceof Array)
 		{
-			config.ignore = '+(' +
-				config.ignore.join('|')
-				.replace(/\/\s*|/g, '') + ')'
+			config.ignore = '^(' + config.ignore
+				.join('|')
+				.replace(/\./g, "\\.")
+				.replace(/\*/g, '.*')
+				.replace(/\/\s*\|/g, '|')
+				.replace(/\/$/, '')
+				.replace(/[-[\]{}()+,^$#\s]/g, "\\$&") +
+				')$'
 			;
 		}
 
-		this.ignore = new minimatch.Minimatch(config.ignore);
+		this.ignore = new RegExp(config.ignore);
 	},
 
 	load: function(callback)
@@ -90,7 +98,7 @@ common.extend(Project.prototype, {
 		{
 			file = dir + files[i];
 
-			if (ignore && ignore.match(file))
+			if (ignore && ignore.test(file))
 				continue;
 
 			result.push(file = dir + files[i]);
