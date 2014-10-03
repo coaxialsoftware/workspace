@@ -14,8 +14,7 @@ h1 {
 	position: fixed; top: 50px; left: 50px; font-size: 90px;
 	margin: 0;
 	color: #ccc;
-	color: rgba(255, 255, 255, 0.4);
-	display: none;
+	color: rgba(255, 255, 255, 0.2);
 }
 
 h2 {
@@ -32,7 +31,7 @@ h3 {
 
 h4 {
 	font-size: 14px;
-	color: #bdc3c7;
+	color: #ddd;
 	margin: 0;
 	overflow: hidden;
 }
@@ -64,7 +63,7 @@ h4 {
 	border-style: solid;
 	border-color: transparent;
 	border-width: 0 8px 8px 0;
-	transition: width 0.5s, opacity 0.5s;
+	transition: width 0.2s, opacity 0.2s;
 }
 
 .file {
@@ -84,7 +83,7 @@ h4 {
 	box-sizing: border-box;
 	display: block;
 	text-decoration: none;
-	transition: background-color 0.5s;
+	transition: background-color 0.2s;
 	color: #eee;
 	cursor: pointer;
 }
@@ -93,9 +92,13 @@ h4 {
 	min-height: 0;
 }
 
+#projects .content:hover, .file > .content {
+	background-color: rgba(117, 117, 117, 0.5);
+	border: 1px solid #424242;
+}
 
 #projects .content:hover, .file > .content:hover {
-	background-color: rgba(52, 152, 219,0.9);	
+	background-color: rgba(150, 150, 150, 0.5);
 }
 
 #projects .content:focus, .file > .content:focus {
@@ -107,7 +110,7 @@ h4 {
 	right: 42px; 
 	font-size: 0;
 	position: absolute;
-	transition: opacity 0.5s;
+	transition: opacity 0.2s;
 	opacity: 0;
 }
 
@@ -258,3 +261,13 @@ h4 {
 	z-index: 5;
 	position: absolute; top: 0;
 }
+
+#workspace > div:nth-child(1) { background-color: #141414; }
+#workspace > div:nth-child(2) { background-color: #263238; }
+#workspace > div:nth-child(3) { background-color: #001d10; }
+#workspace > div:nth-child(4) { background-color: #002024; }
+#workspace > div:nth-child(5) { background-color: #010062; }
+
+.ace-twilight .ace_gutter { background-color: rgba(35,35,35,0.6) !important; }
+
+

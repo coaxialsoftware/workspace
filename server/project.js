@@ -20,15 +20,34 @@ common.extend(Project.prototype, {
 	loadIgnore: function(config)
 	{
 		if (!config.ignore)
-			config.ignore = /^\.git|^\.svn|node_modules|bower_components/;
-		else if (config.ignore instanceof Array)
 		{
-			config.ignore = new RegExp('^(?:' + config.ignore.join('|') + ')');
+			config.ignore = [ '.*' ];
+
+			if (fs.existsSync(this.path + '/.gitignore'))
+			{
+				config.ignore = config.ignore.concat(
+					fs.readFileSync(this.path + '/.gitignore', 'utf8')
+					.trim().split("\n"));
+			}
 		}
 
+		if (config.ignore instanceof Array)
+		{
+			config.ignore_regex = '^(' + config.ignore
+				.join('|')
+				.replace(/\./g, "\\.")
+				.replace(/\*/g, '.*')
+				.replace(/\/\s*\|/g, '|')
+				.replace(/\/$/, '')
+				.replace(/[-[\]{}()+,^$#\s]/g, "\\$&") +
+				')'
+			;
+		}
+
+		this.ignore = new RegExp(config.ignore_regex);
 	},
 
-	load: function()
+	load: function(callback)
 	{
 	var
 		config = this.config = {},
@@ -50,8 +69,10 @@ common.extend(Project.prototype, {
 		config.path = this.path;
 
 		if (!config.name) config.name = config.path;
+		if (callback)
+			callback(this);
 
-		return config;
+		return this;
 	},
 
 	log: function(msg)
@@ -69,7 +90,7 @@ common.extend(Project.prototype, {
 	var
 		files = fs.readdirSync(this.path + '/' + dir),
 		i, stat, file,
-		ignore = this.config.ignore
+		ignore = this.ignore
 	;
 		result = result || [];
 
@@ -102,7 +123,7 @@ common.extend(Project.prototype, {
 
 	to_json: function()
 	{
-		return this.load();
+		return this.config;
 	}
 
 });

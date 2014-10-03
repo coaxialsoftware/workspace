@@ -14,9 +14,6 @@ ide.Editor.Source = ide.Editor.extend({
 	session: null,
 	mode: null,
 
-	// contents of local clipboard
-	_clipboard: null,
-
 	// Stores previous token. Used by tokenchange event.
 	_old_token: null,
 
@@ -81,18 +78,17 @@ ide.Editor.Source = ide.Editor.extend({
 		session.setUseWrapMode(true);
 		session.setValue(this.file.get('content'));
 
-		//session.on('changeAnnotation', this.on_annotation.bind(this));
-
 		editor.selection.clearSelection();
 		editor.on('focus', this.on_focus.bind(this));
-		editor.on('copy', this.on_copy.bind(this));
+		editor.on('blur', this.on_blur.bind(this));
+
 		editor.on('changeSelection', this.on_selection.bind(this));
 		editor.renderer.scrollBar.element.addEventListener('scroll', this.on_scroll.bind(this));
 
 		window.addEventListener('beforeunload', this.on_beforeunload.bind(this));
 
 		this.set_mode();
-		this.$el.on('keyup', this.on_keyup.bind(this));
+		this.$el.on('keydown', this.on_keyup.bind(this));
 
 		this.file.on('write', this.trigger.bind(this, 'write'));
 		ide.workspace.on('layout', this.editor.resize, this.editor);
@@ -103,9 +99,9 @@ ide.Editor.Source = ide.Editor.extend({
 		this.registers = require('ace/keyboard/vim/registers');
 	},
 
-	on_copy: function(text)
+	on_blur: function()
 	{
-		this._clipboard = window.localStorage['ide.plugin.source.clipboard'] = text;
+		window.localStorage['ide.plugin.source.clipboard'] = this.registers._default.text;
 	},
 
 	findNextFix: function()
@@ -119,7 +115,8 @@ ide.Editor.Source = ide.Editor.extend({
 
 	on_beforeunload: function()
 	{
-		this.close();
+		if (this.close()===false)
+			return 'File has changed. Are you sure?';
 	},
 
 	on_selection: function(ev, editor)
@@ -146,7 +143,6 @@ ide.Editor.Source = ide.Editor.extend({
 		if (this.get_state()==='insertMode')
 		{
 			ev.stopPropagation();
-			return false;
 		}
 	},
 
@@ -230,7 +226,9 @@ ide.Editor.Source = ide.Editor.extend({
 
 	get_info: function()
 	{
-		return this.file.get('filename') + ' [' + this.file.get('path') + ']';
+		return (this.changed() ? '+ ' : '') +
+			(this.file.get('filename') || '[No Name]') +
+			' [' + this.file.get('path') + ']';
 	},
 
 	set_mode: function()

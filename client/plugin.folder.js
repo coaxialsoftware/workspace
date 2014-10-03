@@ -10,19 +10,27 @@ ide.FileList = ide.Editor.extend({
 	title: null,
 	path: null,
 	files: null,
-	on_click: null,
 
-	getContent: function()
+	on_click: function(ev)
+	{
+		ide.commands.edit(ev.currentTarget.dataset.path);
+		ide.workspace.remove(this);
+	},
+
+	addFiles: function(files)
 	{
 	var
 		tpl = _.template($(this.file_template).html()),
 		result = '',
 		i = 0
 	;
-		for (; i<this.files.length;i++)
-			result += tpl({ path: this.path, file: this.files[i] });
+		for (; i<files.length;i++)
+			result += tpl({
+				path: this.path, file: files[i],
+				ignore: this.ignore
+			});
 
-		return result;
+		this.$('.filelist-content').append(result);
 	},
 
 	setup: function()
@@ -32,18 +40,13 @@ ide.FileList = ide.Editor.extend({
 		me = this
 	;
 		me.$el.addClass('ide-panel').html(tpl({
-			title: me.title,
-			content: me.getContent(),
+			title: me.title
 		}));
 
-		me.$('.content').click(function(ev) {
-			if (me.on_click)
-				me.on_click(ev.currentTarget.dataset.path);
-			else
-				ide.commands.edit(ev.currentTarget.dataset.path);
+		if (me.files)
+			me.addFiles(me.files);
 
-			ide.workspace.remove(me);
-		}).eq(0).focus();
+		me.$('.content').click(me.on_click.bind(me)).eq(0).focus();
 	}
 });
 
@@ -72,6 +75,8 @@ ide.plugins.register('find', new ide.Plugin({
 
 			if (files.length===1)
 				ide.open(files[0]);
+			else if (files.length===0)
+				ide.notify('No files found that match "' + mask + '"');
 			else
 				ide.workspace.add(new ide.FileList({
 					files: files,

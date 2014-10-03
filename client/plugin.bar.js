@@ -64,6 +64,7 @@
 		{
 			if (ev.keyCode===9)
 				ev.preventDefault();
+			ev.stopPropagation();
 		},
 
 		on_key: function(ev)
@@ -132,52 +133,15 @@
 		el: $('<input id="command" />'),
 		shortcut: "shift-186",
 
-		scan: function(text)
-		{
-			return text.split(' ');
-		},
-
-		parse: function(text)
-		{
-		var
-			cmd = this.scan(text),
-			fn = ide.commands[cmd[0]],
-			scope = ide
-		;
-			if (fn)
-			{
-				if (typeof(fn)==='string')
-					fn = ide.commands[fn];
-			} else if (ide.editor)
-			{
-				fn = ide.editor.cmd && ide.editor.cmd(cmd[0]);
-				scope = ide.editor;
-			}
-
-			cmd.shift();
-
-			return {
-				fn: fn,
-				args: cmd,
-				scope: scope
-			};
-		},
-
 		run: function()
 		{
 		var
-			val = this.el.value,
-			cmd
+			val = this.el.value
 		;
 			if (val==='')
 				return;
 
-			cmd = this.parse(val);
-
-			if (!cmd.fn)
-				ide.alert('Unknown Command: ' + val);
-			else
-				cmd.fn.apply(cmd.scope, cmd.args);
+			ide.cmd(val);
 		},
 
 		on_complete: function(s, start, end)
