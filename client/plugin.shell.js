@@ -9,7 +9,7 @@ ide.shell = function(cmd, args, onprogress)
 {
 	return $.ajax({
 		url: '/shell',
-		data: JSON.stringify({ c: cmd, q: args }),
+		data: JSON.stringify({ c: cmd, q: args, p: ide.project.get('path') }),
 		contentType: 'application/json',
 		type: 'POST',
 		xhr: function()
@@ -38,37 +38,36 @@ ide.plugins.register('shell', new ide.Plugin({
 		var
 			pos = 0,
 			exclude = ide.project.get('ignore'),
-			path = ide.project.get('path'),
 			ignore = ide.project.get('ignore_regex'),
+			args = [],
 
 			editor = new ide.FileList({
 				file_template: '#tpl-grep',
 				title: 'grep ' + term,
-				path: new RegExp('^' + path + '/'),
-				on_click: function() { },
+				path: /^\.\/(.+):(\d+):\s*(.+)\s*/,
 				ignore: ignore ? new RegExp(ignore) : undefined
 			})
 		;
+			args.push(term, '-0rnIP');
+
 			if (exclude instanceof Array)
-				exclude = exclude.map(function(f) {
-					return '--exclude="' + f.replace(/"/g, '\\"') + '"';
+				exclude.forEach(function(f) {
+					var d = f.replace(/"/g, '\\"');
+					args.push('--exclude-dir="./' + d + '"',
+						'--exclude="' + d + '"');
 				});
+
+			args.push('.');
 
 			ide.workspace.add(editor);
 
-			ide.shell('grep', [
-				term,
-				'-0rnIoP',
-				exclude ? exclude.join(' ') : undefined,
-				path
-			],
-				function(a) {
-					var eol = a.target.responseText.lastIndexOf("\n") || a.loaded;
+			ide.shell('grep', args, function(a)
+			{
+				var eol = a.target.responseText.lastIndexOf("\n") || a.loaded;
 
-					grepDone(editor, a.target.responseText.slice(pos, eol));
-					pos = eol+1;
-				}
-			);
+				grepDone(editor, a.target.responseText.slice(pos, eol));
+				pos = eol+1;
+			});
 		}
 
 	}

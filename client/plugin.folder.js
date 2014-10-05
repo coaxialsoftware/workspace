@@ -46,7 +46,7 @@ ide.FileList = ide.Editor.extend({
 		if (me.files)
 			me.addFiles(me.files);
 
-		me.$('.content').click(me.on_click.bind(me)).eq(0).focus();
+		me.$('.content').on('click', me.on_click.bind(me)).eq(0).focus();
 	}
 });
 

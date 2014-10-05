@@ -71,7 +71,8 @@ common.extend(Editor.prototype, {
 
 		this.log('shell: ' + command);
 		process = require('child_process').spawn(
-			req.body.c, req.body.q, { detached: true, stdio: [ 'ignore' ] }
+			req.body.c, req.body.q,
+			{ cwd: req.body.p, detached: true, stdio: [ 'ignore' ] }
 		);
 		process.stdout.on('data', function(data) {
 			if (!res.headersSent)
@@ -87,6 +88,7 @@ common.extend(Editor.prototype, {
 			res.end();
 			me.log('shell: ' + command + ' returned with status ' + code);
 		});
+		process.unref();
 	},
 
 	handle_get_file: function(req, res)

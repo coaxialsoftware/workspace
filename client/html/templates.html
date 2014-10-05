@@ -8,10 +8,15 @@
 </script>
 
 <script id="tpl-grep" type="text/template">
-<% var filename = file.replace(path, ''); %>
-<% if (!ignore || !ignore.test(filename)) { %>
+<% 
+	var m = path.exec(file);
+%>
+<% if (m && m[0] && (!ignore || !ignore.test(m[1]))) { %>
 <div class="file">
-	<a class="content"><%- filename %></a>
+	<a class="content" data-path="<%= m[1] %>">
+		<strong><%- m[1]%></strong>:<%= m[2] %>
+		<pre><%- m[3] %></pre>
+	</a>
 </div>
 <% } %>
 </script>
