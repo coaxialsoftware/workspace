@@ -393,6 +393,11 @@ var
 		 */
 		_shortcuts: null,
 
+		get: function(name)
+		{
+			return this._plugins[name];
+		},
+
 		/**
 		 * Iterates through plugins and stops if fn returns true.
 		 */

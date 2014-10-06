@@ -1,90 +1,67 @@
 
-(function() {
+(function(ide) {
 "use strict";
-/*
-var
-	Viewer = ide.Viewer = ide.Plugin.extend({
-
-		quickview: null,
-		mime: null,
-		token_type: null,
-		test: null,
-
-		color: function(color)
-		{
-			ide.notify('<div style="width: 100%; height: 32px; background-color: ' +
-				color+ ';"></div>');
-		},
-
-		initialize: function()
-		{
-			this.quickview = ide.plugins._plugins.quickview;
-			this.quickview.register(
-				this.mime, this.token_type, this
-			);
-		}
-
-	}),
-
-	CSSViewer = Viewer.extend({
-
-		mime: 'text/css',
-		token_type: 'constant.numeric',
-
-		test: function(token)
-		{
-			if (/#[a-fA-F0-9]+$/.test(token.value))
-			{
-				this.color(token.value);
-				return true;
-			}
-		}
-
-	})
-;
 
 ide.plugins.register('quickview', new ide.Plugin({
 
-	viewers: {},
+	viewers: {
+		'text/css': {
+			'constant.numeric': function(token)
+			{
+				if (/#[a-fA-F0-9]+$/.test(token.value))
+				{
+					this.color(token.value);
+					return true;
+				}
+			}
+		}
+	},
+
+	register: function(mime, token, handler)
+	{
+		var v = this.viewers[mime] || (this.viewers[mime] = {});
+
+		if (!v[token])
+			v[token] = handler;
+		else if (!(v[token] instanceof Array))
+			v[token] = [ v[token], handler ];
+		else
+			v[token].push(handler);
+	},
+
+	color: function(color)
+	{
+		ide.notify('<div style="width: 100%; height: 32px; background-color: ' +
+			color+ ';"></div>');
+	},
 
 	on_token: function(editor, token)
 	{
 	var
-		mime = editor.file.mime,
+		mime = editor.file.get('mime'),
 		viewers = this.viewers[mime],
 		i
 	;
-		if (!token)
-			return;
-
 		if (viewers)
 			viewers = viewers[token.type];
 
-		if (viewers && viewers.length>0)
-			for (i in viewers)
-				if (viewers[i].test(token))
-					return;
-	},
+		if (!token || !viewers)
+			return;
 
-	register: function(mime, type, plugin)
-	{
-	var
-		m = this.viewers[mime] || (this.viewers[mime]={}),
-		t = m[type] || (m[type] = [])
-	;
-		t.push(plugin);
+		if (viewers instanceof Array)
+		{
+			for (i in viewers)
+				if (viewers[i].call(this, token))
+					return;
+		} else
+			viewers.call(this, token);
 	},
 
 	start: function()
 	{
 		ide.on('tokenchange', this.on_token.bind(this));
-
-		// Load default viewers
-		new CSSViewer();
 	}
 
-
 }));
-*/
 
-})(window.ide);
+})(this.ide);

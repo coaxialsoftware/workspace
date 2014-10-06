@@ -39,7 +39,16 @@ ide.cmd = function(source)
 	var cmd = parse(source);
 
 	if (!cmd.fn)
-		ide.alert('Unknown Command: ' + source);
+	{
+		/*jshint -W054 */
+		try {
+			(new Function("with(ide) { " + source + "}"))();
+		} catch(e)
+		{
+			ide.alert('Unknown Command: ' + source);
+			window.console.log(e);
+		}
+	}
 	else
 		cmd.fn.apply(cmd.scope, cmd.args);
 
