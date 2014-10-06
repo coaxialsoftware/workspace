@@ -19,9 +19,9 @@ ide.Editor.Source = ide.Editor.extend({
 
 	commands: {
 
-		w: function()
+		w: function(filename)
 		{
-			this.write();
+			this.write(filename);
 		}
 
 	},
@@ -193,13 +193,17 @@ ide.Editor.Source = ide.Editor.extend({
 		this.editor.replaceAll('', { needle: /[\t ]+$/ });
 	},
 
-	write: function()
+	write: function(filename)
 	{
 	var
 		annotations = this.editor.session.getAnnotations()
 	;
+		if (filename)
+			this.file.set('filename', filename);
 		if (this.mode==='javascript')
 			this.remove_trailing();
+		if (!this.file.get('filename'))
+			return ide.error('No file name.');
 
 		this.file.set('content', this.editor.getValue());
 		this.file.save();

@@ -43,12 +43,20 @@ var
 		window.console[kls](message);
 	},
 
+	/**
+	 * Opens file
+	 */
 	open: function(filename)
 	{
 	var
 		cb = function(f) { ide.plugins.edit(f); }
 	;
-		ide.project.open(filename, cb);
+		if (typeof(filename) === 'string')
+			ide.project.open(filename, cb);
+		else if (filename instanceof ide.File)
+			cb(filename);
+		else
+			cb(new ide.File(filename));
 	},
 
 	set_editor: function(editor)

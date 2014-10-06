@@ -107,7 +107,7 @@ common.extend(Editor.prototype, {
 		this.put_file(req.query, req.body,
 		function(result)
 			{
-				res.send(result);
+				res.send(result, result.success ? 200 : 403);
 			}
 		);
 	},

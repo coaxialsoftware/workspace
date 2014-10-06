@@ -19,6 +19,8 @@ ide.shell = function(cmd, args, onprogress)
 	            xhr.addEventListener('progress', onprogress);
 	        return xhr;
 		}
+	}).fail(function(xhr) {
+		ide.error(xhr.responseText);
 	});
 };
 
@@ -29,9 +31,32 @@ function grepDone(editor, result)
 	editor.addFiles(result);
 }
 
+function cmd(name, args, onprogress)
+{
+	ide.shell(name, Array.prototype.slice.call(args, 0), onprogress)
+		.then(function(response) {
+			ide.open({
+				content: response, mime: 'text/plain',
+				path: ide.project.get('path'),
+				new: true
+			});
+		})
+	;
+}
+
 ide.plugins.register('shell', new ide.Plugin({
 
 	commands: {
+
+		svn: function()
+		{
+			cmd('svn', arguments);
+		},
+
+		git: function()
+		{
+			cmd('git', arguments);
+		},
 
 		grep: function(term)
 		{

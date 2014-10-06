@@ -19,6 +19,7 @@ h1 {
 
 h2 {
 	position: fixed; top: 145px; left: 50px;
+	height: 20px;
 	color: #ccc;
 	color: rgba(255, 255, 255, 0.4);
 }
@@ -92,12 +93,16 @@ h4 {
 	min-height: 0;
 }
 
-#projects .content:hover, .file > .content {
+#projects .content:hover {
+	background-color: rgba(71, 158, 215, 0.9);
+}
+
+.file > .content {
 	background-color: rgba(117, 117, 117, 0.5);
 	border: 1px solid #424242;
 }
 
-#projects .content:hover, .file > .content:hover {
+.file > .content:hover {
 	background-color: rgba(170, 170, 170, 0.5);
 }
 
@@ -163,18 +168,20 @@ h4 {
 
 /* NOTIFICATIONS */
 #ide-notification { 
-	position: fixed; top: 10px; right: 10px; overflow: visible; width: 300px; z-index: 9000;
+	position: fixed; top: 10px; left: 10px; 
+	right: 10px; overflow: visible; z-index: 9000;
 	text-align: right;
 }
 
 #ide-notification > div, .ide-popup {
-	display: none; padding: 8px;
-	min-width: 200px; display: inline-block;
+	display: block; padding: 8px;
+	min-width: 200px; float: right;
 	border-radius: 8px; margin-bottom: 4px;
+	clear: both;
 }
 
 .ide-info { background-color: rgba(52, 152, 219, 0.8); color: #eee;}
-.ide-error { background-color: rgba(231, 76, 60, 0.8); color: #ccc;}
+.ide-error { background-color: rgba(231, 76, 60, 0.8); color: #eee;}
 .ide-warn{ background-color: rgba(241, 196, 15, 0.8); color: #333; }
 
 /* EDITOR STYLES */
@@ -270,6 +277,9 @@ h4 {
 
 .ace-twilight .ace_gutter { background-color: rgba(35,35,35,0.6) !important; }
 
-pre { padding: 6px; background-color: rgba(0,0,0,0.5); margin: 6px 0 0 0; }
+pre {
+	text-align: left; padding: 6px 10px 6px 6px;
+	background-color: rgba(0,0,0,0.5); margin: 6px 0 0 0;
+}
 
 .ace-twilight .ace_comment { color: #aaa !important; }

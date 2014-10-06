@@ -57,10 +57,10 @@ ide.plugins.register('welcome', new ide.Plugin({
 		tplProject = _.template($('#tpl-project').html()),
 		container = $('#projects')
 	;
-
-		_.each(projects, function(p) {
-			container.append(tplProject(p));
-		});
+		container.html(tplProject({
+			projects: projects,
+			version: ide.project.get('version')
+		}));
 
 		container.find('.content').click(function(ev) {
 			ide.commands.project(ev.currentTarget.dataset.path);
