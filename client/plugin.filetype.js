@@ -18,6 +18,7 @@ var
 		clj: 'clojure',
 		js: 'javascript',
 		json: 'json',
+		less: 'less',
 		md: 'markdown',
 		php: 'php',
 		php5: 'php',

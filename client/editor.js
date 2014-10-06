@@ -44,14 +44,23 @@ var
 	},
 
 	/**
-	 * Opens file
+	 * Opens a file.
+	 * @param filename Name of the file relative to project.
+	 * @param options {object|string} If string it will be treated as target
+	 * @param options.target Open file in new window.
 	 */
-	open: function(filename)
+	open: function(filename, options)
 	{
 	var
-		cb = function(f) { ide.plugins.edit(f); }
+		cb = function(f) { ide.plugins.edit(f, options); },
+		target = options ? (typeof(options)==='string' ? options: options.target) : 0
 	;
-		if (typeof(filename) === 'string')
+		if (target)
+			window.open(
+				'#' + ide.workspace.hash.encode({ f: filename || false }),
+				target
+			);
+		else if (typeof(filename) === 'string')
 			ide.project.open(filename, cb);
 		else if (filename instanceof ide.File)
 			cb(filename);
@@ -173,7 +182,7 @@ var
 		 */
 		save: function()
 		{
-			var files = [];
+			var hash = this.hash, files = [];
 
 			this.children.forEach(function(child) {
 				if (child.file)
@@ -185,8 +194,14 @@ var
 			else if (files.length===0)
 				files = 0;
 
-			delete this.hash.data.file;
-			this.hash.set({ f: files });
+			if (hash.data.project)
+			{
+				hash.data.p = hash.data.project;
+				delete hash.data.project;
+			}
+
+			delete hash.data.file;
+			hash.set({ f: files });
 		},
 
 		close_all: function()
@@ -390,12 +405,21 @@ var
 			}
 		},
 
-		edit: function(file)
+		/**
+		 * Opens a file if supported by a plugin.
+		 *
+		 * @param options {object}
+		 */
+		edit: function(file, options)
 		{
-			this.each(function(plug) {
-				if (plug.edit)
-					return plug.edit(file);
-			});
+			var cb = function(plug) {
+				if (plug.edit) return plug.edit(file, options);
+			};
+
+			if (options && options.plugin)
+				cb(this._plugin[options.plugin]);
+
+			this.each(cb);
 		},
 
 		get_shortcut: function(ev)

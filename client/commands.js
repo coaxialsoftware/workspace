@@ -33,7 +33,7 @@ var
 	};
 }
 
-/** Execute command */
+/** Parse and execute command. */
 ide.cmd = function(source)
 {
 	var cmd = parse(source);
@@ -83,7 +83,7 @@ ide.commands = {
 
 	tabe: function(name)
 	{
-		window.open('#' + ide.workspace.hash.encode({ f: name || false }));
+		ide.open(name, '_blank');
 	},
 
 	project: function(name)
