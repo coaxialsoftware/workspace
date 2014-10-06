@@ -52,8 +52,8 @@ ide.plugins.register('shell', new ide.Plugin({
 
 			if (exclude instanceof Array)
 				exclude.forEach(function(f) {
-					var d = f.replace(/"/g, '\\"');
-					args.push('--exclude-dir="./' + d + '"',
+					var d = f.replace(/ /g, '\\ ');
+					args.push('--exclude-dir=' + d + '',
 						'--exclude="' + d + '"');
 				});
 
@@ -67,6 +67,8 @@ ide.plugins.register('shell', new ide.Plugin({
 
 				grepDone(editor, a.target.responseText.slice(pos, eol));
 				pos = eol+1;
+			}).then(function(text) {
+				grepDone(editor, text.slice(pos));
 			});
 		}
 

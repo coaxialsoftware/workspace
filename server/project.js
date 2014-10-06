@@ -17,19 +17,26 @@ common.extend(Project.prototype, {
 		common.extend(this.config, common.load_json(file));
 	},
 
+	loadIgnoreFile: function(filename, ignore)
+	{
+		if (fs.existsSync(this.path + '/' + filename))
+		{
+			var list = fs.readFileSync(this.path + '/.gitignore', 'utf8')
+				.trim().split("\n");
+
+			list.forEach(function(p) {
+				if (ignore.indexOf(p)===-1)
+					ignore.push(p);
+			});
+		}
+	},
+
 	loadIgnore: function(config)
 	{
 		if (!config.ignore)
-		{
 			config.ignore = [ '.*' ];
 
-			if (fs.existsSync(this.path + '/.gitignore'))
-			{
-				config.ignore = config.ignore.concat(
-					fs.readFileSync(this.path + '/.gitignore', 'utf8')
-					.trim().split("\n"));
-			}
-		}
+		this.loadIgnoreFile('.gitignore', config.ignore);
 
 		if (config.ignore instanceof Array)
 		{

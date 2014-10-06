@@ -10,6 +10,7 @@
 <script id="tpl-grep" type="text/template">
 <% 
 	var m = path.exec(file);
+	console.log(file, m);
 %>
 <% if (m && m[0] && (!ignore || !ignore.test(m[1]))) { %>
 <div class="file">
