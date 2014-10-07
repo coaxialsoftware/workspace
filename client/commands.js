@@ -36,13 +36,15 @@ var
 /** Parse and execute command. */
 ide.cmd = function(source)
 {
-	var cmd = parse(source);
+	var cmd = parse(source), result;
 
 	if (!cmd.fn)
 	{
 		/*jshint -W054 */
 		try {
-			(new Function("with(ide) { " + source + "}"))();
+			result = (new Function("with(ide) { " + source + "}"))();
+			if (result !== undefined)
+				ide.notify(result);
 		} catch(e)
 		{
 			ide.alert('Unknown Command: ' + source);
@@ -68,12 +70,14 @@ ide.commands = {
 
 	e: 'edit',
 
+	/// Quit always, without writing.
 	"q!": function()
 	{
 		if (ide.editor)
 			ide.workspace.remove(ide.editor, true);
 	},
 
+	/// Quit Vim. This fails when changes have been made.
 	q: function()
 	{
 		if (ide.editor)

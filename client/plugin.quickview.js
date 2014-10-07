@@ -42,18 +42,18 @@ ide.plugins.register('quickview', new ide.Plugin({
 		viewers = this.viewers[mime],
 		i
 	;
-		if (viewers)
-			viewers = viewers[token.type];
-
 		if (!token || !viewers)
 			return;
+
+		if (viewers)
+			viewers = viewers[token.type];
 
 		if (viewers instanceof Array)
 		{
 			for (i in viewers)
 				if (viewers[i].call(this, token))
 					return;
-		} else
+		} else if (viewers)
 			viewers.call(this, token);
 	},
 
