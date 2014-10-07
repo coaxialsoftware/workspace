@@ -16,21 +16,29 @@ var
 	/** Current opened project */
 	project: null,
 	workspace: null,
+
+	/** Plugin Manager */
 	plugins: null,
+
+	/** Information window on left corner */
 	info: null,
-	hash: null,
+
+	/** Asset, script loader */
 	loader: null,
 
+	/** Displays alert notification on right corner */
 	alert: function(message)
 	{
 		ide.notify(message, 'warn');
 	},
 
+	/** Displays error notification on right corner */
 	error: function(message)
 	{
 		ide.notify(message, 'error');
 	},
 
+	/** Displays notification on right corner */
 	notify: function(message, kls)
 	{
 		kls = kls || 'info';
@@ -78,6 +86,7 @@ var
 			ide.info.show(info);
 	},
 
+	/** @class */
 	Plugin: function(p)
 	{
 		_.extend(this, p);
