@@ -65,6 +65,7 @@ ide.plugins.register('shell', new ide.Plugin({
 			exclude = ide.project.get('ignore'),
 			ignore = ide.project.get('ignore_regex'),
 			args = [],
+			env = ide.project.get('env'),
 
 			editor = new ide.FileList({
 				file_template: '#tpl-grep',
@@ -82,7 +83,9 @@ ide.plugins.register('shell', new ide.Plugin({
 						'--exclude=' + d);
 				});
 
-			args.push('*');
+			// Fix for linux?
+			if (env && env.WINDIR)
+				args.push(env && env.WINDIR ? '*' : '.');
 
 			ide.workspace.add(editor);
 
