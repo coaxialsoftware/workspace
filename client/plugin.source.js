@@ -65,18 +65,20 @@ ide.Editor.Source = ide.Editor.extend({
 	{
 	var
 		editor = this.editor = ace.edit(this.el),
-		session = editor.getSession()
+		session = editor.getSession(),
+		s = ide.project.get('editor') || {}
 	;
 		ace.config.set('basePath', 'ace-builds/src');
-		editor.setTheme('ace/theme/twilight');
-		editor.container.style.fontSize = '16px';
-		editor.setKeyboardHandler('ace/keyboard/vim');
+		editor.setTheme(s.theme || 'ace/theme/twilight');
+		editor.container.style.fontSize = s.font_size || '16px';
+		editor.setKeyboardHandler(s.bindings || 'ace/keyboard/vim');
 		editor.setBehavioursEnabled(true);
-		editor.setDisplayIndentGuides(false);
+		editor.setDisplayIndentGuides(s.indent_guides || false);
 
-		session.setUseSoftTabs(false);
+		session.setUseSoftTabs(s.indent_style==='space');
 		session.setUseWrapMode(true);
 		session.setValue(this.file.get('content'));
+		session.setTabSize(s.indent_size || 4);
 
 		editor.selection.clearSelection();
 		editor.on('focus', this.on_focus.bind(this));

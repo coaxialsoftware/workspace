@@ -283,3 +283,4 @@ pre {
 }
 
 .ace-twilight .ace_comment { color: #aaa !important; }
+.ace_scrollbar-v { display: none; }

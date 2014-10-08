@@ -55,6 +55,29 @@ project.json
 {
 	"ignore": Regex | Array of file names
 		Files to ignore. If an Array is passed, it will be converted to a regex.
+		
+	// Default Editor Settings
+	"editor": {
+		// Theme name from available ace themes.
+		"theme": "ace/theme/twilight"
+		
+		// Editor font size
+		"font_size: "16px",
+		
+		// Keyboard bindings
+		"bindings": "ace/keyboard/vim",
+		
+		// Show indentation guides
+		"indent_guides": false,
+		
+		// Use hard tabs "tab" or spaces "space"
+		"indent_style": "tab",
+		
+		// A whole number defining the number of columns used 
+		// for each indentation level and the width of soft tabs
+		"indent_size": 4,
+		
+	}
 }
 
 Startup
