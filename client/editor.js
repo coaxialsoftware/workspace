@@ -167,9 +167,10 @@ var
 			layout = me.layout(me.el);
 
 			for (; i<child.length; i++)
+			{
 				child[i].$el.css(layout[i]);
-
-			setTimeout(function() { me.trigger('layout'); });
+				if (child[i].resize) child[i].resize();
+			}
 		},
 
 		load: function()
