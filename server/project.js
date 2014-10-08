@@ -34,7 +34,7 @@ common.extend(Project.prototype, {
 	loadIgnore: function(config)
 	{
 		if (!config.ignore)
-			config.ignore = [ '.*' ];
+			config.ignore = [ '.?*' ];
 
 		this.loadIgnoreFile('.gitignore', config.ignore);
 
@@ -43,6 +43,7 @@ common.extend(Project.prototype, {
 			config.ignore_regex = '^(' + config.ignore
 				.join('|')
 				.replace(/\./g, "\\.")
+				.replace(/\?/g, ".?")
 				.replace(/\*/g, '.*')
 				.replace(/\/\s*\|/g, '|')
 				.replace(/\/$/, '')

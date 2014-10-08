@@ -247,19 +247,20 @@ ide.Editor.Source = ide.Editor.extend({
 
 ide.plugins.register('editor', new ide.Plugin({
 
-	openEditor: function(file)
-	{
-	var
-		editor = new ide.Editor.Source({ file: file })
-	;
-		ide.workspace.add(editor);
-	},
-
-	edit: function(file)
+	edit: function(file, options)
 	{
 		if (!file.get('directory'))
 		{
-			this.openEditor(file);
+		var
+			editor = new ide.Editor.Source({ file: file })
+		;
+			if (options && options.line)
+				setTimeout(function() {
+					editor.editor.gotoLine(options.line);
+				});
+
+			ide.workspace.add(editor);
+
 			return true;
 		}
 	}

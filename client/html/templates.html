@@ -13,7 +13,7 @@
 %>
 <% if (m && m[0] && (!ignore || !ignore.test(m[1]))) { %>
 <div class="file">
-	<a class="content" data-path="<%= m[1] %>">
+	<a class="content" data-path="<%= m[1] %>" data-line="<%=m[2]%>">
 		<strong><%- m[1]%></strong>:<%= m[2] %>
 		<pre><%- m[3] %></pre>
 	</a>

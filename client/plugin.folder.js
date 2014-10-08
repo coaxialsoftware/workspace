@@ -13,7 +13,14 @@ ide.FileList = ide.Editor.extend({
 
 	on_click: function(ev)
 	{
-		ide.commands.edit(ev.currentTarget.dataset.path);
+	var
+		data = ev.currentTarget.dataset,
+		options
+	;
+		if (data.line)
+			options = { line: data.line };
+
+		ide.open(data.path, options);
 		ide.workspace.remove(this);
 	},
 

@@ -69,7 +69,7 @@ ide.plugins.register('shell', new ide.Plugin({
 			editor = new ide.FileList({
 				file_template: '#tpl-grep',
 				title: 'grep ' + term,
-				path: /^\.\/(.+):(\d+):\s*(.+)\s*/,
+				path: /^(.+):(\d+):\s*(.+)\s*/,
 				ignore: ignore ? new RegExp(ignore) : undefined
 			})
 		;
@@ -77,12 +77,12 @@ ide.plugins.register('shell', new ide.Plugin({
 
 			if (exclude instanceof Array)
 				exclude.forEach(function(f) {
-					var d = f.replace(/ /g, '\\ ');
+					var d = f.replace(/ /g, '\\ ').replace(/\/$/, '');
 					args.push('--exclude-dir=' + d + '',
-						'--exclude="' + d + '"');
+						'--exclude=' + d);
 				});
 
-			args.push('.');
+			args.push('*');
 
 			ide.workspace.add(editor);
 
