@@ -70,7 +70,7 @@ ide.plugins.register('shell', new ide.Plugin({
 			editor = new ide.FileList({
 				file_template: '#tpl-grep',
 				title: 'grep ' + term,
-				path: /^(.+):(\d+):\s*(.+)\s*/,
+				path: /^(?:\.\/)?(.+):(\d+):\s*(.+)\s*/,
 				ignore: ignore ? new RegExp(ignore) : undefined
 			})
 		;
@@ -84,8 +84,7 @@ ide.plugins.register('shell', new ide.Plugin({
 				});
 
 			// Fix for linux?
-			if (env && env.WINDIR)
-				args.push(env && env.WINDIR ? '*' : '.');
+			args.push(env && env.WINDIR ? '*' : '.');
 
 			ide.workspace.add(editor);
 
