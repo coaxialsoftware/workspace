@@ -15,6 +15,8 @@ var
 
 	/** Current opened project */
 	project: null,
+
+	/** Current workspace */
 	workspace: null,
 
 	/** Plugin Manager */
@@ -53,7 +55,7 @@ var
 
 	/**
 	 * Opens a file.
-	 * @param filename Name of the file relative to project.
+	 * @param filename {ide.File|string} Name of the file relative to project or a File object.
 	 * @param options {object|string} If string it will be treated as target
 	 * @param options.target Open file in new window.
 	 */
