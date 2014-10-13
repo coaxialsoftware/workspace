@@ -131,7 +131,7 @@
 	ide.Bar.Command = ide.Bar.extend({
 
 		el: $('<input id="command" />'),
-		shortcut: "shift-186",
+		shortcut: ":",
 
 		run: function()
 		{
@@ -170,7 +170,7 @@
 	ide.Bar.Search = ide.Bar.extend({
 
 		el: $('<input id="search" />'),
-		shortcut: '191',
+		shortcut: '/',
 
 		run: function()
 		{

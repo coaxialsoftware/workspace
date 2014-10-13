@@ -405,6 +405,46 @@ var
 		 */
 		_shortcuts: null,
 
+		key_delay: 400,
+
+		__key: '',
+
+		keycodes: {
+			1192: "~",
+			192: '`',
+	    	1049: "!",
+	    	1050: "@",
+	    	1051: "#",
+	    	1052: "$",
+		    1053: "%",
+		    1054: "^",
+		    1055: "&",
+		    1056: "*",
+		    1057: "(",
+		    1048: ")",
+		    189: "-",
+		    1189: '_',
+		    1107: "+",
+		    107: '=',
+		    1219: "{",
+		    219: '[',
+		    221: ']',
+		    1221: "}",
+		    1220: "|",
+		    220: "\\",
+		    186: ";",
+		    1186: ":",
+		    1222: "\"",
+		    222: "'",
+		    188: ",",
+		    1188: '<',
+		    1190: ">",
+		    190: '.',
+		    191: '/',
+		    1191: "?",
+		    32: " "
+		},
+
 		get: function(name)
 		{
 			return this._plugins[name];
@@ -441,23 +481,58 @@ var
 
 		get_shortcut: function(ev)
 		{
-			return (ev.shiftKey ? 'shift-' : '') +
-				(ev.ctrlKey ? 'ctrl-' : '') +
-				(ev.altKey ? 'alt-' : '') +
-				ev.keyCode;
+		var
+			shift = ev.shiftKey,
+			code = ev.keyCode + (ev.shiftKey ? 1000 : 0),
+			k = this.keycodes[code] || this.keycodes[ev.keyCode]
+		;
+			if (code >= 48 && code <=90)
+			{
+				k = String.fromCharCode(code);
+
+				if (shift)
+					shift = false;
+				else
+					k = k.toLowerCase();
+			}
+
+			if (k)
+			{
+				if (code > 1000)
+					shift = false;
+
+				return (shift ? 'shift-' : '') +
+					(ev.ctrlKey ? 'ctrl-' : '') +
+					(ev.altKey ? 'alt-' : '') + k;
+			} else
+				return '';
 		},
 
 		on_key: function(ev)
 		{
 		var
-			key = this.get_shortcut(ev),
-			fn = this._shortcuts[key]
+			time = ev.timeStamp, key, fn
 		;
+			if (time - this.__keyTime > this.key_delay)
+				this.__key = '';
+
+			this.__keyTime = time;
+
+			key = this.__key + this.get_shortcut(ev);
+
+			window.console.log(key);
+			if (!key)
+				return;
+
+			fn = this._shortcuts[key];
+
 			if (fn)
 			{
 				fn();
+				this.__key = '';
 				ev.preventDefault();
-			}
+			} else
+				this.__key = key;
 		},
 
 		/**
