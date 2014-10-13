@@ -410,39 +410,15 @@ var
 		__key: '',
 
 		keycodes: {
-			1192: "~",
-			192: '`',
-	    	1049: "!",
-	    	1050: "@",
-	    	1051: "#",
-	    	1052: "$",
-		    1053: "%",
-		    1054: "^",
-		    1055: "&",
-		    1056: "*",
-		    1057: "(",
-		    1048: ")",
-		    189: "-",
-		    1189: '_',
-		    1107: "+",
-		    107: '=',
-		    1219: "{",
-		    219: '[',
-		    221: ']',
-		    1221: "}",
-		    1220: "|",
-		    220: "\\",
-		    186: ";",
-		    1186: ":",
-		    1222: "\"",
-		    222: "'",
-		    188: ",",
-		    1188: '<',
-		    1190: ">",
-		    190: '.',
-		    191: '/',
-		    1191: "?",
-		    32: " "
+			1192: "~", 192: '`', 1049: "!", 1050: "@", 1051: "#",
+	    	1052: "$", 1053: "%", 1054: "^", 1055: "&", 1056: "*",
+		    1057: "(", 1048: ")", 189: "-", 1189: '_', 1107: "+",
+		    107: '=', 1219: "{", 219: '[', 221: ']', 1221: "}",
+		    1220: "|", 220: "\\", 186: ";", 1186: ":", 1222: "\"",
+		    222: "'", 188: ",", 1188: '<', 1190: ">", 190: '.',
+		    191: '/', 1191: "?", 32: " ", 112: 'F1', 113: 'F2', 114: 'F3',
+		    115: 'F4', 116: 'F5', 117: 'F6', 118: 'F7', 119: 'F8',
+		    120: 'F9', 121: 'F10', 122: 'F11', 123: 'F12'
 		},
 
 		get: function(name)
@@ -483,9 +459,14 @@ var
 		{
 		var
 			shift = ev.shiftKey,
-			code = ev.keyCode + (ev.shiftKey ? 1000 : 0),
-			k = this.keycodes[code] || this.keycodes[ev.keyCode]
+			code = ev.keyCode + (shift ? 1000 : 0),
+			k = this.keycodes[code]
 		;
+			if (k)
+				shift = false;
+			else
+				 k = this.keycodes[ev.keyCode];
+
 			if (code >= 48 && code <=90)
 			{
 				k = String.fromCharCode(code);
@@ -498,31 +479,28 @@ var
 
 			if (k)
 			{
-				if (code > 1000)
-					shift = false;
-
 				return (shift ? 'shift-' : '') +
 					(ev.ctrlKey ? 'ctrl-' : '') +
 					(ev.altKey ? 'alt-' : '') + k;
 			} else
+			{
 				return '';
+			}
 		},
 
 		on_key: function(ev)
 		{
 		var
-			time = ev.timeStamp, key, fn
+			time = ev.timeStamp, key, fn,
+			sc = this.get_shortcut(ev)
 		;
-			if (time - this.__keyTime > this.key_delay)
-				this.__key = '';
+			if (!sc)
+				return;
+
+			key = (time - this.__keyTime > this.key_delay) ?
+				sc : this.__key + sc;
 
 			this.__keyTime = time;
-
-			key = this.__key + this.get_shortcut(ev);
-
-			window.console.log(key);
-			if (!key)
-				return;
 
 			fn = this._shortcuts[key];
 
