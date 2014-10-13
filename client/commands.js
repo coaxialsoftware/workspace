@@ -2,9 +2,16 @@
 (function(ide) {
 "use strict";
 
+var REGEX = /(?:("[^"]+"|[^\s]+)\s*)/g;
+
 function scan(text)
 {
-	return text.split(' ');
+	var m, result = [];
+
+	while ((m = REGEX.exec(text)))
+		result.push(m[1]);
+
+	return result;
 }
 
 function parse(text)
