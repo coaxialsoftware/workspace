@@ -58,6 +58,11 @@ ide.plugins.register('shell', new ide.Plugin({
 			cmd('git', arguments);
 		},
 
+		grunt: function()
+		{
+			cmd('grunt', arguments);
+		},
+
 		grep: function(term)
 		{
 		var
