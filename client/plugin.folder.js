@@ -15,13 +15,18 @@ ide.FileList = ide.Editor.extend({
 	{
 	var
 		data = ev.currentTarget.dataset,
-		options
+		options = {}
 	;
 		if (data.line)
-			options = { line: data.line };
+			options.line = data.line;
+
+		if (ev.ctrlKey)
+			options.target = '_blank';
 
 		ide.open(data.path, options);
-		ide.workspace.remove(this);
+
+		if (!ev.shiftKey)
+			ide.workspace.remove(this);
 	},
 
 	addFiles: function(files)

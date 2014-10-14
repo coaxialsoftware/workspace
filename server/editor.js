@@ -74,6 +74,9 @@ common.extend(Editor.prototype, {
 			req.body.c, req.body.q,
 			{ cwd: req.body.p, detached: true, stdio: [ 'ignore' ] }
 		);
+		process.on('error', function(err) {
+			me.error(err);
+		});
 		process.stdout.on('data', function(data) {
 			if (!res.headersSent)
 				res.writeHead(200);

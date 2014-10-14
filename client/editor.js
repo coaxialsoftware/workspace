@@ -502,7 +502,7 @@ var
 
 			this.__keyTime = time;
 
-			fn = this._shortcuts[key];
+			fn = this._shortcuts[key] || this._shortcuts[sc];
 
 			if (fn)
 			{
