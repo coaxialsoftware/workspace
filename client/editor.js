@@ -113,163 +113,6 @@ var
 		}
 	}),
 
-	Workspace: Backbone.View.extend({ /** @lends ide.Workspace# */
-
-		el: '#workspace',
-
-		layout: function(el)
-		{
-		var
-			i=0,
-			child = el.children,
-			l = child.length,
-			result, w
-		;
-			switch (l)
-			{
-			case 0: return;
-			case 1: return [{ left: 0, top: 0, height: '100%', width: '100%' }];
-			case 2: return [
-					{ left: 0, top: 0, height: '100%', width: '50%' },
-					{ left: '50%', top: 0, height: '100%', width: '50%' }
-				];
-			}
-
-			w = Math.floor(100 / (Math.ceil(l/2)));
-			result = [];
-
-			if (l % 2)
-			{
-				i = w;
-				result.push({ left: 0, top: 0, height: '100%', width: w + '%'});
-			}
-
-			for (; i<100; i+=w)
-				result.push(
-					{ left: i+'%', top: 0, width: w + '%', height: '50%' },
-					{ left: i+'%', top: '50%', width: w + '%', height: '50%' }
-				);
-
-			return result;
-		},
-
-		_do_layout: function()
-		{
-		var
-			me = this,
-			child = me.children,
-			layout,
-			i = 0
-		;
-			if (!me.layout)
-				return;
-
-			layout = me.layout(me.el);
-
-			for (; i<child.length; i++)
-			{
-				child[i].$el.css(layout[i]);
-				if (child[i].resize) child[i].resize();
-			}
-		},
-
-		load: function()
-		{
-			var files = this.hash.data.f || this.hash.data.file;
-
-			ide.plugins.start();
-			$('#mask').hide();
-
-			if (!files)
-				return;
-
-			if (files instanceof Array)
-				files.forEach(ide.open, ide);
-			else
-				ide.open(files);
-		},
-
-		/**
-		 * Save workspace state in the URL Hash.
-		 */
-		save: function()
-		{
-			var hash = this.hash, files = [];
-
-			this.children.forEach(function(child) {
-				if (child.file)
-					files.push(child.file.get('filename') || '');
-			});
-
-			if (files.length===1)
-				files = files[0];
-			else if (files.length===0)
-				files = 0;
-
-			if (hash.data.project)
-			{
-				hash.data.p = hash.data.project;
-				delete hash.data.project;
-			}
-
-			delete hash.data.file;
-			hash.set({ f: files });
-		},
-
-		close_all: function()
-		{
-			this.children.concat().forEach(this.remove.bind(this));
-		},
-
-		add: function(item)
-		{
-			this.children.push(item);
-			this.$el.append(item.el);
-			this._do_layout();
-			this.trigger('add_child', item);
-			item.focus();
-
-			this.save();
-
-			return this;
-		},
-
-		remove: function(item, force)
-		{
-			if (item.close(force)===false)
-				return;
-
-			this.children.splice(this.children.indexOf(item), 1);
-
-			if (this.children[0])
-				this.children[0].focus();
-			else
-				ide.editor = null;
-
-			this._do_layout();
-			this.save();
-
-			this.trigger('remove_child', item);
-
-			return this;
-		},
-
-		initialize: function Workspace()
-		{
-		var
-			hash = this.hash = new Hash(),
-			project = this.project = ide.project = new ide.Project({
-				path: hash.data.p || hash.data.project
-			})
-		;
-			this.children = [];
-
-			project.fetch();
-			project.on('sync', this.load, this);
-		}
-
-	}),
-
 	File: Backbone.Model.extend({ /** @lends ide.File# */
 
 		idAttribute: 'filename',
@@ -405,7 +248,7 @@ var
 		 */
 		_shortcuts: null,
 
-		key_delay: 400,
+		key_delay: 300,
 
 		__key: '',
 
@@ -547,12 +390,19 @@ var
 			ide.commands[name] = fn;
 		},
 
-		_registerShortcut: function(key, name, plugin)
+		_registerShortcut: function(key, name, plugin, fn)
 		{
-			if (key in this._shortcuts)
-				window.console.warn('[' + plugin + '] Overriding shortcut ' + key);
+			if (typeof(key)==='object')
+			{
+				for (var i in key)
+					this._registerShortcut(i, name, plugin, key[i]);
+				return;
+			}
 
-			this._shortcuts[key] = plugin.invoke.bind(plugin);
+			if (key in this._shortcuts)
+				window.console.warn('[' + name + '] Overriding shortcut ' + key);
+
+			this._shortcuts[key] = fn.bind(plugin);
 		},
 
 		register: function(name, plugin)
@@ -563,61 +413,10 @@ var
 				this._registerCommand(name, i, plugin.commands[i]);
 
 			if (plugin.shortcut)
-				this._registerShortcut(plugin.shortcut, name, plugin);
+				this._registerShortcut(
+					plugin.shortcut, name, plugin, plugin.invoke);
 		}
 
-	});
-
-	function Hash()
-	{
-	var
-		hash = this.decode()
-	;
-		this.data = hash;
-	}
-
-	_.extend(Hash.prototype, {
-
-		data: null,
-
-		clean: function(hash)
-		{
-			for (var i in hash)
-				if (!hash[i])
-					delete hash[i];
-
-			return hash;
-		},
-
-		decode: function()
-		{
-		var
-			h = '{'+window.location.hash.substr(1)+'}',
-			result
-		;
-			try {
-				result = (h && this.clean(JSON.parse(h)));
-			} catch (e) {
-				window.location.hash = '';
-			} finally {
-				return result || {};
-			}
-		},
-
-		encode: function(obj)
-		{
-		var
-			data = $.extend({}, this.data, obj),
-			hash = JSON.stringify(this.clean(data))
-		;
-			return hash.slice(1, hash.length-1);
-		},
-
-		set: function(obj)
-		{
-			$.extend(this.data,obj);
-			window.location.hash = this.encode();
-		}
 	});
 
 	/// Plugin Manager

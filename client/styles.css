@@ -176,17 +176,13 @@ h4 {
 #ide-notification > div, .ide-popup {
 	display: block; padding: 8px;
 	min-width: 200px; float: right;
-	border-radius: 8px; margin-bottom: 4px;
+	border-radius: 2px; margin-bottom: 4px;
 	clear: both;
 }
 
 .ide-info { background-color: rgba(52, 152, 219, 0.8); color: #eee;}
 .ide-error { background-color: rgba(231, 76, 60, 0.8); color: #eee;}
 .ide-warn{ background-color: rgba(241, 196, 15, 0.8); color: #333; }
-
-/* EDITOR STYLES */
-.ace_gutter { border-radius: 8px 0 0 8px; }
-.ace_scrollbar { border-radius: 0 8px 8px 0; }
 
 @media (min-width: 980px) {
 	
@@ -211,7 +207,7 @@ h4 {
 
 
 .label {
-	font-size: 10px; border-radius: 4px; 
+	font-size: 10px; border-radius: 2px; 
 	background-color: #999; color: #000;
 	padding: 4px; margin: 0 2px;
 	font-weight: bold;
@@ -242,7 +238,7 @@ h4 {
 
 .ide-select li {
 	margin: 2px 0; padding: 4px 8px;
-	border-radius: 4px;
+	border-radius: 2px;
 	background-color: rgba(44, 62, 80, 0.8);
 	cursor: pointer;
 }

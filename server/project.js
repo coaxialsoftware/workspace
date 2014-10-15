@@ -55,6 +55,12 @@ common.extend(Project.prototype, {
 		this.ignore = new RegExp(config.ignore_regex);
 	},
 
+	on_filechange: function(ev, file, other)
+	{
+		this.log(ev, file, other);
+		this.config.files = this.files();
+	},
+
 	load: function(callback)
 	{
 	var
@@ -79,6 +85,8 @@ common.extend(Project.prototype, {
 		if (!config.name) config.name = config.path;
 		if (callback)
 			callback(this);
+
+		fs.watch(this.path, this.on_filechange.bind(this));
 
 		return this;
 	},

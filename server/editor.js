@@ -110,7 +110,7 @@ common.extend(Editor.prototype, {
 		this.put_file(req.query, req.body,
 		function(result)
 			{
-				res.send(result, result.success ? 200 : 403);
+				res.status(result.success ? 200: 403).send(result);
 			}
 		);
 	},

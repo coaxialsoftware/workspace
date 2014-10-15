@@ -64,7 +64,7 @@ app.use(express.static(rootdir + '/bower_components', { maxAge: 86400000 }));
 
 
 process.title = 'ide.js:' + address.port;
-app.use(bodyParser({ extended: true }));
+app.use(bodyParser.json());
 
 app.get('/home', function(req, res)
 {
