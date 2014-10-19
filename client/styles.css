@@ -1,6 +1,6 @@
 
 body {
-	background-color: #7F8C8D; padding: 0;
+	background-color: #000; padding: 0;
 	font-family: Verdana, sans-serif;
 	font-size: 12px;
 }
@@ -132,6 +132,7 @@ h4 {
 	background-color: rgba(44, 62, 80, 0.7);
 	z-index: 10; outline: none; font-family: monospace;
 	border-radius: 0;
+	font-size: 16px;
 	padding: 1px 0;
 }
 

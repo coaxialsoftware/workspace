@@ -64,9 +64,13 @@ ide.FileList = ide.Editor.extend({
 
 ide.plugins.register('find', new ide.Plugin({
 
-	commands: {
+	edit: function(mask, options)
+	{
+		if (options && options.plugin==='find')
+			ide.commands.find(mask);
+	},
 
-		/** @lends ide.commands */
+	commands: { /** @lends ide.commands */
 
 		/**
 		 * Finds file by mask and displays all matches, if only one found it will
@@ -91,6 +95,8 @@ ide.plugins.register('find', new ide.Plugin({
 				ide.notify('No files found that match "' + mask + '"');
 			else
 				ide.workspace.add(new ide.FileList({
+					file: mask,
+					plugin: this,
 					files: files,
 					title: 'find ' + mask,
 					path: '.'
@@ -101,7 +107,7 @@ ide.plugins.register('find', new ide.Plugin({
 
 }));
 
-ide.plugins.register('editor.folder', new ide.Plugin({
+ide.plugins.register('folder', new ide.Plugin({
 
 	edit: function(file)
 	{
@@ -113,6 +119,8 @@ ide.plugins.register('editor.folder', new ide.Plugin({
 			files.unshift('..');
 
 			editor = new ide.FileList({
+				file: file,
+				plugin: this,
 				files: files,
 				title: file.get('filename'),
 				path: file.get('filename')

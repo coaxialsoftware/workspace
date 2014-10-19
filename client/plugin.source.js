@@ -26,6 +26,11 @@ ide.Editor.Source = ide.Editor.extend({
 
 	},
 
+	state: function()
+	{
+		return this.file.get('filename') || '';
+	},
+
 	cmd: function(fn)
 	{
 		if (!isNaN(fn))
@@ -87,8 +92,6 @@ ide.Editor.Source = ide.Editor.extend({
 		editor.on('changeSelection', this.on_selection.bind(this));
 		editor.renderer.scrollBar.element.addEventListener('scroll', this.on_scroll.bind(this));
 
-		window.addEventListener('beforeunload', this.on_beforeunload.bind(this));
-
 		this.set_mode();
 		this.$el.on('keydown', this.on_keyup.bind(this));
 
@@ -107,7 +110,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 	on_blur: function()
 	{
-		window.localStorage['ide.plugin.source.clipboard'] = this.registers._default.text;
+		this.plugin.data('clipboard', this.registers._default.text);
 	},
 
 	findNextFix: function()
@@ -117,12 +120,6 @@ ide.Editor.Source = ide.Editor.extend({
 			this.find({skipCurrent: true, backwards: false, start:null},
 				options, animate);
 		};
-	},
-
-	on_beforeunload: function()
-	{
-		if (this.close()===false)
-			return 'File has changed. Are you sure?';
 	},
 
 	on_selection: function(ev, editor)
@@ -156,7 +153,7 @@ ide.Editor.Source = ide.Editor.extend({
 	{
 		this.focus(true);
 
-		var cb = window.localStorage['ide.plugin.source.clipboard'];
+		var cb = this.plugin.data('clipboard');
 
 		if (this.registers._default.text !== cb)
 		{
@@ -187,8 +184,8 @@ ide.Editor.Source = ide.Editor.extend({
 
 	close: function(force)
 	{
-		if (!force && this.changed() && !window.confirm("File has changed. Are you sure?"))
-			return false;
+		if (!force && this.changed())
+			return "File has changed. Are you sure?";
 
 		this.editor.destroy();
 		ide.Editor.prototype.close.call(this);
@@ -258,7 +255,10 @@ ide.plugins.register('editor', new ide.Plugin({
 		if (!file.get('directory'))
 		{
 		var
-			editor = new ide.Editor.Source({ file: file })
+			editor = new ide.Editor.Source({
+				plugin: this,
+				file: file
+			})
 		;
 			if (options && options.line)
 				setTimeout(function() {

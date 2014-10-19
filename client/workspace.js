@@ -41,9 +41,10 @@
 		encode: function(obj)
 		{
 		var
-			data = $.extend({}, this.data, obj),
-			hash = JSON.stringify(this.clean(data))
+			data = this.clean($.extend({}, this.data, obj)),
+			hash = JSON.stringify(data)
 		;
+
 			return hash.slice(1, hash.length-1);
 		},
 
@@ -96,7 +97,7 @@
 			return result;
 		},
 
-		_do_layout: function()
+		do_layout: function()
 		{
 		var
 			me = this,
@@ -140,8 +141,7 @@
 			var hash = this.hash, files = [];
 
 			this.children.forEach(function(child) {
-				if (child.file)
-					files.push(child.file.get('filename') || '');
+				files.push(child.state());
 			});
 
 			if (files.length===1)
@@ -168,7 +168,7 @@
 		{
 			this.children.push(item);
 			this.$el.append(item.el);
-			this._do_layout();
+			this.do_layout();
 			this.trigger('add_child', item);
 			item.focus();
 
@@ -179,7 +179,8 @@
 
 		remove: function(item, force)
 		{
-			if (item.close(force)===false)
+			var msg = item.close(force);
+			if (typeof(msg)==='string' && window.confirm(msg))
 				return;
 
 			this.children.splice(this.children.indexOf(item), 1);
@@ -189,7 +190,7 @@
 			else
 				ide.editor = null;
 
-			this._do_layout();
+			this.do_layout();
 			this.save();
 
 			this.trigger('remove_child', item);
@@ -204,8 +205,28 @@
 			i = this.children.indexOf(ide.editor),
 			next = this.children[i+1] || this.children[0]
 		;
-			if (next)
-				next.focus();
+			return next;
+		},
+
+		on_beforeunload: function()
+		{
+			var i=0, children=this.children, msg;
+
+			for (; i<children.length; i++)
+			{
+				msg = children[i].close();
+				if (typeof(msg)==='string')
+					return msg;
+			}
+		},
+
+		swap: function(e1, e2)
+		{
+			var tmp = this.children[e1];
+			this.children[e1] = this.children[e2];
+			this.children[e2] = tmp;
+
+			this.do_layout();
 		},
 
 		initialize: function Workspace()
@@ -218,8 +239,9 @@
 		;
 			this.children = [];
 
-			project.fetch();
-			project.on('sync', this.load, this);
+			project.fetch({ success: this.load.bind(this) });
+
+			window.addEventListener('beforeunload', this.on_beforeunload.bind(this));
 		}
 
 	});
@@ -229,7 +251,31 @@
 		shortcut: {
 			"gt": function()
 			{
-				ide.workspace.next();
+				ide.workspace.next().focus();
+			},
+
+			'alt->': function()
+			{
+			var
+				l = ide.workspace.children.length, i
+			;
+				if (l>1)
+				{
+					i = ide.workspace.children.indexOf(ide.editor);
+					ide.workspace.swap(i, (i === l-1) ? 0 : i+1);
+				}
+			},
+
+			'alt-<': function()
+			{
+			var
+				l = ide.workspace.children.length, i
+			;
+				if (l>1)
+				{
+					i = ide.workspace.children.indexOf(ide.editor);
+					ide.workspace.swap(i, (i === 0) ? l-1 : i-1);
+				}
 			}
 		}
 
