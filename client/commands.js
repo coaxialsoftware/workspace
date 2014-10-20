@@ -107,7 +107,7 @@ ide.commands = {
 
 	tabe: function(name)
 	{
-		ide.open(name, '_blank');
+		ide.open_tab(name, '_blank');
 	},
 
 	project: function(name)

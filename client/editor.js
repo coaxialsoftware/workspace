@@ -54,6 +54,17 @@ var
 	},
 
 	/**
+	 * Opens file in new tab
+	 */
+	open_tab: function(filename, target)
+	{
+		window.open(
+			'#' + ide.workspace.hash.encode({ f: filename || false }),
+			target
+		);
+	},
+
+	/**
 	 * Opens a file.
 	 * @param filename {ide.File|string} Name of the file relative to project or a File object.
 	 * @param options {object|string} If string it will be treated as target
@@ -61,24 +72,20 @@ var
 	 */
 	open: function(filename, options)
 	{
-	var
-		cb = function(f) { ide.plugins.edit(f, options); },
-		target = options ? (typeof(options)==='string' ? options: options.target) : 0,
-		type = typeof(filename)
-	;
-		if (target)
-			window.open(
-				'#' + ide.workspace.hash.encode({ f: filename || false }),
-				target
-			);
-		else if (type === 'string')
-			ide.project.open(filename, cb);
-		else if (Array.isArray(filename))
-			ide.plugins.edit(filename[1], { plugin: filename[0] });
-		else if (filename instanceof ide.File)
-			cb(filename);
-		else
-			cb(new ide.File(filename));
+		var file = new ide.File({ path: ide.project.get('path') });
+
+		options = options || {};
+
+		if (Array.isArray(filename))
+		{
+			options.plugin = filename[0];
+			filename = { filename: filename[1] };
+		} else if (typeof(filename)==='string')
+			filename = { filename: filename };
+
+		file.set(filename);
+
+		ide.plugins.edit(file, options);
 	},
 
 	set_editor: function(editor)
@@ -334,7 +341,7 @@ var
 			if (options && options.plugin)
 				cb(this.get(options.plugin));
 			else
-				this.each(cb);
+				file.fetch({ success: this.each.bind(this, cb) });
 		},
 
 		get_shortcut: function(ev)
