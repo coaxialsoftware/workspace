@@ -63,15 +63,18 @@ var
 	{
 	var
 		cb = function(f) { ide.plugins.edit(f, options); },
-		target = options ? (typeof(options)==='string' ? options: options.target) : 0
+		target = options ? (typeof(options)==='string' ? options: options.target) : 0,
+		type = typeof(filename)
 	;
 		if (target)
 			window.open(
 				'#' + ide.workspace.hash.encode({ f: filename || false }),
 				target
 			);
-		else if (typeof(filename) === 'string')
+		else if (type === 'string')
 			ide.project.open(filename, cb);
+		else if (Array.isArray(filename))
+			ide.plugins.edit(filename[1], { plugin: filename[0] });
 		else if (filename instanceof ide.File)
 			cb(filename);
 		else
@@ -96,21 +99,27 @@ var
 
 	Info: Backbone.View.extend({ /** @lends ide.Info# */
 
-		_delay: 1000,
+		_delay: 1500,
+
+		_timeout: null,
 
 		el: '#info',
 
+		hide: function()
+		{
+			if (this._timeout)
+				window.clearTimeout(this._timeout);
+
+			this._timeout = window.setTimeout(
+				this.$el.fadeOut.bind(this.$el), this._delay);
+
+			return this;
+		},
+
 		show: function(msg)
 		{
-		var
-			me = this, editor = ide.editor.$el
-		;
-			me.$el.offset(editor.offset());
-			me.$el.html(msg).show()
-				.delay(me._delay).fadeOut()
-			;
-
-			return me;
+			this.$el.html(msg).stop().show();
+			return this.hide();
 		}
 	}),
 
@@ -160,6 +169,11 @@ var
 		;
 			return '/file?p=' + this.get('path') +
 				'&n=' + this.id + '&t=' + mtime;
+		},
+
+		toString: function()
+		{
+			return this.get('filename') || '';
 		}
 
 	}),
@@ -209,8 +223,16 @@ var
 
 	PluginManager: function()
 	{
+		var i=48;
+
 		this._plugins = {};
 		this._shortcuts = {};
+
+		for (; i<91; i++)
+		{
+			this.keycodes[i] = String.fromCharCode(i).toLowerCase();
+			this.keycodes[i+this._SHIFT] = String.fromCharCode(i);
+		}
 	}
 
 }))(),
@@ -225,6 +247,9 @@ var
 ;
 	_.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 
+		/** @type {string} Plugin Name */
+		name: null,
+
 		/** If key is pressed, invoke function will be called. */
 		shortcut: null,
 		/** Function to call when shortcut key is pressed. */
@@ -236,10 +261,23 @@ var
 		 * Starts Plugin when all other plugins are loaded.
 		 * @param settings Settings specified in the project. The name of the plugin will be used.
 		 */
-		start: function() { }
+		start: function() { },
+
+		data: function(prop, value)
+		{
+			prop = 'ide.plugin.' + this.name + '.' + prop;
+
+			if (arguments.length===1)
+				return window.localStorage[prop];
+
+			window.localStorage[prop] = value;
+		}
 	});
 
 	_.extend(ide.PluginManager.prototype, { /** @lends ide.PluginManager# */
+
+		/** @private Shift modifier */
+		_SHIFT: 1000,
 
 		_plugins: null,
 
@@ -294,16 +332,16 @@ var
 			};
 
 			if (options && options.plugin)
-				cb(this._plugin[options.plugin]);
-
-			this.each(cb);
+				cb(this.get(options.plugin));
+			else
+				this.each(cb);
 		},
 
 		get_shortcut: function(ev)
 		{
 		var
 			shift = ev.shiftKey,
-			code = ev.keyCode + (shift ? 1000 : 0),
+			code = ev.keyCode + (shift ? this._SHIFT : 0),
 			k = this.keycodes[code]
 		;
 			if (k)
@@ -311,24 +349,11 @@ var
 			else
 				 k = this.keycodes[ev.keyCode];
 
-			if (code >= 48 && code <=90)
-			{
-				k = String.fromCharCode(code);
-
-				if (shift)
-					shift = false;
-				else
-					k = k.toLowerCase();
-			}
-
 			if (k)
 			{
 				return (shift ? 'shift-' : '') +
 					(ev.ctrlKey ? 'ctrl-' : '') +
 					(ev.altKey ? 'alt-' : '') + k;
-			} else
-			{
-				return '';
 			}
 		},
 
@@ -345,7 +370,6 @@ var
 				sc : this.__key + sc;
 
 			this.__keyTime = time;
-
 			fn = this._shortcuts[key] || this._shortcuts[sc];
 
 			if (fn)
@@ -409,9 +433,10 @@ var
 		register: function(name, plugin)
 		{
 			this._plugins[name] = plugin;
+			plugin.name = name;
 
 			for (var i in plugin.commands)
-				this._registerCommand(name, i, plugin.commands[i]);
+				this._registerCommand(name, i, plugin.commands[i].bind(plugin));
 
 			if (plugin.shortcut)
 				this._registerShortcut(
@@ -420,15 +445,26 @@ var
 
 	});
 
-	/// Plugin Manager
+	/**
+	 * Plugin Manager
+	 * @type {ide.PluginManager}
+	 */
 	ide.plugins = new ide.PluginManager();
-	/// Asset/Script Loader
+
+	/**
+	 * Asset/Script Loader
+	 * @type Loader
+	 */
 	ide.loader = new window.Loader();
 
 	window.addEventListener('load', _start);
 
 	ide.Editor = Backbone.View.extend({ /** @lends ide.Editor# */
 
+		/** Plugin that instantiated the editor */
+		plugin: null,
+
+		/** File that is being edited */
 		file: null,
 
 		/**
@@ -451,22 +487,18 @@ var
 				this.focus();
 		},
 
-		hide: function()
-		{
-			this.$el.hide().css('opacity', 0);
-		},
-
-		show: function()
-		{
-			this.$el.show().css('opacity', 1);
-		},
-
 		get_info: function()
 		{
-			return this.file ?
-				(this.file.get('filename') + ' [' + this.file.get('path') + ']')
-			:
-				'';
+			return this.file.toString() + ' [' + ide.project.get('name') + ']';
+		},
+
+		/** Gets the current editor state. Used to persist workspace state in the url hash. */
+		state: function()
+		{
+			return (this.file instanceof ide.File) ?
+				this.file.toString() :
+				[ this.plugin.name, this.file.toString() ]
+			;
 		},
 
 		focus: function()

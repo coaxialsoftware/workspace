@@ -66,6 +66,10 @@ ide.cmd = function(source)
 
 ide.commands = {
 
+	/**
+		Edits file with registered plugins.
+		@param {string} ... Files to open.
+	*/
 	edit: function()
 	{
 		if (arguments.length)
