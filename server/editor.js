@@ -188,6 +188,15 @@ common.extend(Editor.prototype, {
 		callback(result);
 	},
 
+	find_tags: function(project)
+	{
+		project.tags = {
+			git: fs.existsSync(project.path+'/.git'),
+			npm: !!project.package,
+			ide: !!project.project
+		};
+	},
+
 	find_projects: function()
 	{
 	var
@@ -205,10 +214,11 @@ common.extend(Editor.prototype, {
 
 			projects[path] = {
 				path: path,
-				is_git: fs.existsSync(path+'/.git'),
 				package: common.load_json(path+'/package.json'),
 				project: common.load_json(path+'/project.json')
 			};
+
+			this.find_tags(projects[path]);
 		}
 
 		return projects;

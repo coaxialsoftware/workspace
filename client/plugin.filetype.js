@@ -28,6 +28,7 @@ var
 		rb: 'ruby',
 		sh: 'sh',
 		bash: 'sh',
+		html: 'html',
 		rhtml: 'rhtml',
 		txt: 'text'
 	},
@@ -43,7 +44,7 @@ var
 		mode = modeByFile[f.filename] ||
 			modeByMime[f.mime] ||
 			modeByExt[f.ext] ||
-			f.mime.split('/')[1]
+			'plain_text'
 	;
 		return mode;
 	};
