@@ -38,15 +38,18 @@ ide.FileList = ide.Editor.extend({
 	;
 		for (; i<files.length;i++)
 			result += tpl({
-				path: this.path, file: files[i],
+				path: this.path,
+				file: files[i],
 				ignore: this.ignore
 			});
 
 		this.$('.filelist-content').append(result);
+	},
 
-		if (!this._focused)
-			this._focused = this.$('a:eq(0)').focus();
-
+	focus: function()
+	{
+		this.$('a:eq(0)').focus();
+		ide.Editor.prototype.focus.call(this);
 	},
 
 	setup: function()
