@@ -20,6 +20,7 @@ var
 		json: 'json',
 		less: 'less',
 		md: 'markdown',
+		css: 'css',
 		php: 'php',
 		php5: 'php',
 		py: 'python',
