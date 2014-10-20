@@ -1,7 +1,7 @@
 
 <script id="tpl-file" type="text/template">
 <div class="file">
-	<a tabindex="0" class="content" title="<%= path + '/' + file%>" data-path="<%=path + '/' + file%>">
+	<a tabindex="1" class="content" title="<%= path + '/' + file%>" data-path="<%=path + '/' + file%>">
 		<h4><%- file %></h4>
 	</a>
 </div>
@@ -13,7 +13,7 @@
 %>
 <% if (m && m[0] && (!ignore || !ignore.test(m[1]))) { %>
 <div class="file">
-	<a class="content" data-path="<%= m[1] %>" data-line="<%=m[2]%>">
+	<a tabindex="1" class="content" data-path="<%= m[1] %>" data-line="<%=m[2]%>">
 		<strong><%- m[1]%></strong>:<%= m[2] %>
 		<pre><%- m[3] %></pre>
 	</a>

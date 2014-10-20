@@ -28,7 +28,7 @@ function grepDone(editor, result)
 {
 	result = result.split("\n");
 
-	editor.addFiles(result);
+	editor.add_files(result);
 }
 
 function cmd(name, args, onprogress)

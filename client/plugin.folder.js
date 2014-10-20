@@ -29,7 +29,7 @@ ide.FileList = ide.Editor.extend({
 			ide.workspace.remove(this);
 	},
 
-	addFiles: function(files)
+	add_files: function(files)
 	{
 	var
 		tpl = _.template($(this.file_template).html()),
@@ -43,6 +43,10 @@ ide.FileList = ide.Editor.extend({
 			});
 
 		this.$('.filelist-content').append(result);
+
+		if (!this._focused)
+			this._focused = this.$('a:eq(0)').focus();
+
 	},
 
 	setup: function()
@@ -56,9 +60,9 @@ ide.FileList = ide.Editor.extend({
 		}));
 
 		if (me.files)
-			me.addFiles(me.files);
+			me.add_files(me.files);
 
-		me.$el.on('click', '.content', me.on_click.bind(me)).eq(0).focus();
+		me.$el.on('click', '.content', me.on_click.bind(me));
 	}
 });
 

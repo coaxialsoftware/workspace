@@ -103,8 +103,9 @@ var
 		show: function(msg)
 		{
 		var
-			me = this
+			me = this, editor = ide.editor.$el
 		;
+			me.$el.offset(editor.offset());
 			me.$el.html(msg).show()
 				.delay(me._delay).fadeOut()
 			;
