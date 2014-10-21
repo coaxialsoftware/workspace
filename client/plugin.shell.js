@@ -73,6 +73,9 @@ ide.plugins.register('shell', new ide.Plugin({
 			env = ide.project.get('env'),
 
 			editor = new ide.FileList({
+				el: ide.workspace.get_slot(),
+				file: term,
+				plugin: this,
 				file_template: '#tpl-grep',
 				title: 'grep ' + term,
 				path: /^(?:\.\/)?(.+):(\d+):\s*(.+)\s*/,

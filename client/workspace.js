@@ -2,6 +2,8 @@
 (function(ide, Backbone, $, _, undefined) {
 "use strict";
 
+	var FILE_REGEX = /(\w+):(.*)/;
+
 	function Hash()
 	{
 	var
@@ -55,13 +57,13 @@
 		}
 	});
 
-	ide.Workspace = Backbone.View.extend({ /** @lends ide.Workspace# */
+	/**
+	 * Layout Algorithms.
+	 * @enum
+	 */
+	ide.Layout = {
 
-		el: '#workspace',
-
-		children: null,
-
-		layout: function(el)
+		Smart: function(el)
 		{
 		var
 			i=0,
@@ -95,32 +97,29 @@
 				);
 
 			return result;
-		},
+		}
 
-		do_layout: function()
+	};
+
+	ide.Workspace = Backbone.View.extend({ /** @lends ide.Workspace# */
+
+		el: '#workspace',
+
+		slots: null,
+
+		layout: ide.Layout.Smart,
+
+		load_editor: function(file)
 		{
-		var
-			me = this,
-			child = me.children,
-			layout,
-			i = 0
-		;
-			if (!me.layout)
-				return;
-
-			layout = me.layout(me.el);
-
-			for (; i<child.length; i++)
-			{
-				child[i].$el.css(layout[i]);
-				if (child[i].resize) child[i].resize();
-			}
+			var m = FILE_REGEX.exec(file) || [ null, null, file ];
+			ide.open(m[2], { plugin: m[1] });
 		},
 
 		load: function()
 		{
-			var files = this.hash.data.f || this.hash.data.file;
-
+		var
+			files = this.hash.data.f || this.hash.data.file
+		;
 			ide.plugins.start();
 			$('#mask').hide();
 
@@ -128,9 +127,9 @@
 				return;
 
 			if (files instanceof Array)
-				files.forEach(ide.open, ide);
+				files.forEach(this.load_editor.bind(this));
 			else
-				ide.open(files);
+				this.load_editor(files);
 		},
 
 		/**
@@ -140,7 +139,7 @@
 		{
 			var hash = this.hash, files = [];
 
-			this.children.forEach(function(child) {
+			this.each(function(child) {
 				files.push(child.state());
 			});
 
@@ -159,16 +158,56 @@
 			hash.set({ f: files });
 		},
 
+		/** Returns a slot(DIV) to place a new editor */
+		slot: function()
+		{
+		var
+			el = $('<DIV>'),
+			slot = { el: el[0], $el: el }
+		;
+			this.$el.append(el);
+
+			this.slots.push(slot);
+			this.do_layout();
+
+			return slot;
+		},
+
+		do_layout: function()
+		{
+			var layout = this.layout(this.el);
+
+			this.slots.forEach(function(slot, i)
+			{
+				slot.$el.css(layout[i]);
+				slot.index = i;
+
+				if (slot.editor && slot.editor.resize)
+					slot.editor.resize();
+			});
+
+			this.save();
+		},
+
+		/** Iterates through the editors */
+		each: function(cb)
+		{
+		var
+			i = 0,
+			slots = this.slots.concat()
+		;
+			for (; i<slots.length; i++)
+				if (slots[i].editor && cb(slots[i].editor, i)=== false)
+					return;
+		},
+
 		close_all: function()
 		{
-			this.children.concat().forEach(this.remove.bind(this));
+			this.each(this.remove.bind(this));
 		},
 
 		add: function(item)
 		{
-			this.children.push(item);
-			this.$el.append(item.el);
-			this.do_layout();
 			this.trigger('add_child', item);
 			item.focus();
 
@@ -179,42 +218,53 @@
 
 		remove: function(item, force)
 		{
-			var msg = item.close(force);
+		var
+			slot = item.slot,
+			msg = item.close(force)
+		;
+
 			if (typeof(msg)==='string' && window.confirm(msg))
 				return;
 
-			this.children.splice(this.children.indexOf(item), 1);
+			this.slots.splice(this.slots.indexOf(slot), 1);
 
-			if (this.children[0])
-				this.children[0].focus();
+			if (this.slots[0] && this.slots[0].editor)
+				this.slots[0].editor.focus();
 			else
 				ide.editor = null;
 
 			this.do_layout();
-			this.save();
-
 			this.trigger('remove_child', item);
 
 			return this;
 		},
 
-		/** Moves to next editor */
+		/** Returns next editor */
 		next: function()
 		{
 		var
-			i = this.children.indexOf(ide.editor),
-			next = this.children[i+1] || this.children[0]
+			i = ide.editor.slot.index,
+			next = this.slots[i+1] || this.slots[0]
 		;
-			return next;
+			return next.editor;
+		},
+
+		previous: function()
+		{
+		var
+			i = ide.editor.slot.index,
+			next = this.slots[i-1] || this.slots[this.slots.length-1]
+		;
+			return next.editor;
 		},
 
 		on_beforeunload: function()
 		{
-			var i=0, children=this.children, msg;
+			var i=0, slots=this.slots, msg;
 
-			for (; i<children.length; i++)
+			for (; i<slots.length; i++)
 			{
-				msg = children[i].close();
+				msg = slots[i].editor && slots[i].editor.close();
 				if (typeof(msg)==='string')
 					return msg;
 			}
@@ -222,9 +272,9 @@
 
 		swap: function(e1, e2)
 		{
-			var tmp = this.children[e1];
-			this.children[e1] = this.children[e2];
-			this.children[e2] = tmp;
+			var tmp = this.slots[e1];
+			this.slots[e1] = this.slots[e2];
+			this.slots[e2] = tmp;
 
 			this.do_layout();
 		},
@@ -237,7 +287,7 @@
 				path: hash.data.p || hash.data.project
 			})
 		;
-			this.children = [];
+			this.slots = [];
 
 			project.fetch({ success: this.load.bind(this) });
 
@@ -254,14 +304,19 @@
 				ide.workspace.next().focus();
 			},
 
+			"gT": function()
+			{
+				ide.workspace.previous().focus();
+			},
+
 			'alt->': function()
 			{
 			var
-				l = ide.workspace.children.length, i
+				l = ide.workspace.slots.length, i
 			;
 				if (l>1)
 				{
-					i = ide.workspace.children.indexOf(ide.editor);
+					i = ide.workspace.slots.indexOf(ide.editor.slot);
 					ide.workspace.swap(i, (i === l-1) ? 0 : i+1);
 				}
 			},
@@ -269,11 +324,11 @@
 			'alt-<': function()
 			{
 			var
-				l = ide.workspace.children.length, i
+				l = ide.workspace.slots.length, i
 			;
 				if (l>1)
 				{
-					i = ide.workspace.children.indexOf(ide.editor);
+					i = ide.workspace.slots.indexOf(ide.editor.slot);
 					ide.workspace.swap(i, (i === 0) ? l-1 : i-1);
 				}
 			}

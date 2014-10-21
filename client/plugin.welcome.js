@@ -22,28 +22,10 @@ ide.plugins.register('welcome', new ide.Plugin({
 		if (project)
 			window.document.title = project;
 
-		if (ide.workspace.children.length)
-			return;
-
 		if (projects)
 			this.renderProjects(projects);
 
-		if (!ide.workspace.children.length)
-			this.show();
-
-		ide.workspace.on('add_child', this.hide, this);
-		ide.workspace.on('remove_child', this.on_remove_child, this);
-	},
-
-	on_remove_child: function()
-	{
-		if (ide.workspace.children.length===0)
-			this.show();
-	},
-
-	hide: function()
-	{
-		this.$el.hide().css('opacity', 0);
+		this.show();
 	},
 
 	show: function()

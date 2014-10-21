@@ -71,10 +71,9 @@ ide.FileList = ide.Editor.extend({
 
 ide.plugins.register('find', new ide.Plugin({
 
-	edit: function(mask, options)
+	open: function(mask)
 	{
-		if (options && options.plugin==='find')
-			ide.commands.find(mask);
+		ide.commands.find(mask);
 	},
 
 	commands: { /** @lends ide.commands */
@@ -116,7 +115,7 @@ ide.plugins.register('find', new ide.Plugin({
 
 ide.plugins.register('folder', new ide.Plugin({
 
-	edit: function(file)
+	edit: function(file, options)
 	{
 		var editor, files;
 
@@ -126,6 +125,7 @@ ide.plugins.register('folder', new ide.Plugin({
 			files.unshift('..');
 
 			editor = new ide.FileList({
+				slot: options.slot,
 				file: file,
 				plugin: this,
 				files: files,

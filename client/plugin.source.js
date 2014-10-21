@@ -26,11 +26,6 @@ ide.Editor.Source = ide.Editor.extend({
 
 	},
 
-	state: function()
-	{
-		return this.file.get('filename') || '';
-	},
-
 	cmd: function(fn)
 	{
 		if (!isNaN(fn))
@@ -256,6 +251,7 @@ ide.plugins.register('editor', new ide.Plugin({
 		{
 		var
 			editor = new ide.Editor.Source({
+				slot: options.slot,
 				plugin: this,
 				file: file
 			})

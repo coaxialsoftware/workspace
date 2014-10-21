@@ -72,20 +72,7 @@ var
 	 */
 	open: function(filename, options)
 	{
-		var file = new ide.File({ path: ide.project.get('path') });
-
-		options = options || {};
-
-		if (Array.isArray(filename))
-		{
-			options.plugin = filename[0];
-			filename = { filename: filename[1] };
-		} else if (typeof(filename)==='string')
-			filename = { filename: filename };
-
-		file.set(filename);
-
-		ide.plugins.edit(file, options);
+		ide.plugins.edit(filename, options || {});
 	},
 
 	set_editor: function(editor)
@@ -294,7 +281,7 @@ var
 		 */
 		_shortcuts: null,
 
-		key_delay: 300,
+		key_delay: 350,
 
 		__key: '',
 
@@ -330,18 +317,33 @@ var
 		/**
 		 * Opens a file if supported by a plugin.
 		 *
-		 * @param options {object}
+		 * @param file {string} File name or Plugin state
+		 * @param options {object} Required.
 		 */
 		edit: function(file, options)
 		{
-			var cb = function(plug) {
-				if (plug.edit) return plug.edit(file, options);
-			};
+		var
+			plugin = options.plugin && this.get(options.plugin),
+			cb = function(plug)
+			{
+				return plug.edit && plug.edit(file, options);
+			}
+		;
+			if (plugin && plugin.open)
+				return plugin.open(file, options);
 
-			if (options && options.plugin)
-				cb(this.get(options.plugin));
-			else
-				file.fetch({ success: this.each.bind(this, cb) });
+			options.slot = ide.workspace.slot();
+
+			file = new ide.File({
+				path: ide.project.get('path'),
+				filename: file
+			});
+
+			file.fetch({
+				success: plugin ?
+					cb.bind(this, plugin) :
+					this.each.bind(this, cb)
+			});
 		},
 
 		get_shortcut: function(ev)
@@ -466,12 +468,31 @@ var
 
 	window.addEventListener('load', _start);
 
-	ide.Editor = Backbone.View.extend({ /** @lends ide.Editor# */
+	ide.Editor = Backbone.View.extend({
 
-		/** Plugin that instantiated the editor */
+		constructor: function(p)
+		{
+			_.extend(this, p);
+
+			if (!this.slot)
+				this.slot = ide.workspace.slot();
+
+			this.el = this.slot.el;
+			this.$el = this.slot.$el
+				.on('click', this._on_click.bind(this));
+			this.slot.editor = this;
+
+			Backbone.View.prototype.constructor.call(this, p);
+			this.setup();
+		},
+
+		/** Plugin that instantiated the editor @required */
 		plugin: null,
 
-		/** File that is being edited */
+		/**
+		 * File that is being edited or command to restore state.
+		 * @required
+		 */
 		file: null,
 
 		/**
@@ -479,14 +500,6 @@ var
 		 * @type {Function}
 		 */
 		cmd: null,
-
-		initialize: function(p)
-		{
-			_.extend(this, p);
-
-			this.$el.on('click', this._on_click.bind(this));
-			this.setup();
-		},
 
 		_on_click: function()
 		{
@@ -502,10 +515,7 @@ var
 		/** Gets the current editor state. Used to persist workspace state in the url hash. */
 		state: function()
 		{
-			return (this.file instanceof ide.File) ?
-				this.file.toString() :
-				[ this.plugin.name, this.file.toString() ]
-			;
+			return this.plugin.name + ':' + this.file.toString();
 		},
 
 		focus: function()
