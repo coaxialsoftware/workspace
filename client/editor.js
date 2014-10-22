@@ -72,7 +72,7 @@ var
 	 */
 	open: function(filename, options)
 	{
-		ide.plugins.edit(filename, options || {});
+		ide.plugins.edit(filename || '', options || {});
 	},
 
 	set_editor: function(editor)

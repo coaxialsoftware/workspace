@@ -2,7 +2,9 @@
 (function(ide, Backbone, $, _, undefined) {
 "use strict";
 
-	var FILE_REGEX = /(\w+):(.*)/;
+var
+	FILE_REGEX = /(\w+):(.*)/
+;
 
 	function Hash()
 	{
@@ -223,10 +225,15 @@
 			msg = item.close(force)
 		;
 
-			if (typeof(msg)==='string' && window.confirm(msg))
-				return;
+			if (typeof(msg)==='string')
+			{
+				if (window.confirm(msg))
+					item.close(true);
+				else
+					return this;
+			}
 
-			this.slots.splice(this.slots.indexOf(slot), 1);
+			this.slots.splice(slot.index, 1);
 
 			if (this.slots[0] && this.slots[0].editor)
 				this.slots[0].editor.focus();
@@ -279,6 +286,36 @@
 			this.do_layout();
 		},
 
+		on_dragover: function(ev)
+		{
+			ev.preventDefault();
+			ev.dataTransfer.dropEffect = 'copy';
+		},
+
+		on_readfile: function(file, ev)
+		{
+			ide.open({
+				filename: file.name,
+				content: ev.target.result
+			});
+		},
+
+		on_drop: function(ev)
+		{
+		var
+			files = ev.dataTransfer.files,
+			i = 0, reader
+		;
+			ev.preventDefault();
+
+			for (; i < files.length; i++)
+			{
+				reader = new FileReader();
+				reader.onload = this.on_readfile.bind(this, files[i]);
+				reader.readAsText(files[i]);
+			}
+		},
+
 		initialize: function Workspace()
 		{
 		var
@@ -292,6 +329,8 @@
 			project.fetch({ success: this.load.bind(this) });
 
 			window.addEventListener('beforeunload', this.on_beforeunload.bind(this));
+			window.addEventListener('dragover', this.on_dragover.bind(this));
+			window.addEventListener('drop', this.on_drop.bind(this));
 		}
 
 	});
