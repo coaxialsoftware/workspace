@@ -37,7 +37,6 @@ function cmd(name, args, onprogress)
 		.then(function(response) {
 			ide.open({
 				content: response, mime: 'text/plain',
-				path: ide.project.get('path'),
 				new: true
 			});
 		})
@@ -73,7 +72,6 @@ ide.plugins.register('shell', new ide.Plugin({
 			env = ide.project.get('env'),
 
 			editor = new ide.FileList({
-				el: ide.workspace.get_slot(),
 				file: term,
 				plugin: this,
 				file_template: '#tpl-grep',

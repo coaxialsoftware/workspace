@@ -332,18 +332,24 @@ var
 			if (plugin && plugin.open)
 				return plugin.open(file, options);
 
+			if (typeof(file)==='string')
+				file = { filename: file };
+
+			file.filename = file.filename || '';
+			file.path = ide.project.get('path');
+
 			options.slot = ide.workspace.slot();
 
-			file = new ide.File({
-				path: ide.project.get('path'),
-				filename: file
-			});
+			file = new ide.File(file);
 
-			file.fetch({
-				success: plugin ?
-					cb.bind(this, plugin) :
-					this.each.bind(this, cb)
-			});
+			if (file.attributes.content)
+				this.each(cb);
+			else
+				file.fetch({
+					success: plugin ?
+						cb.bind(this, plugin) :
+						this.each.bind(this, cb)
+				});
 		},
 
 		get_shortcut: function(ev)
