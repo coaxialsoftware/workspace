@@ -1,6 +1,7 @@
 
 var
-	fs = require('fs')
+	fs = require('fs'),
+	Q = require('bluebird')
 ;
 
 exports.extend = function(obj, p)
@@ -9,17 +10,38 @@ exports.extend = function(obj, p)
 		obj[i] = p[i];
 };
 
-exports.load_json = function(filename, callback)
-{
-	if (callback)
-		fs.readFile(filename, 'utf8', function(err, data) {
-			callback(err ? false : JSON.parse(data));
+exports.extend(exports, {
+
+	read_if_exists: function(filename)
+	{
+		return exports.read(filename).catch(function() {
+			return "{}";
 		});
-	else
-		return fs.existsSync(filename) ?
-			JSON.parse(fs.readFileSync(filename, 'utf8')) :
-			false
-		;
-};
+	},
+
+	read: function(filename)
+	{
+		return new Q(function(resolve, reject) {
+			fs.readFile(filename, 'utf8', function(err, data) {
+				if (err)
+					reject(err);
+				else
+					resolve(data);
+			});
+		});
+	},
+
+	load_json: function(filename)
+	{
+		return exports.read(filename).then(JSON.parse).catch(function() { });
+	},
+
+	load_json_sync: function(filename)
+	{
+		if (fs.existsSync(filename))
+			return JSON.parse(fs.readFileSync(filename));
+	}
+});
+
 
 

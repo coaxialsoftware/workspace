@@ -18,7 +18,6 @@ var
 	server, address
 ;
 
-
 if (editor.config.https)
 {
 	try {
@@ -68,15 +67,12 @@ app.use(bodyParser.json());
 
 app.get('/home', function(req, res)
 {
-	res.send(editor.to_json);
+	res.send(editor.to_json());
 });
 
 app.get('/project', function(req, res)
 {
-var
-	name = req.query.n
-;
-	editor.load_project(name, function(project)
+	editor.load_project(req.query.n).then(function(project)
 	{
 		res.send(project.to_json());
 	});

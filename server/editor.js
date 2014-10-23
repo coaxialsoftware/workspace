@@ -3,6 +3,7 @@ var
 	fs = require('fs'),
 	common = require('./common'),
 	mime = require('mime'),
+	Q = require('bluebird'),
 
 	Project = require('./project').Project,
 
@@ -18,9 +19,10 @@ var
 		}
 	;
 		this.log('Loading global settings...');
-		common.extend(config, common.load_json('~/.ide.js/config.json'));
+		common.extend(config, common.load_json_sync('~/.ide.js/config.json'));
+
 		this.log('Loading workspace settings...');
-		common.extend(config, common.load_json('workspace.json'));
+		common.extend(config, common.load_json_sync('workspace.json'));
 
 		this._projects = {};
 		this.projects = [];
@@ -224,19 +226,20 @@ common.extend(Editor.prototype, {
 		return projects;
 	},
 
-	// TODO Cleanup...
-	load_project: function(name, callback)
+	load_project: function(name)
 	{
 	var
-		project = name ? this._projects[name] : this
+		me = this,
+		project = name ? me._projects[name] : me
 	;
-		if (!project)
-		{
-			project = this._projects[name] = new Project(name, this);
-			project.load();
-		}
-
-		callback(project);
+		return new Q(function(resolve) {
+			if (project)
+				resolve(project);
+			else {
+				project = me._projects[name] = new Project(name, me);
+				project.load().then(resolve);
+			}
+		});
 	},
 
 	to_json: function()

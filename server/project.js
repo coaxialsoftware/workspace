@@ -1,5 +1,7 @@
 var
 	fs = require('fs'),
+	Q = require('bluebird'),
+
 	common = require('./common.js'),
 
 	Project = exports.Project = function(path, editor)
@@ -11,57 +13,70 @@ var
 
 common.extend(Project.prototype, {
 
-	loadConfig: function(file)
+	load_config: function(file)
 	{
 		this.log('Loading config file: ' + file);
-		common.extend(this.config, common.load_json(file));
+
+		return common.load_json(file).then(
+			common.extend.bind(this, this.config));
 	},
 
-	loadIgnoreFile: function(filename, ignore)
+	load_ignore_file: function(filename, ignore)
 	{
-		if (fs.existsSync(this.path + '/' + filename))
-		{
-			var list = fs.readFileSync(this.path + '/.gitignore', 'utf8')
-				.trim().split("\n");
+		return common.read_if_exists(filename).then(function(list) {
+			list = list.trim().split("\n");
 
 			list.forEach(function(p) {
 				if (ignore.indexOf(p)===-1)
 					ignore.push(p);
 			});
-		}
+		});
 	},
 
-	loadIgnore: function(config)
+	load_ignore: function(config)
 	{
 		if (!config.ignore)
 			config.ignore = [ '.?*' ];
 
-		this.loadIgnoreFile('.gitignore', config.ignore);
+		return this.load_ignore_file(this.path + '/.gitignore', config.ignore)
+			.bind(this)
+			.then(function()
+			{
+				if (config.ignore instanceof Array)
+				{
+					config.ignore_regex = '^(' + config.ignore
+						.join('|')
+						.replace(/\./g, "\\.")
+						.replace(/\?/g, ".?")
+						.replace(/\*/g, '.*')
+						.replace(/\/\s*\|/g, '|')
+						.replace(/\/$/, '')
+						.replace(/[-[\]{}()+,^$#\s]/g, "\\$&") +
+						')'
+					;
+				}
 
-		if (config.ignore instanceof Array)
-		{
-			config.ignore_regex = '^(' + config.ignore
-				.join('|')
-				.replace(/\./g, "\\.")
-				.replace(/\?/g, ".?")
-				.replace(/\*/g, '.*')
-				.replace(/\/\s*\|/g, '|')
-				.replace(/\/$/, '')
-				.replace(/[-[\]{}()+,^$#\s]/g, "\\$&") +
-				')'
-			;
-		}
-
-		this.ignore = new RegExp(config.ignore_regex);
+				this.ignore = new RegExp(config.ignore_regex);
+			}
+		);
 	},
 
 	on_filechange: function(ev, file, other)
 	{
 		this.log(ev, file, other);
-		this.config.files = this.files();
+		this.load_files();
 	},
 
-	load: function(callback)
+	load_files: function()
+	{
+		var config = this.config;
+
+		return this.files().then(function(files) {
+			config.files = files;
+		});
+	},
+
+	load: function()
 	{
 	var
 		config = this.config = {},
@@ -73,22 +88,21 @@ common.extend(Project.prototype, {
 			common.extend(this.config, defaults);
 		}
 
-		this.loadConfig(this.path + '/project.json');
-		this.loadConfig(this.path + '/package.json');
+		fs.watch(this.path, this.on_filechange.bind(this));
 
-		this.loadIgnore(config);
-
-		config.files = this.files();
 		config.env = process.env;
 		config.path = this.path;
 
-		if (!config.name) config.name = config.path;
-		if (callback)
-			callback(this);
-
-		fs.watch(this.path, this.on_filechange.bind(this));
-
-		return this;
+		return this.load_config(this.path + '/project.json')
+			.then(this.load_config(this.path + '/package.json'))
+			.then(this.load_ignore(config))
+			.then(this.load_files())
+			.bind(this)
+			.then(function()
+			{
+				if (!config.name) config.name = config.path;
+				return this;
+			});
 	},
 
 	log: function(msg)
@@ -134,7 +148,7 @@ common.extend(Project.prototype, {
 
 	files: function()
 	{
-		return this.walk('');
+		return Q.resolve(this.walk(''));
 	},
 
 	to_json: function()
