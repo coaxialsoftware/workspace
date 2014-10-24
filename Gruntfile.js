@@ -49,19 +49,13 @@ module.exports = function(grunt) {
 			},
 
 			client: {
-				src: [ '<%=concat.libs.dest %>',
-					'<%= concat.tern.dest %>', '<%= jshint.client.src %>' ],
+				src: [ '<%=concat.libs.dest %>', '<%= jshint.client.src %>' ],
 				dest: 'public/build/ide.js'
 			},
 
 			debug: {
 				src: '<%= jshint.client.src %>',
 				dest: 'public/build/debug.js'
-			},
-
-			tern_ecma5: {
-				src: [ 'node_modules/tern/defs/ecma5.json' ],
-				dest: 'public/build/ecma5.json'
 			},
 
 			html: {
