@@ -14,8 +14,8 @@ exports.extend(exports, {
 
 	read_if_exists: function(filename)
 	{
-		return exports.read(filename).catch(function() {
-			return "{}";
+		return exports.read(filename).catch(function(e) {
+			console.log(e);
 		});
 	},
 

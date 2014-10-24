@@ -23,7 +23,9 @@ common.extend(Project.prototype, {
 
 	load_ignore_file: function(filename, ignore)
 	{
+		this.log('Loading ignore file: ' + filename);
 		return common.read_if_exists(filename).then(function(list) {
+			console.log(list);
 			list = list.trim().split("\n");
 
 			list.forEach(function(p) {
@@ -33,8 +35,10 @@ common.extend(Project.prototype, {
 		});
 	},
 
-	load_ignore: function(config)
+	load_ignore: function()
 	{
+		var config = this.config;
+
 		if (!config.ignore)
 			config.ignore = [ '.?*' ];
 
@@ -55,7 +59,6 @@ common.extend(Project.prototype, {
 						')'
 					;
 				}
-
 				this.ignore = new RegExp(config.ignore_regex);
 			}
 		);
@@ -94,12 +97,13 @@ common.extend(Project.prototype, {
 		config.path = this.path;
 
 		return this.load_config(this.path + '/project.json')
-			.then(this.load_config(this.path + '/package.json'))
-			.then(this.load_ignore(config))
-			.then(this.load_files())
 			.bind(this)
+			.then(this.load_config.bind(this, this.path + '/package.json'))
+			.then(this.load_ignore)
+			.then(this.load_files)
 			.then(function()
 			{
+				this.log("Loading complete.");
 				if (!config.name) config.name = config.path;
 				return this;
 			});
@@ -148,7 +152,9 @@ common.extend(Project.prototype, {
 
 	files: function()
 	{
-		return Q.resolve(this.walk(''));
+		var me = this;
+
+		return new Q(function(resolve) { resolve(me.walk('')); });
 	},
 
 	to_json: function()
