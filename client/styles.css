@@ -8,6 +8,7 @@ body {
 #workspace {
 	position: absolute; 
 	top: 0; left:0; bottom: 0; right: 0;
+	display: none;
 }
 
 h1 {
@@ -267,7 +268,7 @@ h4 {
 
 #workspace > div:nth-child(1) { background-color: #141414; }
 #workspace > div:nth-child(2) { background-color: #263238; }
-#workspace > div:nth-child(3) { background-color: #001d10; }
+#workspace > div:nth-child(3) { background-color: #002010; }
 #workspace > div:nth-child(4) { background-color: #002024; }
 #workspace > div:nth-child(5) { background-color: #010062; }
 
