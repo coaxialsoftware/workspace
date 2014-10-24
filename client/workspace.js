@@ -132,6 +132,7 @@ var
 				files.forEach(this.load_editor.bind(this));
 			else
 				this.load_editor(files);
+			this.$el.show();
 		},
 
 		/**
