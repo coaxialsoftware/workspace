@@ -4,6 +4,7 @@ var
 	common = require('./common'),
 	mime = require('mime'),
 	Q = require('bluebird'),
+	path = require('path'),
 
 	Project = require('./project').Project,
 
@@ -182,7 +183,7 @@ common.extend(Editor.prototype, {
 			result.new = true;
 		}
 
-		result.filename = query.n;
+		result.filename = path.normalize(query.n);
 		result.path = query.p;
 		result.mime = mime.lookup(fn);
 		result.success = true;

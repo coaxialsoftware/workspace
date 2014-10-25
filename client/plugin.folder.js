@@ -105,7 +105,7 @@ ide.plugins.register('find', new ide.Plugin({
 					plugin: this,
 					files: files,
 					title: 'find ' + mask,
-					path: '.'
+					path: ''
 				}));
 		}
 
@@ -117,12 +117,15 @@ ide.plugins.register('folder', new ide.Plugin({
 
 	edit: function(file, options)
 	{
-		var editor, files;
+		var editor, files, path;
 
 		if (file.get('directory'))
 		{
 			files = file.get('content');
 			files.unshift('..');
+
+			path = file.get('filename');
+			path = path==='.' ? '' : path + '/';
 
 			editor = new ide.FileList({
 				slot: options.slot,
@@ -130,7 +133,7 @@ ide.plugins.register('folder', new ide.Plugin({
 				plugin: this,
 				files: files,
 				title: file.get('filename'),
-				path: file.get('filename')
+				path: path
 			});
 			ide.workspace.add(editor);
 			return true;
