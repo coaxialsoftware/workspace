@@ -125,7 +125,7 @@ ide.plugins.register('folder', new ide.Plugin({
 			files.unshift('..');
 
 			path = file.get('filename');
-			path = path==='.' ? '' : path + '/';
+			path = path==='.' ? '' : (path + '/');
 
 			editor = new ide.FileList({
 				slot: options.slot,

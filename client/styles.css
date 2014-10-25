@@ -281,3 +281,27 @@ pre {
 
 .ace-twilight .ace_comment { color: #aaa !important; }
 .ace_scrollbar-v { display: none; }
+
+.ide-focus {
+	animation-duration: 0.5s;
+	animation-name: focus;
+	-webkit-animation-duration: 0.5s;
+	-webkit-animation-name: focus;
+	-moz-animation-duration: 0.5s;
+	-moz-animation-name: focus;
+}
+
+@keyframes focus {
+	10% { -webkit-filter: brightness(150%); }
+	100% { -webkit-filter: brightness(100%); }
+}
+
+@-webkit-keyframes focus {
+	10% { -webkit-filter: brightness(150%); }
+	100% { -webkit-filter: brightness(100%); }
+}
+
+@-moz-keyframes focus {
+	10% { -webkit-filter: brightness(150%); }
+	100% { -webkit-filter: brightness(100%); }
+}

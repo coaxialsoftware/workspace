@@ -15,17 +15,16 @@ common.extend(Project.prototype, {
 
 	load_config: function(file)
 	{
-		this.log('Loading config file: ' + file);
-
-		return common.load_json(file).then(
-			common.extend.bind(this, this.config));
+		return common.load_json(file).bind(this).then(function(json) {
+			this.log('Loading config file: ' + file);
+			common.extend(this.config, json);
+		});
 	},
 
 	load_ignore_file: function(filename, ignore)
 	{
 		this.log('Loading ignore file: ' + filename);
 		return common.read_if_exists(filename).then(function(list) {
-			console.log(list);
 			list = list.trim().split("\n");
 
 			list.forEach(function(p) {
@@ -96,8 +95,9 @@ common.extend(Project.prototype, {
 		config.env = process.env;
 		config.path = this.path;
 
-		return this.load_config(this.path + '/project.json')
+		return this.load_config(this.path + '/bower.json')
 			.bind(this)
+			.then(this.load_config.bind(this, this.path + '/project.json'))
 			.then(this.load_config.bind(this, this.path + '/package.json'))
 			.then(this.load_ignore)
 			.then(this.load_files)
@@ -132,10 +132,10 @@ common.extend(Project.prototype, {
 		{
 			file = dir + files[i];
 
-			if (ignore && ignore.test(file))
+			if (ignore.test(file))
 				continue;
 
-			result.push(file = dir + files[i]);
+			result.push(file);
 
 			try {
 				stat = fs.statSync(this.path + '/' + file);

@@ -78,8 +78,14 @@ var
 	set_editor: function(editor)
 	{
 		var info = editor.get_info();
+
+		if (this.editor)
+			this.editor.$el.removeClass('ide-focus');
+
 		this.editor = editor;
 		window.document.title = info || 'ide.js';
+
+		editor.$el.addClass('ide-focus');
 
 		if (info)
 			ide.info.show(info);
@@ -281,7 +287,7 @@ var
 		 */
 		_shortcuts: null,
 
-		key_delay: 350,
+		key_delay: 400,
 
 		__key: '',
 

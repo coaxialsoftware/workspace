@@ -4,10 +4,28 @@ var
 	Q = require('bluebird')
 ;
 
-exports.extend = function(obj, p)
+exports.extend = function extend(obj, p)
 {
+	var c, val;
+
 	for (var i in p)
-		obj[i] = p[i];
+	{
+		val = p[i];
+		c = obj[i];
+
+		if (Array.isArray(c))
+		{
+			if (Array.isArray(val))
+				obj[i] = c.concat(val);
+			else
+				c.push(val);
+		} else if (typeof(c)==='object' && typeof(val)==='object')
+			extend(c, val);
+		else
+			obj[i] = p[i];
+	}
+
+	return obj;
 };
 
 exports.extend(exports, {
