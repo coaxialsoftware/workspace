@@ -10,12 +10,17 @@ var
 	editor = require('./editor.js').editor,
 	fs = require('fs'),
 
+	// modules
+	modules = {
+		autocomplete: require('./autocomplete')
+	},
+
 	protocol = require(editor.config.https ? 'https' : 'http'),
 	app = express(),
 
 	rootdir = __dirname + '/..',
 
-	server, address
+	server, address, i
 ;
 
 if (editor.config.https)
@@ -83,5 +88,12 @@ app.get('/file', editor.handle_get_file.bind(editor));
 app.post('/shell', editor.handle_shell.bind(editor));
 app.post('/file', editor.handle_write_file.bind(editor));
 app.put('/file', editor.handle_write_file.bind(editor));
+
+// Load Modules
+for (i in modules)
+{
+	editor.log('Loading module: ' + i);
+	modules[i](app, editor);
+}
 
 editor.log("Listening to port " + address.port);

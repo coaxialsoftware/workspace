@@ -47,6 +47,12 @@ ide.plugins.register('shell', new ide.Plugin({
 
 	commands: {
 
+		mkdir: function()
+		{
+			ide.shell('mkdir', Array.prototype.slice.call(arguments, 0))
+				.then(ide.notify.bind(this, "[shell] mkdir success."));
+		},
+
 		svn: function()
 		{
 			cmd('svn', arguments);

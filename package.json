@@ -13,7 +13,8 @@
 		"body-parser": "*",
 		"basic-auth-connect": "*",
 		"mime": "*",
-		"bluebird": "*"
+		"bluebird": "*",
+		"j5g3.inference": "j5g3/inference"
 	},
 
 	"devDependencies": {
