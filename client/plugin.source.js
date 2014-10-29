@@ -11,7 +11,6 @@
 ide.Editor.Source = ide.Editor.extend({
 
 	editor: null,
-	session: null,
 	mode: null,
 
 	// Stores previous token. Used by tokenchange event.
@@ -85,7 +84,9 @@ ide.Editor.Source = ide.Editor.extend({
 		editor.on('blur', this.on_blur.bind(this));
 
 		editor.on('changeSelection', this.on_selection.bind(this));
-		editor.renderer.scrollBar.element.addEventListener('scroll', this.on_scroll.bind(this));
+		editor.renderer.scrollBar.element.addEventListener('scroll',
+			this.on_scroll.bind(this)
+		);
 
 		this.set_mode();
 		this.$el.on('keydown', this.on_keyup.bind(this));

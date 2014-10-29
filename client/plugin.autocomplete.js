@@ -4,33 +4,44 @@
 
 ide.plugins.register('autocomplete', new ide.Plugin({
 
-	files: null,
-	server: null,
-	defs: null,
+	/// Autocomplete data
+	data: null,
+	/// Delay time in ms
 	delay: 250,
 
-	selectBox: null,
-	shortcut: 'ctrl-32',
+	select_box: null,
+	shortcut: 'ctrl-space',
 
-	doInvoke: function(attr, pos)
+	get_data: function(file, pos)
 	{
-		this.server.addFile(attr.filename, ide.editor.get_value());
-
-		this.server.request({
-			query: {
-				type: 'completions',
-				types: true,
-				file: attr.filename,
-				end: { line: pos.row, ch: pos.column }
-			}
-		}, this.request_callback.bind(this, pos));
+	var
+		me = this,
+		promise = new $.Deferred(),
+		mime = file.get('mime'),
+		result = this.data[mime]
+	;
+		return result ? promise.resolve(result) :
+			promise.then($.get('/autocomplete', {
+				project: ide.project.get('path'),
+				mime: mime,
+				file: file.get('filename'),
+				pos: pos
+			}))
+			.then(function(data) { me.data[mime] = data; })
+		;
 	},
 
 	invoke: function()
 	{
-		// TODO might be dangerous
-		this._force = true;
-		this.doInvoke(ide.editor.file.attributes, ide.editor.editor.getCursorPosition());
+	var
+		editor = ide.editor, data
+	;
+		if (!editor.file)
+			return;
+
+		data = this.get_data(editor.file, editor.get_position())
+			.then(this.on_data.bind(this))
+		;
 	},
 
 	on_cursorchange: function(editor, pos)
@@ -41,7 +52,7 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 		attr = file && file.get('mime')==='application/javascript' &&
 			file.attributes
 	;
-		this.selectBox.hide();
+		this.select_box.hide();
 
 		if (this.server && attr && editor.get_state()==='insertMode')
 		{
@@ -54,7 +65,7 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 		}
 	},
 
-	request_callback: function(pos, err, result)
+	on_data: function(pos, err, result)
 	{
 	var
 		editor = ide.editor.editor,
@@ -76,39 +87,22 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 			cursor = editor.renderer.$cursorLayer.cursor;
 			i = editor.session.doc.positionToIndex(pos);
 
-			this.selectBox.html(html)
-				.css('left', cursor.offsetLeft - (i-result.start+1)*editor.renderer.characterWidth |0)
+			this.select_box.html(html)
+				.css('left', cursor.offsetLeft - (i-result.start+1) *
+					editor.renderer.characterWidth |0)
 				.css('top', cursor.offsetTop + cursor.clientHeight)
 				.appendTo(editor.renderer.$cursorLayer.element)
 				.show()
 			;
 
-			if (cursor.offsetTop + cursor.clientHeight + this.selectBox.height() >
+			if (cursor.offsetTop + cursor.clientHeight + this.select_box.height() >
 			editor.renderer.$cursorLayer.element.clientHeight)
-				this.selectBox.css('bottom', 0);
+				this.select_box.css('bottom', 0);
 			else
-				this.selectBox.css('bottom', '');
+				this.select_box.css('bottom', '');
 
 		}
 
-	},
-
-	on_ready: function()
-	{
-	var
-		defs = [],
-		i
-	;
-		for (i in this.defs)
-			defs.push(this.defs[i].json);
-
-		this.server = new window.tern.Server({
-			async: true,
-			defs: defs
-		});
-
-		for (i in this.files)
-			this.server.addFile(this.files[i].source, this.files[i].raw);
 	},
 
 	load_files: function(files)
@@ -124,25 +118,13 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 
 	start: function()
 	{
-	var
-		l = this.loader = new window.Loader()
-	;
-		this.files = {};
-		this.selectBox = $('<OL class="ide-select">')
-			.mousedown(this.on_click.bind(this))
-		;
+		this.data = {};
 
 		//ide.on('cursorchange', this.on_cursorchange, this);
 		ide.on('autocomplete', this.invoke, this);
 		ide.on('scroll', function() {
-			this.selectBox.hide();
+			this.select_box.hide();
 		}, this);
-
-		this.defs = {
-			ecma5: l.json('build/ecma5.json')
-		};
-
-		l.ready(this.on_ready.bind(this));
 	}
 
 }));

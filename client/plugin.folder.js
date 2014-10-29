@@ -79,8 +79,8 @@ ide.plugins.register('find', new ide.Plugin({
 	commands: { /** @lends ide.commands */
 
 		/**
-		 * Finds file by mask and displays all matches, if only one found it will
-		 * automatically open it.
+		 * Finds file by mask and displays all matches, if only one found
+		 * it will automatically open it.
 		 */
 		find: function(mask)
 		{

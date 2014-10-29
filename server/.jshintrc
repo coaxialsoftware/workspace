@@ -7,7 +7,7 @@
 	"smarttabs":true, 
 	"trailing":true,
 	"maxdepth":3,
-	"maxlen": 80,
+	"maxlen": 100,
 	"indent": 4,
 	"latedef": true
 }

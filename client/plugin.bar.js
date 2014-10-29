@@ -152,7 +152,9 @@
 		;
 			if (!this._lastSearch)
 			{
-				this._lastSearch = ide.project.files_text.match(new RegExp('^' + s + '[^/\n]*$', 'mg'));
+				this._lastSearch = ide.project.files_text.match(
+					new RegExp('^' + s + '[^/\n]*$', 'mg')
+				);
 				this._lastSearchStart = start;
 				this._lastSearchIndex = 0;
 			} else if (this._lastSearchIndex===this._lastSearch.length)
