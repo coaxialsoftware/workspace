@@ -55,7 +55,9 @@ _.extend(Loader.prototype, {
 			if (this.on_ready) this.on_ready();
 		}
 		else
-			this._timeout = window.setTimeout(function() { me._check_ready(); }, this.delay);
+			this._timeout = window.setTimeout(
+				function() { me._check_ready(); }, this.delay
+			);
 	},
 
 	el: function(tag, src)

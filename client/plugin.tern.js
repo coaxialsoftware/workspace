@@ -141,7 +141,8 @@ ide.plugins.register('tern', new ide.Plugin({
 			i = editor.session.doc.positionToIndex(pos);
 
 			this.selectBox.html(html)
-				.css('left', cursor.offsetLeft - (i-result.start+1)*editor.renderer.characterWidth |0)
+				.css('left', cursor.offsetLeft - (i-result.start+1) *
+				editor.renderer.characterWidth |0)
 				.css('top', cursor.offsetTop + cursor.clientHeight)
 				.appendTo(editor.renderer.$cursorLayer.element)
 				.show()
