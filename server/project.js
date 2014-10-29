@@ -24,14 +24,14 @@ common.extend(Project.prototype, {
 	load_ignore_file: function(filename, ignore)
 	{
 		this.log('Loading ignore file: ' + filename);
-		return common.read_if_exists(filename).then(function(list) {
+		return common.read(filename).then(function(list) {
 			list = list.trim().split("\n");
 
 			list.forEach(function(p) {
 				if (ignore.indexOf(p)===-1)
 					ignore.push(p);
 			});
-		});
+		}).error(function() { });
 	},
 
 	load_ignore: function()
@@ -39,7 +39,7 @@ common.extend(Project.prototype, {
 		var config = this.config;
 
 		if (!config.ignore)
-			config.ignore = [ '.?*' ];
+			config.ignore = [ '.?*', 'node_modules', 'bower_modules' ];
 
 		return this.load_ignore_file(this.path + '/.gitignore', config.ignore)
 			.bind(this)

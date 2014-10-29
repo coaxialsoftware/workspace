@@ -10,6 +10,13 @@ exports.extend = function extend(obj, p)
 
 	for (var i in p)
 	{
+		// Override if property starts with '!'
+		if (i[0]==='!')
+		{
+			i = i.slice(1);
+			obj[i] = p[i];
+			continue;
+		}
 		val = p[i];
 		c = obj[i];
 
@@ -29,13 +36,6 @@ exports.extend = function extend(obj, p)
 };
 
 exports.extend(exports, {
-
-	read_if_exists: function(filename)
-	{
-		return exports.read(filename).catch(function(e) {
-			console.log(e);
-		});
-	},
 
 	read: function(filename)
 	{
