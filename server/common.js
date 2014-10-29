@@ -32,9 +32,10 @@ exports.extend(exports, {
 
 	read_if_exists: function(filename)
 	{
-		return exports.read(filename).catch(function(e) {
-			console.log(e);
-		});
+		var promise = exports.read(filename).cancellable();
+
+		return promise.catch(function(e) { return promise.cancel(e); })
+			.catch(Q.CancellationError, function() { });
 	},
 
 	read: function(filename)
