@@ -12,36 +12,10 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 	select_box: null,
 	shortcut: 'ctrl-space',
 
-	get_data: function(file, pos)
-	{
-	var
-		me = this,
-		promise = new $.Deferred(),
-		mime = file.get('mime'),
-		result = this.data[mime]
-	;
-		return result ? promise.resolve(result) :
-			promise.then($.get('/autocomplete', {
-				project: ide.project.get('path'),
-				mime: mime,
-				file: file.get('filename'),
-				pos: pos
-			}))
-			.then(function(data) { me.data[mime] = data; })
-		;
-	},
-
 	invoke: function()
 	{
-	var
-		editor = ide.editor, data
-	;
-		if (!editor.file)
-			return;
-
-		data = this.get_data(editor.file, editor.get_position())
-			.then(this.on_data.bind(this))
-		;
+		if (ide.editor.file)
+			ide.trigger('autocomplete', ide.editor.file, ide.editor.get_position());
 	},
 
 	on_cursorchange: function(editor, pos)
@@ -119,12 +93,10 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 	start: function()
 	{
 		this.data = {};
+		this.select_box = $('SELECT');
 
 		//ide.on('cursorchange', this.on_cursorchange, this);
-		ide.on('autocomplete', this.invoke, this);
-		ide.on('scroll', function() {
-			this.select_box.hide();
-		}, this);
+		ide.on('scroll', this.select_box.hide, this.select_box);
 	}
 
 }));
