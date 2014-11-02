@@ -117,14 +117,11 @@ var
 			ide.open(m[2], { plugin: m[1] });
 		},
 
-		load: function()
+		load_files: function()
 		{
 		var
 			files = this.hash.data.f || this.hash.data.file
 		;
-			ide.plugins.start();
-			$('#mask').hide();
-
 			if (!files)
 				return;
 
@@ -132,6 +129,14 @@ var
 				files.forEach(this.load_editor.bind(this));
 			else
 				this.load_editor(files);
+		},
+
+		load: function()
+		{
+			ide.plugins.start();
+			$('#mask').hide();
+
+			this.load_files();
 		},
 
 		/**
@@ -316,7 +321,25 @@ var
 			}
 		},
 
-		initialize: function Workspace()
+		on_hashchange: function()
+		{
+			var hash = window.location.hash;
+			window.removeEventListener('hashchange', this._on_hashchange, false);
+
+			this.ignore_hash = true;
+			this.close_all();
+			window.location.hash = hash;
+
+			if (ide.project.get('path') !== this.hash.data.p)
+				this.load_project(this.load_files.bind(this));
+			else
+			{
+				this.hash = new Hash();
+				this.load_files();
+			}
+		},
+
+		load_project: function(cb)
 		{
 		var
 			hash = this.hash = new Hash(),
@@ -326,7 +349,13 @@ var
 		;
 			this.slots = [];
 
-			project.fetch({ success: this.load.bind(this) });
+			project.fetch({ success: cb });
+		},
+
+		initialize: function Workspace()
+		{
+			this.load_project(this.load.bind(this));
+			this._on_hashchange = this.on_hashchange.bind(this);
 
 			window.addEventListener('beforeunload', this.on_beforeunload.bind(this));
 			window.addEventListener('dragover', this.on_dragover.bind(this));

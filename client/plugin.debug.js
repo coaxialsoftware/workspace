@@ -17,9 +17,28 @@ ide.plugins.register('debug', {
 		/** Show debug panel if chrome extension is present */
 		debug: function()
 		{
-
+			this.open();
 		}
 
+	},
+
+	open: function()
+	{
+		if (!this.ext.enabled)
+			return ide.alert('Debugging browser extension not available.');
+
+		var editor = new ide.FileList({
+			file: '',
+			plugin: this,
+			title: 'debug'
+		});
+
+		ide.workspace.add(editor);
+
+		this.ext.send({ debugger: { targets: true }})
+			.then(function(result) {
+				editor.add_files(result);
+			});
 	},
 
 	connect: function(url)
@@ -46,10 +65,7 @@ ide.plugins.register('debug', {
 
 	ready: function()
 	{
-		ide.plugins.get('extension').send({ debugger: { targets: true }})
-			.then(function(result) {
-				window.console.log(result);
-			});
+		this.ext = ide.plugins.get('extension');
 	}
 
 });
