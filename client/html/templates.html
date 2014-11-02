@@ -7,6 +7,15 @@
 </div>
 </script>
 
+<script id="tpl-debug" type="text/template">
+<div class="file">
+	<a tabindex="1" href="javascript:" class="content" style="line-height: 32px" data-id="<%= file.id %>">
+		<img style="float: left; margin-right: 14px;" src="<%= file.faviconUrl %>" />
+		<%- file.title %>
+	</a>
+</div>
+</script>
+
 <script id="tpl-grep" type="text/template">
 <% 
 	var m = path.exec(file);

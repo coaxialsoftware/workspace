@@ -27,11 +27,19 @@ ide.plugins.register('debug', {
 		if (!this.ext.enabled)
 			return ide.alert('Debugging browser extension not available.');
 
-		var editor = new ide.FileList({
+	var
+		me = this,
+		editor = new ide.FileList({
 			file: '',
 			plugin: this,
-			title: 'debug'
-		});
+			title: 'debug',
+			file_template: '#tpl-debug',
+			on_click: function(ev) {
+				me.connect(ev.target.dataset.id);
+				ide.workspace.remove(this);
+			}
+		})
+	;
 
 		ide.workspace.add(editor);
 
@@ -41,14 +49,9 @@ ide.plugins.register('debug', {
 			});
 	},
 
-	connect: function(url)
+	connect: function(id)
 	{
-		var ws = this.ws = new WebSocket('ws://localhost:9003/json' || url);
-
-		ws.onmessage = function(ev)
-		{
-			window.console.log(ev.data);
-		};
+		window.console.log(id);
 	},
 
 	load: function(config)
