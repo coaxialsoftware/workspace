@@ -1,10 +1,10 @@
 
-(function(ide, $) {
+(function(ide) {
 "use strict";
 
 ide.plugins.register('html', new ide.Plugin({
 
-	autocomplete: function(file, pos)
+	autocomplete: function(file/*, pos*/)
 	{
 	var
 		mime = file.get('mime')
@@ -21,4 +21,4 @@ ide.plugins.register('html', new ide.Plugin({
 
 }));
 
-})(this.ide, this.jQuery);
+})(this.ide);
