@@ -12,31 +12,41 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 	select_box: null,
 	shortcut: 'ctrl-space',
 
-	invoke: function()
+	handlers: null,
+
+	// Register autocomplete handler
+	register: function(mime, handler)
 	{
-		if (ide.editor.file)
-			ide.trigger('autocomplete', ide.editor.file, ide.editor.get_position());
+		this.handlers[mime] = handler;
+		return this;
 	},
 
-	on_cursorchange: function(editor, pos)
+	invoke: function()
 	{
 	var
-		me = this,
-		file = editor.file,
-		attr = file && file.get('mime')==='application/javascript' &&
-			file.attributes
+		editor = ide.editor,
+		mime = editor && editor.file && editor.file.get &&
+			editor.file.get('mime')
 	;
+		if (mime)
+			this.handlers[mime].autocomplete(editor.file, editor.get_position(),
+			editor.token);
+	},
+
+	on_cursorchange: function(editor)
+	{
+	var
+		file = editor.file
+	;
+		if (!file)
+			return;
+
 		this.select_box.hide();
 
-		if (this.server && attr && editor.get_state()==='insertMode')
-		{
-			if (this.timeoutId)
-				clearTimeout(this.timeoutId);
+		if (this.timeoutId)
+			clearTimeout(this.timeoutId);
 
-			this.timeoutId = window.setTimeout(function() {
-				me.doInvoke(attr, pos);
-			}, this.delay);
-		}
+		this.timeoutId = window.setTimeout(this.invoke.bind(this), this.delay);
 	},
 
 	on_data: function(pos, err, result)
@@ -74,29 +84,18 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 				this.select_box.css('bottom', 0);
 			else
 				this.select_box.css('bottom', '');
-
 		}
 
 	},
 
-	load_files: function(files)
-	{
-		for (var i in files)
-			this.files[files[i]] = this.loader.data(files[i]);
-	},
-
-	on_click: function()
-	{
-		return false;
-	},
-
 	start: function()
 	{
-		this.data = {};
+		this.handlers = {};
 		this.select_box = $('SELECT');
 
 		//ide.on('cursorchange', this.on_cursorchange, this);
 		ide.on('scroll', this.select_box.hide, this.select_box);
+		ide.on('autocomplete', this.invoke, this);
 	}
 
 }));

@@ -1,24 +1,19 @@
 
-(function(ide, $) {
+(function(ide) {
 "use strict";
 
 ide.plugins.register('html', new ide.Plugin({
 
-	autocomplete: function(file, pos)
+	autocomplete: function(file, pos, token)
 	{
-	var
-		mime = file.get('mime')
-	;
-		if (mime !=='text/html')
-			return;
-
+		window.console.log(file, pos, token);
 	},
 
 	start: function()
 	{
-		ide.on('autocomplete', this.autocomplete, this);
+		ide.plugins.get('autocomplete').register('text/html', this);
 	}
 
 }));
 
-})(this.ide, this.jQuery);
+})(this.ide);

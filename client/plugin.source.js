@@ -128,10 +128,10 @@ ide.Editor.Source = ide.Editor.extend({
 		if (ann && this.get_state() !== 'insertMode')
 			ide.info.show(ann.text.join('<br/>'));
 
-		if (token !== this._old_token)
+		if (token !== this.token)
 		{
 			ide.trigger('tokenchange', this, token, pos);
-			this._old_token = token;
+			this.token = token;
 		}
 
 		ide.trigger('cursorchange', this, pos);

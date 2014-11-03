@@ -21,7 +21,6 @@ ide.plugins.register('javascript', new ide.Plugin({
 
 	start: function()
 	{
-		ide.on('autocomplete', this.autocomplete, this);
 	}
 
 }));
