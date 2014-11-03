@@ -25,12 +25,13 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 	{
 	var
 		editor = ide.editor,
+		token = editor.get_token(),
 		mime = editor && editor.file && editor.file.get &&
 			editor.file.get('mime')
 	;
 		if (mime)
 			this.handlers[mime].autocomplete(editor.file, editor.get_position(),
-			editor.token);
+			token);
 	},
 
 	on_cursorchange: function(editor)

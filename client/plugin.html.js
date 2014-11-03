@@ -9,7 +9,7 @@ ide.plugins.register('html', new ide.Plugin({
 		window.console.log(file, pos, token);
 	},
 
-	start: function()
+	ready: function()
 	{
 		ide.plugins.get('autocomplete').register('text/html', this);
 	}

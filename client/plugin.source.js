@@ -118,20 +118,39 @@ ide.Editor.Source = ide.Editor.extend({
 		};
 	},
 
+	/**
+	 * Gets token at pos. If pos is ommited it will return the token
+	 * under the cursor
+	 */
+	get_token: function(pos)
+	{
+	var
+		insertMode = this.get_state()==='insertMode',
+		token, col
+	;
+		pos = pos || this.editor.getCursorPosition();
+		col = pos.column + (insertMode ? 0 : 1);
+
+		token = this.editor.session.getTokenAt(pos.row, col);
+
+		return token;
+	},
+
 	on_selection: function(ev, editor)
 	{
 	var
+		insertMode = this.get_state()==='insertMode',
 		pos = editor.getCursorPosition(),
 		ann = this.get_annotation(pos.row),
-		token = editor.session.getTokenAt(pos.row, pos.column+1)
+		token = this.get_token(pos)
 	;
-		if (ann && this.get_state() !== 'insertMode')
+		if (ann && insertMode)
 			ide.info.show(ann.text.join('<br/>'));
 
-		if (token !== this.token)
+		if (token !== this.__token)
 		{
 			ide.trigger('tokenchange', this, token, pos);
-			this.token = token;
+			this.__token = token;
 		}
 
 		ide.trigger('cursorchange', this, pos);
