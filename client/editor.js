@@ -53,6 +53,12 @@ var
 		window.console[kls](message);
 	},
 
+	/** Displays log message in console only */
+	log: function(message)
+	{
+		window.console.log('[ide.js] ' + message);
+	},
+
 	/**
 	 * Opens file in new tab
 	 */
@@ -257,12 +263,16 @@ var
 		/// Object of commands to add to ide.commands
 		commands: null,
 
+		/// Runs when all plugins are initialized @type {function}
+		ready: null,
+
 		/**
 		 * Starts Plugin when all other plugins are loaded.
 		 * @param settings Settings specified in the project. The name of the plugin will be used.
 		 */
 		start: function() { },
 
+		/** Saves or retrieves local storage data */
 		data: function(prop, value)
 		{
 			prop = 'ide.plugin.' + this.name + '.' + prop;
@@ -411,6 +421,10 @@ var
 			this.each(function(plug, name) {
 				if (plug.start)
 					plug.start(ide.project[name]);
+			});
+			this.each(function(plug) {
+				if (plug.ready)
+					plug.ready();
 			});
 
 		},

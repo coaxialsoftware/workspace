@@ -33,9 +33,11 @@ function grepDone(editor, result)
 
 function cmd(name, args, onprogress)
 {
-	ide.shell(name, Array.prototype.slice.call(args, 0), onprogress)
+	args = Array.prototype.slice.call(args, 0);
+	ide.shell(name, args, onprogress)
 		.then(function(response) {
 			ide.open({
+				file: name + ' ' + args.join(' '),
 				content: response, mime: 'text/plain',
 				new: true
 			});
@@ -44,6 +46,11 @@ function cmd(name, args, onprogress)
 }
 
 ide.plugins.register('shell', new ide.Plugin({
+
+	open: function(cmd)
+	{
+		ide.cmd(cmd);
+	},
 
 	commands: {
 
@@ -78,7 +85,7 @@ ide.plugins.register('shell', new ide.Plugin({
 			env = ide.project.get('env'),
 
 			editor = new ide.FileList({
-				file: term,
+				file: 'grep ' + term,
 				plugin: this,
 				file_template: '#tpl-grep',
 				title: 'grep ' + term,
