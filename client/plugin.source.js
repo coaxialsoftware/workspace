@@ -136,6 +136,23 @@ ide.Editor.Source = ide.Editor.extend({
 		return token;
 	},
 
+	/**
+	 * Gets cursor position and dimension
+	 */
+	get_cursor: function()
+	{
+	var
+		cursor = this.editor.renderer.$cursorLayer.cursor
+		//i = editor.session.doc.positionToIndex(pos)
+	;
+		return cursor;
+	},
+
+	get_font: function()
+	{
+		return this.$el.css('font');
+	},
+
 	on_selection: function(ev, editor)
 	{
 	var

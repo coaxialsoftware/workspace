@@ -7,7 +7,7 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 	/// Autocomplete data
 	data: null,
 	/// Delay time in ms
-	delay: 250,
+	delay: 100,
 
 	select_box: null,
 	shortcut: 'ctrl-space',
@@ -25,24 +25,29 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 	{
 	var
 		editor = ide.editor,
-		token = editor.get_token(),
+		token = editor.get_token && editor.get_token(),
 		mime = editor && editor.file && editor.file.get &&
-			editor.file.get('mime')
+			editor.file.get('mime'),
+		handler = mime && this.handlers[mime]
 	;
-		if (mime)
-			this.handlers[mime].autocomplete(editor.file, editor.get_position(),
-			token);
+		this.reset();
+
+		if (handler)
+			handler.autocomplete(editor.file, editor.get_position(), token);
+		else
+			ide.alert('Autocomplete not available.');
 	},
 
-	on_cursorchange: function(editor)
+	reset: function()
 	{
-	var
-		file = editor.file
-	;
-		if (!file)
-			return;
+		this.options = null;
+		this.select_box.html('');
+	},
 
-		this.select_box.hide();
+	on_cursorchange: function()
+	{
+		if (!this.options)
+			return;
 
 		if (this.timeoutId)
 			clearTimeout(this.timeoutId);
@@ -50,51 +55,49 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 		this.timeoutId = window.setTimeout(this.invoke.bind(this), this.delay);
 	},
 
-	on_data: function(pos, err, result)
+	show: function()
 	{
 	var
-		editor = ide.editor.editor,
-		html='',
-		cursor,	val, i=0
+		c = ide.editor.get_cursor(),
+		pos = $(c).offset()
 	;
+		pos.top += c.clientHeight;
+		pos.font = ide.editor.get_font();
 
-		if (result && result.completions.length &&
-			(result.start!==result.end || this._force))
+		this.select_box.css(pos)
+			.show()
+		;
+	},
+
+	add: function(result)
+	{
+	var
+		html='', val, i=0, sb = this.select_box[0]
+	;
+		this.options = this.options ? this.options.concat(result) :
+			(this.show(), result);
+
+		while ((val = result[i++]))
 		{
-			this._force = false;
-
-			while ((val = result.completions[i++]))
-			{
-				html += '<LI>' + val.name + ' <span class="label">' +
-					val.type + '</span></LI>';
-			}
-
-			cursor = editor.renderer.$cursorLayer.cursor;
-			i = editor.session.doc.positionToIndex(pos);
-
-			this.select_box.html(html)
-				.css('left', cursor.offsetLeft - (i-result.start+1) *
-					editor.renderer.characterWidth |0)
-				.css('top', cursor.offsetTop + cursor.clientHeight)
-				.appendTo(editor.renderer.$cursorLayer.element)
-				.show()
-			;
-
-			if (cursor.offsetTop + cursor.clientHeight + this.select_box.height() >
-			editor.renderer.$cursorLayer.element.clientHeight)
-				this.select_box.css('bottom', 0);
-			else
-				this.select_box.css('bottom', '');
+			html += '<button>' + val.name;
+			if (val.tags)
+				html += ' <span class="label">' + val.tags + '</span>';
+			html += '</button>';
 		}
 
+		this.select_box.append(html);
+
+		sb.style.bottom = (sb.offsetTop + sb.offsetHeight > window.innerHeight) ?
+			0 : '';
 	},
 
 	start: function()
 	{
 		this.handlers = {};
-		this.select_box = $('SELECT');
+		this.select_box = $('<menu class="ide-select">')
+			.appendTo(window.document.body);
 
-		//ide.on('cursorchange', this.on_cursorchange, this);
+		ide.on('cursorchange', this.on_cursorchange, this);
 		ide.on('scroll', this.select_box.hide, this.select_box);
 		ide.on('autocomplete', this.invoke, this);
 	}
