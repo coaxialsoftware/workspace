@@ -270,7 +270,7 @@ var
 			return next.editor;
 		},
 
-		on_beforeunload: function()
+		on_beforeunload: function(ev)
 		{
 			var i=0, slots=this.slots, msg;
 
@@ -278,7 +278,10 @@ var
 			{
 				msg = slots[i].editor && slots[i].editor.close();
 				if (typeof(msg)==='string')
+				{
+					ev.returnValue = msg;
 					return msg;
+				}
 			}
 		},
 

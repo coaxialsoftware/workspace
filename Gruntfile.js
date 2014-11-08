@@ -38,6 +38,10 @@ module.exports = function(grunt) {
 			libs: {
 				src: [
 					'<%= path.ace %>/ace.js',
+					'<%= path.ace %>/mode-javascript.js',
+					'<%= path.ace %>/mode-html.js',
+					'<%= path.ace %>/mode-css.js',
+
 					'<%= path.ace %>/theme-twilight.js',
 					'<%= path.ace %>/keybinding-vim.js',
 
@@ -59,12 +63,18 @@ module.exports = function(grunt) {
 			},
 
 			html: {
-				src: [ 'client/html/index.html', 'client/html/templates.html' ],
+				src: [
+					'client/html/index.html', 'public/build/ide.css',
+					'client/html/body.html', 'client/html/templates.html'
+				],
 				dest: 'public/index.html'
 			},
 
 			htmldbg: {
-				src: [ 'client/html/debug.html', 'client/html/templates.html' ],
+				src: [
+					'client/html/debug.html', 'public/build/ide.css',
+					'client/html/body.html', 'client/html/templates.html'
+				],
 				dest: 'public/debug.html'
 			}
 
