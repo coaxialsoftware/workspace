@@ -2,13 +2,10 @@
  * Chrome debugging extension
  */
 
-(function(ide, $) {
+(function(ide) {
 "use strict";
 
 ide.plugins.register('debug', {
-
-	/** WebSocket */
-	ws: null,
 
 	el: null,
 
@@ -54,19 +51,7 @@ ide.plugins.register('debug', {
 		window.console.log(id);
 	},
 
-	load: function(config)
-	{
-		window.console.log(config);
-
-		$.get('http://localhost:9003/json')
-			.then(function(data) {
-				window.console.log(data);
-			});
-
-		this.connect('ws://localhost:9003/devtools/page/CF49F51C-215C-4FB5-99EE-8D465308FCE1');
-	},
-
-	ready: function()
+	start: function()
 	{
 		this.ext = ide.plugins.get('extension');
 	}
