@@ -104,11 +104,7 @@
 
 		focus: function()
 		{
-		var
-			el = this.el
-		;
-			//setTimeout(function() { el.focus(); });
-			el.focus();
+			this.el.focus();
 		},
 
 		hide: function()
@@ -133,6 +129,9 @@
 		el: $('<input id="command" />'),
 		shortcut: ":",
 
+		max_history: 50,
+		history: [],
+
 		run: function()
 		{
 		var
@@ -140,6 +139,8 @@
 		;
 			if (val==='')
 				return;
+
+
 
 			ide.cmd(val);
 		},

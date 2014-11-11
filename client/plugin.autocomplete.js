@@ -8,6 +8,11 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 	data: null,
 	/// Delay time in ms
 	delay: 100,
+	/// Current handler
+	handler: null,
+
+	/// selectbox is visible
+	visible: false,
 
 	select_box: null,
 	shortcut: 'ctrl-space',
@@ -17,7 +22,11 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 	// Register autocomplete handler
 	register: function(mime, handler)
 	{
-		this.handlers[mime] = handler;
+		if (this.handlers[mime])
+			this.handlers[mime].push(handler);
+		else
+			this.handlers[mime] = [ handler ];
+
 		return this;
 	},
 
@@ -25,28 +34,29 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 	{
 	var
 		editor = ide.editor,
-		token = editor.get_token && editor.get_token(),
 		mime = editor && editor.file && editor.file.get &&
 			editor.file.get('mime'),
-		handler = mime && this.handlers[mime]
+		handlers = this.handler = mime && this.handlers[mime]
 	;
 		this.reset();
 
-		if (handler)
-			handler.autocomplete(editor.file, editor.get_position(), token);
+		if (handlers)
+			handlers.forEach(function(handler) {
+				window.setTimeout(handler.autocomplete(editor));
+			});
 		else
 			ide.alert('Autocomplete not available.');
 	},
 
 	reset: function()
 	{
-		this.options = null;
+		this.visible = false;
 		this.select_box.html('');
 	},
 
 	on_cursorchange: function()
 	{
-		if (!this.options)
+		if (!this.visible)
 			return;
 
 		if (this.timeoutId)
@@ -64,26 +74,41 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 		pos.top += c.clientHeight;
 		pos.font = ide.editor.get_font();
 
+		this.visible = true;
 		this.select_box.css(pos)
 			.show()
 		;
 	},
 
-	add: function(result)
+	hide: function()
+	{
+		this.visible = false;
+		this.select_box.hide();
+		return this;
+	},
+
+	on_click: function(ev)
+	{
+		var data = ev.currentTarget.dataset;
+
+		window.console.log(data.value);
+		this.hide();
+
+		ev.preventDefault();
+		ev.stopPropagation();
+	},
+
+	/**
+	 * HTML for autocomplete options. Default element is a button. Each element
+	 * should provide a data-value attribute
+	 */
+	add: function(html)
 	{
 	var
-		html='', val, i=0, sb = this.select_box[0]
+		sb = this.select_box[0]
 	;
-		this.options = this.options ? this.options.concat(result) :
-			(this.show(), result);
-
-		while ((val = result[i++]))
-		{
-			html += '<button>' + val.name;
-			if (val.tags)
-				html += ' <span class="label">' + val.tags + '</span>';
-			html += '</button>';
-		}
+		if (!this.visible)
+			this.show();
 
 		this.select_box.append(html);
 
@@ -95,7 +120,9 @@ ide.plugins.register('autocomplete', new ide.Plugin({
 	{
 		this.handlers = {};
 		this.select_box = $('<menu class="ide-select">')
-			.appendTo(window.document.body);
+			.appendTo(window.document.body)
+			.on('click', 'button', this.on_click.bind(this))
+		;
 
 		ide.on('cursorchange', this.on_cursorchange, this);
 		ide.on('scroll', this.select_box.hide, this.select_box);

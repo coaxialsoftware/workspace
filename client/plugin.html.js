@@ -4,6 +4,9 @@
 
 ide.plugins.register('html', new ide.Plugin({
 
+	/// Autocomplete plugin
+	plugin: null,
+
 	autocomplete: function(file, pos, token)
 	{
 	var
@@ -23,13 +26,13 @@ ide.plugins.register('html', new ide.Plugin({
 		for (i=0;i<completions.length; i++)
 		{
 			c = completions[i].value || completions[i].caption;
+
 			if (prefix.test(c))
-				result.push({ name: c });
-				//, tags: completions[i].meta });
+				result.push('<button data-value="' + c + '">' + c + '</button>');
 		}
 
 		if (result.length)
-			this.plugin.add(result);
+			this.plugin.add(result.join(''));
 	},
 
 	ready: function()
