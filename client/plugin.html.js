@@ -7,13 +7,14 @@ ide.plugins.register('html', new ide.Plugin({
 	/// Autocomplete plugin
 	plugin: null,
 
-	autocomplete: function(file, pos, token)
+	autocomplete: function(editor)
 	{
 	var
 		Mode = require('ace/mode/html_completions').HtmlCompletions,
 		mode = new Mode(),
-		editor = ide.editor.editor,
-		session = editor.session,
+		pos = editor.get_position(),
+		token = editor.get_token(),
+		session = editor.editor.session,
 		state = session.getState(pos.row),
 		result=[], prefix, completions, i, c
 	;
