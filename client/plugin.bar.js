@@ -129,8 +129,39 @@
 		el: $('<input id="command" />'),
 		shortcut: ":",
 
-		max_history: 50,
 		history: [],
+		history_max: 50,
+		history_index: 0,
+
+		history_up: function(ev)
+		{
+			var val = this.history[this.history_index++];
+
+			if (val)
+				this.el.value = val;
+
+			ev.preventDefault();
+		},
+
+		history_add: function(val)
+		{
+			this.history_index = 0;
+			this.history.unshift(val);
+		},
+
+		history_down: function(ev)
+		{
+			if (this.history_index>0)
+				this.history_index -= 2;
+
+			this.history_up(ev);
+		},
+
+		ready: function()
+		{
+			this._keys[38] = this.history_up.bind(this);
+			this._keys[40] = this.history_down.bind(this);
+		},
 
 		run: function()
 		{
@@ -140,8 +171,7 @@
 			if (val==='')
 				return;
 
-
-
+			this.history_add(val);
 			ide.cmd(val);
 		},
 
