@@ -40,6 +40,11 @@ var
 		ide.notify(message, 'error');
 	},
 
+	warn: function(message)
+	{
+		ide.notify(message, 'warn');
+	},
+
 	/** Displays notification on right corner */
 	notify: function(message, kls)
 	{

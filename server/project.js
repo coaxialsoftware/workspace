@@ -4,6 +4,8 @@ var
 
 	common = require('./common.js'),
 
+	CONFIG_FILES = /bower\.json|package\.json|project\.json/,
+
 	Project = exports.Project = function(path, editor)
 	{
 		this.path = this.name = path;
@@ -65,12 +67,18 @@ common.extend(Project.prototype, {
 
 	on_filechange: function(ev, file, other)
 	{
-		this.log(ev, file, other);
-		this.load_files();
+		this.log(ev + ':' + file + ' (' + other + ')');
+
+		if (ev==='rename' && !this.ignore.test(file))
+			this.load_files();
+
+		if (CONFIG_FILES.test(file))
+			this.load_config_files();
 	},
 
 	load_files: function()
 	{
+		this.log('Loading project files');
 		var config = this.config;
 
 		return this.files().then(function(files) {
@@ -78,7 +86,7 @@ common.extend(Project.prototype, {
 		});
 	},
 
-	load: function()
+	load_config_files: function()
 	{
 	var
 		config = this.config = {},
@@ -90,8 +98,6 @@ common.extend(Project.prototype, {
 			common.extend(this.config, defaults);
 		}
 
-		fs.watch(this.path, this.on_filechange.bind(this));
-
 		config.env = process.env;
 		config.path = this.path;
 
@@ -99,12 +105,20 @@ common.extend(Project.prototype, {
 			.bind(this)
 			.then(this.load_config.bind(this, this.path + '/project.json'))
 			.then(this.load_config.bind(this, this.path + '/package.json'))
-			.then(this.load_ignore)
+		;
+	},
+
+	load: function()
+	{
+		if (!this.watcher)
+			this.watcher = fs.watch(this.path, this.on_filechange.bind(this));
+
+		return this.load_config_files().then(this.load_ignore)
 			.then(this.load_files)
 			.then(function()
 			{
 				this.log("Loading complete.");
-				if (!config.name) config.name = config.path;
+				if (!this.config.name) this.config.name = this.config.path;
 				return this;
 			});
 	},
