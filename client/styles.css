@@ -140,18 +140,15 @@ h4 {
 	background-color: rgb(142, 68, 173);
 	background-color: rgba(142, 68, 173, 0.7);
 }
-#evaluate {
-	background-color: rgb(22, 160, 133);
-	background-color: rgba(22, 160, 133, 0.7);
-}
 
 #info { 
-	position: absolute; top: 10px; left: 10px;
+	position: absolute; 
 	display: none;
-	background-color: rgb(52, 152, 219);
-	background-color: rgba(52, 152, 219, 0.9);
-	color: white;
-	transition: opacity 0.1s; z-index: 30;
+	background-color: rgb(44, 62, 80);
+	background-color: rgba(44, 62, 80, 0.7);
+	color: #fff;
+	font-size: 16px;
+	z-index: 30;
 }
 
 #info:hover {

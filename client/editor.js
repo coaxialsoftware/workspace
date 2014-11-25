@@ -129,6 +129,11 @@ var
 
 		show: function(msg)
 		{
+			var s = this.el.style, s2 = ide.editor.el.style;
+			s.left = s2.left;
+			s.width = s2.width;
+			s.top = s2.top;
+
 			this.$el.html(msg).stop().show();
 			return this.hide();
 		}
