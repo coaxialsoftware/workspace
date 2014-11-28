@@ -71,23 +71,48 @@ ide.FileList = ide.Editor.extend({
 
 ide.plugins.register('find', new ide.Plugin({
 
+	shortcut:
+	{
+		'gf': function()
+		{
+			this.open();
+		}
+	},
+
 	open: function(mask)
 	{
 		ide.commands.find(mask);
+	},
+
+	get_mask: function()
+	{
+		var token = ide.editor && ide.editor.get_token &&
+			ide.editor.get_token();
+
+		if (token)
+		{
+			return token.type==='string' ?
+				token.value.substr(1, token.value.length-2) : token.value;
+		}
 	},
 
 	commands: { /** @lends ide.commands */
 
 		/**
 		 * Finds file by mask and displays all matches, if only one found
-		 * it will automatically open it.
+		 * it will automatically open it. If not mask is specified it will use
+		 * the token under the active editor.
 		 */
 		find: function(mask)
 		{
 		var
-			regex = new RegExp(mask),
+			regex,
 			files = ide.project.get('files')
 		;
+			mask = mask || this.get_mask() || '';
+
+			regex = new RegExp(mask);
+
 			if (!files)
 				return ide.warn('[find] No files found in project.');
 
