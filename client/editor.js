@@ -127,15 +127,35 @@ var
 			return this;
 		},
 
-		show: function(msg)
+		do_show: function(msg)
 		{
-			var s = this.el.style, s2 = ide.editor.el.style;
+		var
+			s = this.el.style,
+			el = ide.editor.el,
+			s2 = el.style,
+			cursor = ide.editor.get_cursor && ide.editor.get_cursor()
+		;
 			s.left = s2.left;
 			s.width = s2.width;
-			s.top = s2.top;
+
+			if (cursor && cursor.offsetTop > 20)
+			{
+				s.top = s2.top;
+				s.bottom = '';
+			} else
+			{
+				s.top = '';
+				s.bottom = (window.innerHeight - el.offsetTop - el.offsetHeight) + 'px';
+			}
 
 			this.$el.html(msg).stop().show();
 			return this.hide();
+		},
+
+		show: function(msg)
+		{
+			if (msg)
+				window.setTimeout(this.do_show.bind(this, msg));
 		}
 	}),
 
