@@ -64,6 +64,7 @@ ide.cmd = function(source)
 	return this;
 };
 
+/** @namespace */
 ide.commands = {
 
 	/**

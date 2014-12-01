@@ -563,6 +563,15 @@ var
 				this.focus();
 		},
 
+		/**
+		 * @abstract
+		 * Returns an object { column: 0, row: 0, index: 0 }
+		 */
+		get_position: function()
+		{
+			throw "Editor should implement this function";
+		},
+
 		get_info: function()
 		{
 			return this.file.toString() + ' [' + ide.project.get('name') + ']';

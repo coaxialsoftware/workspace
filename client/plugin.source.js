@@ -40,7 +40,10 @@ ide.Editor.Source = ide.Editor.extend({
 
 	get_position: function()
 	{
-		return this.editor.getCursorPosition();
+		var pos = this.editor.getCursorPosition();
+		pos.index = this.editor.session.doc.positionToIndex(pos);
+
+		return pos;
 	},
 
 	enable_autocompletion: function()
@@ -141,11 +144,7 @@ ide.Editor.Source = ide.Editor.extend({
 	 */
 	get_cursor: function()
 	{
-	var
-		cursor = this.editor.renderer.$cursorLayer.cursor
-		//i = editor.session.doc.positionToIndex(pos)
-	;
-		return cursor;
+		return this.editor.renderer.$cursorLayer.cursor;
 	},
 
 	get_font: function()

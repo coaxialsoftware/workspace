@@ -4,23 +4,27 @@
 
 ide.plugins.register('javascript', new ide.Plugin({
 
-	autocomplete: function(file, pos)
+	plugin: null,
+
+	autocomplete: function(editor)
 	{
 	var
+		file = editor.file,
+		pos = editor.get_position(),
 		mime = file.get('mime')
 	;
-		if (mime==='application/javascript')
-			return (new $.Deferred()).then($.get('/autocomplete', {
-				project: ide.project.get('path'),
-				mime: mime,
-				file: file.get('filename'),
-				pos: pos
-			}))
-		;
+		$.get('/autocomplete', {
+			project: ide.project.get('path'),
+			mime: mime,
+			file: file.get('filename'),
+			pos: pos
+		});
 	},
 
-	start: function()
+	ready: function()
 	{
+		this.plugin = ide.plugins.get('autocomplete')
+			.register('application/javascript', this);
 	}
 
 }));
