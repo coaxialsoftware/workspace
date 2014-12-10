@@ -65,15 +65,19 @@ common.extend(Project.prototype, {
 		);
 	},
 
-	on_filechange: function(ev, file, other)
+	on_filechange: function(ev, file)
 	{
-		this.log(ev + ':' + file + ' (' + other + ')');
-
 		if (ev==='rename' && !this.ignore.test(file))
+		{
+			this.log('File ' + file + ' changed. Rebuilding project files.');
 			this.load_files();
+		}
 
 		if (CONFIG_FILES.test(file))
+		{
+			this.log('Configuration file ' + file + ' changed. Rebuilding.');
 			this.load_config_files();
+		}
 	},
 
 	load_files: function()

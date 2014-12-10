@@ -24,5 +24,9 @@
 		"grunt-contrib-concat": "*",
 		"grunt-contrib-watch": "*",
 		"grunt-contrib-uglify": "*"
+	},
+
+	"scripts": {
+		"prepublish": "grunt minify"
 	}
 }
