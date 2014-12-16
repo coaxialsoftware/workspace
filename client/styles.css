@@ -168,28 +168,14 @@ h4 {
 	display: block !important; opacity: 1 !important;
 }
 
-#mask { 
-	position: absolute; top: 0; right: 0; bottom: 0; left: 0;
-	background: rgb(0,0,0);
-	background: rgba(0,0,0,0.5);
-	font: 20px Verdana;
-	color: #eee; text-align: center; line-height: 100%;
-	z-index: 20;
-}
-
 /* NOTIFICATIONS */
 #ide-notification { 
-	position: fixed; top: 10px; left: 10px; 
-	right: 10px; overflow: visible; z-index: 9000;
-	text-align: right;
+	position: fixed; top: 10px; right: 10px; z-index: 9000;
+	list-style: none; text-align: right;
 }
 
-#ide-notification > div, .ide-popup {
-	display: block; padding: 8px;
-	min-width: 200px; float: right;
-	border-radius: 2px; margin-bottom: 4px;
-	clear: both;
-}
+#ide-notification span { display: inline-block; padding: 8px; }
+#ide-notification > li { margin-bottom: 4px; }
 
 .ide-info { background-color: rgba(52, 152, 219, 0.8); color: #eee;}
 .ide-error { background-color: rgba(231, 76, 60, 0.8); color: #eee;}

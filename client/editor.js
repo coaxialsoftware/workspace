@@ -50,8 +50,7 @@ var
 	{
 		kls = kls || 'info';
 	var
-		span = $('<div class="ide-notification ide-' + kls +
-			'">' + message + '</div>')
+		span = $('<li><span class="ide-' + kls + '">' + message + '</span></li>')
 	;
 		span.prependTo(_nots).delay(3000)
 			.slideUp(function() { span.remove(); });
