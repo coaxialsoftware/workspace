@@ -76,17 +76,17 @@ common.extend(Project.prototype, {
 		if (CONFIG_FILES.test(file))
 		{
 			this.log('Configuration file ' + file + ' changed. Rebuilding.');
-			this.load_config_files();
+			this.load();
 		}
 	},
 
 	load_files: function()
 	{
-		this.log('Loading project files');
 		var config = this.config;
 
-		return this.files().then(function(files) {
+		return this.files().bind(this).then(function(files) {
 			config.files = files;
+			this.log(files.length + ' files found.');
 		});
 	},
 
