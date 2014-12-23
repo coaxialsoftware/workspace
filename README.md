@@ -83,7 +83,7 @@ project.json
 Startup
 -------
 
-From the workspace folder call node bin/ide.js
+From the workspace folder call node bin/ide.js. Or install using npm install or link and run ide.js.
 
 Commands
 --------

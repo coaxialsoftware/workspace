@@ -11,4 +11,5 @@ chrome.runtime.onMessage.addListener(function(response) {
 
 });
 
-document.body.classList.add('ide-extension');
+if (document.body)
+	document.body.classList.add('ide-extension');

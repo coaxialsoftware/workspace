@@ -40,7 +40,7 @@ ide.plugins.register('debug', {
 
 		ide.workspace.add(editor);
 
-		this.ext.send({ debugger: { targets: true }})
+		this.ext.send({ api: 'debugger', cmd: 'targets' })
 			.then(function(result) {
 				editor.add_files(result);
 			});
@@ -48,7 +48,9 @@ ide.plugins.register('debug', {
 
 	connect: function(id)
 	{
-		window.console.log(id);
+		ide.on('beforewrite', function(file) {
+			window.console.log(id, file.changed);
+		});
 	},
 
 	start: function()

@@ -13,6 +13,11 @@ var
 	/** @namespace */
 	window.ide = new (Backbone.View.extend({ /** @lends ide */
 
+	/** @event write {function(file)} Fires when a file is saved. */
+	/** @event beforewrite {function(file)} Fires before a save event. Useful if
+		you need access to the file content before modifications.
+	*/
+
 	/** Current opened project */
 	project: null,
 
@@ -147,7 +152,7 @@ var
 				s.bottom = (window.innerHeight - el.offsetTop - el.offsetHeight) + 'px';
 			}
 
-			this.$el.html(msg).stop().show();
+			this.$el.html(msg).stop().css('opacity', 1).show();
 			return this.hide();
 		},
 
@@ -170,6 +175,7 @@ var
 		_onSync: function()
 		{
 			this.trigger('write');
+			ide.trigger('write', this);
 			ide.notify('File ' + this.id + ' saved.');
 		},
 
@@ -180,6 +186,7 @@ var
 
 		save: function()
 		{
+			ide.trigger('beforewrite', this);
 			Backbone.Model.prototype.save.call(this, null, {
 				success: this._onSync.bind(this)
 			});
