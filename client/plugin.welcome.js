@@ -23,9 +23,11 @@ ide.plugins.register('welcome', new ide.Plugin({
 			window.document.title = project;
 
 		if (projects)
+		{
 			this.renderProjects(projects);
 
-		this.show();
+			this.show();
+		}
 	},
 
 	show: function()

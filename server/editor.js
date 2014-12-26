@@ -217,8 +217,8 @@ common.extend(Editor.prototype, {
 
 			projects[path] = {
 				path: path,
-				package: common.load_json(path+'/package.json'),
-				project: common.load_json(path+'/project.json')
+				package: common.load_json_sync(path+'/package.json'),
+				project: common.load_json_sync(path+'/project.json')
 			};
 
 			this.find_tags(projects[path]);
