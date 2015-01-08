@@ -308,6 +308,11 @@ var
 		 */
 		start: function() { },
 
+		log: function(msg, klass)
+		{
+			ide.notify('[' + this.name + '] ' + msg, klass);
+		},
+
 		/** Saves or retrieves local storage data */
 		data: function(prop, value)
 		{

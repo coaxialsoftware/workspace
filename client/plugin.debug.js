@@ -5,7 +5,7 @@
 (function(ide) {
 "use strict";
 
-ide.plugins.register('debug', {
+ide.plugins.register('debug', new ide.Plugin({
 
 	el: null,
 
@@ -48,16 +48,23 @@ ide.plugins.register('debug', {
 
 	connect: function(id)
 	{
+		this.log('Attaching debugger to tab with id ' + id);
 		ide.on('beforewrite', function(file) {
 			window.console.log(id, file.changed);
 		});
+		this.data('tab_id', id);
 	},
 
 	start: function()
 	{
 		this.ext = ide.plugins.get('extension');
+
+		var id = this.data('tab_id');
+
+		if (id)
+			this.connect(id);
 	}
 
-});
+}));
 
 })(this.ide, this.jQuery);
