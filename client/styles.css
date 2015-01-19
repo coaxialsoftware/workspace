@@ -20,8 +20,7 @@ html {
 h1 {
 	position: fixed; top: 50px; left: 50px; font-size: 90px;
 	margin: 0;
-	color: #ccc;
-	color: #222;
+	color: #333;
 }
 
 h2 {
