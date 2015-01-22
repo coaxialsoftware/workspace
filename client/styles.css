@@ -20,8 +20,7 @@ html {
 h1 {
 	position: fixed; top: 50px; left: 50px; font-size: 90px;
 	margin: 0;
-	color: #ccc;
-	color: #222;
+	color: #333;
 }
 
 h2 {
@@ -122,12 +121,13 @@ h4 {
 }
 
 #projects {
-	left: 50px; top: 200px;
-	right: 42px; 
+	top: 0; left: 0; right: 0; bottom: 0;
+	padding: 200px 42px 50px 50px;
 	font-size: 0;
+	overflow: auto;
 	position: absolute;
 	transition: opacity 0.2s;
-	opacity: 0;
+	opacity: 0; display: none;
 }
 
 #project {
