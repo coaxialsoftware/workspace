@@ -160,7 +160,7 @@ ide.Editor.Source = ide.Editor.extend({
 		ann = this.get_annotation(pos.row),
 		token = this.get_token(pos)
 	;
-		if (ann && insertMode)
+		if (ann && !insertMode)
 			ide.info.show(ann.text.join('<br/>'));
 
 		if (token !== this.__token)

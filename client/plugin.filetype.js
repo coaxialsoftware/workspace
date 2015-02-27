@@ -28,13 +28,15 @@ var
 		ru: 'ruby',
 		rb: 'ruby',
 		sh: 'sh',
+		sql: 'sql',
 		bash: 'sh',
 		html: 'html',
 		rhtml: 'rhtml',
 		txt: 'text'
 	},
 	modeByFile= {
-		Rakefile: 'ruby'
+		Rakefile: 'ruby',
+		'.gitignore': 'gitignore'
 	}
 ;
 
