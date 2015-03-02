@@ -1,6 +1,7 @@
 var
 	fs = require('fs'),
 	Q = require('bluebird'),
+	colors = require('colors/safe'),
 
 	common = require('./common.js'),
 
@@ -129,12 +130,12 @@ common.extend(Project.prototype, {
 
 	log: function(msg)
 	{
-		console.log("[" + this.name + '] ' + msg);
+		console.log(colors.green("[" + this.name + '] ') + msg);
 	},
 
 	error: function(msg)
 	{
-		console.error("[" + this.name + '] ' + msg);
+		console.error(colors.red("[" + this.name + '] ' + msg));
 	},
 
 	walk: function(dir, result)

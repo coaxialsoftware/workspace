@@ -5,6 +5,7 @@ var
 	mime = require('mime'),
 	Q = require('bluebird'),
 	path = require('path'),
+	colors = require('colors'),
 
 	Project = require('./project').Project,
 
@@ -40,7 +41,7 @@ common.extend(Editor.prototype, {
 
 	log: function(msg)
 	{
-		console.log("[workspace] " + msg);
+		console.log(colors.blue("[workspace] ") + msg);
 	},
 
 	load: function()
@@ -120,7 +121,7 @@ common.extend(Editor.prototype, {
 
 	error: function(err)
 	{
-		console.error('[workspace] ERROR ' + err);
+		console.error(colors.red('[workspace] ERROR ' + err));
 		return { error: err, success: false };
 	},
 

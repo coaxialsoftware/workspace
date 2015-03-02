@@ -14,7 +14,8 @@
 		"basic-auth-connect": "*",
 		"mime": "*",
 		"bluebird": "*",
-		"j5g3.inference": "j5g3/inference"
+		"j5g3.inference": "j5g3/inference",
+		"colors": "*"
 	},
 
 	"devDependencies": {

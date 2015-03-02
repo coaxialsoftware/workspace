@@ -1,6 +1,6 @@
 
-ide.js
-======
+workspace
+=========
 
 Node JS lean vim-based editor for the web. 
 
@@ -83,7 +83,7 @@ project.json
 Startup
 -------
 
-From the workspace folder call node bin/ide.js. Or install using npm install or link and run "workspace".
+From the workspace folder call "node bin/workspace", or install using npm install or link and run "workspace".
 
 Commands
 --------
