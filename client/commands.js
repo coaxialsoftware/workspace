@@ -94,6 +94,8 @@ ide.commands = {
 	{
 		if (ide.editor)
 			ide.workspace.remove(ide.editor);
+		else
+			window.close();
 	},
 
 	qa: function()
@@ -113,7 +115,7 @@ ide.commands = {
 
 	project: function(name)
 	{
-		window.open('#' + ide.workspace.hash.encode({ p: name, f: null }));
+		window.open('#' + ide.workspace.hash.encode({ p: name || null, f: null }));
 	},
 
 	wq: function()

@@ -1,6 +1,6 @@
 
-ide.js
-======
+workspace
+=========
 
 Node JS lean vim-based editor for the web. 
 
@@ -14,7 +14,7 @@ Installation
 Global Settings
 ---------------
 
-~/.ide.js/config.json
+~/.workspace/config.json
 
 Whatever is in this file will be the template for project.json
 
@@ -47,7 +47,7 @@ workspace.json
 Define a Project (optional)
 ---------------------------
 
-ide.js will look for values in package.json and use them to populate some of 
+Workspace will look for values in package.json and use them to populate some of 
 the project fields.
 
 project.json
@@ -83,7 +83,7 @@ project.json
 Startup
 -------
 
-From the workspace folder call node bin/ide.js. Or install using npm install or link and run ide.js.
+From the workspace folder call "node bin/workspace", or install using npm install or link and run "workspace".
 
 Commands
 --------

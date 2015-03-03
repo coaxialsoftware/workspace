@@ -1,11 +1,11 @@
 {
-	"name": "ide.js",
-	"description": "Javascript Editor",
-	"author": "Giancarlo Bellido <giancarlo.bellido@gmail.com>",
-	"version": "0.6.0",
+	"name": "workspace",
+	"description": "Javascript Web Editor",
+	"author": "Giancarlo Bellido <giancarlo@coaxialhost.com>",
+	"version": "0.7.0",
 	"private": true,
 	"bin": {
-		"ide.js": "./bin/ide.js"
+		"workspace": "./bin/workspace.js"
 	},
 	"dependencies": {
 		"express": "4.*",
@@ -14,7 +14,8 @@
 		"basic-auth-connect": "*",
 		"mime": "*",
 		"bluebird": "*",
-		"j5g3.inference": "j5g3/inference"
+		"j5g3.inference": "j5g3/inference",
+		"colors": "*"
 	},
 
 	"devDependencies": {

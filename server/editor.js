@@ -5,6 +5,7 @@ var
 	mime = require('mime'),
 	Q = require('bluebird'),
 	path = require('path'),
+	colors = require('colors'),
 
 	Project = require('./project').Project,
 
@@ -15,12 +16,12 @@ var
 			version: 0.1,
 			port: 9001,
 			files: [],
-			name: 'ide.js',
+			name: 'workspace',
 			path: process.cwd()
 		}
 	;
 		this.log('Loading global settings...');
-		common.extend(config, common.load_json_sync('~/.ide.js/config.json'));
+		common.extend(config, common.load_json_sync('~/.workspace/config.json'));
 
 		this.log('Loading workspace settings...');
 		common.extend(config, common.load_json_sync('workspace.json'));
@@ -40,7 +41,7 @@ common.extend(Editor.prototype, {
 
 	log: function(msg)
 	{
-		console.log("[ide.js] " + msg);
+		console.log(colors.blue("[workspace] ") + msg);
 	},
 
 	load: function()
@@ -120,7 +121,7 @@ common.extend(Editor.prototype, {
 
 	error: function(err)
 	{
-		console.error('[ide.js] ERROR ' + err);
+		console.error(colors.red('[workspace] ERROR ' + err));
 		return { error: err, success: false };
 	},
 
