@@ -4,7 +4,8 @@
 
 var
 	modeByMime= {
-		"text/plain": "text"
+		"text/plain": "text",
+		"text/html": "html_ruby"
 	},
 	modeByExt= {
 		ch: 'csharp',
