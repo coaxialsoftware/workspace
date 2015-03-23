@@ -48,14 +48,23 @@ ide.plugins.register('debug', new ide.Plugin({
 
 	connect: function(id)
 	{
-		this.log('Attaching debugger to tab with id ' + id);
+		var me = this;
+
 		ide.on('beforewrite', function(file) {
 			window.console.log(id, file.changed);
 		});
-		this.data('tab_id', id);
+
+		this.ext.send({ api: 'debugger', cmd: 'attach', data: { targetId: id } })
+			.then(function(result) {
+				me.log('Debugger attached to tab with id ' + id);
+				window.console.log(result);
+				//this.data('tab_id', id);
+			}, function() {
+				me.data('tab_id', undefined);
+			});
 	},
 
-	start: function()
+	ready: function()
 	{
 		this.ext = ide.plugins.get('extension');
 

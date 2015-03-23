@@ -313,7 +313,9 @@ var
 			ide.notify('[' + this.name + '] ' + msg, klass);
 		},
 
-		/** Saves or retrieves local storage data */
+		/**
+		 * Saves or retrieves local storage data
+		 */
 		data: function(prop, value)
 		{
 			prop = 'ide.plugin.' + this.name + '.' + prop;

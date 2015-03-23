@@ -14,17 +14,19 @@ ide.plugins.register('extension', {
 	{
 	var
 		id = ev.data.id,
-		msg = ev.data.server
+		msg = ev.data.server,
+		promise = this.promises[id]
 	;
 		if (msg)
 		{
-			if (this.promises[id])
+			if (promise)
 			{
-				this.promises[id].resolve(msg);
+				promise.resolve(msg);
 				delete this.promises[id];
 			} else
 				ide.error("Invalid Message received");
-		}
+		} else if (ev.data.error)
+			promise.reject(ev.data.error);
 	},
 
 	/** Send json message to extension if available */
