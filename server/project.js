@@ -68,25 +68,25 @@ common.extend(Project.prototype, {
 
 	on_filechange: function(ev, file)
 	{
-		if (ev==='rename' && !this.ignore.test(file))
-		{
-			this.log('File ' + file + ' changed. Rebuilding project files.');
-			this.load_files();
-		}
-
 		if (CONFIG_FILES.test(file))
 		{
 			this.log('Configuration file ' + file + ' changed. Rebuilding.');
 			this.load();
 		}
+		else if (ev==='rename' && !this.ignore.test(file))
+		{
+			this.log('File ' + file + ' changed. Rebuilding project files.');
+			this.load_files();
+		}
+
 	},
 
 	load_files: function()
 	{
-		var config = this.config;
+		this.loadingFiles = true;
 
 		return this.files().bind(this).then(function(files) {
-			config.files = files;
+			this.config.files = files;
 			this.log(files.length + ' files found.');
 		});
 	},

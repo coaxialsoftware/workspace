@@ -27,7 +27,6 @@ var
 		common.extend(config, common.load_json_sync('workspace.json'));
 
 		this._projects = {};
-		this.projects = [];
 	}
 ;
 
@@ -36,12 +35,9 @@ common.extend(Editor.prototype, {
 	// Stores instances of projects
 	_projects: null,
 
-	// Array of project names
-	projects: null,
-
 	log: function(msg)
 	{
-		console.log(colors.blue("[workspace] ") + msg);
+		console.log(colors.cyan("[workspace] ") + msg);
 	},
 
 	load: function()
