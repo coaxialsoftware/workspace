@@ -5,7 +5,7 @@
 (function(ide) {
 "use strict";
 
-ide.plugins.register('debug', {
+ide.plugins.register('debug', new ide.Plugin({
 
 	el: null,
 
@@ -48,16 +48,32 @@ ide.plugins.register('debug', {
 
 	connect: function(id)
 	{
+		var me = this;
+
 		ide.on('beforewrite', function(file) {
 			window.console.log(id, file.changed);
 		});
+
+		this.ext.send({ api: 'debugger', cmd: 'attach', data: { targetId: id } })
+			.then(function(result) {
+				me.log('Debugger attached to tab with id ' + id);
+				window.console.log(result);
+				//this.data('tab_id', id);
+			}, function() {
+				me.data('tab_id', undefined);
+			});
 	},
 
-	start: function()
+	ready: function()
 	{
 		this.ext = ide.plugins.get('extension');
+
+		var id = this.data('tab_id');
+
+		if (id)
+			this.connect(id);
 	}
 
-});
+}));
 
 })(this.ide, this.jQuery);

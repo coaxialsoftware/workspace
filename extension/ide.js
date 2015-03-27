@@ -20,33 +20,34 @@ var
 	{
 		chrome.tabs.sendMessage(sender.tab.id, {
 			id: this.id,
-			server: result
+			server: result,
+			error: chrome.runtime.lastError
 		});
 	}
 
 	extend(API.debugger, {
 
-		attach: function(respond)
+		attach: function(data, respond)
 		{
-			chrome.debugger.attach(cmd.attach, VERSION.debugger, respond);
+			chrome.debugger.attach(data, VERSION.debugger, respond);
 		},
 
-		targets: function(respond)
+		targets: function(data, respond)
 		{
 			chrome.debugger.getTargets(respond);
 		}
 
 	});
 
-chrome.runtime.onMessage.addListener(function(data, sender) {
+chrome.runtime.onMessage.addListener(function(req, sender) {
 var
-	client = data.client,
+	client = req.client,
 	api = API[client.api],
 	fn = api && api[client.cmd],
-	response = respond.bind(data, sender)
+	response = respond.bind(req, sender)
 ;
 	if (fn)
-		fn(response);
+		fn(client.data, response);
 	else
 		response();
 });

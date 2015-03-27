@@ -308,7 +308,14 @@ var
 		 */
 		start: function() { },
 
-		/** Saves or retrieves local storage data */
+		log: function(msg, klass)
+		{
+			ide.notify('[' + this.name + '] ' + msg, klass);
+		},
+
+		/**
+		 * Saves or retrieves local storage data
+		 */
 		data: function(prop, value)
 		{
 			prop = 'ide.plugin.' + this.name + '.' + prop;
