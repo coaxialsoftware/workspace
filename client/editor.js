@@ -260,7 +260,7 @@ var
 
 		on_project: function()
 		{
-			this.files_text = this.get('files').join("\n");
+			this.files_text = ''; //this.get('files').join("\n");
 			this.trigger('load');
 		}
 

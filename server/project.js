@@ -41,8 +41,6 @@ class Project {
 	load()
 	{
 		this.env = process.env;
-		// TODO Move files to its own module
-		this.files = [];
 
 		workspace.plugins.emit('project.load', this);
 		return Q.resolve(this);

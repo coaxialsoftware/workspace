@@ -102,6 +102,7 @@ class PluginManager extends EventEmitter {
 	register(plugin)
 	{
 		this.plugins[plugin.name] = plugin;
+		return this;
 	}
 
 	start()
@@ -134,8 +135,10 @@ workspace.extend({
 	process.title = 'workspace:' + this.port;
 
 	// Register Default Plugins
-	this.plugins.register(require('./project'));
-	this.plugins.register(require('./file'));
+	this.plugins.register(require('./project'))
+		.register(require('./file'))
+		.register(require('./shell'))
+	;
 })
 
 .createServer()

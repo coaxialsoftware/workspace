@@ -13,7 +13,7 @@ var
 	workspace = require('./workspace'),
 	common = require('./common'),
 
-	plugin
+	plugin = module.exports = cxl('workspace.file')
 ;
 
 class File {
@@ -90,25 +90,11 @@ class File {
 
 }
 
-function HandleWrite(req, res) {
-
-	if (!req.body)
-		return res.status(400).end();
-
-	plugin.log('Writing ' + req.body.path + ' (' +
-		req.body.content.length + ')');
-
-	plugin.writeFile(req.body).then(function(result) {
-		res.send(result);
-	}, plugin.sendError.bind(plugin, res));
-}
-
-plugin = module.exports = cxl('workspace.file').config(function() {
+plugin.config(function() {
 
 	this.server = workspace.server;
 
-})
-.extend({
+}).extend({
 
 	sendError: function(res, err)
 	{
@@ -132,10 +118,24 @@ plugin = module.exports = cxl('workspace.file').config(function() {
 		filepath = this.getPath(body.project, body.filename)
 	;
 		return (new File(filepath, body)).write();
+	},
+
+	handleWrite: function(req, res) {
+
+		if (!req.body)
+			return res.status(400).end();
+
+		this.log(`Writing ${req.body.path} (${req.body.content.length})`);
+
+		this.writeFile(req.body).then(function(result) {
+			res.send(result);
+		}, plugin.sendError.bind(this, res));
 	}
 })
 
 .route('GET', '/file', function(req, res) {
+
+	this.log(`Reading ${req.query.p}/${req.query.n}.`);
 
 	this.getFile(req.query.p, req.query.n).then(function(result)
 	{
@@ -144,6 +144,6 @@ plugin = module.exports = cxl('workspace.file').config(function() {
 
 })
 
-.route('POST', '/file', HandleWrite)
+.route('POST', '/file', 'handleWrite')
 
-.route('PUT', '/file', HandleWrite);
+.route('PUT', '/file', 'handleWrite');
