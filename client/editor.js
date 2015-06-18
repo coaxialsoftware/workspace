@@ -394,14 +394,13 @@ var
 			if (typeof(file)==='string')
 				file = { filename: file };
 
-			file.filename = file.filename || '';
 			file.path = ide.project.get('path');
 
 			options.slot = ide.workspace.slot();
 
 			file = new ide.File(file);
 
-			if (file.attributes.content)
+			if (file.attributes.content || !file.attributes.filename)
 				this.each(cb);
 			else
 				file.fetch({

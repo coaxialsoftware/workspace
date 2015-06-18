@@ -292,6 +292,9 @@ ide.plugins.register('editor', new ide.Plugin({
 				file: file
 			})
 		;
+			if (!file.attributes.content)
+				file.set('content', '');
+
 			if (options && options.line)
 				setTimeout(function() {
 					editor.editor.gotoLine(options.line);

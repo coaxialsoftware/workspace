@@ -9,5 +9,6 @@
 	"maxdepth":3,
 	"maxlen": 100,
 	"indent": 4,
-	"latedef": true
+	"latedef": true,
+	"esnext": true
 }

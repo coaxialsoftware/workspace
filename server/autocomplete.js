@@ -1,4 +1,116 @@
 
+
+	load_ignore_file: function(filename, ignore)
+	{
+		this.log('Loading ignore file: ' + filename);
+		return common.read(filename).then(function(list) {
+			list = list.trim().split("\n");
+
+			list.forEach(function(p) {
+				if (ignore.indexOf(p)===-1)
+					ignore.push(p);
+			});
+		}).error(function() { });
+	},
+
+	load_ignore: function()
+	{
+		if (!this.ignore)
+			this.ignore = [ '.?*', 'node_modules', 'bower_modules' ];
+
+		return this.load_ignore_file(this.path + '/.gitignore', this.ignore)
+			.bind(this)
+			.then(function()
+			{
+				if (this.ignore instanceof Array)
+				{
+					this.ignoreRegex = '^(' + this.ignore
+						.join('|')
+						.replace(/\./g, "\\.")
+						.replace(/\?/g, ".?")
+						.replace(/\*/g, '.*')
+						.replace(/\/\s*\|/g, '|')
+						.replace(/\/$/, '')
+						.replace(/[-[\]{}()+,^$#\s]/g, "\\$&") +
+						')'
+					;
+				} else
+					this.ignoreRegex = new RegExp(this.ignore);
+			}
+		);
+	},
+
+	on_filechange: function(ev, file)
+	{
+		if (CONFIG_FILES.test(file))
+		{
+			this.log('Configuration file ' + file + ' changed. Rebuilding.');
+			this.load();
+		}
+		else if (ev==='rename' && !this.ignore.test(file))
+		{
+			this.log('File ' + file + ' changed. Rebuilding project files.');
+			this.load_files();
+		}
+
+	},
+
+	load_files: function()
+	{
+		this.loadingFiles = true;
+
+		return this.files().bind(this).then(function(files) {
+			this.files = files;
+			this.log(files.length + ' file(s) found.');
+		});
+	},
+
+	load: function()
+	{
+		if (!this.watcher)
+			this.watcher = fs.watch(this.path, this.on_filechange.bind(this));
+
+		this.env = process.env;
+
+		return this.load_ignore()
+			.then(this.load_files)
+			.then(function()
+			{
+				workspace.plugins.emit('project.load', this);
+
+				this.log("Loading complete.");
+				return this;
+			});
+	},
+
+	log: function(msg)
+	{
+		cxl.log(msg, colors.yellow(this.path));
+	},
+
+	error: function(msg)
+	{
+		cxl.log(msg, this.path, 'error');
+	},
+
+	files: function()
+	{
+	var
+		ignore = this.ignore,
+		result = []
+	;
+		return common.walk(this.path, function(path) {
+			if (ignore.test(path))
+				return;
+
+			result.push(path);
+		}).then(function() {
+			return result;
+		});
+	}
+
+
+
 module.exports = function(app, editor)
 {
 var

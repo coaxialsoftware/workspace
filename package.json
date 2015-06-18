@@ -15,10 +15,12 @@
 		"mime": "*",
 		"bluebird": "*",
 		"j5g3.inference": "j5g3/inference",
-		"colors": "*"
+		"colors": "*",
+		"cxl": "*"
 	},
 
 	"devDependencies": {
+		"ace-builds": "ajaxorg/ace-builds#7fafd12",
 		"grunt": "*",
 		"grunt-contrib-jshint": "*",
 		"grunt-contrib-clean": "*",

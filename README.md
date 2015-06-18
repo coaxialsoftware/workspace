@@ -2,21 +2,17 @@
 workspace
 =========
 
-Node JS lean vim-based editor for the web. 
+Lean and fast vim-based editor for the web. 
 
 Installation
 ------------
 
 	npm install
-	bower install
-	grunt minify
 
 Global Settings
 ---------------
 
 ~/.workspace/config.json
-
-Whatever is in this file will be the template for project.json
 
 
 Define a Workspace (optional)
@@ -83,7 +79,7 @@ project.json
 Startup
 -------
 
-From the workspace folder call "node bin/workspace", or install using npm install or link and run "workspace".
+From the workspace folder call "node bin/workspace", or install using npm install/link and run "workspace".
 
 Commands
 --------

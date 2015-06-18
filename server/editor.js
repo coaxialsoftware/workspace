@@ -7,38 +7,33 @@ var
 	path = require('path'),
 	colors = require('colors'),
 
-	Project = require('./project').Project,
+	cxl = require('cxl'),
 
-	Editor = function()
-	{
-	var
-		config = this.config = {
-			version: 0.1,
-			port: 9001,
-			files: [],
-			name: 'workspace',
-			path: process.cwd()
-		}
-	;
-		this.log('Loading global settings...');
-		common.extend(config, common.load_json_sync('~/.workspace/config.json'));
-
-		this.log('Loading workspace settings...');
-		common.extend(config, common.load_json_sync('workspace.json'));
-
-		this._projects = {};
-	}
+	Project = require('./project').Project
 ;
 
-common.extend(Editor.prototype, {
+exports.editor = cxl('editor').run(function() {
+var
+	config = this.config = {
+		version: 0.1,
+		port: 9001,
+		files: [],
+		name: 'workspace',
+		path: process.cwd()
+	}
+;
+	this.log('Loading global settings...');
+	common.extend(config, common.load_json_sync('~/.workspace/config.json'));
+
+	this.log('Loading workspace settings...');
+	common.extend(config, common.load_json_sync('workspace.json'));
+
+	this.projects = {};
+
+}).extend({
 
 	// Stores instances of projects
-	_projects: null,
-
-	log: function(msg)
-	{
-		console.log(colors.cyan("[workspace] ") + msg);
-	},
+	projects: null,
 
 	load: function()
 	{
@@ -238,13 +233,22 @@ common.extend(Editor.prototype, {
 				project.load().then(resolve);
 			}
 		});
-	},
-
-	to_json: function()
-	{
-		return this.load();
 	}
 
-});
+})
 
-exports.editor = new Editor();
+.use(cxl.static('public', { maxAge: 86400000 }))
+.use(cxl.static('bower_components', { maxAge: 86400000 }))
+
+.route('GET', '/home', function(req, res)
+{
+	res.send(this.load());
+})
+.route('GET', '/project', function(req, res)
+{
+	this.load_project(req.query.n).then(function(project)
+	{
+		res.send(project.to_json());
+	});
+})
+;
