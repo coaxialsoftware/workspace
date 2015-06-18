@@ -1,5 +1,4 @@
-
-
+/*
 	load_ignore_file: function(filename, ignore)
 	{
 		this.log('Loading ignore file: ' + filename);
@@ -28,7 +27,10 @@
 						.join('|')
 						.replace(/\./g, "\\.")
 						.replace(/\?/g, ".?")
-						.replace(/\*/g, '.*')
+						.replace(/\*/
+/*
+						g, '.*')
+
 						.replace(/\/\s*\|/g, '|')
 						.replace(/\/$/, '')
 						.replace(/[-[\]{}()+,^$#\s]/g, "\\$&") +
@@ -81,16 +83,6 @@
 				this.log("Loading complete.");
 				return this;
 			});
-	},
-
-	log: function(msg)
-	{
-		cxl.log(msg, colors.yellow(this.path));
-	},
-
-	error: function(msg)
-	{
-		cxl.log(msg, this.path, 'error');
 	},
 
 	files: function()
@@ -162,7 +154,7 @@ var
 			);
 		},
 
-		find_symbol: function(file, pos/*, infer*/)
+		find_symbol: function(file, pos)
 		{
 			return { file: file, pos: pos };
 		},
@@ -207,3 +199,4 @@ var
 		});
 	});
 };
+*/

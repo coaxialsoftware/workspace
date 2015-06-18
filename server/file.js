@@ -4,137 +4,143 @@
 "use strict";
 
 var
-	fs = require('fs'),
 	path = require('path'),
 	mime = require('mime'),
 	Q = require('bluebird'),
 
 	cxl = require('cxl'),
 
-	workspace = require('./workspace')
+	workspace = require('./workspace'),
+	common = require('./common'),
+
+	plugin
 ;
 
 class File {
 
-	constructor(filepath)
+	constructor(filepath, options)
 	{
-		this.path = path.normalize(filepath);
-		this.mime = mime.lookup(filepath);
-		this.__onContent = this.onContent.bind(this);
-		this.__onStat = this.onStat.bind(this);
+		if (options)
+			cxl.extend(this, options);
+
+		this.path = filepath;
+		this.mime = mime.lookup(this.path);
 	}
 
-	onContent(result)
+	getStat()
 	{
-		this.content = result;
+		return common.stat(this.path).bind(this);
+	}
+
+	onContent(content)
+	{
+		this.content = content;
 		return this;
 	}
 
-	onStat(cb, err, stat)
+	read()
 	{
-		if (err)
-		{
-			this.new = true;
-			cb(this);
-		} else
-		{
+		return this.getStat().then(function(stat) {
+			this.stat = stat;
 			this.directory = stat.isDirectory();
 
-			if (this.directory)
-				fs.readdir(this.path, this.__onContent);
-			else
-				fs.readFile(this.path, 'utf8', this.__onContent);
-		}
+			return (this.directory ?
+				common.readDirectory(this.path) :
+				common.readFile(this.path, 'utf8')).bind(this)
+					.then(this.onContent);
+
+		}, function() {
+			this.new = true;
+			return this;
+		});
 	}
 
-	load(cb)
-	{
-		fs.stat(this.path, this.onStat.bind(this, cb));
-	}
-
-}
-
-class FileManager {
-
-	constructor()
-	{
-		this.files = {};
-	}
-
-	getFile(project, filename, callback)
+	checkChanged()
 	{
 	var
-		path = project + '/' + filename,
-		file = this.files[path] || (this.files[path] = new File(path))
+		stat = this.stat,
+		mtime = stat && (new Date(stat.mtime)).getTime()
 	;
-		file.load(callback);
-
-		return this;
-	}
-
-}
-
-function writeFile(query, body, callback)
-{
-var
-	me = this,
-	content = body.content,
-	file = (query.p ? query.p+'/' : '') + query.n,
-	mtime = query.t,
-	project = me._projects[query.p] || me,
-	result = {
-		success: true
-	}
-;
-	fs.stat(file, function(err, stat)
-	{
-		if (err && !(err.code==='ENOENT' && body.new))
-			return callback(me.error(err));
-
-		if (stat && (mtime !== (stat.mtime.getTime()+'')))
-			return callback(me.error("File contents have changed."));
-
-		project.log('Writing ' + file + '(' + content.length + ')');
-
-		fs.writeFile(file, content, function(err)
-		{
-			if (err)
-				callback(me.error(err));
-			else
-				fs.stat(file, function(err, stat) {
-					result.stat = stat;
-					result.new = false;
-					callback(err ? me.error(err) : result);
-				});
+		return this.getStat().then(function(stat) {
+			if (mtime !== stat.mtime.getTime())
+				return Q.reject("File contents have changed.");
+		}, function(err) {
+			if (err.code!=='ENOENT')
+				return Q.reject(err);
 		});
-	});
+	}
+
+	write()
+	{
+		function OnWrite(stat)
+		{
+			this.stat = stat;
+			this.new = false;
+			return this;
+		}
+
+		function WriteFile()
+		{
+			return common.writeFile(this.path, this.content);
+		}
+
+		return this.checkChanged().then(WriteFile)
+			.then(this.getStat).then(OnWrite);
+	}
+
 }
 
 function HandleWrite(req, res) {
 
 	if (!req.body)
-		return res.send(this.error("Invalid request."));
+		return res.status(400).end();
 
-	writeFile(req.query, req.body, function(result)
-		{
-			res.status(result.success ? 200: 403).send(result);
-		}
-	);
+	plugin.log('Writing ' + req.body.path + ' (' +
+		req.body.content.length + ')');
+
+	plugin.writeFile(req.body).then(function(result) {
+		res.send(result);
+	}, plugin.sendError.bind(plugin, res));
 }
 
-module.exports = cxl('workspace.file').config(function() {
+plugin = module.exports = cxl('workspace.file').config(function() {
 
 	this.server = workspace.server;
-	this.fileManager = new FileManager();
 
+})
+.extend({
+
+	sendError: function(res, err)
+	{
+		this.error(err);
+		res.status(500).send({ error: err.toString() });
+	},
+
+	getPath: function(project, filename)
+	{
+		return path.normalize((project ? project + '/' : '') + filename);
+	},
+
+	getFile: function(project, filename)
+	{
+		return (new File(this.getPath(project, filename))).read();
+	},
+
+	writeFile: function(body)
+	{
+	var
+		filepath = this.getPath(body.project, body.filename)
+	;
+		return (new File(filepath, body)).write();
+	}
 })
 
 .route('GET', '/file', function(req, res) {
 
-	this.fileManager.getFile(req.query.p, req.query.n, function(result)
+	this.getFile(req.query.p, req.query.n).then(function(result)
 	{
 		res.send(result);
-	});
+	}, this.sendError.bind(this, res));
 
 })
 

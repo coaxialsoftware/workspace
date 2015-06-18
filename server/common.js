@@ -2,12 +2,16 @@
 var
 	fs = require('fs'),
 	Q = require('bluebird'),
-	cxl = require('cxl'),
 
-	common = module.exports = {
+	common
+;
+
+common = module.exports = {
 
 	readFile: Q.promisify(fs.readFile),
 	readDirectory: Q.promisify(fs.readdir),
+	writeFile: Q.promisify(fs.writeFile),
+	stat: Q.promisify(fs.stat),
 
 	isDirectory: function(path)
 	{

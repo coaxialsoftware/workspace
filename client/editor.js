@@ -165,7 +165,7 @@ var
 
 	File: Backbone.Model.extend({ /** @lends ide.File# */
 
-		idAttribute: 'filename',
+		idAttribute: 'path',
 
 		initialize: function()
 		{
@@ -179,9 +179,13 @@ var
 			ide.notify('File ' + this.id + ' saved.');
 		},
 
-		_onError: function()
+		_onError: function(file, res)
 		{
-			ide.error('Error saving file: ' + this.id);
+		var
+			msg = (res && (res.responseJSON && res.responseJSON.error) ||
+				res.responseText) || 'Error saving file: ' + this.id
+		;
+			ide.error(msg);
 		},
 
 		save: function()
@@ -199,18 +203,17 @@ var
 
 		parse: function(response)
 		{
-			response.ext = /(?:\.([^.]+))?$/.exec(response.filename)[1];
+			response.ext = /(?:\.([^.]+))?$/.exec(response.path)[1];
 			return response;
 		},
 
 		url: function()
 		{
 		var
-			stat = this.get('stat'),
-			mtime = stat ? (new Date(stat.mtime)).getTime() : false
+			mtime = Date.now()
 		;
-			return '/file?p=' + this.get('path') +
-				'&n=' + this.id + '&t=' + mtime;
+			return '/file?p=' + this.get('project') +
+				'&n=' + this.get('filename') + '&t=' + mtime;
 		},
 
 		toString: function()
@@ -248,7 +251,7 @@ var
 		{
 		var
 			file = new ide.File({
-				path: this.get('path'),
+				project: this.get('path'),
 				filename: filename || ''
 			})
 		;
@@ -394,7 +397,7 @@ var
 			if (typeof(file)==='string')
 				file = { filename: file };
 
-			file.path = ide.project.get('path');
+			file.project = ide.project.get('path');
 
 			options.slot = ide.workspace.slot();
 
