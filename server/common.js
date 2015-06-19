@@ -1,4 +1,6 @@
 
+"use strict";
+
 var
 	fs = require('fs'),
 	Q = require('bluebird'),
@@ -52,22 +54,42 @@ common = module.exports = {
 	/**
 	 * Walks path, executes callback for each path and returns
 	 */
-	walk: function(path, callback)
+	walk: function(dir, ignore, done, path)
 	{
-		return common.readDirectory(path).then(function(files)
+		var results = [];
+		path = path || '';
+
+		fs.readdir(dir, function(err, list)
 		{
-			return Q.all(files.map(function(file) {
-				var fn = path + '/' + file;
+			if (err) return done(err);
+			var pending = list.length;
 
-				return fs.statSync(fn).isDirectory() ?
-					common.walk(fn, callback) :
-					callback && callback(fs) || fn;
-			}));
+			if (!pending) return done(null, results);
 
-		}, function(err) {
-			console.error(err);
-		}).catch(function(err) {
-			console.error(err);
+			list.forEach(function(file) {
+
+				if (ignore && ignore(file))
+				{
+					if (!--pending) done(null, results);
+					return;
+				} else
+				{
+					let relfile = path + file;
+					file = dir + '/' + file;
+					fs.stat(file, function(err, stat) {
+
+						if (stat && stat.isDirectory()) {
+							common.walk(file, ignore, function(err, res) {
+								results = results.concat(res);
+								if (!--pending) done(null, results);
+							}, relfile + '/');
+						} else {
+							results.push(relfile);
+							if (!--pending) done(null, results);
+						}
+					});
+				}
+			});
 		});
 	},
 

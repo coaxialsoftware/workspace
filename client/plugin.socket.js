@@ -5,9 +5,9 @@
 (function(window, ide, cxl) {
 "use strict";
 
-ide.plugins.register('socket', new cxl.Emitter({
+ide.plugins.register('socket', ide.socket = new ide.Plugin({
 
-	send: function(plugin, data)
+	__doSend: function(plugin, data)
 	{
 		this.ws.send(JSON.stringify({
 			plugin: plugin,
@@ -15,10 +15,21 @@ ide.plugins.register('socket', new cxl.Emitter({
 		}));
 	},
 
-	ready: function()
+	/**
+	 * Sends Data to Socket. If socket is not ready it will wait until it is
+	 * and send it.
+	 */
+	send: function(plugin, data)
+	{
+		if (this.ws.readyState!==1)
+			ide.plugins.once('socket.ready', this.__doSend.bind(this, plugin, data));
+		else
+			this.__doSend(plugin, data);
+	},
+
+	start: function()
 	{
 	var
-		me = this,
 		doc = window.document
 	;
 		if (!window.WebSocket)
@@ -34,13 +45,13 @@ ide.plugins.register('socket', new cxl.Emitter({
 				'ws://' + this.config.host + ':' + this.config.port, 'workspace');
 
 			this.ws.addEventListener('open', function() {
-				me.trigger('ready', this);
+				ide.plugins.trigger('socket.ready', this);
 			});
 
 			this.ws.addEventListener('message', function(ev) {
 				var msg = JSON.parse(ev.data);
 
-				me.trigger('message.' + msg.plugin, msg.data);
+				ide.plugins.trigger('socket.message.' + msg.plugin, msg.data);
 			});
 
 		} catch(e)
@@ -53,4 +64,3 @@ ide.plugins.register('socket', new cxl.Emitter({
 }));
 
 })(this, this.ide, this.cxl);
-

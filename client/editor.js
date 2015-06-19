@@ -24,6 +24,9 @@ var
 	/** Current workspace */
 	workspace: null,
 
+	/** Current WebSocket */
+	socket: null,
+
 	/** Plugin Manager */
 	plugins: null,
 
@@ -224,10 +227,19 @@ var
 				return window.localStorage[prop];
 
 			window.localStorage[prop] = value;
+		},
+
+		/**
+		 * Sends data through web socket
+		 */
+		send: function(data)
+		{
+			ide.socket.send(this.name, data);
+			return this;
 		}
 	});
 
-	_.extend(ide.PluginManager.prototype, { /** @lends ide.PluginManager# */
+	_.extend(ide.PluginManager.prototype, Backbone.Events, {
 
 		/** @private Shift modifier */
 		_SHIFT: 1000,

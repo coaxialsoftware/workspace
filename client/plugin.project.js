@@ -60,9 +60,10 @@ ide.plugins.register('project', {
 
 	ready: function()
 	{
-		var socket = ide.plugins.get('socket');
-
-		socket.on('message.project', this.onMessage, this);
+		ide.plugins.on('socket.message.project', this.onMessage, this);
+		ide.socket.send('project', {
+			project: ide.project.id
+		});
 	}
 
 });

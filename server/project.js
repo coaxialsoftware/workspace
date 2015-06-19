@@ -9,13 +9,17 @@ var
 	Q = require('bluebird'),
 	cxl = require('cxl'),
 	_ = require('lodash'),
+	colors = require('colors'),
+	micromatch = require('micromatch'),
 
 	common = require('./common.js'),
 
 	//CONFIG_FILES = /bower\.json|package\.json|project\.json/,
 
 	workspace = require('./workspace'),
-	chokidar = require('chokidar')
+	chokidar = require('chokidar'),
+
+	plugin = module.exports = cxl('workspace.project')
 ;
 
 class Project {
@@ -36,6 +40,8 @@ class Project {
 			workspace: !!project
 		};
 
+		Object.defineProperty(this, 'clients', {
+			value: [], enumerable: false });
 
 		workspace.plugins.emit('project.create', this);
 	}
@@ -47,39 +53,103 @@ class Project {
 		p.push(promise);
 	}
 
-	generateIgnoreRegex()
+	generateIgnore()
 	{
-		this.ignore = _.uniq(this.ignore);
+		var ignore = this.ignore = _.uniq(this.ignore);
+		this.ignoreMatcher = function(path) {
+			return micromatch.any(path, ignore);
+		};
+	}
 
-		this.ignoreRegex = '^(?:' + this.ignore
-			.join('|')
-			.replace(/\./g, "\\.")
-			.replace(/\?/g, ".?")
-			.replace(/\*/g, '.*')
+	log(msg)
+	{
+		plugin.log(`${colors.yellow(this.path)} ${msg}`);
+	}
 
-			.replace(/\/\s*\|/g, '|')
-			.replace(/\/$/, '')
-			.replace(/[-[\]{}()+,^$#\s]/g, "\\$&") +
-		')';
+	rebuildFiles()
+	{
+	var
+		me = this, time = Date.now()
+	;
+		me.log('Building file list.');
+
+		common.walk(this.path, this.ignoreMatcher, function(err, result) {
+			if (err)
+				return plugin.error(err);
+
+			me.log(`${result.length} file(s) found (${Date.now()-time} ms).`);
+			me.files = result;
+			me.broadcast();
+		});
+	}
+
+	getPayload()
+	{
+		return JSON.stringify({
+			plugin: 'project',
+			data: {
+				files: this.files
+			}
+		});
+	}
+
+	broadcast()
+	{
+		var me = this;
+		this.clients.forEach(function(client) {
+			client.send(me.getPayload());
+		});
+	}
+
+	onMessage(client)
+	{
+		if (this.clients.indexOf(client)===-1)
+		{
+			this.log(`Registering client ${client.id}.`);
+			this.clients.push(client);
+			client.send(this.getPayload());
+		}
+	}
+
+	onWatch(ev, path)
+	{
+		if (ev!=='change')
+			this.rebuildFiles();
+
+		this.log(ev + ' ' + path);
+	}
+
+	onTimeout()
+	{
+		if (!this.watcher)
+		{
+			this.log(`Watching ${this.path}`);
+			this.watcher = chokidar.watch(this.path, {
+				//ignored: this.ignoreRegex,
+				followSymlinks: false,
+				ignoreInitial: true
+			});
+			this.watcher.on('all', this.onWatch.bind(this));
+			Object.defineProperty(this, 'watcher', { enumerable: false });
+		}
+
+		this.generateIgnore();
+		this.rebuildFiles();
 	}
 
 	onResolved()
 	{
-		this.generateIgnoreRegex();
-
-		if (!this.watcher)
-			this.watcher = chokidar.watch(this.path, {
-				ignore: this.ignore
-			});
+		setImmediate(this.onTimeout.bind(this));
 
 		delete this.promises;
-		Object.defineProperty(this, 'watcher', { enumerable: false });
 
 		return this;
 	}
 
 	load()
 	{
+		this.log('Loading');
+
 		if (this.loaded)
 			return Q.resolve(this);
 
@@ -150,14 +220,24 @@ class ProjectManager {
 	}
 }
 
-module.exports = cxl('workspace.project').config(function() {
+plugin.extend({
+	onMessage: function(client, data)
+	{
+		this.projectManager.projects[data.project].onMessage(client, data);
+	}
+})
+.config(function() {
 	this.server = workspace.server;
 	this.projectManager = new ProjectManager();
 })
+.run(function() {
 
+	workspace.plugins.on('socket.message.project',
+		this.onMessage.bind(this));
+
+})
 .route('GET', '/project', function(req, res) {
 
-	this.log(`Loading project ${req.query.n}`);
 	this.projectManager.load(req.query.n).then(function(result) {
 		res.send(result);
 	});

@@ -19,7 +19,8 @@
 		"cxl": "*",
 		"websocket": "*",
 		"chokidar": "*",
-		"lodash": "*"
+		"lodash": "*",
+		"micromatch": "*"
 	},
 
 	"devDependencies": {
