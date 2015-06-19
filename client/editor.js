@@ -446,7 +446,7 @@ var
 	 */
 	ide.loader = new window.Loader();
 
-	window.addEventListener('load', _start);
+	window.addEventListener('DOMContentLoaded', _start);
 
 	ide.Editor = Backbone.View.extend({
 

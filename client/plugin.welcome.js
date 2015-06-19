@@ -51,6 +51,7 @@ ide.plugins.register('welcome', new ide.Plugin({
 
 		container.find('.content').click(function(ev) {
 			ide.commands.project(ev.currentTarget.dataset.path);
+			ev.preventDefault();
 		});
 	}
 

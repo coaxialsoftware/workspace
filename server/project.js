@@ -70,7 +70,6 @@ class Project {
 		me = this, time = Date.now()
 	;
 		me.watcher.rebuilding = true;
-		me.log('Building file list.');
 
 		common.walk(this.path, this.ignoreMatcher, function(err, result) {
 			me.watcher.rebuilding = false;
@@ -126,7 +125,6 @@ class Project {
 
 		if (!this.watcher)
 		{
-			this.log(`Watching ${this.path}`);
 			this.watcher = chokidar.watch(this.path, {
 				ignored: this.ignore,
 				followSymlinks: false,
