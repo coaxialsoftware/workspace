@@ -1,4 +1,8 @@
 {
 	"port": 9002,
-	"debug": true
+	"debug": true,
+	
+	"socket": {
+		"port": 9005
+	}
 }

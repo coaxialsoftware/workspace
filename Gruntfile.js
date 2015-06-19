@@ -5,7 +5,7 @@ module.exports = function(grunt) {
 		path: {
 			ace: "bower_components/ace-builds/src",
 			backbone: "bower_components/backbone",
-			underscore: "bower_components/underscore",
+			lodash: "bower_components/lodash",
 			jquery: "bower_components/jquery"
 		},
 
@@ -46,8 +46,9 @@ module.exports = function(grunt) {
 					'<%= path.ace %>/keybinding-vim.js',
 
 					'<%= path.jquery %>/dist/jquery.js',
-					'<%= path.underscore %>/underscore.js',
-					'<%= path.backbone %>/backbone.js'
+					'<%= path.lodash%>/lodash.js',
+					'<%= path.backbone %>/backbone.js',
+					'node_modules/cxl/dist/cxl.js'
 				],
 				dest: 'public/build/libs.js'
 			},

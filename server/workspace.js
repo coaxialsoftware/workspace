@@ -138,6 +138,8 @@ workspace.extend({
 	this.plugins.register(require('./project'))
 		.register(require('./file'))
 		.register(require('./shell'))
+		.register(require('./socket'))
+		.register(require('./git'))
 	;
 })
 

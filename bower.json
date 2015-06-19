@@ -6,6 +6,6 @@
     "ace-builds": "1.1.8",
     "backbone": "*",
     "jquery": "*",
-    "underscore": "*"
+    "lodash": "*"
   }
 }

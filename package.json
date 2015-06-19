@@ -16,7 +16,10 @@
 		"bluebird": "*",
 		"j5g3.inference": "j5g3/inference",
 		"colors": "*",
-		"cxl": "*"
+		"cxl": "*",
+		"websocket": "*",
+		"chokidar": "*",
+		"lodash": "*"
 	},
 
 	"devDependencies": {

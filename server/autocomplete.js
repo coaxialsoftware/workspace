@@ -1,47 +1,4 @@
 /*
-	load_ignore_file: function(filename, ignore)
-	{
-		this.log('Loading ignore file: ' + filename);
-		return common.read(filename).then(function(list) {
-			list = list.trim().split("\n");
-
-			list.forEach(function(p) {
-				if (ignore.indexOf(p)===-1)
-					ignore.push(p);
-			});
-		}).error(function() { });
-	},
-
-	load_ignore: function()
-	{
-		if (!this.ignore)
-			this.ignore = [ '.?*', 'node_modules', 'bower_modules' ];
-
-		return this.load_ignore_file(this.path + '/.gitignore', this.ignore)
-			.bind(this)
-			.then(function()
-			{
-				if (this.ignore instanceof Array)
-				{
-					this.ignoreRegex = '^(' + this.ignore
-						.join('|')
-						.replace(/\./g, "\\.")
-						.replace(/\?/g, ".?")
-						.replace(/\*/
-/*
-						g, '.*')
-
-						.replace(/\/\s*\|/g, '|')
-						.replace(/\/$/, '')
-						.replace(/[-[\]{}()+,^$#\s]/g, "\\$&") +
-						')'
-					;
-				} else
-					this.ignoreRegex = new RegExp(this.ignore);
-			}
-		);
-	},
-
 	on_filechange: function(ev, file)
 	{
 		if (CONFIG_FILES.test(file))
