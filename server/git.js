@@ -28,7 +28,7 @@ plugin.extend({
 			.then(function(data) {
 				var f = data.trim().split("\n");
 				project.ignore = project.ignore.concat(f);
-			});
+			}, function() { });
 	},
 
 	onProjectLoad: function(project)

@@ -135,7 +135,7 @@ plugin.config(function() {
 
 .route('GET', '/file', function(req, res) {
 
-	this.log(`Reading ${req.query.p}/${req.query.n}.`);
+	this.log(`Reading "${req.query.p}/${req.query.n}".`);
 
 	this.getFile(req.query.p, req.query.n).then(function(result)
 	{

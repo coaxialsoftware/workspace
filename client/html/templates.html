@@ -41,13 +41,15 @@
 	<a class="content" href="javascript:" data-path="<%=p.path%>">
 		<h3>
 			<% for (var i in p.tags) { %>
+				<% if (p.tags[i]) { %>
 				<span class="label"><%= i %></span>
+				<% } %>
 			<% } %>
 
 			<%= p.path %>
 		</h3>
 		<p>
-			<%= p.package ? p.package.description : '' %>
+			<%= p.description %>
 		</p>
 	</a>
 </div>

@@ -25,7 +25,6 @@ class Configuration {
 		cxl.extend(this, {
 			version: '0.1',
 			name: 'workspace',
-			path: process.cwd(),
 			env: process.env,
 			user: process.env.USER
 		});
@@ -140,6 +139,8 @@ workspace.extend({
 		.register(require('./shell'))
 		.register(require('./socket'))
 		.register(require('./git'))
+		.register(require('./npm'))
+		.register(require('./bower'))
 	;
 })
 

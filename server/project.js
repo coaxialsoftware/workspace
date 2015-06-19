@@ -34,9 +34,7 @@ class Project {
 		cxl.extend(this, workspace.configuration.project_defaults, project);
 
 		//bower: common.load_json_sync(path+'/bower.json'),
-		//package: common.load_json_sync(path+'/package.json'),
 		this.tags = {
-			//npm: !!this.package,
 			workspace: !!project
 		};
 
@@ -71,9 +69,12 @@ class Project {
 	var
 		me = this, time = Date.now()
 	;
+		me.watcher.rebuilding = true;
 		me.log('Building file list.');
 
 		common.walk(this.path, this.ignoreMatcher, function(err, result) {
+			me.watcher.rebuilding = false;
+
 			if (err)
 				return plugin.error(err);
 
@@ -113,7 +114,7 @@ class Project {
 
 	onWatch(ev, path)
 	{
-		if (ev!=='change')
+		if (ev!=='change' && !this.watcher.rebuilding)
 			this.rebuildFiles();
 
 		this.log(ev + ' ' + path);
@@ -121,19 +122,21 @@ class Project {
 
 	onTimeout()
 	{
+		this.generateIgnore();
+
 		if (!this.watcher)
 		{
 			this.log(`Watching ${this.path}`);
 			this.watcher = chokidar.watch(this.path, {
-				//ignored: this.ignoreRegex,
+				ignored: this.ignore,
 				followSymlinks: false,
-				ignoreInitial: true
+				ignoreInitial: true,
+				cwd: this.path
 			});
 			this.watcher.on('all', this.onWatch.bind(this));
 			Object.defineProperty(this, 'watcher', { enumerable: false });
 		}
 
-		this.generateIgnore();
 		this.rebuildFiles();
 	}
 
@@ -148,10 +151,10 @@ class Project {
 
 	load()
 	{
-		this.log('Loading');
-
 		if (this.loaded)
 			return Q.resolve(this);
+
+		this.log('Loading.');
 
 		if (!this.ignore)
 			this.ignore = [ '.*', 'node_modules', 'bower_modules' ];
@@ -187,8 +190,7 @@ class ProjectManager {
 
 	loadAll()
 	{
-		return this.findProjects().bind(this)
-			.then(function(projects) {
+		return this.findProjects().then(function(projects) {
 				return cxl.extend({
 					projects: projects,
 					files: Object.keys(projects)
@@ -223,7 +225,10 @@ class ProjectManager {
 plugin.extend({
 	onMessage: function(client, data)
 	{
-		this.projectManager.projects[data.project].onMessage(client, data);
+		var project = this.projectManager.projects[data.project];
+
+		if (project)
+			project.onMessage(client, data);
 	}
 })
 .config(function() {
