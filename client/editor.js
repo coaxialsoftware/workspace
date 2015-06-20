@@ -3,7 +3,7 @@
  *
  */
 
-(function(window, _, Backbone, $) {
+(function(window, _, $, cxl) {
 "use strict";
 
 var
@@ -11,7 +11,7 @@ var
 
 	ide =
 	/** @namespace */
-	window.ide = new (Backbone.View.extend({ /** @lends ide */
+	window.ide = new (cxl.View.extend({ /** @lends ide */
 
 	/** @event write {function(file)} Fires when a file is saved. */
 	/** @event beforewrite {function(file)} Fires before a save event. Useful if
@@ -115,7 +115,7 @@ var
 		_.extend(this, p);
 	},
 
-	Info: Backbone.View.extend({ /** @lends ide.Info# */
+	Info: cxl.View.extend({ /** @lends ide.Info# */
 
 		_delay: 1500,
 
@@ -239,7 +239,7 @@ var
 		}
 	});
 
-	_.extend(ide.PluginManager.prototype, Backbone.Events, {
+	_.extend(ide.PluginManager.prototype, cxl.Events, {
 
 		/** @private Shift modifier */
 		_SHIFT: 1000,
@@ -448,7 +448,7 @@ var
 
 	window.addEventListener('DOMContentLoaded', _start);
 
-	ide.Editor = Backbone.View.extend({
+	ide.Editor = cxl.View.extend({
 
 		constructor: function(p)
 		{
@@ -462,7 +462,7 @@ var
 				.on('click', this._on_click.bind(this));
 			this.slot.editor = this;
 
-			Backbone.View.prototype.constructor.call(this, p);
+			cxl.View.prototype.constructor.call(this, p);
 			this.setup();
 		},
 
@@ -522,4 +522,4 @@ var
 
 	});
 
-})(this, this._, this.Backbone, this.jQuery);
+})(this, this._, this.jQuery, this.cxl);

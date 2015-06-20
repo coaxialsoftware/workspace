@@ -22,7 +22,7 @@ ide.plugins.register('welcome', new ide.Plugin({
 		if (project)
 		{
 			window.document.title = project;
-			$('#subtitle').html(project + ' ' + p.get('version'));
+			$('#subtitle').html(project + ' ' + (p.get('version')||''));
 		}
 
 		if (projects)

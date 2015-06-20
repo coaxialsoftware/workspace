@@ -42,6 +42,9 @@ class Project {
 			value: [], enumerable: false });
 
 		workspace.plugins.emit('project.create', this);
+
+		if (!this.name)
+			this.name = this.path;
 	}
 
 	resolve(promise)
