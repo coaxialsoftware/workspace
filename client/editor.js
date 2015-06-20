@@ -446,8 +446,6 @@ var
 	 */
 	ide.loader = new window.Loader();
 
-	window.addEventListener('DOMContentLoaded', _start);
-
 	ide.Editor = cxl.View.extend({
 
 		constructor: function(p)
@@ -521,5 +519,10 @@ var
 		}
 
 	});
+
+	if (document.readyState!=='loading')
+		window.setTimeout(_start);
+	else
+		window.addEventListener('DOMContentLoaded', _start);
 
 })(this, this._, this.jQuery, this.cxl);
