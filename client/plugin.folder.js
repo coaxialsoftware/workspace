@@ -4,7 +4,7 @@
 
 ide.FileList = ide.Editor.extend({
 
-	template: '#tpl-filelist',
+	list_template: '#tpl-filelist',
 	file_template: '#tpl-file',
 
 	title: null,
@@ -43,19 +43,19 @@ ide.FileList = ide.Editor.extend({
 				ignore: this.ignore
 			});
 
-		this.$('.filelist-content').append(result);
+		this.$el.find('.filelist-content').append(result);
 	},
 
 	focus: function()
 	{
-		this.$('a:eq(0)').focus();
+		this.$el.find('a:eq(0)').focus();
 		ide.Editor.prototype.focus.call(this);
 	},
 
 	setup: function()
 	{
 	var
-		tpl = _.template($(this.template).html()),
+		tpl = _.template($(this.list_template).html()),
 		me = this
 	;
 		me.$el.addClass('ide-panel').html(tpl({
