@@ -119,7 +119,7 @@ plugin.config(function() {
 		if (!req.body)
 			return res.status(400).end();
 
-		this.log(`Writing ${req.body.path} (${req.body.content.length})`);
+		this.log(`Writing "${req.body.path}" (${req.body.content.length})`);
 
 		this.writeFile(req.body).then(function(result) {
 			res.send(result);

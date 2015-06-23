@@ -77,13 +77,14 @@ common = module.exports = {
 
 			list.forEach(function(file) {
 
-				if (ignore && ignore(file))
+				let relfile = path + file;
+
+				if (ignore && ignore(relfile))
 				{
 					if (!--pending) done(null, results);
 					return;
 				} else
 				{
-					let relfile = path + file;
 					file = dir + '/' + file;
 					fs.stat(file, function(err, stat) {
 
