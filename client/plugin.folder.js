@@ -38,9 +38,9 @@ ide.FileList = ide.Editor.extend({
 			el.find(':focus').parent()[dir]().find('a').focus();
 			ev.preventDefault();
 		}
-		if (ev.keyCode===0x26)
+		if (ev.keyCode===0x26 || ev.keyCode===0x4b)
 			go('prev');
-		else if (ev.keyCode===0x28)
+		else if (ev.keyCode===0x28 || ev.keyCode===0x4a)
 			go('next');
 	},
 
