@@ -65,7 +65,7 @@ class File {
 			if (mtime !== stat.mtime.getTime())
 				return Q.reject("File contents have changed.");
 		}, function(err) {
-			if (err.code!=='ENOENT')
+			if (err.cause.code!=='ENOENT')
 				return Q.reject(err);
 		});
 	}
@@ -96,12 +96,6 @@ plugin.config(function() {
 
 }).extend({
 
-	sendError: function(res, err)
-	{
-		this.error(err);
-		res.status(500).send({ error: err.toString() });
-	},
-
 	getPath: function(project, filename)
 	{
 		return path.normalize((project ? project + '/' : '') + filename);
@@ -129,7 +123,7 @@ plugin.config(function() {
 
 		this.writeFile(req.body).then(function(result) {
 			res.send(result);
-		}, plugin.sendError.bind(this, res));
+		}, common.sendError(this, res));
 	}
 })
 
@@ -140,7 +134,7 @@ plugin.config(function() {
 	this.getFile(req.query.p, req.query.n).then(function(result)
 	{
 		res.send(result);
-	}, this.sendError.bind(this, res));
+	}, common.sendError(this, res));
 
 })
 

@@ -26,7 +26,7 @@ plugin.extend({
 	{
 		return common.read(project.path + '/.gitignore')
 			.then(function(data) {
-				var f = data.trim().split("\n");
+				var f = data.trim().replace(/[\/\\]$/mg, '').split("\n");
 				project.ignore = project.ignore.concat(f);
 			}, function() { });
 	},

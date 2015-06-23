@@ -143,9 +143,16 @@ class Project {
 	{
 		setImmediate(this.onTimeout.bind(this));
 
+		this.loaded = true;
+
 		delete this.promises;
 
 		return this;
+	}
+
+	onLoadFail(err)
+	{
+		return Q.reject(err);
 	}
 
 	load()
@@ -157,13 +164,12 @@ class Project {
 
 		this.env = process.env;
 
+		// Make sure project exists.
+		this.resolve(common.stat(this.path));
+
 		workspace.plugins.emit('project.load', this);
 
-		this.loaded = true;
-
-		return this.promises ? Q.all(this.promises)
-			.bind(this).then(this.onResolved) :
-			Q.resolve(this.onResolved());
+		return Q.all(this.promises).bind(this).then(this.onResolved, this.onLoadFail);
 	}
 }
 
@@ -265,5 +271,5 @@ plugin.extend({
 
 	this.projectManager.load(req.query.n).then(function(result) {
 		res.send(result);
-	});
+	}, common.sendError(this, res));
 });

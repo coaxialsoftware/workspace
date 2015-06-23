@@ -15,6 +15,15 @@ common = module.exports = {
 	writeFile: Q.promisify(fs.writeFile),
 	stat: Q.promisify(fs.stat),
 
+	sendError: function(module, res, status)
+	{
+		return function(err)
+		{
+			module.error(err);
+			res.status(status || 500).send({ error: err.toString() });
+		};
+	},
+
 	isDirectory: function(path)
 	{
 		return fs.statSync(path).isDirectory();
