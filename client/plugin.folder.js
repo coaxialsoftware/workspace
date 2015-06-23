@@ -29,6 +29,21 @@ ide.FileList = ide.Editor.extend({
 			ide.workspace.remove(this);
 	},
 
+	on_keyup: function(ev)
+	{
+		var el = this.$el;
+
+		function go(dir)
+		{
+			el.find(':focus').parent()[dir]().find('a').focus();
+			ev.preventDefault();
+		}
+		if (ev.keyCode===0x26)
+			go('prev');
+		else if (ev.keyCode===0x28)
+			go('next');
+	},
+
 	add_files: function(files)
 	{
 	var
@@ -66,6 +81,7 @@ ide.FileList = ide.Editor.extend({
 			me.add_files(me.files);
 
 		me.$el.on('click', '.content', me.on_click.bind(me));
+		me.$el.on('keyup', me.on_keyup.bind(me));
 	}
 });
 

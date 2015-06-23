@@ -1,5 +1,5 @@
 
-(function(ide, Backbone, $, _, undefined) {
+(function(ide, cxl, $, undefined) {
 "use strict";
 
 var
@@ -14,7 +14,7 @@ var
 		this.data = hash;
 	}
 
-	_.extend(Hash.prototype, {
+	cxl.extend(Hash.prototype, {
 
 		data: null,
 
@@ -45,7 +45,7 @@ var
 		encode: function(obj)
 		{
 		var
-			data = this.clean($.extend({}, this.data, obj)),
+			data = this.clean(cxl.extend({}, this.data, obj)),
 			hash = JSON.stringify(data)
 		;
 
@@ -54,7 +54,7 @@ var
 
 		set: function(obj)
 		{
-			$.extend(this.data,obj);
+			cxl.extend(this.data, obj);
 			window.location.hash = this.encode();
 		}
 	});
@@ -103,7 +103,7 @@ var
 
 	};
 
-	ide.Workspace = Backbone.View.extend({ /** @lends ide.Workspace# */
+	ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 
 		el: '#workspace',
 
@@ -131,11 +131,9 @@ var
 				this.load_editor(files);
 		},
 
-		load: function()
+		load_workspace: function()
 		{
 			ide.plugins.start();
-			$('#mask').hide();
-
 			this.load_files();
 		},
 
@@ -355,9 +353,9 @@ var
 			project.fetch({ success: cb });
 		},
 
-		initialize: function Workspace()
+		initialize: function()
 		{
-			this.load_project(this.load.bind(this));
+			this.load_project(this.load_workspace.bind(this));
 			this._on_hashchange = this.on_hashchange.bind(this);
 
 			window.addEventListener('beforeunload', this.on_beforeunload.bind(this));
@@ -407,4 +405,4 @@ var
 
 	});
 
-})(this.ide, this.Backbone, this.jQuery, this._);
+})(this.ide, this.cxl, this.jQuery);

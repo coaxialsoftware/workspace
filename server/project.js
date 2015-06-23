@@ -26,14 +26,12 @@ class Project {
 
 	constructor(path)
 	{
-		// TODO See if we can make this safer.
 		var project = common.load_json_sync(path+'/project.json');
 
 		this.path = path;
 
 		cxl.extend(this, workspace.configuration.project_defaults, project);
 
-		//bower: common.load_json_sync(path+'/bower.json'),
 		this.tags = {
 			workspace: !!project
 		};
@@ -81,7 +79,7 @@ class Project {
 				return plugin.error(err);
 
 			me.log(`${result.length} file(s) found (${Date.now()-time} ms).`);
-			me.files = result;
+			me.files = _.sortBy(result);
 			me.broadcast();
 		});
 	}
@@ -157,9 +155,6 @@ class Project {
 
 		this.log('Loading.');
 
-		if (!this.ignore)
-			this.ignore = [ '.*', 'node_modules', 'bower_modules' ];
-
 		this.env = process.env;
 
 		workspace.plugins.emit('project.load', this);
@@ -171,6 +166,30 @@ class Project {
 			Q.resolve(this.onResolved());
 	}
 }
+
+cxl.define(Project, {
+
+	/**
+	 * Project name
+	 */
+	name: null,
+
+	/**
+	 * Project version.
+	 */
+	version: null,
+
+	/**
+	 * Project description.
+	 */
+	description: null,
+
+	/**
+	 * Files ignored by the project.
+	 */
+	ignore: [ '.*', 'node_modules', 'bower_modules' ]
+
+});
 
 class ProjectManager {
 

@@ -42,10 +42,11 @@ ide.plugins.register('welcome', new ide.Plugin({
 	{
 	var
 		tplProject = _.template($('#tpl-project').html()),
-		container = $('#projects')
+		container = $('#projects'),
+		all = _.sortBy(projects, 'name')
 	;
 		container.html(tplProject({
-			projects: projects,
+			projects: all,
 			version: ide.project.get('version')
 		}));
 

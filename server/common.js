@@ -78,7 +78,9 @@ common = module.exports = {
 					file = dir + '/' + file;
 					fs.stat(file, function(err, stat) {
 
-						if (stat && stat.isDirectory()) {
+						if (stat && stat.isDirectory())
+						{
+							results.push(relfile + '/');
 							common.walk(file, ignore, function(err, res) {
 								results = results.concat(res);
 								if (!--pending) done(null, results);

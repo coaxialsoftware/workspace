@@ -17,7 +17,7 @@ ide.File = cxl.Model.extend({
 	_onSync: function()
 	{
 		this.trigger('write');
-		ide.trigger('write', this);
+		ide.trigger('file.write', this);
 		ide.notify('File ' + this.id + ' saved.');
 	},
 

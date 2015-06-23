@@ -22,15 +22,15 @@ class Configuration {
 
 	constructor()
 	{
+		this.loadFile('~/.workspace/config.json');
+		this.loadFile('workspace.json');
+
 		cxl.extend(this, {
 			version: '0.1',
 			name: 'workspace',
 			env: process.env,
 			user: process.env.USER
 		});
-
-		this.loadFile('~/.workspace/config.json');
-		this.loadFile('workspace.json');
 
 		if (this.debug)
 			cxl.enableDebug();

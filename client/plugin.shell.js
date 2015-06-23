@@ -80,7 +80,6 @@ ide.plugins.register('shell', new ide.Plugin({
 		var
 			pos = 0,
 			exclude = ide.project.get('ignore'),
-			ignore = ide.project.get('ignore_regex'),
 			args = [],
 			env = ide.project.get('env'),
 
@@ -89,8 +88,7 @@ ide.plugins.register('shell', new ide.Plugin({
 				plugin: this,
 				file_template: '#tpl-grep',
 				title: 'grep ' + term,
-				path: /^(?:\.\/)?(.+):(\d+):\s*(.+)\s*/,
-				ignore: ignore ? new RegExp(ignore) : undefined
+				path: /^(?:\.\/)?(.+):(\d+):\s*(.+)\s*/
 			})
 		;
 			args.push(term, '-0rnIP');

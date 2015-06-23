@@ -27,14 +27,11 @@ ide.plugins.register('socket', ide.socket = new ide.Plugin({
 			this.__doSend(plugin, data);
 	},
 
-	start: function()
+	connect: function()
 	{
 	var
 		doc = window.document
 	;
-		if (!window.WebSocket)
-			return ide.warn('WebSockets not supported. Some features will not be available.');
-
 		this.config = cxl.extend({
 			host: doc.location.hostname,
 			port: parseInt(doc.location.port) + 1
@@ -58,7 +55,22 @@ ide.plugins.register('socket', ide.socket = new ide.Plugin({
 		{
 			this.error('Could not connect to socket.');
 		}
+	},
 
+	checkConnection: function()
+	{
+		if (this.ws && this.ws.readyState===3 /* closed */)
+			this.connect();
+	},
+
+	start: function()
+	{
+		if (!window.WebSocket)
+			return ide.warn('WebSockets not supported. Some features will not be available.');
+
+		this.connect();
+
+		cxl.$window.focus(this.checkConnection.bind(this));
 	}
 
 }));
