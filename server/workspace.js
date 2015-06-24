@@ -9,6 +9,7 @@ var
 	EventEmitter = require('events').EventEmitter,
 	fs = require('fs'),
 	bodyParser = require('body-parser'),
+	compression = require('compression'),
 
 	cxl = require('cxl'),
 
@@ -146,11 +147,14 @@ workspace.extend({
 
 .createServer()
 
-.use(bodyParser.json())
+.use(compression())
 
 .use(cxl.static(basePath + 'public', { maxAge: 86400000 }))
 
 .use(cxl.static(basePath + 'bower_components', { maxAge: 86400000 }))
+
+.use(bodyParser.json())
+
 
 .run(function() {
 	this.plugins.start();

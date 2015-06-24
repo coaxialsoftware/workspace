@@ -91,7 +91,7 @@ ide.plugins.register('shell', new ide.Plugin({
 				path: /^(?:\.\/)?(.+):(\d+):\s*(.+)\s*/
 			})
 		;
-			args.push(term, '-0rnIP');
+			args.push('-0rnIP');
 
 			if (exclude instanceof Array)
 				exclude.forEach(function(f) {
@@ -101,7 +101,7 @@ ide.plugins.register('shell', new ide.Plugin({
 				});
 
 			// Fix for linux?
-			args.push(env && env.WINDIR ? '*' : '.');
+			args.push(term, env && env.WINDIR ? '*' : '.');
 
 			ide.workspace.add(editor);
 

@@ -7,7 +7,6 @@
 
 var
 	cxl = require('cxl'),
-	_ = require('lodash'),
 
 	workspace = require('./workspace'),
 	common = require('./common'),
@@ -24,10 +23,9 @@ plugin.config(function() {
 		if (pkg)
 		{
 			project.tags.npm = true;
-			_.defaults(project, {
-				version: pkg.version,
-				description: pkg.description
-			});
+			project.name = project.name || pkg.name;
+			project.version = project.version || pkg.version;
+			project.description = project.description || pkg.description;
 		}
 
 	});

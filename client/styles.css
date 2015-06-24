@@ -77,6 +77,8 @@ h4 {
 	border-right: 0;
 }
 
+.file pre { overflow-x: hidden; }
+
 .ide-panel > h3 { margin: 4px 4px 8px 4px; }
 
 #projects h4 { height: 18px; }

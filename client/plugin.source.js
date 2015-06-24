@@ -247,6 +247,11 @@ ide.Editor.Source = ide.Editor.extend({
 		});
 	},
 
+	insert: function(text)
+	{
+		this.editor.insert(text);
+	},
+
 	changed: function()
 	{
 		return this.file.get('content') !== this.editor.getValue();

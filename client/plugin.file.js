@@ -2,7 +2,7 @@
  * workspace.file
  */
 
-(function(cxl, ide) {
+(function(cxl, ide, $) {
 "use strict";
 
 ide.File = cxl.Model.extend({
@@ -65,5 +65,29 @@ ide.File = cxl.Model.extend({
 
 });
 
+/**
+ * Insert the file [file] (default: current file) below the cursor.
+ */
+ide.commands.read = function(file)
+{
+	if (ide.editor && ide.editor.insert)
+	{
+		file = file || ide.editor.file.get('filename');
 
-})(this.cxl, this.ide);
+		$.get('/file?p=' + ide.project.id + '&n=' + file)
+			.then(function(content) {
+				if (content.new)
+					ide.notify('File does not exist.');
+				else
+					ide.editor.insert(content.content.toString());
+			}, function(err) {
+				ide.error(err);
+			});
+	} else
+		ide.error('Current editor does not support command.');
+};
+
+ide.commands.r = 'read';
+
+
+})(this.cxl, this.ide, this.jQuery);

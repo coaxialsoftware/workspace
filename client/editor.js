@@ -3,7 +3,7 @@
  *
  */
 
-(function(window, _, $, cxl) {
+(function(window, $, cxl) {
 "use strict";
 
 var
@@ -112,7 +112,7 @@ var
 	/** @class */
 	Plugin: function(p)
 	{
-		_.extend(this, p);
+		cxl.extend(this, p);
 	},
 
 	Info: cxl.View.extend({ /** @lends ide.Info# */
@@ -190,7 +190,7 @@ var
 	}
 
 ;
-	_.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
+	cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 
 		/** @type {string} Plugin Name */
 		name: null,
@@ -239,7 +239,7 @@ var
 		}
 	});
 
-	_.extend(ide.PluginManager.prototype, cxl.Events, {
+	cxl.extend(ide.PluginManager.prototype, cxl.Events, {
 
 		/** @private Shift modifier */
 		_SHIFT: 1000,
@@ -450,7 +450,7 @@ var
 
 		constructor: function(p)
 		{
-			_.extend(this, p);
+			cxl.extend(this, p);
 
 			if (!this.slot)
 				this.slot = ide.workspace.slot();
@@ -525,4 +525,4 @@ var
 	else
 		window.addEventListener('DOMContentLoaded', _start);
 
-})(this, this._, this.jQuery, this.cxl);
+})(this, this.jQuery, this.cxl);

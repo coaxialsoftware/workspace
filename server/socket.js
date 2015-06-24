@@ -74,13 +74,13 @@ var
 	this.ws.on('request', function(request) {
 
 		var client = request.accept('workspace', request.origin);
-		me.log(`Client connected: ${client.remoteAddress}`);
+		me.log(`Client connected ${client.remoteAddress}`);
 
 		// TODO is this safe?
 		me.clients[(client.id=id++)] = client;
 
 		client.on('close', function(reason, description) {
-			me.log(`Client disconnected: ${client.remoteAddress} (${reason} ${description})`);
+			me.log(`Client disconnected ${client.remoteAddress} (${reason} ${description})`);
 			delete(me.clients[client.id]);
 		});
 
