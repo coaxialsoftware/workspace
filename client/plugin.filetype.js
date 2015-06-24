@@ -53,4 +53,4 @@ var
 		return mode;
 	};
 
-})(this.ide, this._);
+})(this.ide);

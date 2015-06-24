@@ -8,7 +8,7 @@
 (function(ide) {
 "use strict";
 
-ide.plugins.register('dragdrop', new ide.Plugin({
+ide.plugins.register('dragdrop', {
 
 	on_dragover: function(ev)
 	{
@@ -46,6 +46,6 @@ ide.plugins.register('dragdrop', new ide.Plugin({
 		window.addEventListener('drop', this.on_drop.bind(this));
 	}
 
-}));
+});
 
 })(this.ide);
