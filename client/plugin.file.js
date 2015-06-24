@@ -45,7 +45,8 @@ ide.File = cxl.Model.extend({
 
 	parse: function(response)
 	{
-		response.ext = /(?:\.([^.]+))?$/.exec(response.path)[1];
+		response.ext = /(?:\.([^.]+))?$/.exec(
+			response.path || response.filename)[1];
 		return response;
 	},
 
