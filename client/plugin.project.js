@@ -2,7 +2,7 @@
  * workspace.project
  */
 
-(function(cxl, ide) {
+(function(cxl, ide, _) {
 "use strict";
 
 ide.Project = cxl.Model.extend({
@@ -39,10 +39,21 @@ ide.Project = cxl.Model.extend({
 		return file.fetch({ success: callback });
 	},
 
+	parse: function(data)
+	{
+		this.files_text = data.files ? data.files.join("\n") : '';
+		return data;
+	},
+
 	on_project: function()
 	{
-		this.files_text = ''; //this.get('files').join("\n");
 		this.trigger('load');
+	},
+
+	set_files: function(files)
+	{
+		this.set(files);
+		this.files_text = _.pluck(files, 'filename').join("\n");
 	}
 
 });
@@ -52,10 +63,7 @@ ide.plugins.register('project', {
 	onMessage: function(msg)
 	{
 		if (msg.files)
-		{
-			ide.project.set('files', msg.files);
-			ide.project.files_text = msg.files.join("\n");
-		}
+			ide.project.set_files(msg.files);
 	},
 
 	ready: function()
@@ -68,4 +76,4 @@ ide.plugins.register('project', {
 
 });
 
-})(this.cxl, this.ide);
+})(this.cxl, this.ide, this._);

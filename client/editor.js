@@ -375,7 +375,21 @@ var
 		load_plugins: function()
 		{
 			window.addEventListener('keydown', this.on_key.bind(this));
+
 			this.each(function(plug, name) {
+
+				for (var i in plug.commands)
+				{
+					var fn = plug.commands[i];
+
+					this._registerCommand(name, i, typeof(fn)==='string' ?
+						fn : fn.bind(plug));
+				}
+
+				if (plug.shortcut)
+					this._registerShortcut(
+						plug.shortcut, name, plug, plug.invoke);
+
 				if (plug.start)
 					plug.start(ide.project[name]);
 			});
@@ -427,12 +441,6 @@ var
 			this._plugins[name] = plugin;
 			plugin.name = name;
 
-			for (var i in plugin.commands)
-				this._registerCommand(name, i, plugin.commands[i].bind(plugin));
-
-			if (plugin.shortcut)
-				this._registerShortcut(
-					plugin.shortcut, name, plugin, plugin.invoke);
 		}
 
 	});

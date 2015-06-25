@@ -335,6 +335,17 @@ var
 
 	ide.plugins.register('workspace', {
 
+		commands: {
+
+			Next: function()
+			{
+				ide.workspace.next().focus();
+			},
+
+			N: 'Next'
+
+		},
+
 		shortcut: {
 			"gt": function()
 			{

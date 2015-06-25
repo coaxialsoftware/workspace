@@ -21,6 +21,11 @@ ide.Editor.Source = ide.Editor.extend({
 		w: function(filename)
 		{
 			this.write(filename);
+		},
+
+		ascii: function()
+		{
+			ide.log(this.get_selection());
 		}
 
 	},
@@ -145,6 +150,11 @@ ide.Editor.Source = ide.Editor.extend({
 	get_cursor: function()
 	{
 		return this.editor.renderer.$cursorLayer.cursor;
+	},
+
+	get_selection: function()
+	{
+		return this.editor.session.getSelection();
 	},
 
 	get_font: function()
