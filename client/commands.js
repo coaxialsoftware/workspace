@@ -55,7 +55,7 @@ ide.cmd = function(source)
 		} catch(e)
 		{
 			ide.alert('Unknown Command: ' + source);
-			window.console.log(e);
+			window.console.error(e);
 		}
 	}
 	else

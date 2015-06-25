@@ -25,6 +25,8 @@
 
 	"devDependencies": {
 		"ace-builds": "ajaxorg/ace-builds#7fafd12",
+		"backbone": "*",
+		"jquery": "*",
 		"grunt": "*",
 		"grunt-contrib-jshint": "*",
 		"grunt-contrib-clean": "*",

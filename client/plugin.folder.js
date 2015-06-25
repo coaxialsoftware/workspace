@@ -34,7 +34,7 @@ ide.FileList = ide.Editor.extend({
 			ide.workspace.remove(this);
 	},
 
-	on_keyup: function(ev)
+	on_keydown: function(ev)
 	{
 		var el = this.$el;
 
@@ -102,7 +102,7 @@ ide.FileList = ide.Editor.extend({
 			me.add_files(me.files);
 
 		me.$el.on('click', '.content', me.on_click.bind(me));
-		me.$el.on('keyup', me.on_keyup.bind(me));
+		me.$el.on('keydown', me.on_keydown.bind(me));
 	}
 });
 
@@ -154,7 +154,7 @@ ide.plugins.register('find', new ide.Plugin({
 				return ide.warn('[find] No files found in project.');
 
 			files = files.filter(function(val) {
-				return regex.test(val);
+				return regex.test(val.filename);
 			});
 
 			if (files.length===1)

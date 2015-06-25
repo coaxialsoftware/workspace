@@ -3,10 +3,10 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 
 		path: {
-			ace: "bower_components/ace-builds/src",
-			backbone: "bower_components/backbone",
+			ace: "node_modules/ace-builds/src",
+			backbone: "node_modules/backbone",
 			lodash: "node_modules/lodash",
-			jquery: "bower_components/jquery"
+			jquery: "node_modules/jquery"
 		},
 
 		jshint: {
