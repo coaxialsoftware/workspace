@@ -23,6 +23,9 @@ class File {
 		if (options)
 			cxl.extend(this, options);
 
+		if (this.filename)
+			this.filename = path.normalize(this.filename);
+
 		this.path = filepath;
 		this.mime = mime.lookup(this.path);
 	}
@@ -101,41 +104,37 @@ plugin.config(function() {
 		return path.normalize((project ? project + '/' : '') + filename);
 	},
 
-	getFile: function(project, filename)
+	getFile: function(filename, body)
 	{
-		return (new File(this.getPath(project, filename))).read();
+		return (new File(filename, body)).read();
 	},
 
-	writeFile: function(body)
+	writeFile: function(filepath, body)
 	{
-	var
-		filepath = this.getPath(body.project, body.filename)
-	;
 		return (new File(filepath, body)).write();
 	},
 
-	handleWrite: function(req, res) {
-
+	handleWrite: function(req, res)
+	{
+	var
+		filepath = this.getPath(req.body.project, req.body.filename)
+	;
 		if (!req.body)
 			return res.status(400).end();
 
-		this.log(`Writing "${req.body.path}" (${req.body.content.length})`);
+		this.log(`Writing "${filepath}" (${req.body.content.length})`);
 
-		this.writeFile(req.body).then(function(result) {
-			res.send(result);
-		}, common.sendError(this, res));
+		common.respond(this, res, this.writeFile(filepath, req.body));
 	}
 })
 
 .route('GET', '/file', function(req, res) {
+var
+	filepath = this.getPath(req.query.p, req.query.n)
+;
+	this.log(`Reading "${filepath}".`);
 
-	this.log(`Reading "${req.query.p}/${req.query.n}".`);
-
-	this.getFile(req.query.p, req.query.n).then(function(result)
-	{
-		res.send(result);
-	}, common.sendError(this, res));
-
+	common.respond(this, res, this.getFile(filepath, { filename: req.query.n }));
 })
 
 .route('POST', '/file', 'handleWrite')

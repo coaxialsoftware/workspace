@@ -16,6 +16,12 @@ common = module.exports = {
 	writeFile: Q.promisify(fs.writeFile),
 	stat: Q.promisify(fs.stat),
 
+	respond: function(module, res, promise)
+	{
+		return promise.then(common.send(res),
+			common.sendError(module, res));
+	},
+
 	sendError: function(module, res, status)
 	{
 		return function(err)
@@ -23,6 +29,11 @@ common = module.exports = {
 			module.error(err);
 			res.status(status || 500).send({ error: err.toString() });
 		};
+	},
+
+	send: function(res)
+	{
+		return function(result) { res.send(result); };
 	},
 
 	isDirectory: function(path)
