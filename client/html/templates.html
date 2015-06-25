@@ -1,8 +1,8 @@
 
 <script id="tpl-file" type="text/template">
-<div class="file">
-	<a tabindex="1" href="javascript:" class="content" title="<%= path + file%>" data-path="<%=path + file%>">
-		<h4><%- file %></h4>
+<div class="file <%= obj.dir ? 'directory' : '' %>">
+	<a tabindex="1" href="javascript:" class="content" title="<%= this.path + obj.name %>" data-path="<%= this.path + obj.name %>">
+		<h4><%- obj.name %></h4>
 	</a>
 </div>
 </script>
@@ -17,17 +17,12 @@
 </script>
 
 <script id="tpl-grep" type="text/template">
-<% 
-	var m = path.exec(file);
-	if (m && m[0] && (!ignore || !ignore.test(m[1]))) {
-%>
 <div class="file">
-	<a tabindex="1" href="javascript:" class="content" data-path="<%= m[1] %>" data-line="<%=m[2]%>">
-		<strong><%- m[1]%></strong>:<%= m[2] %>
-		<pre><%- m[3] %></pre>
+	<a tabindex="1" href="javascript:" class="content" data-path="<%= obj[1] %>" data-line="<%= obj[2]%>">
+		<strong><%- obj[1]%></strong>:<%= obj[2] %>
+		<pre><%- obj[3] %></pre>
 	</a>
 </div>
-<% } %>
 </script>
 
 <script id="tpl-filelist" type="text/template">

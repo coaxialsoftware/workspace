@@ -4,12 +4,17 @@
 
 ide.FileList = ide.Editor.extend({
 
+	$content: null,
+
 	list_template: '#tpl-filelist',
 	file_template: '#tpl-file',
 
 	title: null,
 	path: null,
 	files: null,
+
+	/** Compiled file template */
+	tpl: null,
 
 	on_click: function(ev)
 	{
@@ -47,18 +52,25 @@ ide.FileList = ide.Editor.extend({
 	add_files: function(files)
 	{
 	var
-		tpl = _.template($(this.file_template).html()),
 		result = '',
 		i = 0
 	;
 		for (; i<files.length;i++)
-			result += tpl({
-				path: this.path,
-				file: files[i],
-				ignore: this.ignore
-			});
+			result += this.tpl(files[i]);
 
-		this.$el.find('.filelist-content').append(result);
+		if (files !== this.files)
+			this.files = this.files ? this.files.concat(files) : files;
+		this.$content.append(result);
+		this.children = this.$content.children();
+	},
+
+	find: function(regex)
+	{
+		var i=0, files = this.files, children = this.children;
+
+		for (; i<files.length; i++)
+			children[i].style.display = regex.test(files[i]) ?
+				'block' : 'none';
 	},
 
 	focus: function()
@@ -70,12 +82,16 @@ ide.FileList = ide.Editor.extend({
 	setup: function()
 	{
 	var
-		tpl = _.template($(this.list_template).html()),
-		me = this
+		me = this,
+		tpl = _.template($(me.list_template).html())
 	;
 		me.$el.addClass('ide-panel').html(tpl({
 			title: me.title
 		}));
+
+		me.$content = me.$el.find('.filelist-content');
+
+		me.tpl = _.template($(me.file_template).html());
 
 		if (me.files)
 			me.add_files(me.files);
@@ -163,7 +179,7 @@ ide.plugins.register('folder', new ide.Plugin({
 		if (file.get('directory'))
 		{
 			files = file.get('content');
-			files.unshift('..');
+			files.unshift({ name: '..' });
 
 			path = file.get('filename');
 			path = path==='.' ? '' : (path + '/');

@@ -314,7 +314,6 @@ var
 			options.slot = ide.workspace.slot();
 
 			file = new ide.File(file, { parse: true });
-			window.console.log(file);
 
 			if (file.attributes.content || !file.attributes.filename)
 				this.each(cb);

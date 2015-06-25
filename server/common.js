@@ -4,6 +4,7 @@
 var
 	fs = require('fs'),
 	Q = require('bluebird'),
+	_ = require('lodash'),
 
 	common
 ;
@@ -58,6 +59,33 @@ common = module.exports = {
 		}
 
 		return obj;
+	},
+
+	list: function(dir, ignore)
+	{
+		return common.readDirectory(dir).then(function(list) {
+
+			var promises = [];
+
+			list.forEach(function(file) {
+
+				if (!(ignore && ignore(file)))
+				{
+					promises.push(common.stat(dir + '/' + file)
+						.then(function(stat) {
+							return {
+								name: file,
+								dir: stat.isDirectory()
+							};
+						}));
+				}
+			});
+
+			return Q.all(promises);
+
+		}).then(function(result) {
+			return _.sortByOrder(result, ['dir','name'], [false, true]);
+		});
 	},
 
 	/**

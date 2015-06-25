@@ -45,7 +45,7 @@ class File {
 			this.directory = stat.isDirectory();
 
 			return (this.directory ?
-				common.readDirectory(this.path) :
+				common.list(this.path) :
 				common.readFile(this.path, 'utf8')).bind(this)
 					.then(this.onContent);
 

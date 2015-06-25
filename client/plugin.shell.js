@@ -1,6 +1,10 @@
 
-(function(ide, Backbone, $, undefined) {
+(function(ide, $, undefined) {
 "use strict";
+
+var
+	GREP_REGEX = /^(?:\.\/)?(.+):(\d+):\s*(.+)\s*/
+;
 
 /**
  * Calls shell service and returns a Promise.
@@ -26,9 +30,19 @@ ide.shell = function(cmd, args, onprogress)
 
 function grepDone(editor, result)
 {
+var
+	i = 0, match, files = []
+;
 	result = result.split("\n");
 
-	editor.add_files(result);
+	for (; i<result.length; i++)
+	{
+		match = GREP_REGEX.exec(result[i]);
+		if (match)
+			files.push(match);
+	}
+
+	editor.add_files(files);
 }
 
 function cmd(name, args, onprogress)
@@ -87,8 +101,7 @@ ide.plugins.register('shell', new ide.Plugin({
 				file: 'grep ' + term,
 				plugin: this,
 				file_template: '#tpl-grep',
-				title: 'grep ' + term,
-				path: /^(?:\.\/)?(.+):(\d+):\s*(.+)\s*/
+				title: 'grep ' + term
 			})
 		;
 			args.push('-0rnIP');
@@ -121,4 +134,4 @@ ide.plugins.register('shell', new ide.Plugin({
 
 }));
 
-})(this.ide, this.Backbone, this.jQuery);
+})(this.ide, this.jQuery);
