@@ -4,3 +4,11 @@ bower.json
 extension
 project.json
 test
+node_modules/backbone
+node_modules/jquery
+node_modules/grunt
+node_modules/grunt-contrib-clean
+node_modules/grunt-contrib-concat
+node_modules/grunt-contrib-jshint
+node_modules/grunt-contrib-uglify
+node_modules/grunt-contrib-watch

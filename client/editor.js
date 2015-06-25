@@ -68,7 +68,7 @@ var
 	/** Displays log message in console only */
 	log: function(message)
 	{
-		window.console.log('[ide.js] ' + message);
+		window.console.log('[workspace] ' + message);
 	},
 
 	/**
@@ -101,7 +101,7 @@ var
 			this.editor.$el.removeClass('ide-focus');
 
 		this.editor = editor;
-		window.document.title = info || 'ide.js';
+		window.document.title = info || 'workspace';
 
 		editor.$el.addClass('ide-focus');
 

@@ -25,7 +25,11 @@ ide.Editor.Source = ide.Editor.extend({
 
 		ascii: function()
 		{
-			ide.log(this.get_selection());
+		var
+			char = this.get_char(),
+			code = char.charCodeAt(0)
+		;
+			ide.notify(char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8));
 		}
 
 	},
@@ -142,6 +146,14 @@ ide.Editor.Source = ide.Editor.extend({
 		token = this.editor.session.getTokenAt(pos.row, col);
 
 		return token;
+	},
+
+	get_char: function(pos)
+	{
+		pos = pos || this.editor.getCursorPosition();
+
+		return this.editor.session.getTextRange({ start: pos, end:
+			{ row: pos.row, column: pos.column+1 }});
 	},
 
 	/**
