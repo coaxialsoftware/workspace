@@ -64,12 +64,17 @@ ide.FileList = ide.Editor.extend({
 		this.children = this.$content.children();
 	},
 
+	findTest: function(regex, file)
+	{
+		return regex.test(file.filename);
+	},
+
 	find: function(regex)
 	{
 		var i=0, files = this.files, children = this.children;
 
 		for (; i<files.length; i++)
-			children[i].style.display = regex.test(files[i]) ?
+			children[i].style.display = this.findTest(regex, files[i]) ?
 				'block' : 'none';
 	},
 
@@ -179,7 +184,7 @@ ide.plugins.register('folder', new ide.Plugin({
 		if (file.get('directory'))
 		{
 			files = file.get('content');
-			files.unshift({ name: '..' });
+			files.unshift({ filename: '..' });
 
 			path = file.get('filename');
 			path = path==='.' ? '' : (path + '/');

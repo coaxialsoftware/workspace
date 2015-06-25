@@ -1,8 +1,8 @@
 
 <script id="tpl-file" type="text/template">
-<div class="file <%= obj.dir ? 'directory' : '' %>">
-	<a tabindex="1" href="javascript:" class="content" title="<%= this.path + obj.name %>" data-path="<%= this.path + obj.name %>">
-		<h4><%- obj.name %></h4>
+<div class="file <%= obj.directory ? 'directory' : '' %>">
+	<a tabindex="1" href="javascript:" class="content" title="<%= this.path + obj.filename %>" data-path="<%= this.path + obj.filename %>">
+		<h4><%- obj.filename %></h4>
 	</a>
 </div>
 </script>

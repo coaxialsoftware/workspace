@@ -79,7 +79,7 @@ class Project {
 				return plugin.error(err);
 
 			me.log(`${result.length} file(s) found (${Date.now()-time} ms).`);
-			me.files = _.sortBy(result);
+			me.files = _.sortBy(result, 'filename');
 			me.broadcast();
 		});
 	}

@@ -23,11 +23,16 @@
 			this.show();
 		},
 
+		/** @abstract */
+		cancel: function()
+		{
+		},
+
 		initialize: function Bar()
 		{
 			this._keys = {
 			// TODO Use Key constants
-			27: function() { this.hide(); },
+			27: function() { this.cancel(); this.hide(); },
 			13: function() { this.run(); this.hide(); },
 			8: function() {
 				if (this._value==='')
@@ -207,6 +212,12 @@
 
 		run: function()
 		{
+		},
+
+		cancel: function()
+		{
+			if (ide.editor && ide.editor.find)
+				ide.editor.find(/./);
 		},
 
 		on_change: function(val)

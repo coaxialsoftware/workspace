@@ -72,35 +72,45 @@ common = module.exports = {
 		return obj;
 	},
 
+	respondStat: function(dir, file)
+	{
+		return common.stat(dir + '/' + file).then(function(stat) {
+			return {
+				filename: file,
+				directory: stat.isDirectory()
+			};
+		});
+	},
+
+	sortFiles: function(files)
+	{
+		return _.sortByOrder(files,
+			['directory','filename'], [false, true]);
+	},
+
+	/**
+	 * Lists files and folders under dir, an optional ignore function
+	 * can be passed.
+	 */
 	list: function(dir, ignore)
 	{
 		return common.readDirectory(dir).then(function(list) {
 
-			var promises = [];
-
-			list.forEach(function(file) {
+			return Q.all(list.reduce(function(result, file) {
 
 				if (!(ignore && ignore(file)))
-				{
-					promises.push(common.stat(dir + '/' + file)
-						.then(function(stat) {
-							return {
-								name: file,
-								dir: stat.isDirectory()
-							};
-						}));
-				}
-			});
+					result.push(common.respondStat(dir, file));
 
-			return Q.all(promises);
+				return result;
 
-		}).then(function(result) {
-			return _.sortByOrder(result, ['dir','name'], [false, true]);
-		});
+			}, []));
+
+		}).then(common.sortFiles);
 	},
 
 	/**
 	 * Walks path, executes callback for each path and returns
+	 * TODO cleanup
 	 */
 	walk: function(dir, ignore, done, path)
 	{
@@ -129,13 +139,17 @@ common = module.exports = {
 
 						if (stat && stat.isDirectory())
 						{
-							results.push(relfile + '/');
+							results.push({
+								filename: relfile,
+								directory: true
+							});
+
 							common.walk(file, ignore, function(err, res) {
 								results = results.concat(res);
 								if (!--pending) done(null, results);
 							}, relfile + '/');
 						} else {
-							results.push(relfile);
+							results.push({ filename: relfile });
 							if (!--pending) done(null, results);
 						}
 					});
