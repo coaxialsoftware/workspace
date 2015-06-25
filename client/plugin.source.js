@@ -293,7 +293,7 @@ ide.Editor.Source = ide.Editor.extend({
 	{
 		return (this.changed() ? '+ ' : '') +
 			(this.file.get('filename') || '[No Name]') +
-			' [' + this.file.get('project') + ']';
+			' [' + ide.project.get('name') + ']';
 	},
 
 	set_mode: function()
