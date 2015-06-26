@@ -106,9 +106,9 @@ ide.Editor.Source = ide.Editor.extend({
 		this.file.on('write', this.trigger.bind(this, 'write'));
 
 		window.setTimeout(this.focus.bind(this), 250);
-		this.findNextFix();
+		//this.findNextFix();
 		this.enable_autocompletion();
-		this.registers = require('ace/keyboard/vim/registers');
+		this.registers = require('ace/keyboard/vim').Vim.getRegisterController();
 	},
 
 	resize: function()
@@ -118,7 +118,20 @@ ide.Editor.Source = ide.Editor.extend({
 
 	on_blur: function()
 	{
-		this.plugin.data('clipboard', this.registers._default.text);
+		var json = {}, data;
+		for (var i in this.registers.registers)
+			if ((data = this.registers.registers[i].toString()))
+				json[i] = data;
+
+		this.plugin.data('registers', JSON.stringify(json));
+	},
+
+	find: function(n)
+	{
+		if (n)
+			this.editor.find(n);
+		else
+			this.editor.clearSelection();
 	},
 
 	findNextFix: function()
@@ -137,7 +150,7 @@ ide.Editor.Source = ide.Editor.extend({
 	get_token: function(pos)
 	{
 	var
-		insertMode = this.get_state()==='insertMode',
+		insertMode = this.get_state()==='INSERT',
 		token, col
 	;
 		pos = pos || this.editor.getCursorPosition();
@@ -177,7 +190,7 @@ ide.Editor.Source = ide.Editor.extend({
 	on_selection: function(ev, editor)
 	{
 	var
-		insertMode = this.get_state()==='insertMode',
+		insertMode = this.get_state()==='INSERT',
 		pos = editor.getCursorPosition(),
 		ann = this.get_annotation(pos.row),
 		token = this.get_token(pos)
@@ -196,33 +209,31 @@ ide.Editor.Source = ide.Editor.extend({
 
 	on_keyup: function(ev)
 	{
-		if (this.get_state()==='insertMode')
+		if (this.get_state()==='INSERT')
 		{
 			ev.stopPropagation();
 		}
 	},
 
+	sync_registers: function()
+	{
+	var
+		data = this.plugin.data('registers'),
+		cb = data && JSON.parse(data)
+	;
+		for (var i in cb)
+			this.registers.getRegister(i).setText(cb[i]);
+	},
+
 	on_focus: function()
 	{
 		this.focus(true);
-
-		var cb = this.plugin.data('clipboard');
-
-		if (this.registers._default.text !== cb)
-		{
-			this.registers._default.text = cb;
-		}
+		this.sync_registers();
 	},
 
 	get_annotation: function(row)
 	{
 		return this.editor.renderer.$gutterLayer.$annotations[row];
-	},
-
-	find: function(n)
-	{
-		this.editor.find({ needle: n });
-		this.editor.$search.$options.start = null;
 	},
 
 	focus: function(ignore)
@@ -281,12 +292,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 	get_state: function()
 	{
-		return this.editor.keyBinding.$data.vimState;
-	},
-
-	get_status: function()
-	{
-		return this.editor.$vimModeHandler.getStatusText();
+		return this.editor.keyBinding.getStatusText();
 	},
 
 	get_info: function()

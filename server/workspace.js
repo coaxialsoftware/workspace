@@ -153,7 +153,7 @@ workspace.extend({
 
 .use(cxl.static(basePath + 'node_modules', { maxAge: 86400000 }))
 
-.use(bodyParser.json())
+.use(bodyParser.json({ limit: Infinity }))
 
 
 .run(function() {

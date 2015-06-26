@@ -71,11 +71,12 @@ ide.FileList = ide.Editor.extend({
 
 	find: function(regex)
 	{
-		var i=0, files = this.files, children = this.children;
+		var i=0, files = this.files, children = this.children, clear=!regex;
 
 		for (; i<files.length; i++)
-			children[i].style.display = this.findTest(regex, files[i]) ?
-				'block' : 'none';
+			children[i].style.display =
+				(clear || this.findTest(regex, files[i])) ?
+					'block' : 'none';
 	},
 
 	focus: function()

@@ -24,9 +24,7 @@
 		},
 
 		/** @abstract */
-		cancel: function()
-		{
-		},
+		cancel: function() { },
 
 		initialize: function Bar()
 		{
@@ -51,7 +49,9 @@
 			},
 			219: function(ev) {
 				if (ev.ctrlKey)
-					this.hide();
+				{
+					this.cancel(); this.hide();
+				}
 			}
 			};
 
@@ -217,7 +217,7 @@
 		cancel: function()
 		{
 			if (ide.editor && ide.editor.find)
-				ide.editor.find(/./);
+				ide.editor.find();
 		},
 
 		on_change: function(val)
