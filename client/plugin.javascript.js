@@ -23,7 +23,7 @@ ide.plugins.register('javascript', new ide.Plugin({
 
 	ready: function()
 	{
-		this.plugin = ide.plugins.get('autocomplete')
+		this.plugin = ide.plugins.get('assist')
 			.register('application/javascript', this);
 	}
 

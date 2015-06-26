@@ -38,7 +38,7 @@ ide.plugins.register('html', new ide.Plugin({
 
 	ready: function()
 	{
-		this.plugin = ide.plugins.get('autocomplete').register('text/html', this);
+		this.plugin = ide.plugins.get('assist').register('text/html', this);
 	}
 
 }));

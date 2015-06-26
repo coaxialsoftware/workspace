@@ -30,6 +30,8 @@ module.exports = function(grunt) {
 
 			css: {
 				src: [
+					'node_modules/codemirror/lib/codemirror.css',
+					'node_modules/codemirror/theme/twilight.css',
 					'client/styles.css'
 				],
 				dest: 'public/build/ide.css'
@@ -37,13 +39,19 @@ module.exports = function(grunt) {
 
 			libs: {
 				src: [
-					'<%= path.ace %>/ace.js',
+					/*'<%= path.ace %>/ace.js',
 					'<%= path.ace %>/mode-javascript.js',
 					'<%= path.ace %>/mode-html.js',
 					'<%= path.ace %>/mode-css.js',
 
 					'<%= path.ace %>/theme-twilight.js',
 					'<%= path.ace %>/keybinding-vim.js',
+					*/
+					'node_modules/codemirror/lib/codemirror.js',
+					'node_modules/codemirror/keymap/vim.js',
+					'node_modules/codemirror/mode/javascript/javascript.js',
+					'node_modules/codemirror/mode/htmlmixed/htmlmixed.js',
+					'node_modules/codemirror/mode/css/css.js',
 
 					'<%= path.jquery %>/dist/jquery.js',
 					'<%= path.lodash%>/index.js',
