@@ -24,8 +24,7 @@
 	},
 
 	"devDependencies": {
-		"ace-builds": "j5g3/ace-builds",
-		"codemirror": "*",
+		"codemirror": "j5g3/CodeMirror",
 		"backbone": "*",
 		"jquery": "*",
 		"grunt": "*",

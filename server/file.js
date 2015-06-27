@@ -54,6 +54,7 @@ class File {
 
 		}, function() {
 			this.new = true;
+			this.content = '';
 			return this;
 		});
 	}

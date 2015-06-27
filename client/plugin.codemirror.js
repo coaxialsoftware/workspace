@@ -44,7 +44,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 	go: function(n)
 	{
-		this.editor.setCursor(n);
+		this.editor.setCursor(n-1);
 	},
 
 	get_value: function()
@@ -92,11 +92,19 @@ ide.Editor.Source = ide.Editor.extend({
 			lineWrapping: true,
 			lineNumbers: true,
 			scrollbarStyle: 'null',
-			indentUnit: 1
+			indentUnit: s.indent_size || 4,
+			foldGutter: s.fold_gutter!==false,
+			gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]	
 		})
 	;
+		
 		this.line_separator = s.line_separator || "\n";
+		this.$el.on('keydown', this.on_keyup.bind(this));
 		window.console.log(editor);
+		
+		editor.openDialog = function() {
+			window.console.log(arguments);
+		};
 		//editor.container.style.fontSize = s.font_size || '16px';
 		//editor.setBehavioursEnabled(true);
 		//editor.setDisplayIndentGuides(s.indent_guides || false);
@@ -113,7 +121,6 @@ ide.Editor.Source = ide.Editor.extend({
 		);
 
 		this.set_mode();
-		this.$el.on('keydown', this.on_keyup.bind(this));
 
 		this.file.on('write', this.trigger.bind(this, 'write'));
 
@@ -128,6 +135,12 @@ ide.Editor.Source = ide.Editor.extend({
 	{
 		//setTimeout(this.editor.resize.bind(this.editor), 200);
 	},
+	
+	find: function(n)
+	{
+		if (n)
+			this.editor.find(n);
+	},
 /*
 	on_blur: function()
 	{
@@ -139,13 +152,6 @@ ide.Editor.Source = ide.Editor.extend({
 		this.plugin.data('registers', JSON.stringify(json));
 	},
 
-	find: function(n)
-	{
-		if (n)
-			this.editor.find({ start: null, needle: n });
-		else
-			this.editor.clearSelection();
-	},
 
 	findNextFix: function()
 	{

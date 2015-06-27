@@ -312,13 +312,23 @@ pre {
 }
 
 .CodeMirror {
-	background: none !important;
 	text-rendering: optimizeLegibility;
-	height: 100%;
 	font-family: Monaco, Menlo, 'Ubuntu Mono', Consolas, source-code-pro, monospace;
+
+	overflow: hidden !important;
+}
+
+.CodeMirror-scroll {
+	margin-bottom: 0;
 }
 
 .CodeMirror.cm-fat-cursor div.CodeMirror-cursor {
 	background-color: rgba(255, 0, 0, 0.5);
 	border-left: 0 !important;
 }
+
+.CodeMirror-gutters {
+	border-right: 0 !important;
+}
+
+div.CodeMirror-cursors { visibility: visible; }

@@ -349,12 +349,14 @@ var
 		shortcut: {
 			"gt": function()
 			{
-				ide.workspace.next().focus();
+				if (ide.editor)
+					ide.workspace.next().focus();
 			},
 
 			"gT": function()
 			{
-				ide.workspace.previous().focus();
+				if (ide.editor)
+					ide.workspace.previous().focus();
 			},
 
 			'alt->': function()

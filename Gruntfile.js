@@ -31,6 +31,8 @@ module.exports = function(grunt) {
 			css: {
 				src: [
 					'node_modules/codemirror/lib/codemirror.css',
+					'node_modules/codemirror/addon/fold/foldgutter.css',
+					'node_modules/codemirror/addon/lint/lint.css',
 					'node_modules/codemirror/theme/twilight.css',
 					'client/styles.css'
 				],
@@ -48,9 +50,32 @@ module.exports = function(grunt) {
 					'<%= path.ace %>/keybinding-vim.js',
 					*/
 					'node_modules/codemirror/lib/codemirror.js',
+					'node_modules/codemirror/addon/search/searchcursor.js',
+					'node_modules/codemirror/addon/search/search.js',
+					'node_modules/codemirror/addon/edit/matchbrackets.js',
+					'node_modules/codemirror/addon/edit/matchtags.js',
+					'node_modules/codemirror/addon/edit/closetag.js',
+					'node_modules/codemirror/addon/edit/closebrackets.js',
+					'node_modules/codemirror/addon/comment/comment.js',
+					'node_modules/codemirror/addon/fold/foldcode.js',
+					'node_modules/codemirror/addon/fold/foldgutter.js',
+					'node_modules/codemirror/addon/fold/brace-fold.js',
+					'node_modules/codemirror/addon/lint/lint.js',
+					'node_modules/codemirror/addon/selection/active-line.js',
 					'node_modules/codemirror/keymap/vim.js',
+					/*
+					'node_modules/codemirror/addon/hint/show-hint.js',
+					'node_modules/codemirror/addon/hint/javascript-hint.js',
+					'node_modules/codemirror/addon/hint/html-hint.js',
+					'node_modules/codemirror/addon/hint/css-hint.js',
+					*/
+					'node_modules/codemirror/addon/lint/javascript-lint.js',
+					'node_modules/codemirror/addon/lint/json-lint.js',
 					'node_modules/codemirror/mode/javascript/javascript.js',
+					
 					'node_modules/codemirror/mode/htmlmixed/htmlmixed.js',
+					
+					'node_modules/codemirror/addon/lint/css-lint.js',
 					'node_modules/codemirror/mode/css/css.js',
 
 					'<%= path.jquery %>/dist/jquery.js',
