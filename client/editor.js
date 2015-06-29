@@ -52,6 +52,20 @@ var
 	{
 		ide.notify(message, 'warn');
 	},
+		
+	/**
+	 * Get diff between A and B
+	 */
+	diff: function(A, B)
+	{
+		var result;
+		
+		for (var i in B)
+			if (B[i] !== A[i])
+				(result = result || {})[i] = B[i];
+		
+		return result;	
+	},
 
 	/** Displays notification on right corner */
 	notify: function(message, kls)

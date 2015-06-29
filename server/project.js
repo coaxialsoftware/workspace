@@ -94,7 +94,7 @@ class Project {
 				return plugin.error(err);
 
 			me.log(`${result.length} file(s) found (${Date.now()-time} ms).`);
-			me.config.files = _.sortBy(result, 'filename');
+			me.config.files = JSON.stringify(_.sortBy(result, 'filename'));
 			me.broadcast({ files: me.config.files });
 		});
 	}

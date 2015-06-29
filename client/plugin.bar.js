@@ -184,11 +184,12 @@
 		{
 		var
 			val = this.el.value,
+			files = ide.project.files_text,
 			match
 		;
-			if (!this._lastSearch)
+			if (files && !this._lastSearch)
 			{
-				this._lastSearch = ide.project.files_text.match(
+				this._lastSearch = files.match(
 					new RegExp('^' + s + '[^/\n]*$', 'mg')
 				);
 				this._lastSearchStart = start;

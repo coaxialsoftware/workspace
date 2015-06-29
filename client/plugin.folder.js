@@ -32,6 +32,9 @@ ide.FileList = ide.Editor.extend({
 
 		if (!ev.shiftKey)
 			ide.workspace.remove(this);
+	
+		ev.stopPropagation();
+		ev.preventDefault();
 	},
 
 	on_keydown: function(ev)
@@ -145,7 +148,7 @@ ide.plugins.register('find', new ide.Plugin({
 		{
 		var
 			regex,
-			files = ide.project.get('files')
+			files = ide.project.files_json
 		;
 			mask = mask || this.get_mask() || '';
 
