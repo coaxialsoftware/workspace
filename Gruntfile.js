@@ -32,7 +32,6 @@ module.exports = function(grunt) {
 				src: [
 					'node_modules/codemirror/lib/codemirror.css',
 					'node_modules/codemirror/addon/fold/foldgutter.css',
-					'node_modules/codemirror/addon/lint/lint.css',
 					'node_modules/codemirror/theme/twilight.css',
 					'client/styles.css'
 				],

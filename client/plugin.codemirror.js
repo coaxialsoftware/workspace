@@ -107,6 +107,7 @@ ide.Editor.Source = ide.Editor.extend({
 			scrollbarStyle: 'null',
 			electricChars: false,
 			indentUnit: s.indent_size || 4,
+			styleActiveLine: true,
 			foldGutter: s.fold_gutter!==false,
 			gutters: ['CodeMirror-lint-markers', "CodeMirror-linenumbers", 
 				"CodeMirror-foldgutter"]	
@@ -141,21 +142,13 @@ ide.Editor.Source = ide.Editor.extend({
 	 * Gets token at pos. If pos is ommited it will return the token
 	 * under the cursor
 	 */
-/*
+	
 	get_token: function(pos)
 	{
-	var
-		insertMode = this.get_state()==='INSERT',
-		token, col
-	;
-		pos = pos || this.editor.getCursorPosition();
-		col = pos.column + (insertMode ? 0 : 1);
+		pos = pos || this.editor.getCursor();
 
-		token = this.editor.session.getTokenAt(pos.row, col);
-
-		return token;
+		return this.editor.getTokenAt(pos, true);
 	},
-*/
 
 	get_char: function(pos)
 	{

@@ -133,7 +133,8 @@ ide.plugins.register('find', new ide.Plugin({
 		if (token)
 		{
 			return token.type==='string' ?
-				token.value.substr(1, token.value.length-2) : token.value;
+				// TODO make more generic?
+				token.string.substr(1, token.string.length-2) : token.string;
 		}
 	},
 
