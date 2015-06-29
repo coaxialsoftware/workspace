@@ -57,6 +57,7 @@ module.exports = function(grunt) {
 					'node_modules/codemirror/addon/edit/closetag.js',
 					'node_modules/codemirror/addon/edit/closebrackets.js',
 					'node_modules/codemirror/addon/comment/comment.js',
+					'node_modules/codemirror/addon/comment/continuecomment.js',
 					'node_modules/codemirror/addon/fold/foldcode.js',
 					'node_modules/codemirror/addon/fold/foldgutter.js',
 					'node_modules/codemirror/addon/fold/brace-fold.js',

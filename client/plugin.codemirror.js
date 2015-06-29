@@ -83,8 +83,10 @@ ide.Editor.Source = ide.Editor.extend({
 	var
 		s = ide.project.get('editor') || {},
 
+		ft = this.file.get('mime'),
 		editor = this.editor = codeMirror(this.el, {
 			value: this.file.get('content'),
+			mode: ft,
 			theme: s.theme || 'twilight',
 			tabSize: s.indent_size || 4,
 			indentWithTabs: s.indent_style!=='space',
@@ -97,18 +99,13 @@ ide.Editor.Source = ide.Editor.extend({
 			gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]	
 		})
 	;
-		
 		this.line_separator = s.line_separator || "\n";
 		this.$el.on('keydown', this.on_keyup.bind(this));
 		window.console.log(editor);
 		
-		//editor.container.style.fontSize = s.font_size || '16px';
-		//editor.setBehavioursEnabled(true);
-		//editor.setDisplayIndentGuides(s.indent_guides || false);
+		if (s.font_size)
+			this.el.style.fontSize = s.font_size;
 
-		//session.setUseWrapMode(true);
-
-		//editor.selection.clearSelection();
 		//editor.on('focus', this.on_focus.bind(this));
 		//editor.on('blur', this.on_blur.bind(this));
 
@@ -118,11 +115,6 @@ ide.Editor.Source = ide.Editor.extend({
 		);
 
 		this.set_mode();
-
-		this.file.on('write', this.trigger.bind(this, 'write'));
-
-		window.setTimeout(this.focus.bind(this), 250);
-		//this.findNextFix();
 		this.enable_autocompletion();
 		this.registers = require('ace/keyboard/vim').Vim.getRegisterController();
 		*/
@@ -322,14 +314,6 @@ ide.Editor.Source = ide.Editor.extend({
 		return (this.changed() ? '+ ' : '') +
 			(this.file.get('filename') || '[No Name]') +
 			' [' + ide.project.get('name') + ']';
-	},
-
-	set_mode: function()
-	{
-	var
-		mode = this.mode = ide.filetype(this.file)
-	;
-		this.editor.session.setMode('ace/mode/' + mode);
 	}
 
 });

@@ -23,6 +23,46 @@ var
 	plugin = module.exports = cxl('workspace.project')
 ;
 
+/**
+ * Project Configuration (project.json)
+ * 
+ * Avoid using mutable objects as values to speed up diff algorithm.
+ *
+ */
+function ProjectConfiguration(path) {
+	var project = common.load_json_sync(this.path+'/project.json');
+	
+	cxl.extend(this, workspace.configuration.project_defaults, project);
+	
+	this.path = path;
+	
+	if (!this.ignore)
+		this.ignore = [ '.*', 'node_modules', 'bower_modules' ];
+	
+	this.tags = {
+		workspace: !!project
+	};
+}
+
+cxl.extend(ProjectConfiguration.prototype, {
+	
+	/**
+	 * Project name
+	 */
+	name: null,
+
+	/**
+	 * Project version.
+	 */
+	version: null,
+
+	/**
+	 * Project description.
+	 */
+	description: null
+	
+});
+
 class Project {
 
 	constructor(path)
@@ -35,18 +75,8 @@ class Project {
 	create()
 	{
 	var
-		config = this.configuration = { path: this.path },
-		project = common.load_json_sync(this.path+'/project.json')
+		config = this.configuration = new ProjectConfiguration(this.path)
 	;
-		cxl.extend(config, workspace.configuration.project_defaults, project);
-		
-		if (!config.ignore)
-			config.ignore = [ '.*', 'node_modules', 'bower_modules' ];
-
-		config.tags = {
-			workspace: !!project
-		};
-		
 		workspace.plugins.emit('project.create', this);
 		
 		if (!config.name)
@@ -219,22 +249,13 @@ class Project {
 
 cxl.define(Project, {
 
-	/**
-	 * Project name
-	 */
-	name: null,
-
-	/**
-	 * Project version.
-	 */
-	version: null,
-
-	/**
-	 * Project description.
-	 */
-	description: null,
-
-
+	/** @type {ProjectConfiguration} */
+	configuration: null,
+	
+	loaded: false,
+	
+	watcher: null
+	
 });
 
 class ProjectManager {
