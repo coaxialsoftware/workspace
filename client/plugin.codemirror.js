@@ -58,32 +58,43 @@ ide.Editor.Source = ide.Editor.extend({
 		pos.index = this.editor.session.doc.positionToIndex(pos);
 
 		return pos;
-	},
+	}
 
-	enable_autocompletion: function()
-	{
-		this.editor.commands.addCommand({
-			name: 'startAutocomplete',
-			bindKey: 'Ctrl-Space|Alt-Space',
-			exec: function(editor)
-			{
-				ide.trigger('autocomplete', editor);
-			}
-		});
-	},
-
-	on_scroll: function()
-	{
-		ide.trigger('scroll', this);
-	},
 */
+	find_mode: function()
+	{
+		var info = codeMirror.findModeByFileName(this.file.get('filename')) ||
+			codeMirror.findModeByMIME(this.file.get('mime')) ||
+			codeMirror.findModeByMIME('plain/text'),
+			mode = info.mode,
+			me = this
+		;
+			function getScript(mode)
+			{
+				return 'codemirror/mode/' + mode + '/' + mode + '.js';
+			}
+		
+			if (!codeMirror.modes[mode])
+			{
+				if (info.require)
+					ide.loader.script(getScript(info.require));
+					
+				ide.loader.script(getScript(mode));
+				ide.loader.ready(function() {
+					me.editor.setOption('mode', mode);
+				});
+				return;
+			}
+		
+		return mode;
+	},
 
 	setup: function()
 	{
 	var
 		s = ide.project.get('editor') || {},
 
-		ft = this.file.get('mime'),
+		ft = this.find_mode(),
 		editor = this.editor = codeMirror(this.el, {
 			value: this.file.get('content'),
 			mode: ft,
@@ -94,9 +105,11 @@ ide.Editor.Source = ide.Editor.extend({
 			lineWrapping: true,
 			lineNumbers: true,
 			scrollbarStyle: 'null',
+			electricChars: false,
 			indentUnit: s.indent_size || 4,
 			foldGutter: s.fold_gutter!==false,
-			gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]	
+			gutters: ['CodeMirror-lint-markers', "CodeMirror-linenumbers", 
+				"CodeMirror-foldgutter"]	
 		})
 	;
 		this.line_separator = s.line_separator || "\n";
@@ -111,12 +124,6 @@ ide.Editor.Source = ide.Editor.extend({
 		this.registers = codeMirror.Vim.getRegisterController();
 
 		//editor.on('changeSelection', this.on_selection.bind(this));
-		/*editor.renderer.scrollBar.element.addEventListener('scroll',
-			this.on_scroll.bind(this)
-		);
-
-		this.enable_autocompletion();
-		*/
 	},
 
 	resize: function()
@@ -129,18 +136,6 @@ ide.Editor.Source = ide.Editor.extend({
 		if (n)
 			this.editor.find(n);
 	},
-/*
-
-
-	findNextFix: function()
-	{
-		this.editor.findNext = function(options, animate)
-		{
-			this.find({skipCurrent: true, backwards: false, start:null},
-				options, animate);
-		};
-	},
-*/
 
 	/**
 	 * Gets token at pos. If pos is ommited it will return the token
@@ -188,30 +183,9 @@ ide.Editor.Source = ide.Editor.extend({
 		return this.$el.css('font');
 	},
 
-/*
-	on_selection: function(ev, editor)
-	{
-	var
-		insertMode = this.get_state()==='INSERT',
-		pos = editor.getCursorPosition(),
-		ann = this.get_annotation(pos.row),
-		token = this.get_token(pos)
-	;
-		if (ann && !insertMode)
-			ide.info.show(ann.text.join('<br/>'));
-
-		if (token !== this.__token)
-		{
-			ide.trigger('tokenchange', this, token, pos);
-			this.__token = token;
-		}
-
-		ide.trigger('cursorchange', this, pos);
-	},
-*/
 	on_keyup: function(ev)
 	{
-		if (this.get_state()==='INSERT')
+		if (this.vim_mode()==='INSERT')
 		{
 			ev.stopPropagation();
 		}
@@ -239,11 +213,6 @@ ide.Editor.Source = ide.Editor.extend({
 		this.sync_registers();
 	},
 
-	/*get_annotation: function(row)
-	{
-		return this.editor.renderer.$gutterLayer.$annotations[row];
-	},*/
-
 	focus: function(ignore)
 	{
 		ide.Editor.prototype.focus.apply(this);
@@ -263,29 +232,16 @@ ide.Editor.Source = ide.Editor.extend({
 		ide.Editor.prototype.close.call(this);
 	},
 
-	remove_trailing: function()
-	{
-		this.editor.replaceAll('', { needle: /[\t ]+$/ });
-	},
-
 	write: function(filename)
 	{
-	var
-		annotations = []//this.editor.session.getAnnotations()
-	;
 		if (filename)
 			this.file.set('filename', filename);
-		if (this.mode==='javascript')
-			this.remove_trailing();
+		
 		if (!this.file.get('filename'))
 			return ide.error('No file name.');
 
 		this.file.set('content', this.editor.getValue());
 		this.file.save();
-
-		annotations.forEach(function(a) {
-			ide.alert((a.row+1) + ': ' + a.text);
-		});
 	},
 
 	insert: function(text)
@@ -298,11 +254,12 @@ ide.Editor.Source = ide.Editor.extend({
 		return this.file.get('content') !== this.get_value();
 	},
 
-	get_state: function()
+	vim_mode: function()
 	{
 		var state = this.editor.state.vim;
 		// TODO add more modes
-		return state.insertMode ? 'INSERT' : 'NORMAL';
+		return state.insertMode ? 'INSERT' : 
+			(state.visualMode ? 'VISUAL' : 'NORMAL');
 	},
 
 	get_info: function()

@@ -70,7 +70,8 @@ ide.plugins.register('project', {
 		
 		var diff = ide.diff(ide.project.attributes, msg);
 		
-		ide.project.set(ide.project.parse(diff));
+		if (diff)
+			ide.project.set(ide.project.parse(diff));
 	},
 
 	ready: function()

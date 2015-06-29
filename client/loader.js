@@ -143,9 +143,7 @@ _.extend(Loader.prototype, {
 
 	ready: function(callback)
 	{
-		if (callback)
-			this.on_ready = callback;
-
+		this.on_ready = callback;
 		this._check_ready();
 	},
 

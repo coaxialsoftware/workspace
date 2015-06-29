@@ -63,6 +63,7 @@ module.exports = function(grunt) {
 					'node_modules/codemirror/addon/fold/brace-fold.js',
 					'node_modules/codemirror/addon/lint/lint.js',
 					'node_modules/codemirror/addon/selection/active-line.js',
+					'node_modules/codemirror/addon/mode/overlay.js',
 					'node_modules/codemirror/keymap/vim.js',
 					/*
 					'node_modules/codemirror/addon/hint/show-hint.js',
@@ -72,6 +73,7 @@ module.exports = function(grunt) {
 					*/
 					'node_modules/codemirror/addon/lint/javascript-lint.js',
 					'node_modules/codemirror/addon/lint/json-lint.js',
+					'node_modules/codemirror/mode/meta.js',
 					'node_modules/codemirror/mode/javascript/javascript.js',
 					
 					'node_modules/codemirror/mode/htmlmixed/htmlmixed.js',
