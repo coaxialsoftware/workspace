@@ -33,6 +33,11 @@ plugin.extend({
 
 		for (i in this.clients)
 			this.clients[i].send(payload);
+	},
+	
+	onProjectLoad: function(project)
+	{
+		project.configuration['socket.port'] = plugin.port;
 	}
 
 }).config(function() {
@@ -46,11 +51,8 @@ plugin.extend({
 
 	this.clients = {};
 
-	workspace.plugins.on('project.load', function(project) {
-		project.socket = {
-			port: plugin.port
-		};
-	});
+	workspace.plugins.on('project.load', this.onProjectLoad);
+	workspace.plugins.on('workspace.load', this.onProjectLoad);
 
 }).run(function() {
 

@@ -30,12 +30,13 @@ ide.plugins.register('socket', ide.socket = new ide.Plugin({
 	connect: function()
 	{
 	var
-		doc = window.document
+		doc = window.document,
+		config = ide.project.attributes
 	;
 		this.config = cxl.extend({
 			host: doc.location.hostname,
-			port: parseInt(doc.location.port) + 1
-		}, ide.project.get('socket'));
+			port: config['socket.port'] || (parseInt(doc.location.port) + 1)
+		});
 
 		try {
 			this.ws = new window.WebSocket(

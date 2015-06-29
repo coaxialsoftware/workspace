@@ -35,7 +35,7 @@ class Project {
 	create()
 	{
 	var
-		config = this.config = { path: this.path },
+		config = this.configuration = { path: this.path },
 		project = common.load_json_sync(this.path+'/project.json')
 	;
 		cxl.extend(config, workspace.configuration.project_defaults, project);
@@ -64,7 +64,7 @@ class Project {
 
 	generateIgnore()
 	{
-		var ignore = this.config.ignore = _.uniq(this.config.ignore);
+		var ignore = this.configuration.ignore = _.uniq(this.configuration.ignore);
 		this.ignoreMatcher = function(path) {
 			return micromatch.any(path, ignore);
 		};
@@ -94,8 +94,8 @@ class Project {
 				return plugin.error(err);
 
 			me.log(`${result.length} file(s) found (${Date.now()-time} ms).`);
-			me.config.files = JSON.stringify(_.sortBy(result, 'filename'));
-			me.broadcast({ files: me.config.files });
+			me.configuration.files = JSON.stringify(_.sortBy(result, 'filename'));
+			me.broadcast({ files: me.configuration.files });
 		});
 	}
 
@@ -120,10 +120,10 @@ class Project {
 	
 	setConfig(attr)
 	{
-		var diff = common.diff(this.config, attr);
+		var diff = common.diff(this.configuration, attr);
 		this.broadcast(diff);
 		
-		this.config = attr;
+		this.configuration = attr;
 	}
 
 	onMessage(client, data)
@@ -132,7 +132,7 @@ class Project {
 		{
 			this.log(`Registering client ${client.id}.`);
 			this.clients.push(client);
-			client.send(this.getPayload(common.diff(data, this.config)));
+			client.send(this.getPayload(common.diff(data, this.configuration)));
 		}
 	}
 	
@@ -162,7 +162,7 @@ class Project {
 			this.dbg(`Watching ${this.path}`);
 			this.watcher = fs.watch(this.path, this.onWatch.bind(this));
 			/*this.watcher = chokidar.watch(this.path+'/', {
-				ignored: this.config.ignore,
+				ignored: this.configuration.ignore,
 				followSymlinks: false,
 				ignoreInitial: true,
 				cwd: this.path
@@ -182,7 +182,7 @@ class Project {
 
 		delete this.promises;
 
-		return this.config;
+		return this.configuration;
 	}
 
 	onLoadFail(err)
@@ -202,11 +202,11 @@ class Project {
 	load()
 	{
 		if (this.loaded)
-			return Q.resolve(this.config);
+			return Q.resolve(this.configuration);
 
 		this.log('Loading.');
 
-		this.config.env = process.env;
+		this.configuration.env = process.env;
 
 		// Make sure project exists.
 		this.resolve(common.stat(this.path));
@@ -245,6 +245,7 @@ class ProjectManager {
 		* List of projects
 		*/
 		this.projects = {};
+		this.files = [];
 		this.path = '.';
 	}
 	
@@ -267,7 +268,7 @@ class ProjectManager {
 		return this.findProjects().then(function(projects) {
 				return cxl.extend({
 					projects: projects,
-					files: Object.keys(projects)
+					files: JSON.stringify(this.files)
 				}, workspace.configuration);
 			});
 	}
@@ -279,15 +280,16 @@ class ProjectManager {
 
 	getProjectInformation(path)
 	{
-		if (!common.isDirectory(path))
+		if (!path.directory)
 			return;
 
-		this.projects[path] = new Project(path);
+		this.files.push(path);
+		this.projects[path.filename] = new Project(path.filename);
 	}
 
 	findProjects()
 	{
-	 return common.readDirectory(this.path)
+	 return common.list(this.path)
 	 	.bind(this)
 	 	.each(this.getProjectInformation)
 	 	.then(function() {

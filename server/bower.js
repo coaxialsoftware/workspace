@@ -20,7 +20,7 @@ plugin.config(function() {
 
 	var
 		pkg = common.load_json_sync(project.path + '/bower.json'),
-		config = project.config
+		config = project.configuration
 	;
 
 		if (pkg)

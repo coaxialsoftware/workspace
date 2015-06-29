@@ -30,7 +30,7 @@ class Configuration {
 			version: '0.1',
 			name: 'workspace',
 			env: process.env,
-			user: process.env.USER
+			user: process.env.USER || process.env.USERNAME
 		});
 
 		if (this.debug)
@@ -109,6 +109,8 @@ class PluginManager extends EventEmitter {
 	{
 		for (var i in this.plugins)
 			this.plugins[i].start();
+		
+		setImmediate(this.emit.bind(this, 'workspace.load', workspace));
 	}
 
 }
@@ -116,18 +118,7 @@ class PluginManager extends EventEmitter {
 workspace.extend({
 
 	configuration: new Configuration(),
-	plugins: new PluginManager(),
-
-	load: function()
-	{
-		return this.projectManager.findProjects().bind(this)
-			.then(function(projects) {
-				return cxl.extend({
-					projects: projects,
-					files: Object.keys(projects)
-				}, this.configuration);
-			});
-	}
+	plugins: new PluginManager()
 
 }).config(function()
 {
@@ -143,6 +134,7 @@ workspace.extend({
 		.register(require('./npm'))
 		.register(require('./bower'))
 	;
+	
 })
 
 .createServer()
