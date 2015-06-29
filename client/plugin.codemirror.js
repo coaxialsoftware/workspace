@@ -1,5 +1,5 @@
 
-(function(ide, codeMirror) {
+(function(ide, cxl, codeMirror) {
 "use strict";
 
 /**
@@ -101,22 +101,21 @@ ide.Editor.Source = ide.Editor.extend({
 	;
 		this.line_separator = s.line_separator || "\n";
 		this.$el.on('keydown', this.on_keyup.bind(this));
-		window.console.log(editor);
 		
 		if (s.font_size)
 			this.el.style.fontSize = s.font_size;
 
-		//editor.on('focus', this.on_focus.bind(this));
-		//editor.on('blur', this.on_blur.bind(this));
+		editor.on('focus', this.on_focus.bind(this));
+		editor.on('blur', this.on_blur.bind(this));
+		
+		this.registers = codeMirror.Vim.getRegisterController();
 
 		//editor.on('changeSelection', this.on_selection.bind(this));
 		/*editor.renderer.scrollBar.element.addEventListener('scroll',
 			this.on_scroll.bind(this)
 		);
 
-		this.set_mode();
 		this.enable_autocompletion();
-		this.registers = require('ace/keyboard/vim').Vim.getRegisterController();
 		*/
 	},
 
@@ -131,15 +130,6 @@ ide.Editor.Source = ide.Editor.extend({
 			this.editor.find(n);
 	},
 /*
-	on_blur: function()
-	{
-		var json = {}, data;
-		for (var i in this.registers.registers)
-			if ((data = this.registers.registers[i].toString()))
-				json[i] = data;
-
-		this.plugin.data('registers', JSON.stringify(json));
-	},
 
 
 	findNextFix: function()
@@ -234,7 +224,13 @@ ide.Editor.Source = ide.Editor.extend({
 		cb = data && JSON.parse(data)
 	;
 		for (var i in cb)
-			this.registers.getRegister(i).setText(cb[i]);
+			// TODO dangerous?
+			cxl.extend(this.registers.getRegister(i), cb[i]);
+	},
+	
+	on_blur: function()
+	{
+		this.plugin.data('registers', JSON.stringify(this.registers));
 	},
 
 	on_focus: function()
@@ -243,10 +239,10 @@ ide.Editor.Source = ide.Editor.extend({
 		this.sync_registers();
 	},
 
-	get_annotation: function(row)
+	/*get_annotation: function(row)
 	{
 		return this.editor.renderer.$gutterLayer.$annotations[row];
-	},
+	},*/
 
 	focus: function(ignore)
 	{
@@ -347,4 +343,4 @@ ide.plugins.register('editor', new ide.Plugin({
 
 }));
 
-})(this.ide, this.CodeMirror);
+})(this.ide, this.cxl, this.CodeMirror);
