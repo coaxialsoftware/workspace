@@ -102,9 +102,6 @@ ide.Editor.Source = ide.Editor.extend({
 		this.$el.on('keydown', this.on_keyup.bind(this));
 		window.console.log(editor);
 		
-		editor.openDialog = function() {
-			window.console.log(arguments);
-		};
 		//editor.container.style.fontSize = s.font_size || '16px';
 		//editor.setBehavioursEnabled(true);
 		//editor.setDisplayIndentGuides(s.indent_guides || false);

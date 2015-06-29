@@ -41,7 +41,7 @@ ide.Project = cxl.Model.extend({
 
 	parse: function(data)
 	{
-		this.files_text = data.files ? data.files.join("\n") : '';
+		this.set_files(data.files);
 		return data;
 	},
 
@@ -49,11 +49,11 @@ ide.Project = cxl.Model.extend({
 	{
 		this.trigger('load');
 	},
-
+	
 	set_files: function(files)
 	{
-		this.set(files);
-		this.files_text = _.pluck(files, 'filename').join("\n");
+		this.attributes.files = files;
+		this.files_text = files ? _.pluck(files, 'filename').join("\n") : '';
 	}
 
 });
@@ -62,6 +62,8 @@ ide.plugins.register('project', {
 
 	onMessage: function(msg)
 	{
+		if (!msg) return;
+
 		if (msg.files)
 			ide.project.set_files(msg.files);
 	},
@@ -69,9 +71,7 @@ ide.plugins.register('project', {
 	ready: function()
 	{
 		ide.plugins.on('socket.message.project', this.onMessage, this);
-		ide.socket.send('project', {
-			project: ide.project.id
-		});
+		ide.socket.send('project', ide.project.attributes);
 	}
 
 });

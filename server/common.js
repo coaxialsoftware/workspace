@@ -15,6 +15,20 @@ common = module.exports = {
 	readDirectory: Q.promisify(fs.readdir),
 	writeFile: Q.promisify(fs.writeFile),
 	stat: Q.promisify(fs.stat),
+	
+	/**
+	 * Get diff between A and B
+	 */
+	diff: function(A, B)
+	{
+		var result;
+		
+		for (var i in B)
+			if (B[i] !== A[i])
+				(result = result || {})[i] = B[i];
+		
+		return result;	
+	},
 
 	respond: function(module, res, promise)
 	{
@@ -170,7 +184,10 @@ common = module.exports = {
 
 	load_json_sync: function(filename)
 	{
-		if (fs.existsSync(filename))
-			return JSON.parse(fs.readFileSync(filename));
+		try {
+			return JSON.parse(fs.readFileSync(filename, 'utf8'));
+		} catch(e) {
+			return null;
+		}
 	}
 };

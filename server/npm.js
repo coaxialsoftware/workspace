@@ -18,14 +18,17 @@ plugin.config(function() {
 
 	workspace.plugins.on('project.create', function(project) {
 
-		var pkg = common.load_json_sync(project.path + '/package.json');
+	var
+		pkg = common.load_json_sync(project.path + '/package.json'),
+		config = project.config
+	;
 
 		if (pkg)
 		{
-			project.tags.npm = true;
-			project.name = project.name || pkg.name;
-			project.version = project.version || pkg.version;
-			project.description = project.description || pkg.description;
+			config.tags.npm = true;
+			config.name = config.name || pkg.name;
+			config.version = config.version || pkg.version;
+			config.description = config.description || pkg.description;
 		}
 
 	});

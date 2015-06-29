@@ -11,13 +11,14 @@ var
 	_ = require('lodash'),
 	colors = require('colors'),
 	micromatch = require('micromatch'),
+	fs = require('fs'),
 
 	common = require('./common.js'),
 
 	//CONFIG_FILES = /bower\.json|package\.json|project\.json/,
 
 	workspace = require('./workspace'),
-	chokidar = require('chokidar'),
+	//chokidar = require('chokidar'),
 
 	plugin = module.exports = cxl('workspace.project')
 ;
@@ -26,23 +27,32 @@ class Project {
 
 	constructor(path)
 	{
-		var project = common.load_json_sync(path+'/project.json');
-
 		this.path = path;
+		this.clients = [];
+		this.create();
+	}
+	
+	create()
+	{
+	var
+		config = this.config = { path: this.path },
+		project = common.load_json_sync(this.path+'/project.json')
+	;
+		cxl.extend(config, workspace.configuration.project_defaults, project);
+		
+		if (!config.ignore)
+			config.ignore = [ '.*', 'node_modules', 'bower_modules' ];
 
-		cxl.extend(this, workspace.configuration.project_defaults, project);
-
-		this.tags = {
+		config.tags = {
 			workspace: !!project
 		};
-
-		Object.defineProperty(this, 'clients', {
-			value: [], enumerable: false });
-
+		
 		workspace.plugins.emit('project.create', this);
-
-		if (!this.name)
-			this.name = this.path;
+		
+		if (!config.name)
+			config.name = config.path;
+		
+		return this;
 	}
 
 	resolve(promise)
@@ -54,7 +64,7 @@ class Project {
 
 	generateIgnore()
 	{
-		var ignore = this.ignore = _.uniq(this.ignore);
+		var ignore = this.config.ignore = _.uniq(this.config.ignore);
 		this.ignoreMatcher = function(path) {
 			return micromatch.any(path, ignore);
 		};
@@ -64,60 +74,83 @@ class Project {
 	{
 		plugin.log(`${colors.yellow(this.path)} ${msg}`);
 	}
+	
+	dbg(msg)
+	{
+		plugin.dbg(`${colors.yellow(this.path)} ${msg}`);
+	}
 
 	rebuildFiles()
 	{
 	var
 		me = this, time = Date.now()
 	;
-		me.watcher.rebuilding = true;
+		me.rebuilding = true;
 
 		common.walk(this.path, this.ignoreMatcher, function(err, result) {
-			me.watcher.rebuilding = false;
+			me.rebuilding = false;
 
 			if (err)
 				return plugin.error(err);
 
 			me.log(`${result.length} file(s) found (${Date.now()-time} ms).`);
-			me.files = _.sortBy(result, 'filename');
-			me.broadcast();
+			me.config.files = _.sortBy(result, 'filename');
+			me.broadcast({ files: me.config.files });
 		});
 	}
 
-	getPayload()
+	getPayload(data)
 	{
 		return JSON.stringify({
 			plugin: 'project',
-			data: {
-				files: this.files
-			}
+			data: data
 		});
 	}
 
-	broadcast()
+	broadcast(data)
 	{
-		var me = this;
+		var me = this, payload = me.getPayload(data);
+		
+		this.dbg(`Broadcasting ${payload} (${payload.length})`);
+
 		this.clients.forEach(function(client) {
-			client.send(me.getPayload());
+			client.send(payload);
 		});
 	}
+	
+	setConfig(attr)
+	{
+		var diff = common.diff(this.config, attr);
+		this.broadcast(diff);
+		
+		this.config = attr;
+	}
 
-	onMessage(client)
+	onMessage(client, data)
 	{
 		if (this.clients.indexOf(client)===-1)
 		{
 			this.log(`Registering client ${client.id}.`);
 			this.clients.push(client);
-			client.send(this.getPayload());
+			client.send(this.getPayload(common.diff(data, this.config)));
 		}
 	}
-
+	
 	onWatch(ev, path)
 	{
-		if (ev!=='change' && !this.watcher.rebuilding)
-			this.rebuildFiles();
+		if (ev!=='change')
+		{
+			if (!this.rebuilding)
+				this.rebuildFiles();
+		} else if (ev==='change')
+		{
+			workspace.plugins.emit('project.filechange:' + path, this, ev, path);
+			
+			if (path==='project.json')
+				this.reload();
+		}
 
-		this.log(ev + ' ' + path);
+		this.dbg(ev + ' ' + path);
 	}
 
 	onTimeout()
@@ -126,14 +159,16 @@ class Project {
 
 		if (!this.watcher)
 		{
-			this.watcher = chokidar.watch(this.path, {
-				ignored: this.ignore,
+			this.dbg(`Watching ${this.path}`);
+			this.watcher = fs.watch(this.path, this.onWatch.bind(this));
+			/*this.watcher = chokidar.watch(this.path+'/', {
+				ignored: this.config.ignore,
 				followSymlinks: false,
 				ignoreInitial: true,
 				cwd: this.path
 			});
 			this.watcher.on('all', this.onWatch.bind(this));
-			Object.defineProperty(this, 'watcher', { enumerable: false });
+			*/	
 		}
 
 		this.rebuildFiles();
@@ -147,22 +182,31 @@ class Project {
 
 		delete this.promises;
 
-		return this;
+		return this.config;
 	}
 
 	onLoadFail(err)
 	{
 		return Q.reject(err);
 	}
+	
+	reload()
+	{
+		this.log('Reloading project.');
+		this.loaded = false;
+		this.create().load().then(function(config) {
+			this.setConfig(config);
+		});
+	}
 
 	load()
 	{
 		if (this.loaded)
-			return Q.resolve(this);
+			return Q.resolve(this.config);
 
 		this.log('Loading.');
 
-		this.env = process.env;
+		this.config.env = process.env;
 
 		// Make sure project exists.
 		this.resolve(common.stat(this.path));
@@ -190,10 +234,6 @@ cxl.define(Project, {
 	 */
 	description: null,
 
-	/**
-	 * Files ignored by the project.
-	 */
-	ignore: [ '.*', 'node_modules', 'bower_modules' ]
 
 });
 
@@ -207,11 +247,19 @@ class ProjectManager {
 		this.projects = {};
 		this.path = '.';
 	}
+	
+	getProject(path)
+	{
+		if (!path)
+			return null;
+		
+		return (this.projects[path] ||
+			(this.projects[path] = new Project(path)));
+	}
 
 	loadProject(path)
 	{
-		return (this.projects[path] ||
-			(this.projects[path] = new Project(path))).load();
+		return this.getProject(path).load();
 	}
 
 	loadAll()
@@ -251,7 +299,7 @@ class ProjectManager {
 plugin.extend({
 	onMessage: function(client, data)
 	{
-		var project = this.projectManager.projects[data.project];
+		var project = this.projectManager.getProject(data.path);
 
 		if (project)
 			project.onMessage(client, data);
