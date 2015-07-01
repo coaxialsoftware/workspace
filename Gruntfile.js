@@ -42,7 +42,7 @@ module.exports = function(grunt) {
 				src: [
 					'node_modules/codemirror/lib/codemirror.js',
 					'node_modules/codemirror/addon/search/searchcursor.js',
-					'node_modules/codemirror/addon/search/search.js',
+					'node_modules/codemirror/addon/search/find.js',
 					'node_modules/codemirror/addon/edit/matchbrackets.js',
 					'node_modules/codemirror/addon/edit/matchtags.js',
 					'node_modules/codemirror/addon/edit/closetag.js',
@@ -136,9 +136,41 @@ module.exports = function(grunt) {
 				files: [ '<%= concat.html.src %>', 'client/html/debug.html' ],
 				tasks: [ 'concat:html', 'concat:htmldbg' ]
 			}
-		}
+		},
+		
+		karma: {
+
+			options: {
+
+				frameworks: [ 'qunit' ],
+				browsers: [ 'PhantomJS' ],
+				reporters: [ 'progress', 'coverage' ],
+				singleRun: true,
+				coverageReporter: {
+					subdir: 'report'
+				}
+			},
+
+			client: {
+				plugins: [
+					'karma-qunit', 'karma-coverage', 'karma-phantomjs-launcher'
+				],
+				files: [
+					{ src: [
+						'public/build/libs.js',
+						'<%= jshint.client.src %>'
+					]},
+					{ src: 'test/client/*.js' }
+				],
+				preprocessors: {
+					'client/**/*.js': [ 'coverage' ]
+				}
+			}
+		},
 
 	});
+	
+	grunt.loadNpmTasks('grunt-karma');
 
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-concat');
