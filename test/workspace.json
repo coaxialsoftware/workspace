@@ -2,7 +2,5 @@
 	"port": 9002,
 	"debug": true,
 	
-	"socket": {
-		"port": 9005
-	}
+	"socket_port": 9005
 }

@@ -11,6 +11,7 @@ ide.File = cxl.Model.extend({
 
 	initialize: function()
 	{
+		this.set('project', ide.project.get('path'));
 		this.on('error', this._onError);
 	},
 
@@ -43,13 +44,6 @@ ide.File = cxl.Model.extend({
 		return this.attributes.new;
 	},
 
-	parse: function(response)
-	{
-		response.ext = /(?:\.([^.]+))?$/.exec(
-			response.path || response.filename)[1];
-		return response;
-	},
-
 	url: function()
 	{
 	var
@@ -65,6 +59,57 @@ ide.File = cxl.Model.extend({
 	}
 
 });
+	
+ide.fileManager = {
+	
+	each: function(callback)
+	{
+		var result;
+		
+		ide.workspace.each(function(editor) {
+			if (editor.file)
+			{
+				result = callback(editor.file);
+				if (result) return false;
+			}
+		});
+		
+		return result;
+	},
+	
+	getPath: function(filename)
+	{
+		return ide.project.id + cxl.path(filename);
+	},
+	
+	findFile: function(path)
+	{
+		return this.each(function(file) {
+			if (file.id===path)
+				return file;
+		});
+	},
+	
+	/**
+	 * Creates a new file object if it is already open returns 
+	 * that instance instead.
+	 */
+	getFile: function(filename)
+	{
+		var file;
+		
+		if (filename)
+		{
+			file = this.findFile(this.getPath(filename)) ||
+				new ide.File({
+					filename: filename
+				});
+		} 
+		
+		return file || new ide.File();
+	}
+	
+};
 
 /**
  * Insert the file [file] (default: current file) below the cursor.
@@ -89,6 +134,36 @@ ide.commands.read = function(file)
 };
 
 ide.commands.r = 'read';
-
+	
+ide.plugins.register('file', {
+	
+	onMessage: function(data)
+	{
+		var file = ide.fileManager.findFile(data.path);
+		
+		if (file)
+		{
+			ide.notify('File ' + file.get('filename') + ' was updated.');
+			file.set(data);
+		}
+	},
+	
+	onWindowFocus: function()
+	{
+		ide.fileManager.each(function(file) {
+			if (file.id)
+				ide.socket.send('file', {
+					stat: { p: file.id, t: file.get('mtime') }
+				});
+		});
+	},
+	
+	ready: function()
+	{
+		cxl.$window.focus(this.onWindowFocus.bind(this));
+		ide.plugins.on('socket.message.file', this.onMessage);
+	}
+	
+});
 
 })(this.cxl, this.ide, this.jQuery);

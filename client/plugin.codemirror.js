@@ -22,6 +22,8 @@ ide.Editor.Source = ide.Editor.extend({
 		{
 			this.write(filename);
 		},
+		
+		write: 'w',
 
 		ascii: function()
 		{
@@ -38,8 +40,6 @@ ide.Editor.Source = ide.Editor.extend({
 	{
 		if (!isNaN(fn))
 			return function() { this.go(fn); };
-
-		return this.commands[fn];
 	},
 
 	go: function(n)
@@ -63,28 +63,30 @@ ide.Editor.Source = ide.Editor.extend({
 */
 	find_mode: function()
 	{
-		var info = codeMirror.findModeByFileName(this.file.get('filename')) ||
-			codeMirror.findModeByMIME(this.file.get('mime')) ||
-			codeMirror.findModeByMIME('plain/text'),
-			mode = info.mode,
-			me = this
-		;
-			function getScript(mode)
-			{
-				return 'codemirror/mode/' + mode + '/' + mode + '.js';
-			}
-		
-			if (!codeMirror.modes[mode])
-			{
-				if (info.require)
-					ide.loader.script(getScript(info.require));
-					
-				ide.loader.script(getScript(mode));
-				ide.loader.ready(function() {
-					me.editor.setOption('mode', mode);
-				});
-				return;
-			}
+	var
+		filename = this.file.get('filename'),
+		info = filename && (codeMirror.findModeByFileName(filename) ||
+			codeMirror.findModeByMIME(this.file.get('mime'))) ||
+			codeMirror.findModeByMIME('text/plain'),
+		mode = info.mode,
+		me = this
+	;
+		function getScript(mode)
+		{
+			return 'codemirror/mode/' + mode + '/' + mode + '.js';
+		}
+
+		if (!codeMirror.modes[mode])
+		{
+			if (info.require)
+				ide.loader.script(getScript(info.require));
+
+			ide.loader.script(getScript(mode));
+			ide.loader.ready(function() {
+				me.editor.setOption('mode', mode);
+			});
+			return;
+		}
 		
 		return mode;
 	},
@@ -96,7 +98,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 		ft = this.find_mode(),
 		editor = this.editor = codeMirror(this.el, {
-			value: this.file.get('content'),
+			value: this.file.get('content') || '',
 			mode: ft,
 			theme: s.theme || 'twilight',
 			tabSize: s.indent_size || 4,
@@ -113,6 +115,7 @@ ide.Editor.Source = ide.Editor.extend({
 				"CodeMirror-foldgutter"]	
 		})
 	;
+		this.file_content = this.file.get('content');
 		this.line_separator = s.line_separator || "\n";
 		this.$el.on('keydown', this.on_keyup.bind(this));
 		
@@ -122,6 +125,7 @@ ide.Editor.Source = ide.Editor.extend({
 		editor.on('focus', this.on_focus.bind(this));
 		editor.on('blur', this.on_blur.bind(this));
 		
+		this.listenTo(this.file, 'change:content', this.on_file_change);
 		this.registers = codeMirror.Vim.getRegisterController();
 
 		//editor.on('changeSelection', this.on_selection.bind(this));
@@ -142,7 +146,6 @@ ide.Editor.Source = ide.Editor.extend({
 	 * Gets token at pos. If pos is ommited it will return the token
 	 * under the cursor
 	 */
-	
 	get_token: function(pos)
 	{
 		pos = pos || this.editor.getCursor();
@@ -197,6 +200,8 @@ ide.Editor.Source = ide.Editor.extend({
 	
 	on_blur: function()
 	{
+		// Save registers in localStorage for sync_registers.
+		// TODO move to a better place.
 		this.plugin.data('registers', JSON.stringify(this.registers));
 	},
 
@@ -205,6 +210,24 @@ ide.Editor.Source = ide.Editor.extend({
 		this.focus(true);
 		this.sync_registers();
 	},
+	
+	on_file_change: function()
+	{
+		var content = this.file.get('content');
+		
+		if (!this.changed() && content!==this.file_content)
+		{
+		var
+			editor = this.editor,
+			cursor = editor.getCursor()
+		;
+			this.file_content = content;
+			this.editor.operation(function() {
+				editor.setValue(content);
+				editor.setCursor(cursor);
+			});
+		}
+	},
 
 	focus: function(ignore)
 	{
@@ -212,8 +235,6 @@ ide.Editor.Source = ide.Editor.extend({
 
 		if (!ignore)
 			this.editor.focus();
-
-		//this.editor.resize();
 	},
 
 	close: function(force)
@@ -221,7 +242,6 @@ ide.Editor.Source = ide.Editor.extend({
 		if (!force && this.changed())
 			return "File has changed. Are you sure?";
 
-		//this.editor.destroy();
 		ide.Editor.prototype.close.call(this);
 	},
 
@@ -229,11 +249,13 @@ ide.Editor.Source = ide.Editor.extend({
 	{
 		if (filename)
 			this.file.set('filename', filename);
+		else if (this.file_content !== this.file.get('content'))
+			return ide.error('File contents have changed.');
 		
 		if (!this.file.get('filename'))
 			return ide.error('No file name.');
 
-		this.file.set('content', this.editor.getValue());
+		this.file.set('content', (this.file_content=this.get_value()));
 		this.file.save();
 	},
 
@@ -244,7 +266,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 	changed: function()
 	{
-		return this.file.get('content') !== this.get_value();
+		return this.file_content !== this.get_value();
 	},
 
 	vim_mode: function()
@@ -270,6 +292,9 @@ ide.plugins.register('editor', new ide.Plugin({
 	{
 		if (!file.get('directory'))
 		{
+			if (!file.attributes.content)
+				file.attributes.content = '';
+			
 		var
 			editor = new ide.Editor.Source({
 				slot: options.slot,
@@ -277,9 +302,6 @@ ide.plugins.register('editor', new ide.Plugin({
 				file: file
 			})
 		;
-			if (!file.attributes.content)
-				file.set('content', '');
-
 			if (options && options.line)
 				setTimeout(function() {
 					editor.go(options.line);

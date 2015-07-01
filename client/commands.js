@@ -21,15 +21,17 @@ var
 	fn = ide.commands[cmd[0]],
 	scope = ide
 ;
-	if (fn)
+	if (!fn && ide.editor)
 	{
-		if (typeof(fn)==='string')
-			fn = ide.commands[fn];
-	} else if (ide.editor)
-	{
-		fn = ide.editor.cmd && ide.editor.cmd(cmd[0]);
+		// Try editor.cmd function first then command list if
+		// present.
+		fn = (ide.editor.cmd && ide.editor.cmd(cmd[0])) ||
+			(ide.editor.commands && ide.editor.commands[cmd[0]]);
 		scope = ide.editor;
 	}
+	
+	if (typeof(fn)==='string')
+		fn = scope.commands[fn];
 
 	cmd.shift();
 
@@ -43,21 +45,10 @@ var
 /** Parse and execute command. */
 ide.cmd = function(source)
 {
-	var cmd = parse(source), result;
+	var cmd = parse(source);
 
 	if (!cmd.fn)
-	{
-		/*jshint -W054 */
-		try {
-			result = (new Function("with(ide) { " + source + "}"))();
-			if (result !== undefined)
-				ide.notify(result);
-		} catch(e)
-		{
-			ide.alert('Unknown Command: ' + source);
-			window.console.error(e);
-		}
-	}
+		ide.alert('Unknown Command: ' + source);
 	else
 		cmd.fn.apply(cmd.scope, cmd.args);
 

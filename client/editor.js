@@ -17,6 +17,8 @@ var
 	/** @event beforewrite {function(file)} Fires before a save event. Useful if
 		you need access to the file content before modifications.
 	*/
+		
+	version: '0.1.0',
 
 	/** Current opened project */
 	project: null,
@@ -308,26 +310,28 @@ var
 		 * @param file {string} File name or Plugin state
 		 * @param options {object} Required.
 		 */
-		edit: function(file, options)
+		edit: function(path, options)
 		{
 		var
 			plugin = options.plugin && this.get(options.plugin),
 			cb = function(plug)
 			{
 				return plug.edit && plug.edit(file, options);
-			}
+			},
+			file
 		;
 			if (plugin && plugin.open)
-				return plugin.open(file, options);
-
-			if (typeof(file)==='string')
-				file = { filename: file };
-
-			file.project = ide.project.get('path');
+				return plugin.open(path, options);
+			
+			if (!path || typeof(path)==='string')
+				file = ide.fileManager.getFile(path);
+			else
+			{
+				file = ide.fileManager.getFile();
+				file.set(path);
+			}
 
 			options.slot = ide.workspace.slot();
-
-			file = new ide.File(file, { parse: true });
 
 			if (file.attributes.content || !file.attributes.filename)
 				this.each(cb);
@@ -540,6 +544,8 @@ var
 		{
 			// Remove first so do_layout of workspace works.
 			this.remove();
+			this.off();
+			this.stopListening();
 			this.trigger('close', this);
 		}
 

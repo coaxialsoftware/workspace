@@ -16,6 +16,11 @@ common = module.exports = {
 	writeFile: Q.promisify(fs.writeFile),
 	stat: Q.promisify(fs.stat),
 	
+	read: function(filename)
+	{
+		return common.readFile(filename, 'utf8');
+	},
+	
 	/**
 	 * Get diff between A and B
 	 */
@@ -28,6 +33,11 @@ common = module.exports = {
 				(result = result || {})[i] = B[i];
 		
 		return result;	
+	},
+	
+	payload: function(plugin, data)
+	{
+		return JSON.stringify({ plugin: plugin, data: data });
 	},
 
 	respond: function(module, res, promise)
@@ -170,11 +180,6 @@ common = module.exports = {
 				}
 			});
 		});
-	},
-
-	read: function(filename)
-	{
-		return common.readFile(filename, 'utf8');
 	},
 
 	load_json: function(filename)

@@ -40,14 +40,6 @@ module.exports = function(grunt) {
 
 			libs: {
 				src: [
-					/*'<%= path.ace %>/ace.js',
-					'<%= path.ace %>/mode-javascript.js',
-					'<%= path.ace %>/mode-html.js',
-					'<%= path.ace %>/mode-css.js',
-
-					'<%= path.ace %>/theme-twilight.js',
-					'<%= path.ace %>/keybinding-vim.js',
-					*/
 					'node_modules/codemirror/lib/codemirror.js',
 					'node_modules/codemirror/addon/search/searchcursor.js',
 					'node_modules/codemirror/addon/search/search.js',
@@ -74,6 +66,7 @@ module.exports = function(grunt) {
 					'node_modules/codemirror/addon/lint/json-lint.js',
 					'node_modules/codemirror/mode/meta.js',
 					'node_modules/codemirror/mode/javascript/javascript.js',
+					'node_modules/codemirror/mode/xml/xml.js',
 					
 					'node_modules/codemirror/mode/htmlmixed/htmlmixed.js',
 					

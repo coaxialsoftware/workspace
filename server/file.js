@@ -44,7 +44,7 @@ class File {
 	read()
 	{
 		return this.getStat().then(function(stat) {
-			this.stat = stat;
+			this.mtime = stat.mtime.getTime();
 			this.directory = stat.isDirectory();
 
 			return (this.directory ?
@@ -61,12 +61,8 @@ class File {
 
 	checkChanged()
 	{
-	var
-		stat = this.stat,
-		mtime = stat && (new Date(stat.mtime)).getTime()
-	;
 		return this.getStat().then(function(stat) {
-			if (mtime !== stat.mtime.getTime())
+			if (this.mtime !== stat.mtime.getTime())
 				return Q.reject("File contents have changed.");
 		}, function(err) {
 			if (err.cause.code!=='ENOENT')
@@ -78,7 +74,7 @@ class File {
 	{
 		function OnWrite(stat)
 		{
-			this.stat = stat;
+			this.mtime = stat.mtime.getTime();
 			this.new = false;
 			return this;
 		}
@@ -97,8 +93,38 @@ class File {
 plugin.config(function() {
 
 	this.server = workspace.server;
+	workspace.plugins.on('socket.message.file', this.onMessage.bind(this));
 
 }).extend({
+
+	/**
+	 * data.p    File path.
+	 * data.t    File mtime.
+	 */
+	onMessageStat(client, data)
+	{
+		common.stat(data.p).bind(this).then(function(stat) {
+			if (stat && stat.mtime.getTime()!==data.t)
+			{
+				this.dbg(`[onMessageStat] File changed: ${data.p}`);
+				
+				common.read(data.p).then(function(content) {
+					client.send(common.payload('file', {
+						path: data.p,
+						stat: stat.mtime.getTime(),
+						content: content
+					}));
+				});
+			}
+		});
+	},
+	
+	onMessage(client, data)
+	{
+		/* See if file has changed, and get contents if updated. */
+		if (data.stat)
+			this.onMessageStat(client, data.stat);
+	},
 
 	getPath: function(project, filename)
 	{

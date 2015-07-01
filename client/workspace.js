@@ -194,7 +194,7 @@ var
 			this.save();
 		},
 
-		/** Iterates through the editors */
+		/** Iterates through open editors. Return false to stop. */
 		each: function(cb)
 		{
 		var
