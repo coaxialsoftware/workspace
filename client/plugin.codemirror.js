@@ -83,12 +83,12 @@ ide.Editor.Source = ide.Editor.extend({
 
 			ide.loader.script(getScript(mode));
 			ide.loader.ready(function() {
-				me.editor.setOption('mode', mode);
+				me.editor.setOption('mode', info.mime || mode);
 			});
 			return;
 		}
 		
-		return mode;
+		return info.mime || mode;
 	},
 
 	setup: function()

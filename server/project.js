@@ -14,11 +14,7 @@ var
 	gaze = require('gaze'),
 
 	common = require('./common.js'),
-
-	//CONFIG_FILES = /bower\.json|package\.json|project\.json/,
-
 	workspace = require('./workspace'),
-	//chokidar = require('chokidar'),
 
 	plugin = module.exports = cxl('workspace.project')
 ;
@@ -30,14 +26,15 @@ var
  *
  */
 function ProjectConfiguration(path) {
-	var project = common.load_json_sync(this.path+'/project.json');
+	var project = common.load_json_sync(path+'/project.json');
 	
 	cxl.extend(this, workspace.configuration.project_defaults, project);
 	
 	this.path = path;
 	
 	if (!this.ignore)
-		this.ignore = [ '.*', 'node_modules', 'bower_modules' ];
+		// TODO better default?
+		this.ignore = [ '.*', 'node_modules', 'bower_components' ];
 	
 	this.tags = {
 		workspace: !!project
@@ -188,20 +185,22 @@ class Project {
 		this.dbg(ev + ' ' + filepath);
 	}
 	
+	onWatchError(err)
+	{
+		this.log(colors.red('watcher: ' + err));
+	}
+	
 	watchFiles()
 	{
 		var files = _.pluck(this.files, 'filename');
 		
 		if (this.watcher)
-		{
 			this.watcher.close();
-			this.watcher.add(files);
-		} else
-		{
-			this.watcher = new gaze.Gaze(files, { cwd: this.path });
-			this.watcher.on('all', this.onWatch.bind(this));
-			this.watcher.on('ready', this.dbg.bind(this, `Watching ${this.path}`));
-		}
+		
+		this.watcher = new gaze.Gaze(files, { cwd: this.path });
+		this.watcher.on('all', this.onWatch.bind(this));
+		this.watcher.on('ready', this.dbg.bind(this, `Watching ${this.path}`));
+		this.watcher.on('error', this.onWatchError.bind(this));
 	}
 
 	onTimeout()
