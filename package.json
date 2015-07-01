@@ -3,10 +3,10 @@
 	"description": "Javascript Web Editor",
 	"author": "Giancarlo Bellido <giancarlo@coaxialhost.com>",
 	"version": "0.1.0",
-	"private": true,
 	"bin": {
 		"workspace": "./bin/workspace.js"
 	},
+		
 	"dependencies": {
 		"express": "4.*",
 		"compression": "*",
@@ -18,7 +18,7 @@
 		"colors": "*",
 		"cxl": "*",
 		"websocket": "*",
-		"chokidar": "*",
+		"gaze": "*",
 		"lodash": "*",
 		"micromatch": "*"
 	},

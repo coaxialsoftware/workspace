@@ -11,7 +11,7 @@ var
 	_ = require('lodash'),
 	colors = require('colors'),
 	micromatch = require('micromatch'),
-	fs = require('fs'),
+	gaze = require('gaze'),
 
 	common = require('./common.js'),
 
@@ -124,7 +124,10 @@ class Project {
 				return plugin.error(err);
 
 			me.log(`${result.length} file(s) found (${Date.now()-time} ms).`);
+			
+			me.files = result;
 			me.configuration.files = JSON.stringify(_.sortBy(result, 'filename'));
+			me.watchFiles();
 			me.broadcast({ files: me.configuration.files });
 		});
 	}
@@ -166,41 +169,44 @@ class Project {
 		}
 	}
 	
-	onWatch(ev, path)
+	onWatch(ev, filepath)
 	{
-		if (ev!=='change')
+		if (ev!=='changed')
 		{
 			if (!this.rebuilding)
 				this.rebuildFiles();
-		} else if (ev==='change')
+		} else if (ev==='changed')
 		{
-			workspace.plugins.emit('project.filechange:' + path, this, ev, path);
+			filepath = common.relative(filepath, this.path);
+			workspace.plugins.emit('project.filechange', this, ev, filepath);
+			workspace.plugins.emit('project.filechange:' + filepath, this, ev, filepath);
 			
-			if (path==='project.json')
+			if (filepath==='project.json')
 				this.reload();
 		}
 
-		this.dbg(ev + ' ' + path);
+		this.dbg(ev + ' ' + filepath);
+	}
+	
+	watchFiles()
+	{
+		var files = _.pluck(this.files, 'filename');
+		
+		if (this.watcher)
+		{
+			this.watcher.close();
+			this.watcher.add(files);
+		} else
+		{
+			this.watcher = new gaze.Gaze(files, { cwd: this.path });
+			this.watcher.on('all', this.onWatch.bind(this));
+			this.watcher.on('ready', this.dbg.bind(this, `Watching ${this.path}`));
+		}
 	}
 
 	onTimeout()
 	{
 		this.generateIgnore();
-
-		if (!this.watcher)
-		{
-			this.dbg(`Watching ${this.path}`);
-			this.watcher = fs.watch(this.path, this.onWatch.bind(this));
-			/*this.watcher = chokidar.watch(this.path+'/', {
-				ignored: this.configuration.ignore,
-				followSymlinks: false,
-				ignoreInitial: true,
-				cwd: this.path
-			});
-			this.watcher.on('all', this.onWatch.bind(this));
-			*/	
-		}
-
 		this.rebuildFiles();
 	}
 
@@ -244,6 +250,11 @@ class Project {
 		workspace.plugins.emit('project.load', this);
 
 		return Q.all(this.promises).bind(this).then(this.onResolved, this.onLoadFail);
+	}
+	
+	toJSON()
+	{
+		return this.configuration;
 	}
 }
 
