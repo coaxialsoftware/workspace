@@ -76,8 +76,8 @@ var
 	var
 		span = $('<li><span class="ide-' + kls + '">' + message + '</span></li>')
 	;
-		span.prependTo(_nots).delay(3000)
-			.slideUp(function() { span.remove(); });
+		span.prependTo(_nots);
+		setTimeout(span.remove.bind(span), 3000);
 		window.console[kls](message);
 	},
 
@@ -145,7 +145,7 @@ var
 				window.clearTimeout(this._timeout);
 
 			this._timeout = window.setTimeout(
-				this.$el.fadeOut.bind(this.$el), this._delay);
+				this.$el.hide.bind(this.$el), this._delay);
 
 			return this;
 		},
@@ -174,7 +174,7 @@ var
 				s.bottom = (window.innerHeight - el.offsetTop - el.offsetHeight) + 'px';
 			}
 
-			this.$el.html(msg).stop().css('opacity', 1).show();
+			this.$el.html(msg).css('opacity', 1).css('display', 'block');
 			return this.hide();
 		},
 

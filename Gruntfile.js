@@ -73,9 +73,6 @@ module.exports = function(grunt) {
 					'node_modules/codemirror/addon/lint/css-lint.js',
 					'node_modules/codemirror/mode/css/css.js',
 
-					'<%= path.jquery %>/dist/jquery.js',
-					'<%= path.lodash%>/index.js',
-					'<%= path.backbone %>/backbone.js',
 					'node_modules/cxl/dist/cxl.js'
 				],
 				dest: 'public/build/libs.js'

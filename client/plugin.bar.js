@@ -102,7 +102,7 @@
 
 		show: function()
 		{
-			this.$el.val('').show();
+			this.$el.val('').css('display', 'block');
 			this.hidden = false;
 			this.focus();
 		},

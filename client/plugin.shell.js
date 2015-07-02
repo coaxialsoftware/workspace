@@ -91,6 +91,9 @@ ide.plugins.register('shell', new ide.Plugin({
 
 		grep: function(term)
 		{
+			if (!term)
+				return;
+			
 		var
 			pos = 0,
 			exclude = ide.project.get('ignore'),
