@@ -123,9 +123,9 @@ ide.plugins.register('assist', new ide.Plugin({
 			.on('click', 'button', this.on_click.bind(this))
 		;
 
-		ide.on('cursorchange', this.on_cursorchange, this);
-		ide.on('scroll', this.select_box.hide, this.select_box);
-		ide.on('autocomplete', this.invoke, this);
+		ide.plugins.on('cursorchange', this.on_cursorchange, this);
+		ide.plugins.on('scroll', this.select_box.hide, this.select_box);
+		ide.plugins.on('autocomplete', this.invoke, this);
 	}
 
 }));

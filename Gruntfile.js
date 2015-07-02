@@ -15,6 +15,7 @@ module.exports = function(grunt) {
 				src: [
 					'client/loader.js',
 					'client/editor.js',
+					'client/core*.js',
 					'client/workspace.js',
 					'client/commands.js',
 					'client/plugin*.js'

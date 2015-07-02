@@ -3,3 +3,4 @@ public/build
 public/index.html
 public/debug.html
 bower_components
+coverage
