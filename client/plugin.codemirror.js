@@ -49,7 +49,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 	get_value: function()
 	{
-		return this.editor.getValue(this.line_separator);
+		return this.editor.getValue(this.options.lineSeparator);
 	},
 
 	/*get_position: function()
@@ -90,45 +90,53 @@ ide.Editor.Source = ide.Editor.extend({
 		
 		return info.mime || mode;
 	},
+	
+	get_options: function()
+	{
+		var ft = this.find_mode(), s = ide.project.get('editor') || {};
+		
+		return (this.options = cxl.extend(
+			{
+				theme: 'twilight',
+				tabSize: 4,
+				indentWithTabs: true,
+				lineWrapping: true,
+				lineNumbers: true,
+				electricChars: false,
+				styleActiveLine: true,
+				autoCloseTags: true,
+				autoCloseBrackets: true,
+				matchTags: true,
+				matchBrackets: true,
+				foldGutter: true,
+				indentUnit: s.indentWithTabs ? 1 : (s.tabSize || 4), 
+				lineSeparator: "\n"
+			}, s,
+			{
+				value: this.file.get('content') || '',
+				mode: ft,
+				keyMap: 'vim',
+				scrollbarStyle: 'null',
+				gutters: ['CodeMirror-lint-markers', "CodeMirror-linenumbers", 
+				"CodeMirror-foldgutter"]	
+			}
+		));
+	},
 
 	setup: function()
 	{
 	var
-		s = ide.project.get('editor') || {},
-
-		ft = this.find_mode(),
-		editor = this.editor = codeMirror(this.el, {
-			value: this.file.get('content') || '',
-			mode: ft,
-			theme: s.theme || 'twilight',
-			tabSize: s.indent_size || 4,
-			indentWithTabs: s.indent_style!=='space',
-			keyMap: 'vim',
-			lineWrapping: true,
-			lineNumbers: true,
-			scrollbarStyle: 'null',
-			electricChars: false,
-			indentUnit: s.indent_size || 4,
-			styleActiveLine: true,
-			foldGutter: s.fold_gutter!==false,
-			gutters: ['CodeMirror-lint-markers', "CodeMirror-linenumbers", 
-				"CodeMirror-foldgutter"]	
-		})
+		options = this.get_options(),
+		editor = this.editor = codeMirror(this.el, options)
 	;
-		this.file_content = this.file.get('content');
-		this.line_separator = s.line_separator || "\n";
-		this.$el.on('keydown', this.on_keyup.bind(this));
+		this.file_content = options.value;
 		
-		if (s.font_size)
-			this.el.style.fontSize = s.font_size;
-
+		this.$el.on('keydown', this.on_keyup.bind(this));
 		editor.on('focus', this.on_focus.bind(this));
 		editor.on('blur', this.on_blur.bind(this));
 		
 		this.listenTo(this.file, 'change:content', this.on_file_change);
 		this.registers = codeMirror.Vim.getRegisterController();
-
-		//editor.on('changeSelection', this.on_selection.bind(this));
 	},
 
 	resize: function()

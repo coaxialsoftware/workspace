@@ -43,6 +43,7 @@ module.exports = function(grunt) {
 					'node_modules/codemirror/lib/codemirror.js',
 					'node_modules/codemirror/addon/search/searchcursor.js',
 					'node_modules/codemirror/addon/search/find.js',
+					'node_modules/codemirror/addon/fold/xml-fold.js',
 					'node_modules/codemirror/addon/edit/matchbrackets.js',
 					'node_modules/codemirror/addon/edit/matchtags.js',
 					'node_modules/codemirror/addon/edit/closetag.js',
@@ -116,7 +117,7 @@ module.exports = function(grunt) {
 		watch: {
 			client: {
 				files: [ '<%= jshint.client.src %>' ],
-				tasks: [ 'jshint:client', 'concat:client', 'concat:debug' ]
+				tasks: [ 'jshint:client', 'concat:client', 'concat:debug', 'karma' ]
 			},
 
 			server: {
@@ -154,6 +155,7 @@ module.exports = function(grunt) {
 				],
 				files: [
 					{ src: [
+						'test/polyfill.js',
 						'public/build/libs.js',
 						'<%= jshint.client.src %>'
 					]},
