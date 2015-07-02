@@ -1,19 +1,19 @@
 /**
  * @license Copyright 2010-2012, Giancarlo F Bellido.
  */
-(function(window, _, undefined) {
+(function(window, ide, cxl, undefined) {
 "use strict";
 
 function Loader(p)
 {
 	if (p)
-		_.extend(this, p);
+		cxl.extend(this, p);
 
 	this.sources = {};
 	this.start = new Date();
 }
 
-_.extend(Loader.prototype, {
+cxl.extend(Loader.prototype, {
 	EVENT: {
 		IMG: 'load',
 		AUDIO: 'canplaythrough',
@@ -154,6 +154,10 @@ _.extend(Loader.prototype, {
 
 });
 
-window.Loader = Loader;
+	/**
+	 * Asset/Script Loader
+	 * @type Loader
+	 */
+	ide.loader = new Loader();
 
-})(this, this._);
+})(this, this.ide, this.cxl);

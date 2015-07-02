@@ -184,12 +184,6 @@ var
 	}
 
 ;
-	/**
-	 * Asset/Script Loader
-	 * @type Loader
-	 */
-	ide.loader = new window.Loader();
-
 	ide.Editor = cxl.View.extend({
 
 		constructor: function(p)
