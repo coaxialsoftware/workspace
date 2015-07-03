@@ -135,17 +135,9 @@ class Project {
 		});
 	}
 
-	getPayload(data)
+	broadcast(data, plugin)
 	{
-		return JSON.stringify({
-			plugin: 'project',
-			data: data
-		});
-	}
-
-	broadcast(data)
-	{
-		var me = this, payload = me.getPayload(data);
+		var payload = common.payload(plugin || 'project', data);
 		
 		this.dbg(`Broadcasting ${payload} (${payload.length})`);
 
@@ -168,12 +160,14 @@ class Project {
 		{
 			this.log(`Registering client ${client.id}.`);
 			this.clients.push(client);
-			client.send(this.getPayload(common.diff(data, this.configuration)));
+			client.send(common.payload('project', common.diff(data, this.configuration)));
 		}
 	}
 	
 	onWatch(ev, filepath)
 	{
+		var path;
+		
 		if (ev!=='changed')
 		{
 			if (!this.rebuilding)
@@ -181,6 +175,15 @@ class Project {
 		} else if (ev==='changed')
 		{
 			filepath = common.relative(filepath, this.path);
+			path = this.path + '/' + filepath;
+			
+			common.stat(path).bind(this)
+				.then(function(s) {
+					this.broadcast({
+						stat: { p: path, t: s.mtime.getTime() }
+					}, 'file');
+				});
+			
 			workspace.plugins.emit('project.filechange', this, ev, filepath);
 			workspace.plugins.emit('project.filechange:' + filepath, this, ev, filepath);
 			

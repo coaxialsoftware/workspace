@@ -188,7 +188,7 @@ h4 {
 #ide-notification span { display: inline-block; padding: 8px; }
 #ide-notification > li { margin-bottom: 4px; }
 
-.ide-notify { background-color: rgba(52, 152, 219, 0.8); color: #eee;}
+.ide-log { background-color: rgba(52, 152, 219, 0.8); color: #eee;}
 .ide-error { background-color: rgba(231, 76, 60, 0.8); color: #eee;}
 .ide-warn{ background-color: rgba(241, 196, 15, 0.8); color: #333; }
 

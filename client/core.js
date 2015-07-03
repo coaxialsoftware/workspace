@@ -59,7 +59,7 @@ var
 	/** Displays notification on right corner */
 	notify: function(message, kls)
 	{
-		kls = kls || 'notify';
+		kls = kls || 'log';
 	var
 		span = $('<li><span class="ide-' + kls + '">' + message + '</span></li>')
 	;

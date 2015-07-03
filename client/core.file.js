@@ -161,15 +161,21 @@ ide.plugins.register('file', {
 		r: 'read'
 	},
 	
-	onMessage: function(data)
+	onMessageStat: function(data)
 	{
-		var file = ide.fileManager.findFile(data.path);
+		var file = ide.fileManager.findFile(data.p);
 		
-		if (file)
+		if (file && file.get('mtime')!==data.t)
 		{
 			ide.notify('File ' + file.get('filename') + ' was updated.');
-			file.set(data);
+			file.fetch();
 		}
+	},
+	
+	onMessage: function(data)
+	{
+		if (data.stat)
+			this.onMessageStat(data.stat);
 	},
 	
 	onWindowFocus: function()
@@ -185,7 +191,7 @@ ide.plugins.register('file', {
 	ready: function()
 	{
 		cxl.$window.focus(this.onWindowFocus.bind(this));
-		ide.plugins.on('socket.message.file', this.onMessage);
+		ide.plugins.on('socket.message.file', this.onMessage, this);
 	}
 	
 });
