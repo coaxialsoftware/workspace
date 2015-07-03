@@ -175,7 +175,7 @@ ide.plugins.register('file', {
 	onWindowFocus: function()
 	{
 		ide.fileManager.each(function(file) {
-			if (file.id)
+			if (file.id && !file.get('new'))
 				ide.socket.send('file', {
 					stat: { p: file.id, t: file.get('mtime') }
 				});
