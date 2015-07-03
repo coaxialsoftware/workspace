@@ -18,7 +18,7 @@ ide.File = cxl.Model.extend({
 	_onSync: function()
 	{
 		this.trigger('write');
-		ide.trigger('file.write', this);
+		ide.plugins.trigger('file.write', this);
 		ide.notify('File ' + this.id + ' saved.');
 	},
 
@@ -33,7 +33,7 @@ ide.File = cxl.Model.extend({
 
 	save: function()
 	{
-		ide.trigger('beforewrite', this);
+		ide.plugins.trigger('file.beforewrite', this);
 		cxl.Model.prototype.save.call(this, null, {
 			success: this._onSync.bind(this)
 		});
@@ -111,31 +111,55 @@ ide.fileManager = {
 	
 };
 
-/**
- * Insert the file [file] (default: current file) below the cursor.
- */
-ide.commands.read = function(file)
-{
-	if (ide.editor && ide.editor.insert)
-	{
-		file = file || ide.editor.file.get('filename');
-
-		$.get('/file?p=' + ide.project.id + '&n=' + file)
-			.then(function(content) {
-				if (content.new)
-					ide.notify('File does not exist.');
-				else
-					ide.editor.insert(content.content.toString());
-			}, function(err) {
-				ide.error(err);
-			});
-	} else
-		ide.error('Current editor does not support command.');
-};
-
-ide.commands.r = 'read';
 	
 ide.plugins.register('file', {
+	
+	commands: {
+		
+		/**
+		 * Edits file with registered plugins.
+		 * @param {string} ... Files to open.
+		 */
+		edit: function()
+		{
+			if (arguments.length)
+				for (var i=0; i<arguments.length; i++)
+					ide.open(arguments[i]);
+			else
+				ide.open();
+		},
+
+		e: 'edit',
+		
+		tabe: function(name)
+		{
+			ide.open_tab(name, '_blank');
+		},
+
+		/**
+		 * Insert the file [file] (default: current file) below the cursor.
+		 */
+		read: function(file)
+		{
+			if (ide.editor && ide.editor.insert)
+			{
+				file = file || ide.editor.file.get('filename');
+
+				$.get('/file?p=' + ide.project.id + '&n=' + file)
+					.then(function(content) {
+						if (content.new)
+							ide.notify('File does not exist.');
+						else
+							ide.editor.insert(content.content.toString());
+					}, function(err) {
+						ide.error(err);
+					});
+			} else
+				ide.error('Current editor does not support command.');
+		},
+
+		r: 'read'
+	},
 	
 	onMessage: function(data)
 	{

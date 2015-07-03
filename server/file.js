@@ -111,7 +111,7 @@ plugin.config(function() {
 				common.read(data.p).then(function(content) {
 					client.send(common.payload('file', {
 						path: data.p,
-						stat: stat.mtime.getTime(),
+						mtime: stat.mtime.getTime(),
 						content: content
 					}));
 				});

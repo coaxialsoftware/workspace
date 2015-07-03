@@ -63,6 +63,18 @@ ide.Project = cxl.Model.extend({
 });
 
 ide.plugins.register('project', {
+	
+	commands: {
+		
+		/**
+		 * Open project by path
+		 */
+		project: function(name)
+		{
+			window.open('#' + ide.workspace.hash.encode({ p: name || null, f: null }));
+		}
+		
+	},
 
 	onMessage: function(msg)
 	{

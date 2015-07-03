@@ -14,7 +14,12 @@ module.exports = function(grunt) {
 				options: { jshintrc: 'client/.jshintrc' },
 				src: [
 					'client/core.js',
-					'client/core.*.js',
+					'client/core.loader.js',
+					'client/core.plugins.js',
+					'client/core.workspace.js',
+					'client/core.socket.js',
+					'client/core.file.js',
+					'client/core.project.js',
 					'client/commands.js',
 					'client/plugin*.js'
 				]
