@@ -11,8 +11,7 @@ ide.plugins.register('welcome', new ide.Plugin({
 	var
 		p = ide.project,
 		projects = p.get('projects'),
-		env = p.get('env'),
-		user = env.USER || env.USERNAME,
+		user = p.get('user'),
 		project = p.get('name')
 	;
 		this.$el = $(this.el);

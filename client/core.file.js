@@ -178,19 +178,8 @@ ide.plugins.register('file', {
 			this.onMessageStat(data.stat);
 	},
 	
-	onWindowFocus: function()
-	{
-		ide.fileManager.each(function(file) {
-			if (file.id && !file.get('new'))
-				ide.socket.send('file', {
-					stat: { p: file.id, t: file.get('mtime') }
-				});
-		});
-	},
-	
 	ready: function()
 	{
-		cxl.$window.focus(this.onWindowFocus.bind(this));
 		ide.plugins.on('socket.message.file', this.onMessage, this);
 	}
 	

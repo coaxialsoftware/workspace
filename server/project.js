@@ -250,7 +250,7 @@ class Project {
 
 		this.log('Loading.');
 
-		this.configuration.env = process.env;
+		this.configuration.user = process.env.USER || process.env.USERNAME;
 
 		// Make sure project exists.
 		this.resolve(common.stat(this.path));
