@@ -27,9 +27,6 @@ var
 	/** Plugin Manager */
 	plugins: null,
 
-	/** Information window on left corner */
-	info: null,
-
 	/** Asset, script loader */
 	loader: null,
 
@@ -62,7 +59,7 @@ var
 	/** Displays notification on right corner */
 	notify: function(message, kls)
 	{
-		kls = kls || 'info';
+		kls = kls || 'notify';
 	var
 		span = $('<li><span class="ide-' + kls + '">' + message + '</span></li>')
 	;
@@ -97,7 +94,6 @@ var
 	_start= function()
 	{
 		ide.workspace = new ide.Workspace();
-		ide.info = new ide.Info();
 
 		_nots = $('#ide-notification');
 	}
@@ -106,11 +102,20 @@ var
 	
 ide.Info = cxl.View.extend({ /** @lends ide.Info# */
 
+	/** @type {ide.Editor} */
+	editor: null,
+	
 	_delay: 1500,
 
 	_timeout: null,
-
-	el: '#info',
+	
+	initialize: function()
+	{
+		var el = document.createElement('DIV');
+		el.className = 'ide-info';
+		this.editor.el.appendChild(el);
+		this.setElement(el);	
+	},
 
 	hide: function()
 	{
@@ -134,9 +139,6 @@ ide.Info = cxl.View.extend({ /** @lends ide.Info# */
 		s2 = el.style,
 		cursor = ide.editor.get_cursor && ide.editor.get_cursor()
 	;
-		s.left = s2.left;
-		s.width = s2.width;
-
 		if (cursor && cursor.offsetTop > 20)
 		{
 			s.top = s2.top;
@@ -171,6 +173,7 @@ ide.Editor = cxl.View.extend({
 		this.$el = this.slot.$el
 			.on('click', this._on_click.bind(this));
 		this.slot.editor = this;
+		this.info = new ide.Info({ editor: this });
 
 		cxl.View.prototype.constructor.call(this, p);
 		this.setup();
@@ -222,7 +225,7 @@ ide.Editor = cxl.View.extend({
 		this.$el.addClass('ide-focus');
 
 		if (info)
-			ide.info.show(info);
+			this.info.show(info);
 		
 		this.trigger('focus');
 	},
