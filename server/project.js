@@ -92,6 +92,12 @@ class Project {
 	generateIgnore()
 	{
 		var ignore = this.configuration.ignore = _.uniq(this.configuration.ignore);
+		
+		this.configuration.ignore_regex = '^' + _.map(ignore, function(glob) {
+			var regex = micromatch.makeRe(glob).source;
+			return regex.substr(1, regex.length-2);
+		}).join('|') + '$';
+		
 		this.ignoreMatcher = function(path) {
 			return micromatch.any(path, ignore);
 		};

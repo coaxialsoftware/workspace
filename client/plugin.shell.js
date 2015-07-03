@@ -31,14 +31,14 @@ ide.shell = function(cmd, args, onprogress)
 function grepDone(editor, result)
 {
 var
-	i = 0, match, files = []
+	i = 0, match, files = [], ignore = ide.project.ignoreRegex
 ;
 	result = result.split("\n");
 
 	for (; i<result.length; i++)
 	{
 		match = GREP_REGEX.exec(result[i]);
-		if (match)
+		if (match && !ignore.test(match[1]))
 			files.push(match);
 	}
 
