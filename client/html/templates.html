@@ -1,27 +1,27 @@
 
 <script id="tpl-file" type="text/template">
 <div class="file <%= obj.directory ? 'directory' : '' %>">
-	<a tabindex="1" href="" class="content" title="<%= this.path + obj.filename %>" data-path="<%= this.path + obj.filename %>">
+	<button class="content" title="<%= this.path + obj.filename %>" data-path="<%= this.path + obj.filename %>">
 		<h4><%- obj.filename %></h4>
-	</a>
+	</button>
 </div>
 </script>
 
 <script id="tpl-debug" type="text/template">
 <div class="file">
-	<a tabindex="1" href="javascript:" class="content" style="line-height: 32px" data-id="<%= obj.id %>">
+	<button class="content" style="line-height: 32px" data-id="<%= obj.id %>">
 		<img class="primary" src="<%= obj.faviconUrl %>" />
 		<%- obj.title %>
-	</a>
+	</button>
 </div>
 </script>
 
 <script id="tpl-grep" type="text/template">
 <div class="file">
-	<a tabindex="1" href="javascript:" class="content" data-path="<%= obj[1] %>" data-line="<%= obj[2]%>">
+	<button class="content" data-path="<%= obj[1] %>" data-line="<%= obj[2]%>">
 		<strong><%- obj[1]%></strong>:<%= obj[2] %>
 		<pre><%- obj[3] %></pre>
-	</a>
+	</button>
 </div>
 </script>
 
@@ -33,7 +33,7 @@
 <script id="tpl-project" type="text/template">
 <% _.each(projects, function(p) { %>
 <div class="project">
-	<a class="content" href="#" data-path="<%=p.path%>">
+	<button class="content" data-path="<%=p.path%>">
 		<h3>
 			<% for (var i in p.tags) { %>
 				<% if (p.tags[i]) { %>
@@ -46,7 +46,7 @@
 		<p>
 			<%= p.description %>
 		</p>
-	</a>
+	</button>
 </div>
 <% }); %>
 </script>	

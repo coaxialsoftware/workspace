@@ -109,6 +109,7 @@ h4 {
 .file > .content {
 	background-color: rgba(117, 117, 117, 0.5);
 	border: 1px solid #424242;
+	text-align: left;
 }
 
 .file > .content > img.primary { 

@@ -43,7 +43,7 @@ ide.FileList = ide.Editor.extend({
 
 		function go(dir)
 		{
-			el.find(':focus').parent()[dir]().find('a').focus();
+			el.find(':focus').parent()[dir]().find('.content').focus();
 			ev.preventDefault();
 		}
 		if (ev.keyCode===0x26 || ev.keyCode===0x4b)
@@ -65,6 +65,9 @@ ide.FileList = ide.Editor.extend({
 			this.files = this.files ? this.files.concat(files) : files;
 		this.$content.append(result);
 		this.children = this.$content.children();
+		
+		if (this.$el.find(':focus').length===0)
+			this.$el.find('.content:eq(0)').focus();	
 	},
 
 	findTest: function(regex, file)
@@ -84,7 +87,7 @@ ide.FileList = ide.Editor.extend({
 
 	focus: function()
 	{
-		this.$el.find('a:eq(0)').focus();
+		this.$el.find('.content:eq(0)').focus();
 		ide.Editor.prototype.focus.call(this);
 	},
 
