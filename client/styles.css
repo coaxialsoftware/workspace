@@ -172,6 +172,7 @@ h4 {
 	font-weight: 200;
 	z-index: 30;
 	padding: 6px;
+	transition: opacity 0.3s;
 }
 
 .ide-info:hover {

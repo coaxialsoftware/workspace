@@ -95,7 +95,7 @@ var
 	{
 		ide.workspace = new ide.Workspace();
 
-		_nots = $('#ide-notification');
+		_nots = cxl.id('ide-notification');
 	}
 
 ;
@@ -108,24 +108,25 @@ ide.Info = cxl.View.extend({ /** @lends ide.Info# */
 	_delay: 1500,
 
 	_timeout: null,
+
+	el: '<div class="ide-info"></div>',
 	
 	initialize: function()
 	{
-		var el = document.createElement('DIV');
-		el.className = 'ide-info';
-		this.editor.el.appendChild(el);
-		this.setElement(el);	
+		this.editor.el.appendChild(this.el);
 	},
 
 	hide: function()
 	{
+		var me = this;
+		
 		if (this._timeout)
 			window.clearTimeout(this._timeout);
 
-		this._timeout = window.setTimeout(
-			this.$el.hide.bind(this.$el), this._delay);
-
-		return this;
+		me._timeout = window.setTimeout(function() {
+			me.$el.css('opacity', 0);
+			window.setTimeout(me.$el.hide.bind(me.$el), 250);
+		}, me._delay);
 	},
 
 	do_show: function(msg)
@@ -162,20 +163,17 @@ ide.Info = cxl.View.extend({ /** @lends ide.Info# */
 
 ide.Editor = cxl.View.extend({
 
-	constructor: function(p)
+	initialize: function()
 	{
-		cxl.extend(this, p);
-
 		if (!this.slot)
 			this.slot = ide.workspace.slot();
 
-		this.el = this.slot.el;
-		this.$el = this.slot.$el
-			.on('click', this._on_click.bind(this));
+		this.setElement(this.slot.el);
+		this.$el.on('click', this._on_click.bind(this));
+		
 		this.slot.editor = this;
 		this.info = new ide.Info({ editor: this });
 
-		cxl.View.prototype.constructor.call(this, p);
 		this.setup();
 	},
 
