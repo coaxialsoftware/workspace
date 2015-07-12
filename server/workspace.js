@@ -28,7 +28,6 @@ class Configuration {
 
 		cxl.extend(this, {
 			version: '0.1',
-			name: 'workspace',
 			env: process.env,
 			user: process.env.USER || process.env.USERNAME
 		});

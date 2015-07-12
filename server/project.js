@@ -306,10 +306,13 @@ class ProjectManager {
 	loadAll()
 	{
 		return this.findProjects().then(function(projects) {
-				return cxl.extend({
+				var result = cxl.extend({
 					projects: projects,
 					files: JSON.stringify(this.files)
 				}, workspace.configuration);
+			
+				delete result.password;
+				return result;
 			});
 	}
 
