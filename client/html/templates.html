@@ -33,7 +33,7 @@
 <script id="tpl-project" type="text/template">
 <% _.each(projects, function(p) { %>
 <div class="project">
-	<button class="content" data-path="<%=p.path%>">
+	<a href="#" tabindex="0" class="content" data-path="<%=p.path%>">
 		<h3>
 			<% for (var i in p.tags) { %>
 				<% if (p.tags[i]) { %>
@@ -46,7 +46,7 @@
 		<p>
 			<%= p.description %>
 		</p>
-	</button>
+	</a>
 </div>
 <% }); %>
 </script>	

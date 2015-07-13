@@ -36,7 +36,7 @@ ide.plugins.register('welcome', new ide.Plugin({
 
 	show: function()
 	{
-		this.$el.show().css('opacity', 1);
+		this.$el.css('display', 'block').css('opacity', 1);
 	},
 
 	renderProjects: function(projects)

@@ -93,10 +93,12 @@ h4 {
 	min-height: 200px; width: 100%;
 	box-sizing: border-box;
 	display: block;
+	border: 0;
 	text-decoration: none;
 	transition: background-color 0.2s;
 	color: #eee;
 	cursor: pointer;
+	text-align: left;
 }
 
 .file > .content {
@@ -110,7 +112,6 @@ h4 {
 .file > .content {
 	background-color: rgba(117, 117, 117, 0.5);
 	border: 1px solid #424242;
-	text-align: left;
 }
 
 .file > .content > img.primary { 
