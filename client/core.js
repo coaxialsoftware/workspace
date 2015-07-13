@@ -131,14 +131,11 @@ ide.Info = cxl.View.extend({ /** @lends ide.Info# */
 
 	do_show: function(msg)
 	{
-		if (!ide.editor)
-			return;
-
 	var
 		s = this.el.style,
-		el = ide.editor.el,
+		el = this.editor.el,
 		s2 = el.style,
-		cursor = ide.editor.get_cursor && ide.editor.get_cursor()
+		cursor = this.editor.get_cursor && this.editor.get_cursor()
 	;
 		if (cursor && cursor.offsetTop > 20)
 		{
@@ -147,7 +144,7 @@ ide.Info = cxl.View.extend({ /** @lends ide.Info# */
 		} else
 		{
 			s.top = '';
-			s.bottom = (window.innerHeight - el.offsetTop - el.offsetHeight) + 'px';
+			s.bottom = 0;
 		}
 
 		this.$el.html(msg).css('opacity', 1).css('display', 'block');
