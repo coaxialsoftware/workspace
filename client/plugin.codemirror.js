@@ -141,7 +141,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 	resize: function()
 	{
-		//setTimeout(this.editor.resize.bind(this.editor), 200);
+		setTimeout(this.editor.refresh.bind(this.editor), 200);
 	},
 	
 	find: function(n)
