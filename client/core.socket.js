@@ -30,24 +30,36 @@ ide.plugins.register('socket', ide.socket = new ide.Plugin({
 	connect: function()
 	{
 	var
+		retry,
 		doc = window.document,
 		config = ide.project.attributes
 	;
 		this.config = cxl.extend({
 			host: doc.location.hostname,
-			port: config['socket.port'] || (parseInt(doc.location.port) + 1)
-		});
+			port: config['socket.port'] 
+		});		
 
 		this.ws = new window.WebSocket(
 			'ws://' + this.config.host + ':' + this.config.port, 'workspace');
 
 		this.ws.addEventListener('open', function() {
+			retry = false;
 			ide.plugins.trigger('socket.ready', this);
 		});
 
 		this.ws.addEventListener('error', function(ev) {
-			ide.error('Could not connect to socket');
-			window.console.error(ev);
+			if (retry)
+			{
+				ide.error('Could not connect to socket');
+				window.console.error(ev);
+			}
+			else
+			{
+				ide.project.fetch({
+					success: ide.socket.checkConnection.bind(ide.socket)
+				});
+				retry = true;
+			}
 		});
 
 		this.ws.addEventListener('message', function(ev) {

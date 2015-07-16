@@ -116,6 +116,11 @@ module.exports = function(grunt) {
 				files: [ '<%= jshint.client.src %>' ],
 				tasks: [ 'jshint:client', 'concat:client', 'concat:debug', 'karma' ]
 			},
+			
+			client_tests: {
+				files: [ 'test/client.js', 'test/client/*.js' ],
+				tasks: [ 'karma' ]
+			},
 
 			server: {
 				files: '<%= jshint.server.src %>',

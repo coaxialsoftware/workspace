@@ -39,7 +39,6 @@ _.extend(Watcher.prototype, {
 		
 		if (this.onEvent)
 			this.onEvent(ev, file, full);
-		console.log(arguments);
 	},
 	
 	onWatch: function(dir, ev, filename)
