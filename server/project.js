@@ -346,9 +346,11 @@ plugin.extend({
 	onMessage: function(client, data)
 	{
 		var project = this.projectManager.getProject(data.path);
-
-		if (project)
-			project.onMessage(client, data);
+		
+		project.load(data.path)
+			.then(function() {
+				project.onMessage(client, data);
+			});
 	}
 })
 .config(function() {
