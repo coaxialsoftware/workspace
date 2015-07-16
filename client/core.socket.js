@@ -38,24 +38,23 @@ ide.plugins.register('socket', ide.socket = new ide.Plugin({
 			port: config['socket.port'] || (parseInt(doc.location.port) + 1)
 		});
 
-		try {
-			this.ws = new window.WebSocket(
-				'ws://' + this.config.host + ':' + this.config.port, 'workspace');
+		this.ws = new window.WebSocket(
+			'ws://' + this.config.host + ':' + this.config.port, 'workspace');
 
-			this.ws.addEventListener('open', function() {
-				ide.plugins.trigger('socket.ready', this);
-			});
+		this.ws.addEventListener('open', function() {
+			ide.plugins.trigger('socket.ready', this);
+		});
 
-			this.ws.addEventListener('message', function(ev) {
-				var msg = JSON.parse(ev.data);
+		this.ws.addEventListener('error', function(ev) {
+			ide.error('Could not connect to socket');
+			window.console.error(ev);
+		});
 
-				ide.plugins.trigger('socket.message.' + msg.plugin, msg.data);
-			});
+		this.ws.addEventListener('message', function(ev) {
+			var msg = JSON.parse(ev.data);
 
-		} catch(e)
-		{
-			this.error('Could not connect to socket.');
-		}
+			ide.plugins.trigger('socket.message.' + msg.plugin, msg.data);
+		});
 	},
 
 	checkConnection: function()

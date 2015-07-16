@@ -2,13 +2,6 @@ module.exports = function(grunt) {
 
 	grunt.initConfig({
 
-		path: {
-			ace: "node_modules/ace-builds/src",
-			backbone: "node_modules/backbone",
-			lodash: "node_modules/lodash",
-			jquery: "node_modules/jquery"
-		},
-
 		jshint: {
 			client: {
 				options: { jshintrc: 'client/.jshintrc' },
@@ -161,6 +154,8 @@ module.exports = function(grunt) {
 					{ src: [
 						'test/polyfill.js',
 						'public/build/libs.js',
+						'node_modules/jquery-mockjax/dist/jquery.mockjax.js',
+						'test/client.js',
 						'<%= jshint.client.src %>'
 					]},
 					{ src: 'test/client/*.js' }

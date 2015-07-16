@@ -17,15 +17,13 @@
 		"colors": "*",
 		"cxl": "*",
 		"websocket": "*",
-		"gaze": "*",
 		"lodash": "*",
 		"micromatch": "*"
 	},
 
 	"devDependencies": {
 		"codemirror": "j5g3/CodeMirror",
-		"backbone": "*",
-		"jquery": "*",
+		"jquery-mockjax": "*",
 		"grunt": "*",
 		"grunt-contrib-jshint": "*",
 		"grunt-contrib-clean": "*",

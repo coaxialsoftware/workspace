@@ -20,19 +20,24 @@ ide.File = cxl.Model.extend({
 		this.trigger('write');
 		ide.plugins.trigger('file.write', this);
 		ide.notify('File ' + this.id + ' saved.');
+		this.saving = false;
 	},
 
 	_onError: function(file, res)
 	{
 	var
+		id = this.id || (this.get('project') + '/' + this.get('filename')),
 		msg = (res && (res.responseJSON && res.responseJSON.error) ||
-			res.responseText) || 'Error saving file: ' + this.id
+			res.responseText) || 
+			(this.saving ? 'Error saving file: ' : 'Error opening file: ') + id
 	;
+		this.saving = false;
 		ide.error(msg);
 	},
 
 	save: function()
 	{
+		this.saving = true;
 		ide.plugins.trigger('file.beforewrite', this);
 		cxl.Model.prototype.save.call(this, null, {
 			success: this._onSync.bind(this)
