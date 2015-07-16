@@ -11,10 +11,10 @@ var
 	_ = require('lodash'),
 	colors = require('colors'),
 	micromatch = require('micromatch'),
-	gaze = require('gaze'),
 
-	common = require('./common.js'),
+	common = require('./common'),
 	workspace = require('./workspace'),
+	Watcher = require('./watcher'),
 
 	plugin = module.exports = cxl('workspace.project')
 ;
@@ -164,23 +164,18 @@ class Project {
 		}
 	}
 	
-	onWatch(ev, filepath)
+	onWatch(ev, filepath, full)
 	{
-		var path;
-		
-		if (ev!=='changed')
+		if (ev!=='change')
 		{
 			if (!this.rebuilding)
 				this.rebuildFiles();
-		} else if (ev==='changed')
+		} else 
 		{
-			filepath = common.relative(filepath, this.path);
-			path = this.path + '/' + filepath;
-			
-			common.stat(path).bind(this)
+			common.stat(full).bind(this)
 				.then(function(s) {
 					this.broadcast({
-						stat: { p: path, t: s.mtime.getTime() }
+						stat: { p: full, t: s.mtime.getTime() }
 					}, 'file');
 				});
 			
@@ -201,15 +196,21 @@ class Project {
 	
 	watchFiles()
 	{
-		var files = _.pluck(this.files, 'filename');
+		var files = _(this.files).filter('directory', true)
+			.pluck('filename')
+			.value()
+		;
 		
 		if (this.watcher)
 			this.watcher.close();
 		
-		this.watcher = new gaze.Gaze(files, { cwd: this.path });
-		this.watcher.on('all', this.onWatch.bind(this));
-		this.watcher.on('ready', this.dbg.bind(this, `Watching ${this.path}`));
-		this.watcher.on('error', this.onWatchError.bind(this));
+		this.dbg(`Creating watcher for ${this.path}`);
+		this.watcher = new Watcher({
+			base: this.path,
+			ignore: this.ignoreMatcher,
+			paths: files,
+			onEvent: this.onWatch.bind(this)
+		});
 	}
 
 	onTimeout()

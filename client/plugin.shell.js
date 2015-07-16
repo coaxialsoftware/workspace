@@ -129,6 +129,9 @@ ide.plugins.register('shell', new ide.Plugin({
 				pos = eol+1;
 			}).then(function(text) {
 				grepDone(editor, text.slice(pos));
+				if (editor.files.length===0)
+					editor.$content.html('<div style="text-align:center">' +
+						'No matches found.</div>');
 			});
 		}
 
