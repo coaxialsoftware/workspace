@@ -36,14 +36,23 @@ ide.FileList = ide.Editor.extend({
 		ev.stopPropagation();
 		ev.preventDefault();
 	},
+	
+	find_focus: function()
+	{
+		var focused = this.$el.find(':focus');
+		if (!focused.is(':visible'))
+			focused = this.$el.find('.content:visible:eq(0)');
+		
+		return focused;
+	},
 
 	on_keydown: function(ev)
 	{
-		var el = this.$el;
+		var me=this;
 
 		function go(dir)
 		{
-			el.find(':focus').parent()[dir]().find('.content').focus();
+			me.find_focus().parent()[dir]().find('.content:visible').focus();
 			ev.preventDefault();
 		}
 		if (ev.keyCode===0x26 || ev.keyCode===0x4b)
@@ -66,8 +75,7 @@ ide.FileList = ide.Editor.extend({
 		this.$content.append(result);
 		this.children = this.$content.children();
 		
-		if (this.$el.find(':focus').length===0)
-			this.$el.find('.content:eq(0)').focus();	
+		this.find_focus().focus();
 	},
 
 	findTest: function(regex, file)
@@ -87,7 +95,7 @@ ide.FileList = ide.Editor.extend({
 
 	focus: function()
 	{
-		this.$el.find('.content:eq(0)').focus();
+		this.find_focus().focus();
 		ide.Editor.prototype.focus.call(this);
 	},
 
