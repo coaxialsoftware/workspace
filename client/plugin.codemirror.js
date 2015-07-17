@@ -110,12 +110,12 @@ ide.Editor.Source = ide.Editor.extend({
 				matchBrackets: true,
 				foldGutter: true,
 				indentUnit: s.indentWithTabs ? 1 : (s.tabSize || 4), 
-				lineSeparator: "\n"
+				lineSeparator: "\n",
+				keyMap: 'vim'
 			}, s,
 			{
 				value: this.file.get('content') || '',
 				mode: ft,
-				keyMap: 'vim',
 				scrollbarStyle: 'null',
 				gutters: ['CodeMirror-lint-markers', "CodeMirror-linenumbers", 
 				"CodeMirror-foldgutter"]	

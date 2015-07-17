@@ -345,6 +345,9 @@ class ProjectManager {
 plugin.extend({
 	onMessage: function(client, data)
 	{
+		if (!data.path)
+			return;
+		
 		var project = this.projectManager.getProject(data.path);
 		
 		project.load(data.path)
