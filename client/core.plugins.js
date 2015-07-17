@@ -1,5 +1,5 @@
 
-(function(ide, cxl) {
+(function(ide, cxl, CodeMirror) {
 "use strict";
 	
 /** @class */
@@ -14,9 +14,9 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 	name: null,
 
 	/** If key is pressed, invoke function will be called. */
-	shortcut: null,
-	/** Function to call when shortcut key is pressed. */
-	invoke: null,
+	shortcuts: null,
+	/** Editor Actions */
+	actions: null,
 	/// Object of commands to add to ide.commands
 	commands: null,
 
@@ -59,46 +59,30 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 	
 function PluginManager()
 {
-	var i=48;
-
 	this._plugins = {};
-	this._shortcuts = {};
-
-	for (; i<91; i++)
-	{
-		this.keycodes[i] = String.fromCharCode(i).toLowerCase();
-		this.keycodes[i+this._SHIFT] = String.fromCharCode(i);
-	}
+	
+	// Bind Events using CodeMirror handlers
+	var cm = {
+		options: { keyMap: 'vim' },
+		state: { keyMaps: [] },
+		curOp: {},
+		execCommand: function(cmd)
+		{
+			CodeMirror.commands[cmd].call(cm);
+		},
+		operation: function(cb) {
+			cb();
+		}
+	};
+	
+	window.addEventListener('keypress', CodeMirror.onKeyPress.bind(cm));
+	window.addEventListener('keydown', CodeMirror.onKeyUp.bind(cm));
+	window.addEventListener('keyup', CodeMirror.onKeyDown.bind(cm));
 }
 
 cxl.extend(PluginManager.prototype, cxl.Events, {
 
-	/** @private Shift modifier */
-	_SHIFT: 1000,
-
 	_plugins: null,
-
-	/**
-	 * List of system shortcuts. Added by plugins with the shortcut property
-	 * defined.
-	 */
-	_shortcuts: null,
-
-	key_delay: 400,
-
-	__key: '',
-
-	keycodes: {
-		1192: "~", 192: '`', 1049: "!", 1050: "@", 1051: "#",
-		1052: "$", 1053: "%", 1054: "^", 1055: "&", 1056: "*",
-		1057: "(", 1048: ")", 189: "-", 1189: '_', 1107: "+",
-		107: '=', 1219: "{", 219: '[', 221: ']', 1221: "}",
-		1220: "|", 220: "\\", 186: ";", 1186: ":", 1222: "\"",
-		222: "'", 188: ",", 1188: '<', 1190: ">", 190: '.',
-		191: '/', 1191: "?", 32: "space", 112: 'F1', 113: 'F2', 114: 'F3',
-		115: 'F4', 116: 'F5', 117: 'F6', 118: 'F7', 119: 'F8',
-		120: 'F9', 121: 'F10', 122: 'F11', 123: 'F12'
-	},
 
 	get: function(name)
 	{
@@ -156,57 +140,11 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 			});
 	},
 
-	get_shortcut: function(ev)
-	{
-	var
-		shift = ev.shiftKey,
-		code = ev.keyCode + (shift ? this._SHIFT : 0),
-		k = this.keycodes[code]
-	;
-		if (k)
-			shift = false;
-		else
-			 k = this.keycodes[ev.keyCode];
-
-		if (k)
-		{
-			return (shift ? 'shift-' : '') +
-				(ev.ctrlKey ? 'ctrl-' : '') +
-				(ev.altKey ? 'alt-' : '') + k;
-		}
-	},
-
-	on_key: function(ev)
-	{
-	var
-		time = ev.timeStamp, key, fn,
-		sc = this.get_shortcut(ev)
-	;
-		if (!sc)
-			return;
-
-		key = (time - this.__keyTime > this.key_delay) ?
-			sc : this.__key + sc;
-
-		this.__keyTime = time;
-		fn = this._shortcuts[key] || this._shortcuts[sc];
-
-		if (fn)
-		{
-			fn();
-			this.__key = '';
-			ev.preventDefault();
-		} else
-			this.__key = key;
-	},
-
 	/**
 	 * Loads plugins from project config
 	 */
 	load_plugins: function()
 	{
-		window.addEventListener('keydown', this.on_key.bind(this));
-
 		this.each(function(plug, name) {
 
 			for (var i in plug.commands)
@@ -216,10 +154,9 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 				this._registerCommand(name, i, typeof(fn)==='string' ?
 					fn : fn.bind(plug));
 			}
-
-			if (plug.shortcut)
-				this._registerShortcut(
-					plug.shortcut, name, plug, plug.invoke);
+			
+			this.registerActions(plug);
+			this.registerShortcuts(plug);
 
 			if (plug.start)
 				plug.start(ide.project[name]);
@@ -242,6 +179,13 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 
 		ide.loader.ready(this.load_plugins.bind(this));
 	},
+	
+	// TODO add debug check
+	registerActions: function(plugin)
+	{
+		for (var i in plugin.actions)
+			CodeMirror.commands[i] = plugin.actions[i].bind(plugin);
+	},
 
 	_registerCommand: function(plugin, name, fn)
 	{
@@ -251,27 +195,45 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 
 		ide.commands[name] = fn;
 	},
-
-	_registerShortcut: function(key, name, plugin, fn)
+	
+	_registerKey: function(map, key, fn, plugin)
 	{
-		if (typeof(key)==='object')
+		if (typeof(fn)==='function')
+			fn = fn.bind(plugin);
+		
+		// Use mapCommand or defineAction for Vim bindings
+		if (map === CodeMirror.keyMap.vim)
 		{
-			for (var i in key)
-				this._registerShortcut(i, name, plugin, key[i]);
-			return;
+			CodeMirror.Vim.mapCommand(key, 'command', fn);
+		} else
+		{
+			if (key in map)
+				window.console.warn('[' + name + '] Overriding shortcut ' + key);
+			
+			map[key] = fn;
 		}
+	},
 
-		if (key in this._shortcuts)
-			window.console.warn('[' + name + '] Overriding shortcut ' + key);
-
-		this._shortcuts[key] = fn.bind(plugin);
+	registerShortcuts: function(plugin)
+	{
+		var keymap, map, key;
+		
+		for (keymap in plugin.shortcuts)
+		{
+			map = CodeMirror.keyMap[keymap];
+			
+			if (!map)
+				ide.warn('keyMap not found: ' + keymap);
+			
+			for (key in plugin.shortcuts[keymap])
+				this._registerKey(map, key, plugin.shortcuts[keymap][key], plugin);
+		}
 	},
 
 	register: function(name, plugin)
 	{
 		this._plugins[name] = plugin;
 		plugin.name = name;
-
 	}
 
 });
@@ -281,6 +243,5 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
  * @type {ide.PluginManager}
  */
 ide.plugins = new PluginManager();
-
 	
-})(this.ide, this.cxl);
+})(this.ide, this.cxl, this.CodeMirror);

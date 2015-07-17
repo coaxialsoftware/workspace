@@ -54,8 +54,6 @@ module.exports = function(grunt) {
 					'node_modules/codemirror/addon/selection/active-line.js',
 					'node_modules/codemirror/addon/mode/overlay.js',
 					'node_modules/codemirror/keymap/vim.js',
-					'node_modules/codemirror/keymap/sublime.js',
-					'node_modules/codemirror/keymap/emacs.js',
 					/*
 					'node_modules/codemirror/addon/hint/show-hint.js',
 					'node_modules/codemirror/addon/hint/javascript-hint.js',

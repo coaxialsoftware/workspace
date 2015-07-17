@@ -376,21 +376,22 @@ ide.plugins.register('workspace', {
 		N: 'Next'
 
 	},
-
-	shortcut: {
-		"gt": function()
+	
+	actions: {
+		
+		nextEditor: function()
 		{
 			if (ide.editor)
 				ide.workspace.next().focus();
 		},
 
-		"gT": function()
+		prevEditor: function()
 		{
 			if (ide.editor)
 				ide.workspace.previous().focus();
 		},
 
-		'alt->': function()
+		moveNext: function()
 		{
 		var
 			l = ide.workspace.slots.length, i
@@ -402,7 +403,7 @@ ide.plugins.register('workspace', {
 			}
 		},
 
-		'alt-<': function()
+		movePrev: function()
 		{
 		var
 			l = ide.workspace.slots.length, i
@@ -412,6 +413,25 @@ ide.plugins.register('workspace', {
 				i = ide.workspace.slots.indexOf(ide.editor.slot);
 				ide.workspace.swap(i, (i === 0) ? l-1 : i-1);
 			}
+
+		}
+		
+	},
+
+	shortcuts: {
+		
+		vim: {
+			"gt": 'nextEditor',
+			"gT": 'prevEditor',
+			'<A-.>': 'moveNext',
+			'<A-,>': 'movePrev'
+		},
+		
+		default: {
+			//"gt": 'nextEditor',
+			//"gT": 'prevEditor',
+			'alt->': 'moveNext',
+			'alt-<': 'movePrev'
 		}
 	}
 

@@ -18,11 +18,6 @@
 		 */
 		_value: '',
 
-		invoke: function()
-		{
-			this.show();
-		},
-
 		/** @abstract */
 		cancel: function() { },
 
@@ -57,12 +52,18 @@
 
 			this.$el.on('keyup', this.on_key.bind(this));
 			this.$el.on('keydown', this.on_keydown.bind(this));
+			this.$el.on('keypress', this.on_keypress.bind(this));
 			this.$el.on('blur', this.on_blur.bind(this));
 		},
 
 		on_blur: function()
 		{
 			this.hide();
+		},
+		
+		on_keypress: function(ev)
+		{
+			ev.stopPropagation();
 		},
 
 		on_keydown: function(ev)
@@ -132,7 +133,14 @@
 	ide.Bar.Command = ide.Bar.extend({
 
 		el: $('<input id="command" />'),
-		shortcut: ":",
+		
+		actions: {
+			ex: function() { this.show(); }
+		},
+		
+		shortcuts: {
+			vim: { ':': 'ex' }
+		},
 
 		history: [],
 		history_max: 50,
@@ -209,7 +217,14 @@
 	ide.Bar.Search = ide.Bar.extend({
 
 		el: $('<input id="search" />'),
-		shortcut: '/',
+		
+		actions: {
+			find: function() { this.show(); }
+		},
+		
+		shortcuts: {
+			vim: { '/': 'find' }
+		},
 
 		run: function()
 		{
