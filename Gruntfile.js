@@ -53,7 +53,6 @@ module.exports = function(grunt) {
 					'node_modules/codemirror/addon/lint/lint.js',
 					'node_modules/codemirror/addon/selection/active-line.js',
 					'node_modules/codemirror/addon/mode/overlay.js',
-					'node_modules/codemirror/keymap/vim.js',
 					/*
 					'node_modules/codemirror/addon/hint/show-hint.js',
 					'node_modules/codemirror/addon/hint/javascript-hint.js',

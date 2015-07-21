@@ -139,7 +139,8 @@
 		},
 		
 		shortcuts: {
-			vim: { ':': 'ex' }
+			vim: { "':'": 'ex' },
+			default: { 'alt-enter': 'ex' }
 		},
 
 		history: [],

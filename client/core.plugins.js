@@ -201,17 +201,10 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		if (typeof(fn)==='function')
 			fn = fn.bind(plugin);
 		
-		// Use mapCommand or defineAction for Vim bindings
-		if (map === CodeMirror.keyMap.vim)
-		{
-			CodeMirror.Vim.mapCommand(key, 'command', fn);
-		} else
-		{
-			if (key in map)
-				window.console.warn('[' + name + '] Overriding shortcut ' + key);
+		if (key in map)
+			window.console.warn('[' + name + '] Overriding shortcut ' + key);
 			
-			map[key] = fn;
-		}
+		map[key] = fn;
 	},
 
 	registerShortcuts: function(plugin)
@@ -223,10 +216,10 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 			map = CodeMirror.keyMap[keymap];
 			
 			if (!map)
-				ide.warn('keyMap not found: ' + keymap);
-			
-			for (key in plugin.shortcuts[keymap])
-				this._registerKey(map, key, plugin.shortcuts[keymap][key], plugin);
+				ide.alert('keyMap not found: ' + keymap);
+			else 	
+				for (key in plugin.shortcuts[keymap])
+					this._registerKey(map, key, plugin.shortcuts[keymap][key], plugin);
 		}
 	},
 

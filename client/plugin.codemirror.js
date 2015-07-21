@@ -136,7 +136,7 @@ ide.Editor.Source = ide.Editor.extend({
 		editor.on('blur', this.on_blur.bind(this));
 		
 		this.listenTo(this.file, 'change:content', this.on_file_change);
-		this.registers = codeMirror.Vim.getRegisterController();
+		//this.registers = codeMirror.Vim.getRegisterController();
 	},
 
 	resize: function()
@@ -210,13 +210,13 @@ ide.Editor.Source = ide.Editor.extend({
 	{
 		// Save registers in localStorage for sync_registers.
 		// TODO move to a better place.
-		this.plugin.data('registers', JSON.stringify(this.registers));
+		//this.plugin.data('registers', JSON.stringify(this.registers));
 	},
 
 	on_focus: function()
 	{
 		this.focus(true);
-		this.sync_registers();
+		//this.sync_registers();
 	},
 	
 	on_file_change: function()
