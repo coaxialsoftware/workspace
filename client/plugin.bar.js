@@ -63,7 +63,6 @@
 		on_keypress: function(ev)
 		{
 			ev.stopPropagation();
-			return false;
 		},
 
 		on_key: function(ev)
@@ -74,7 +73,7 @@
 			if (this.hidden)
 				return;
 
-			if (ev.keyCode===9)
+			if (ev.keyCode===9 || ev.keyCode===13)
 				ev.preventDefault();
 
 			if (fn)

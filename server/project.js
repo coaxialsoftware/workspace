@@ -36,13 +36,13 @@ function ProjectConfiguration(path) {
 		// TODO better default?
 		this.ignore = [ '**/.*', 'node_modules', 'bower_components' ];
 	
+	// TODO Find a better way to inherit workspace config
+	if (!this.keymap)
+		this.keymap = workspace.configuration.keymap;
+
 	this.tags = {
 		workspace: !!project
 	};
-
-	_.each(workspace.configuration.plugins, function(val, key) {
-		this['plugins.' + key] = val;
-	}, this);
 }
 
 cxl.extend(ProjectConfiguration.prototype, {

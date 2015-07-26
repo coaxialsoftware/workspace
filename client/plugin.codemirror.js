@@ -334,6 +334,7 @@ ide.plugins.register('editor', new ide.Plugin({
 		default: {
 			backspace: 'delCharBefore',
 			home: 'goLineStartSmart',
+			del: 'delCharAfter',
 			'alt+u': 'redoSelection',
 			'mod+a': 'selectAll',
 			'mod+backspace': 'delGroupBefore',

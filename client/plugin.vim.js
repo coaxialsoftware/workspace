@@ -16,6 +16,9 @@ ide.plugins.register('vim', {
 
 	ready: function()
 	{
+		if (ide.project.get('keymap')!=='vim')
+			return;
+
 		ide.workspace.on('add_child', function(editor) {
 			// Start in normal mode
 			if (editor && editor.action)

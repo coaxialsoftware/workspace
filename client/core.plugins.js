@@ -72,6 +72,10 @@ function KeyboardManager()
 
 	window.addEventListener('keydown', this.onKeyDown.bind(this));
 
+	this.MODREPLACE = /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'meta+' : 'ctrl+';
+	this.states = {};
+	this.state = 'default';
+
 	//window.addEventListener('keydown', this.onKeyDown.bind(this));
 	//window.addEventListener('keydown', this.onKeyDown.bind(this));
 }
@@ -81,6 +85,18 @@ cxl.extend(KeyboardManager.prototype, {
 	delay: 250,
 	t: 0,
 	sequence: null,
+	
+	state: null,
+	states: null,
+
+	// What to replace "mod" with, ctrl for win, meta for osx
+	MODREPLACE: null,
+
+	PARSESHIFT: /shift\+/,
+	PARSECTRL: /ctrl\+/,
+	PARSEALT: /(?:alt|option)\+/,
+	PARSEMETA: /(?:meta|command)\+/,
+	PARSECH: /([^\+]+)$/,
 
 	MAP: {
 		8: 'backspace', 9: 'tab', 13: 'enter', 	17: 'ctrl',
@@ -88,7 +104,7 @@ cxl.extend(KeyboardManager.prototype, {
 		33: 'pageup', 34: 'pagedown', 35: 'end', 36: 'home',
 		37: 'left', 38: 'up', 39: 'right', 40: 'down',
 		45: 'ins', 46: 'del', 91: 'meta', 93: 'meta',
-		224: 'meta', 106: '*', 107: '+', 109: '-',
+		224: 'meta', 106: '*', 107: 'plus', 109: '-',
 		110: '.', 111 : '/', 186: ';', 187: '=',
 		188: ',', 189: '-', 190: '.', 191: '/',
 		192: '`', 219: '[', 220: '\\', 221: ']', 222: '\''
@@ -102,7 +118,7 @@ cxl.extend(KeyboardManager.prototype, {
 	SHIFTMAP: {
 		192: '~', 222: '"', 221: '}', 220: '|',
 		219: '{', 191: '?', 190: '>', 189: '_',
-		188: '<', 187: '+', 186: ':', 48: ')',
+		188: '<', 187: 'plus', 186: ':', 48: ')',
 		49: '!', 50: '@', 51: '#', 52: '$', 53: '%',
 		54: '^', 55: '&', 56: '*', 57: '(' 
 	},
@@ -111,17 +127,20 @@ cxl.extend(KeyboardManager.prototype, {
 	{
 	var
 		key = ev.keyCode || ev.which,
-		ch
+		ch = ev.ch
 	;
-		if (this.MODMAP[key])
-			return;
-		if (ev.shiftKey && (ch = this.SHIFTMAP[key]))
-			ev.noShift = true;
-		else
-			ch = this.MAP[key];
+		if (!ch)
+		{
+			if (this.MODMAP[key])
+				return;
+			if (ev.shiftKey && (ch = this.SHIFTMAP[key]))
+				ev.noShift = true;
+			else
+				ch = this.MAP[key];
 
-		if (ch===undefined)
-			ch = String.fromCharCode(key);
+			if (ch===undefined)
+				ch = String.fromCharCode(key);
+		}
 
 		return ch;
 	},
@@ -161,13 +180,89 @@ cxl.extend(KeyboardManager.prototype, {
 			this.sequence.push(k);
 		else
 			this.sequence = [ k ];
-		this.t = t;
 		
-		window.console.log(ev, this.sequence.join(' '));
+		if (this.handleKey(this.sequence.join(' '))!==false)
+		{
+			ev.preventDefault();
+			ev.stopPropagation();
+			t = 0;
+		}
+
+		this.t = t;
 	},
 
-	bind: function()
+	handleKey: function(key)
 	{
+	var
+		state = this.states[ide.editor && ide.editor.keyState || this.state],
+		fn = state[key]
+	;
+		return fn ? fn() : false;
+	},
+
+	parseKey: function(key)
+	{
+	var
+		sequence = key.replace(/mod\+/g, this.MODREPLACE).split(' '),
+		i = sequence.length,
+		k, shortcut
+	;
+		while (i--)
+		{
+			shortcut = sequence[i];
+			k = this.PARSECH.exec(shortcut);
+
+			if (!k)
+				window.console.warn('Invalid shortcut ' + key);
+			else
+				sequence[i] = {
+					ctrlKey: this.PARSECTRL.test(shortcut),
+					altKey: this.PARSEALT.test(shortcut),
+					shiftKey: this.PARSESHIFT.test(shortcut),
+					metaKey: this.PARSEMETA.test(shortcut),
+					ch: k[1]
+				};
+		}
+
+		return sequence;
+	},
+
+	normalize: function(key)
+	{
+	var
+		sequence = this.parseKey(key),
+		i = sequence.length
+	;
+		while (i--)
+			sequence[i] = this.getKeyId(sequence[i]);
+		
+		return sequence.join(' ');
+	},
+
+	getHandler: function(fn, scope)
+	{
+		var handler = typeof(fn)==='function' ?
+			fn.bind(scope) :
+			ide.action.bind(ide, fn);
+
+		return handler;
+	},
+
+	registerState: function(state, map, scope)
+	{
+	var
+		key
+	;
+		state = this.states[state] || (this.states[state]={});
+
+		for (key in map)
+			state[this.normalize(key)] = this.getHandler(map[key], scope);
+	},
+
+	registerKeys: function(map, scope)
+	{
+		for (var state in map)
+			this.registerState(state, map[state], scope);
 	}
 
 });
@@ -243,6 +338,8 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	 */
 	load_plugins: function()
 	{
+		this.keyboard.state = ide.project.get('keymap') || 'default';
+
 		this.each(function(plug, name) {
 
 			if (plug.start)
@@ -256,14 +353,14 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 					fn : fn.bind(plug));
 			}
 			
+			this.registerActions(plug);
 			this.registerShortcuts(plug);
-
 		});
+
 		this.each(function(plug) {
 			if (plug.ready)
 				plug.ready();
 		});
-
 	},
 
 	start: function()
@@ -287,35 +384,17 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		ide.commands[name] = fn;
 	},
 
-	handleKey: function(action)
+	registerActions: function(plugin)
 	{
-		if (this && this.actions && this.actions[action])
-			this.actions[action].call(this);
-		else
-			ide.action(action);
-
-		return false;
-	},
-	
-	_registerKey: function(key, fn, plugin)
-	{
-		var handler = (typeof(fn)==='function') ?
-			fn.bind(plugin)
-		:
-			this.handleKey.bind(plugin, fn);
-		
-		this.keyboard.bind(key, handler);
+		if (plugin.actions)
+			for (var i in plugin.actions)
+				ide.workspace.plugin.actions[i] = plugin.actions[i].bind(plugin);
 	},
 
 	registerShortcuts: function(plugin)
 	{
-	var
-		keymap = ide.project.get('plugins.keymap') || 'default',
-		map = plugin.shortcuts && plugin.shortcuts[keymap],
-		key
-	;
-		for (key in map)
-			this._registerKey(key, map[key], plugin);
+		if (plugin.shortcuts)
+			this.keyboard.registerKeys(plugin.shortcuts, plugin);
 	},
 
 	register: function(name, plugin)
