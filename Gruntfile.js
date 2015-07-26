@@ -70,7 +70,6 @@ module.exports = function(grunt) {
 					'node_modules/codemirror/addon/lint/css-lint.js',
 					'node_modules/codemirror/mode/css/css.js',
 
-					'node_modules/mousetrap/mousetrap.js',
 					'node_modules/cxl/dist/cxl.js'
 				],
 				dest: 'public/build/libs.js'

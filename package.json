@@ -18,8 +18,7 @@
 		"cxl": "*",
 		"websocket": "*",
 		"lodash": "*",
-		"micromatch": "*",
-		"mousetrap": "*"
+		"micromatch": "*"
 	},
 
 	"devDependencies": {
