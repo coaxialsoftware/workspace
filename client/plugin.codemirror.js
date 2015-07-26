@@ -355,7 +355,11 @@ ide.plugins.register('editor', new ide.Plugin({
 			'shift+mod+f': 'replace',
 			'shift+mod+r': 'replaceAll',
 			'shift+mod+u': 'redoSelection',
-			'shift+mod+z': 'redo'
+			'shift+mod+z': 'redo',
+			'shift+left': 'goCharLeft',
+			'shift+right': 'goCharRight',
+			'shift+up': 'goLineUp',
+			'shift+down': 'goLineDown'
 		}
 	},
 
