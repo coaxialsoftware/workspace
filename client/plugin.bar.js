@@ -50,9 +50,8 @@
 			}
 			};
 
-			this.$el.on('keyup', this.on_key.bind(this));
-			this.$el.on('keydown', this.on_keydown.bind(this));
-			this.$el.on('keypress', this.on_keypress.bind(this));
+			this.$el.on('keydown', this.on_key.bind(this));
+			this.$el.on('keyup keypress', this.on_keypress.bind(this));
 			this.$el.on('blur', this.on_blur.bind(this));
 		},
 
@@ -64,13 +63,7 @@
 		on_keypress: function(ev)
 		{
 			ev.stopPropagation();
-		},
-
-		on_keydown: function(ev)
-		{
-			if (ev.keyCode===9)
-				ev.preventDefault();
-			ev.stopPropagation();
+			return false;
 		},
 
 		on_key: function(ev)
@@ -81,8 +74,11 @@
 			if (this.hidden)
 				return;
 
+			if (ev.keyCode===9)
+				ev.preventDefault();
+
 			if (fn)
-				fn.apply(this, [ ev ]);
+				fn.call(this, ev);
 
 			if (this.el.value!==this._value)
 			{
@@ -93,7 +89,6 @@
 
 			this._value = this.el.value;
 			ev.stopPropagation();
-			return false;
 		},
 
 		keys: function(k)
@@ -139,8 +134,8 @@
 		},
 		
 		shortcuts: {
-			vim: { "':'": 'ex' },
-			default: { 'alt-enter': 'ex' }
+			vim: { ":": 'ex' },
+			default: { 'alt+enter': 'ex' }
 		},
 
 		history: [],
@@ -224,7 +219,8 @@
 		},
 		
 		shortcuts: {
-			vim: { '/': 'find' }
+			vim: { '/': 'find' },
+			default: { 'mod+f': 'find' }
 		},
 
 		run: function()

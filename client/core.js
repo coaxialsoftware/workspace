@@ -88,6 +88,15 @@ var
 	open: function(filename, options)
 	{
 		ide.plugins.edit(filename || '', options || {});
+	},
+
+	/**
+	 * Try to execute action in editor or workspace.
+	 */
+	action: function(fn, args)
+	{
+		return (ide.editor && ide.editor.action && ide.editor.action(fn, args)) ||
+			ide.workspace.action(fn, args);
 	}
 
 },
@@ -188,6 +197,19 @@ ide.Editor = cxl.View.extend({
 	 * @type {Function}
 	 */
 	cmd: null,
+
+	/**
+	 * Executes action in actions.
+	 */
+	action: function(name, args)
+	{
+	var
+		plugin = this.plugin,
+		fn = plugin && plugin.actions && plugin.actions[name]
+	;
+		if (fn)
+			return fn.apply(this, args);
+	},
 
 	_on_click: function()
 	{

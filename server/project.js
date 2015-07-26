@@ -28,17 +28,21 @@ var
 function ProjectConfiguration(path) {
 	var project = common.load_json_sync(path+'/project.json');
 	
-	cxl.extend(this, workspace.configuration.project_defaults, project);
+	cxl.extend(this, workspace.configuration.project, project);
 	
 	this.path = path;
 	
 	if (!this.ignore)
 		// TODO better default?
-		this.ignore = [ '.*', 'node_modules', 'bower_components' ];
+		this.ignore = [ '**/.*', 'node_modules', 'bower_components' ];
 	
 	this.tags = {
 		workspace: !!project
 	};
+
+	_.each(workspace.configuration.plugins, function(val, key) {
+		this['plugins.' + key] = val;
+	}, this);
 }
 
 cxl.extend(ProjectConfiguration.prototype, {

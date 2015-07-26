@@ -111,7 +111,7 @@ ide.Editor.Source = ide.Editor.extend({
 				foldGutter: true,
 				indentUnit: s.indentWithTabs ? 1 : (s.tabSize || 4), 
 				lineSeparator: "\n",
-				keyMap: 'vim'
+				keyMap: 'default'
 			}, s,
 			{
 				value: this.file.get('content') || '',
@@ -131,7 +131,7 @@ ide.Editor.Source = ide.Editor.extend({
 	;
 		this.file_content = options.value;
 		
-		this.$el.on('keydown', this.on_keyup.bind(this));
+		//this.$el.on('keydown', this.on_keyup.bind(this));
 		editor.on('focus', this.on_focus.bind(this));
 		editor.on('blur', this.on_blur.bind(this));
 		
@@ -290,11 +290,73 @@ ide.Editor.Source = ide.Editor.extend({
 		return (this.changed() ? '+ ' : '') +
 			(this.file.get('filename') || '[No Name]') +
 			' [' + ide.project.get('name') + ']';
+	},
+
+	action: function(cmd)
+	{
+		if (cmd in this.plugin.actions)
+		{
+			this.plugin.actions[cmd].call(this, this.editor);
+			return true;
+		}
+
+		if (cmd in codeMirror.commands)
+		{
+			this.editor.execCommand(cmd);
+			return true;
+		}
+	},
+
+	toggleFatCursor: function(state)
+	{
+		this.$el.toggleClass('cm-fat-cursor', state);
 	}
 
 });
 
 ide.plugins.register('editor', new ide.Plugin({
+
+	actions: {
+		'enableInput': function(cm)
+		{
+			this.toggleFatCursor(false);
+			cm.setOption('disableInput', false);
+		},
+
+		'disableInput': function(cm)
+		{
+			this.toggleFatCursor(true);
+			cm.setOption('disableInput', true);
+		}
+	},
+
+	shortcuts: {
+		default: {
+			backspace: 'delCharBefore',
+			home: 'goLineStartSmart',
+			'alt+u': 'redoSelection',
+			'mod+a': 'selectAll',
+			'mod+backspace': 'delGroupBefore',
+			'mod+d': 'deleteLine',
+			'mod+end': 'goDocEnd',
+			'mod+delete': 'delGroupAfter',
+			'mod+down': 'goLineDown',
+			'mod+g': 'findNext',
+			'mod+home': 'goDocStart',
+			'mod+left': 'goGroupLeft',
+			'mod+right': 'goGroupRight',
+			'alt+left': 'goLineStart',
+			'alt+right': 'goLineEnd',
+			'mod+up': 'goLineUp',
+			'mod+u': 'undoSelection',
+			'mod+[': 'indentLess',
+			'mod+]': 'indentMore',
+			'shift+mod+f': 'replace',
+			'shift+mod+r': 'replaceAll',
+			'shift+mod+u': 'redoSelection',
+			'shift+mod+z': 'redo'
+		}
+	},
 
 	edit: function(file, options)
 	{

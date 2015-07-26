@@ -4,6 +4,12 @@
 
 ide.plugins.register('welcome', new ide.Plugin({
 
+	commands: {
+		hello: function() {
+			ide.notify('Hello, ' + ide.project.get('user'));
+		}
+	},
+
 	el: '#projects',
 
 	start: function()

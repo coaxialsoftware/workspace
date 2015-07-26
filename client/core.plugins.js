@@ -1,5 +1,5 @@
 
-(function(ide, cxl, CodeMirror) {
+(function(ide, cxl) {
 "use strict";
 	
 /** @class */
@@ -56,28 +56,126 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 		return this;
 	}
 });
+
+function KeyboardManager()
+{
+	var _MAP = this.MAP;
+
+	for (var i = 1; i < 20; ++i)
+		_MAP[111 + i] = 'f' + i;
+
+	for (i = 0; i <= 9; ++i)
+		_MAP[i + 96] = i+'';
+	
+	for (i=65; i<91; ++i)
+		_MAP[i] = String.fromCharCode(i).toLowerCase();
+
+	window.addEventListener('keydown', this.onKeyDown.bind(this));
+
+	//window.addEventListener('keydown', this.onKeyDown.bind(this));
+	//window.addEventListener('keydown', this.onKeyDown.bind(this));
+}
+
+cxl.extend(KeyboardManager.prototype, {
+
+	delay: 250,
+	t: 0,
+	sequence: null,
+
+	MAP: {
+		8: 'backspace', 9: 'tab', 13: 'enter', 	17: 'ctrl',
+		18: 'alt', 20: 'capslock', 27: 'esc', 32: 'space',
+		33: 'pageup', 34: 'pagedown', 35: 'end', 36: 'home',
+		37: 'left', 38: 'up', 39: 'right', 40: 'down',
+		45: 'ins', 46: 'del', 91: 'meta', 93: 'meta',
+		224: 'meta', 106: '*', 107: '+', 109: '-',
+		110: '.', 111 : '/', 186: ';', 187: '=',
+		188: ',', 189: '-', 190: '.', 191: '/',
+		192: '`', 219: '[', 220: '\\', 221: ']', 222: '\''
+	},
+
+	MODMAP: {
+		16: 'shift', 17: 'ctrl', 18: 'alt',
+		93: 'meta', 224: 'meta'
+	},
+
+	SHIFTMAP: {
+		192: '~', 222: '"', 221: '}', 220: '|',
+		219: '{', 191: '?', 190: '>', 189: '_',
+		188: '<', 187: '+', 186: ':', 48: ')',
+		49: '!', 50: '@', 51: '#', 52: '$', 53: '%',
+		54: '^', 55: '&', 56: '*', 57: '(' 
+	},
+
+	getChar: function(ev)
+	{
+	var
+		key = ev.keyCode || ev.which,
+		ch
+	;
+		if (this.MODMAP[key])
+			return;
+		if (ev.shiftKey && (ch = this.SHIFTMAP[key]))
+			ev.noShift = true;
+		else
+			ch = this.MAP[key];
+
+		if (ch===undefined)
+			ch = String.fromCharCode(key);
+
+		return ch;
+	},
+
+	getKeyId: function(ev)
+	{
+	var
+		mods = [],
+		ch = this.getChar(ev)
+	;
+		if (!ch)
+			return;
+		if (ev.ctrlKey)
+			mods.push('ctrl');
+		if (ev.altKey)
+			mods.push('alt');
+		if (ev.shiftKey && !ev.noShift)
+			mods.push('shift');
+		if (ev.metaKey)
+			mods.push('meta');
+
+		mods.push(ch);
+		
+		return mods.join('+');
+	},
+
+	onKeyDown: function(ev)
+	{
+	var
+		t = Date.now(),
+		k = this.getKeyId(ev)
+	;
+		if (!k)
+			return;
+
+		if (t - this.t < this.delay)
+			this.sequence.push(k);
+		else
+			this.sequence = [ k ];
+		this.t = t;
+		
+		window.console.log(ev, this.sequence.join(' '));
+	},
+
+	bind: function()
+	{
+	}
+
+});
 	
 function PluginManager()
 {
 	this._plugins = {};
-	
-	// Bind Events using CodeMirror handlers
-	var cm = {
-		options: { keyMap: 'vim' },
-		state: { keyMaps: [] },
-		curOp: {},
-		execCommand: function(cmd)
-		{
-			CodeMirror.commands[cmd].call(cm);
-		},
-		operation: function(cb) {
-			cb();
-		}
-	};
-	
-	window.addEventListener('keypress', CodeMirror.onKeyPress.bind(cm));
-	window.addEventListener('keydown', CodeMirror.onKeyUp.bind(cm));
-	window.addEventListener('keyup', CodeMirror.onKeyDown.bind(cm));
+	this.keyboard = new KeyboardManager();
 }
 
 cxl.extend(PluginManager.prototype, cxl.Events, {
@@ -147,6 +245,9 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	{
 		this.each(function(plug, name) {
 
+			if (plug.start)
+				plug.start(ide.project[name]);
+
 			for (var i in plug.commands)
 			{
 				var fn = plug.commands[i];
@@ -155,11 +256,8 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 					fn : fn.bind(plug));
 			}
 			
-			this.registerActions(plug);
 			this.registerShortcuts(plug);
 
-			if (plug.start)
-				plug.start(ide.project[name]);
 		});
 		this.each(function(plug) {
 			if (plug.ready)
@@ -180,13 +278,6 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		ide.loader.ready(this.load_plugins.bind(this));
 	},
 	
-	// TODO add debug check
-	registerActions: function(plugin)
-	{
-		for (var i in plugin.actions)
-			CodeMirror.commands[i] = plugin.actions[i].bind(plugin);
-	},
-
 	_registerCommand: function(plugin, name, fn)
 	{
 		if (ide.commands[name])
@@ -195,32 +286,36 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 
 		ide.commands[name] = fn;
 	},
-	
-	_registerKey: function(map, key, fn, plugin)
+
+	handleKey: function(action)
 	{
-		if (typeof(fn)==='function')
-			fn = fn.bind(plugin);
+		if (this && this.actions && this.actions[action])
+			this.actions[action].call(this);
+		else
+			ide.action(action);
+
+		return false;
+	},
+	
+	_registerKey: function(key, fn, plugin)
+	{
+		var handler = (typeof(fn)==='function') ?
+			fn.bind(plugin)
+		:
+			this.handleKey.bind(plugin, fn);
 		
-		if (key in map)
-			window.console.warn('[' + name + '] Overriding shortcut ' + key);
-			
-		map[key] = fn;
+		this.keyboard.bind(key, handler);
 	},
 
 	registerShortcuts: function(plugin)
 	{
-		var keymap, map, key;
-		
-		for (keymap in plugin.shortcuts)
-		{
-			map = CodeMirror.keyMap[keymap];
-			
-			if (!map)
-				ide.alert('keyMap not found: ' + keymap);
-			else 	
-				for (key in plugin.shortcuts[keymap])
-					this._registerKey(map, key, plugin.shortcuts[keymap][key], plugin);
-		}
+	var
+		keymap = ide.project.get('plugins.keymap') || 'default',
+		map = plugin.shortcuts && plugin.shortcuts[keymap],
+		key
+	;
+		for (key in map)
+			this._registerKey(key, map[key], plugin);
 	},
 
 	register: function(name, plugin)
@@ -237,4 +332,4 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
  */
 ide.plugins = new PluginManager();
 	
-})(this.ide, this.cxl, this.CodeMirror);
+})(this.ide, this.cxl);

@@ -327,9 +327,12 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	{
 		this.load_project(this.load_workspace.bind(this));
 		this._on_hashchange = this.on_hashchange.bind(this);
+		this.plugin = ide.plugins.get('workspace');
 
 		window.addEventListener('beforeunload', this.on_beforeunload.bind(this));
-	}
+	},
+
+	action: ide.Editor.prototype.action
 
 });
 
@@ -420,18 +423,24 @@ ide.plugins.register('workspace', {
 
 	shortcuts: {
 		
-		vim: {
-			"gt": 'nextEditor',
-			"gT": 'prevEditor',
-			'<A-.>': 'moveNext',
-			'<A-,>': 'movePrev'
-		},
-		
 		default: {
-			//"gt": 'nextEditor',
-			//"gT": 'prevEditor',
-			'alt->': 'moveNext',
-			'alt-<': 'movePrev'
+			down: 'goLineDown',
+			up: 'goLineUp',
+			right: 'goCharRight',
+			end: 'goLineEnd',
+			insert: 'toggleOverwrite',
+			left: 'goCharLeft',
+			pagedown: 'goPageDown',
+			pageup: 'goPageUp',
+			'shift+backspace': 'delCharBefore',
+			"alt+left": 'nextEditor',
+			"alt+right": 'prevEditor',
+			'alt+.': 'moveNext',
+			'alt+,': 'movePrev',
+			'mod+s': 'save',
+			'mod+y': 'redo',
+			'mod+z': 'undo',
+			'shift+mod+z': 'redo'
 		}
 	}
 
