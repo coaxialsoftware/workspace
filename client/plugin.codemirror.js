@@ -347,8 +347,6 @@ ide.plugins.register('editor', new ide.Plugin({
 			'mod+home': 'goDocStart',
 			'mod+left': 'goGroupLeft',
 			'mod+right': 'goGroupRight',
-			'alt+left': 'goLineStart',
-			'alt+right': 'goLineEnd',
 			'mod+up': 'goLineUp',
 			'mod+u': 'undoSelection',
 			'mod+[': 'indentLess',

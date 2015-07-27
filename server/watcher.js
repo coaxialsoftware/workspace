@@ -43,6 +43,9 @@ _.extend(Watcher.prototype, {
 	
 	onWatch: function(dir, ev, filename)
 	{
+		if (!filename)
+			return;
+		
 	var
 		full = path.join(dir, filename),
 		rel = this.base ? path.relative(this.base, full) : full,

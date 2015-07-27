@@ -171,7 +171,8 @@ cxl.extend(KeyboardManager.prototype, {
 	{
 	var
 		t = Date.now(),
-		k = this.getKeyId(ev)
+		k = this.getKeyId(ev),
+		seq
 	;
 		if (!k)
 			return;
@@ -181,16 +182,24 @@ cxl.extend(KeyboardManager.prototype, {
 		else
 			this.sequence = [ k ];
 		
-		if (this.handleKey(this.sequence.join(' '))!==false)
-		{
-			ev.preventDefault();
-			ev.stopPropagation();
-			t = 0;
-		}
+		seq = this.sequence.slice(0);
+		
+		do {
+			if (this.handleKey(seq.join(' '))!==false)
+			{
+				ev.preventDefault();
+				ev.stopPropagation();
+				t = 0;
+				break;
+			}
+		} while (seq.shift());
 
 		this.t = t;
 	},
 
+	/**
+	 * Handles Key
+	 */
 	handleKey: function(key)
 	{
 	var
@@ -247,7 +256,12 @@ cxl.extend(KeyboardManager.prototype, {
 
 		return handler;
 	},
-
+	
+	registerKey: function(state, key, handler)
+	{
+		state[key] = handler;
+	},
+	
 	registerState: function(state, map, scope)
 	{
 	var
@@ -256,7 +270,7 @@ cxl.extend(KeyboardManager.prototype, {
 		state = this.states[state] || (this.states[state]={});
 
 		for (key in map)
-			state[this.normalize(key)] = this.getHandler(map[key], scope);
+			this.registerKey(state, this.normalize(key), this.getHandler(map[key], scope));
 	},
 
 	registerKeys: function(map, scope)

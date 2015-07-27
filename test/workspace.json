@@ -3,5 +3,7 @@
 	"debug": true,
 	"keymap": "vim",
 
-	"socket.port": 9005
+	"socket": {
+		"port": 9005
+	}
 }

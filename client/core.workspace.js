@@ -386,6 +386,11 @@ ide.plugins.register('workspace', {
 	
 	actions: {
 		
+		save: function()
+		{
+			ide.cmd('w');	
+		},
+		
 		nextEditor: function()
 		{
 			if (ide.editor)
