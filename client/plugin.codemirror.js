@@ -292,24 +292,18 @@ ide.Editor.Source = ide.Editor.extend({
 			' [' + ide.project.get('name') + ']';
 	},
 
+	// TODO binding codeMirror execCommand might be dangerous.
 	action: function(cmd)
 	{
-		if (cmd in this.plugin.actions)
-		{
-			this.plugin.actions[cmd].call(this, this.editor);
-			return true;
-		}
-
-		if (cmd in codeMirror.commands)
-		{
-			this.editor.execCommand(cmd);
-			return true;
-		}
+		var handler = this.plugin.actions[cmd] || codeMirror.commands[cmd];
+		
+		return handler ? handler.call(this, this.editor) : false;
 	},
 
 	toggleFatCursor: function(state)
 	{
 		this.$el.toggleClass('cm-fat-cursor', state);
+		this.editor.restartBlink();
 	}
 
 });

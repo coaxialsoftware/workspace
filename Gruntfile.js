@@ -120,6 +120,11 @@ module.exports = function(grunt) {
 				files: [ 'test/client.js', 'test/client/*.js' ],
 				tasks: [ 'karma' ]
 			},
+			
+			libs: {
+				files: '<%=concat.libs.src %>',
+				tasks: [ 'concat:libs' ]
+			},
 
 			server: {
 				files: '<%= jshint.server.src %>',

@@ -91,12 +91,25 @@ var
 	},
 
 	/**
-	 * Try to execute action in editor or workspace.
+	 * Try to execute action in editor or workspace. Actions must return false if
+	 * not handled.
+	 *
+	 * TODO better way of collection result? 
 	 */
-	action: function(fn, args)
+	action: function(name)
 	{
-		return (ide.editor && ide.editor.action && ide.editor.action(fn, args)) ||
-			ide.workspace.action(fn, args);
+	var
+		actions = name.split(' '),
+		editor = ide.editor, 
+		result, i=0
+	;
+		for (; i<actions.length; i++)
+		{
+			result = (editor && editor.action(actions[i])!==false) ||
+				ide.workspace.action(actions[i]);
+		}
+			
+		return result;
 	}
 
 },
@@ -199,16 +212,17 @@ ide.Editor = cxl.View.extend({
 	cmd: null,
 
 	/**
-	 * Executes action in actions.
+	 * Executes action name in current editor.
+	 * @param name    Action name
 	 */
-	action: function(name, args)
+	action: function(name)
 	{
 	var
 		plugin = this.plugin,
 		fn = plugin && plugin.actions && plugin.actions[name]
 	;
 		if (fn)
-			return fn.apply(this, args);
+			return fn.call(this);
 	},
 
 	_on_click: function()
