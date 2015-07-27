@@ -1,6 +1,7 @@
 {
-	"port": 9002,
+	"port": 9004,
 	"debug": true,
+	"keymap": "vim",
 
 	"socket.port": 9005
 }

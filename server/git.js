@@ -8,6 +8,7 @@
 var
 	cxl = require('cxl'),
 	fs = require('fs'),
+	_ = require('lodash'),
 
 	workspace = require('./workspace'),
 	common = require('./common'),
@@ -27,7 +28,8 @@ plugin.extend({
 		return common.read(project.path + '/.gitignore')
 			.then(function(data) {
 				var f = data.trim().replace(/[\/\\]$/mg, '').split("\n");
-				project.configuration.ignore = project.configuration.ignore.concat(f);
+				project.configuration.ignore =
+					_.compact(project.configuration.ignore.concat(f));
 			}, function() { });
 	},
 

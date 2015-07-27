@@ -335,6 +335,7 @@ ide.plugins.register('editor', new ide.Plugin({
 			backspace: 'delCharBefore',
 			home: 'goLineStartSmart',
 			del: 'delCharAfter',
+			enter: 'newlineAndIndent',
 			'alt+u': 'redoSelection',
 			'mod+a': 'selectAll',
 			'mod+backspace': 'delGroupBefore',
@@ -359,7 +360,9 @@ ide.plugins.register('editor', new ide.Plugin({
 			'shift+left': 'goCharLeft',
 			'shift+right': 'goCharRight',
 			'shift+up': 'goLineUp',
-			'shift+down': 'goLineDown'
+			'shift+down': 'goLineDown',
+			'tab': 'defaultTab',
+			'shift+tab': 'indentAuto'
 		}
 	},
 

@@ -27,14 +27,18 @@ ide.plugins.register('vim', {
 	},
 
 	// Vim style bindings
-	keys: {
-		normal: {
+	shortcuts: {
+		vim: {
 			backspace: 'goCharLeft',
 			home: 'goLineStartSmart',
 			"g t": 'nextEditor',
 			"g T": 'prevEditor',
 			'alt+.': 'moveNext',
 			'alt+,': 'movePrev',
+			'j': 'goLineDown',
+			'k': 'goLineUp',
+			'l': 'goCharRight',
+			'h': 'goCharLeft',
 			down: 'goLineDown',
 			up: 'goLineUp',
 			right: 'goCharRight',
@@ -46,14 +50,12 @@ ide.plugins.register('vim', {
 			i: enterInsertMode
 		},
 
-		insert: {
+		'vim-insert': {
 			backspace: 'delCharBefore',
 			'mod+left': 'goGroupLeft',
 			'mod+right': 'goGroupRight'
 		}
-	},
-
-	shortcuts: null
+	}
 
 });
 	

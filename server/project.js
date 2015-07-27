@@ -13,7 +13,7 @@ var
 	micromatch = require('micromatch'),
 
 	common = require('./common'),
-	workspace = require('./workspace'),
+workspace = require('./workspace'),
 	Watcher = require('./watcher'),
 
 	plugin = module.exports = cxl('workspace.project')
@@ -95,18 +95,28 @@ class Project {
 
 	generateIgnore()
 	{
-		var ignore = this.configuration.ignore = _.uniq(this.configuration.ignore);
-		
+	var
+		ignore = this.configuration.ignore = _.uniq(this.configuration.ignore)
+	;		
 		this.configuration.ignore_regex = '^' + _.map(ignore, function(glob) {
-			var regex = micromatch.makeRe(glob).source;
-			return regex.substr(1, regex.length-2);
-		}).join('|') + '$';
+			try {
+				var regex = micromatch.makeRe(glob).source;
+				return regex.substr(1, regex.length-2);
+			} catch(e) {
+				this.error(`Invalid ignore parameter: "${glob}"`);
+			}
+		}, this).join('|') + '$';
 		
 		this.ignoreMatcher = function(path) {
 			return micromatch.any(path, ignore);
 		};
 	}
 
+	error(msg)
+	{
+		plugin.error(`${this.path} ${msg}`);
+	}
+	
 	log(msg)
 	{
 		plugin.log(`${colors.yellow(this.path)} ${msg}`);
