@@ -82,12 +82,13 @@ ide.plugins.register('vim', {
 			'shift+d': 'delWrappedLineRight enterInsertMode',
 			'd d': 'deleteLine',
 			"g t": 'nextEditor',
-			"g T": 'prevEditor',
+			"g shift+t": 'prevEditor',
 			'h': 'goCharLeft',
 			'i': 'enterInsertMode',
 			'j': 'goLineDown',
 			'k': 'goLineUp',
 			'l': 'goCharRight',
+			'n': 'findNext',
 			'o': 'goLineEnd enterInsertMode newlineAndIndent',
 			'u': 'undo',
 			'w': 'goGroupRight'
@@ -96,6 +97,7 @@ ide.plugins.register('vim', {
 
 		'vim-insert': {
 			backspace: 'delCharBefore',
+			'mod+backspace': 'delGroupBefore',
 			'mod+left': 'goGroupLeft',
 			'mod+right': 'goGroupRight',
 			'esc': 'enterNormalMode',
