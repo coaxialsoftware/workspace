@@ -380,16 +380,7 @@ ide.plugins.register('workspace', {
 			ide.workspace.next().focus();
 		},
 
-		N: 'Next'
-
-	},
-	
-	actions: {
-		
-		save: function()
-		{
-			ide.cmd('w');	
-		},
+		N: 'Next',
 		
 		nextEditor: function()
 		{
@@ -428,29 +419,6 @@ ide.plugins.register('workspace', {
 
 		}
 		
-	},
-
-	shortcuts: {
-		
-		default: {
-			down: 'goLineDown',
-			up: 'goLineUp',
-			right: 'goCharRight',
-			end: 'goLineEnd',
-			insert: 'toggleOverwrite',
-			left: 'goCharLeft',
-			pagedown: 'goPageDown',
-			pageup: 'goPageUp',
-			'shift+backspace': 'delCharBefore',
-			"alt+left": 'nextEditor',
-			"alt+right": 'prevEditor',
-			'alt+.': 'moveNext',
-			'alt+,': 'movePrev',
-			'mod+s': 'save',
-			'mod+y': 'redo',
-			'mod+z': 'undo',
-			'shift+mod+z': 'redo'
-		}
 	}
 
 });

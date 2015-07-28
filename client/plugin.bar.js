@@ -128,15 +128,10 @@
 
 		el: $('<input id="command" />'),
 		
-		actions: {
+		commands: {
 			ex: function() { this.show(); }
 		},
 		
-		shortcuts: {
-			vim: { ":": 'ex' },
-			default: { 'alt+enter': 'ex' }
-		},
-
 		history: [],
 		history_max: 50,
 		history_index: 0,
@@ -213,13 +208,8 @@
 
 		el: $('<input id="search" />'),
 		
-		actions: {
-			find: function() { this.show(); }
-		},
-		
-		shortcuts: {
-			vim: { '/': 'find' },
-			default: { 'mod+f': 'find' }
+		commands: {
+			search: function() { this.show(); }
 		},
 
 		run: function()

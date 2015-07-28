@@ -134,17 +134,12 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 
 			if (plug.start)
 				plug.start(ide.project[name]);
-
-			for (var i in plug.commands)
-			{
-				var fn = plug.commands[i];
-
-				this._registerCommand(name, i, typeof(fn)==='string' ?
-					fn : fn.bind(plug));
-			}
 			
-			this.registerActions(plug);
-			this.registerShortcuts(plug);
+			if (plug.commands)
+				this.registerCommands(plug, plug.commands);
+			
+			if (plug.shortcuts)
+				this.registerShortcuts(plug);
 		});
 
 		this.each(function(plug) {
@@ -165,26 +160,15 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		ide.loader.ready(this.load_plugins.bind(this));
 	},
 	
-	_registerCommand: function(plugin, name, fn)
+	registerCommands: function(plugin, commands)
 	{
-		if (ide.commands[name])
-			window.console.warn('[' + plugin +
-			'] Overriding command ' + name);
-
-		ide.commands[name] = fn;
-	},
-
-	registerActions: function(plugin)
-	{
-		if (plugin.actions)
-			for (var i in plugin.actions)
-				ide.workspace.plugin.actions[i] = plugin.actions[i].bind(plugin);
+		for (var i in commands)
+			ide.registerCommand(i, commands[i], plugin);
 	},
 
 	registerShortcuts: function(plugin)
 	{
-		if (plugin.shortcuts)
-			ide.keymap.registerKeys(plugin.shortcuts, plugin);
+		ide.keymap.registerKeys(plugin.shortcuts, plugin);
 	},
 
 	register: function(name, plugin)

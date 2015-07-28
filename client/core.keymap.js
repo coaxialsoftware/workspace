@@ -228,4 +228,60 @@ cxl.extend(KeyboardManager.prototype, {
 
 ide.keymap = new KeyboardManager();
 	
+ide.keymap.registerKeys({
+	
+	/**
+	 * Default Keymap
+	 */
+	default: {
+		backspace: 'delCharBefore',
+		home: 'goLineStartSmart',
+		del: 'delCharAfter',
+		enter: 'newlineAndIndent',
+		down: 'goLineDown',
+		up: 'goLineUp',
+		right: 'goCharRight',
+		end: 'goLineEnd',
+		insert: 'toggleOverwrite',
+		left: 'goCharLeft',
+		pagedown: 'goPageDown',
+		pageup: 'goPageUp',
+		'shift+backspace': 'delCharBefore',
+		"alt+left": 'nextEditor',
+		"alt+right": 'prevEditor',
+		'alt+.': 'moveNext',
+		'alt+,': 'movePrev',
+		'alt+enter': 'ex',
+		'mod+s': 'write',
+		'mod+y': 'redo',
+		'mod+z': 'undo',
+		'mod+f': 'search',
+		'alt+u': 'redoSelection',
+		'mod+a': 'selectAll',
+		'mod+backspace': 'delGroupBefore',
+		'mod+d': 'deleteLine',
+		'mod+end': 'goDocEnd',
+		'mod+delete': 'delGroupAfter',
+		'mod+down': 'goLineDown',
+		'mod+g': 'findNext',
+		'mod+home': 'goDocStart',
+		'mod+left': 'goGroupLeft',
+		'mod+right': 'goGroupRight',
+		'mod+up': 'goLineUp',
+		'mod+u': 'undoSelection',
+		'mod+[': 'indentLess',
+		'mod+]': 'indentMore',
+		'shift+mod+f': 'replace',
+		'shift+mod+r': 'replaceAll',
+		'shift+mod+u': 'redoSelection',
+		'shift+mod+z': 'redo',
+		'shift+left': 'goCharLeft',
+		'shift+right': 'goCharRight',
+		'shift+up': 'goLineUp',
+		'shift+down': 'goLineDown',
+		'tab': 'defaultTab',
+		'shift+tab': 'indentAuto'
+	}
+});
+	
 })(this.ide, this.cxl);

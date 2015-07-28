@@ -12,7 +12,7 @@ ide.plugins.register('vim', {
 	{
 		// Start in normal mode
 		editor.keyState = 'vim';
-		editor.action('disableInput');
+		editor.cmd('disableInput');
 	},
 
 	ready: function()
@@ -23,7 +23,7 @@ ide.plugins.register('vim', {
 		ide.workspace.on('add_child', this.setupEditor, this);
 	},
 	
-	actions: {
+	commands: {
 		
 		enterInsertMode: function()
 		{
@@ -32,7 +32,7 @@ ide.plugins.register('vim', {
 			if (editor)
 			{
 				editor.keyState = 'vim-insert';
-				ide.action('enableInput');
+				editor.cmd('enableInput');
 			}
 		},
 		
@@ -44,10 +44,10 @@ ide.plugins.register('vim', {
 			{
 				// Go back one char if coming back from insert mode.
 				if (editor.keyState==='vim-insert')
-					editor.action('goCharLeft');
+					editor.cmd('goCharLeft');
 				
 				editor.keyState = 'vim';
-				ide.action('disableInput');
+				editor.cmd('disableInput');
 			}
 		}
 		
@@ -73,6 +73,8 @@ ide.plugins.register('vim', {
 			'<': 'indentLess',
 			'$': 'goLineEnd',
 			'0': 'goLineStart',
+			'/': 'search',
+			":": 'ex',
 			
 			'a': 'goCharRight enterInsertMode',
 			'shift+a': 'goLineEnd enterInsertMode',

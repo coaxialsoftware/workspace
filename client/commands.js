@@ -3,7 +3,9 @@
 "use strict";
 
 var REGEX = /(?:("[^"]+"|[^\s]+)\s*)/g;
-
+var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+var ARGUMENT_NAMES = /([^\s,]+)/g;
+	
 function scan(text)
 {
 	var m, result = [];
@@ -13,46 +15,62 @@ function scan(text)
 
 	return result;
 }
-
+	
+	
 function parse(text)
 {
 var
 	cmd = scan(text),
-	fn = ide.commands[cmd[0]],
-	scope = ide
+	name = cmd[0]
 ;
-	if (!fn && ide.editor)
-	{
-		// Try editor.cmd function first then command list if
-		// present.
-		fn = (ide.editor.cmd && ide.editor.cmd(cmd[0])) ||
-			(ide.editor.commands && ide.editor.commands[cmd[0]]);
-		scope = ide.editor;
-	}
-	
-	if (typeof(fn)==='string')
-		fn = scope.commands[fn];
-
 	cmd.shift();
 
 	return {
-		fn: fn,
-		args: cmd,
-		scope: scope
+		fn: name,
+		args: cmd
 	};
 }
+	
+function getParamNames(func) {
+  var fnStr = func.toString().replace(STRIP_COMMENTS, '');
+  return fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
+}
+	
+ide.registerCommand = function(name, def, scope)
+{
+	if (ide.commands[name])
+		window.console.warn('Overriding command "' + name + '"');
+	
+	if (typeof(def)==='function')
+	{
+		if (scope)
+			def = def.bind(scope);
+		def.args = getParamNames(def);
+	}
+	
+	ide.commands[name] = def;	
+};
 
 /** Parse and execute command. */
 ide.cmd = function(source)
 {
-	var cmd = parse(source);
-
-	if (!cmd.fn)
+var
+	cmd = parse(source),
+	result, fn
+;
+	if (ide.editor)
+		result = ide.editor.cmd(cmd.fn, cmd.args);
+	
+	if ((!ide.editor || result===false) && ide.commands[cmd.fn])
+	{
+		fn = ide.commands[cmd.fn];
+		result = typeof(fn)==='string' ? ide.cmd(fn) : fn.call(ide, cmd.args);
+	}
+	
+	if (result===false)
 		ide.alert('Unknown Command: ' + source);
-	else
-		cmd.fn.apply(cmd.scope, cmd.args);
 
-	return this;
+	return result;
 };
 
 /** @namespace */

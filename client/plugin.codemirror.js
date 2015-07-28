@@ -32,14 +32,31 @@ ide.Editor.Source = ide.Editor.extend({
 			code = char.charCodeAt(0)
 		;
 			ide.notify(char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8));
+		},
+		
+		enableInput: function()
+		{
+			this.toggleFatCursor(false);
+			this.editor.setOption('disableInput', false);
+		},
+
+		disableInput: function()
+		{
+			this.toggleFatCursor(true);
+			this.editor.setOption('disableInput', true);
 		}
 
 	},
 
-	cmd: function(fn)
+	cmd: function(fn, args)
 	{
 		if (!isNaN(fn))
-			return function() { this.go(fn); };
+			return this.go(fn);
+		
+		if (fn in codeMirror.commands)
+			return codeMirror.commands[fn].call(codeMirror, this.editor);
+		
+		return ide.Editor.prototype.cmd.call(this, fn, args);
 	},
 
 	go: function(n)
@@ -292,14 +309,6 @@ ide.Editor.Source = ide.Editor.extend({
 			' [' + ide.project.get('name') + ']';
 	},
 
-	// TODO binding codeMirror execCommand might be dangerous.
-	action: function(cmd)
-	{
-		var handler = this.plugin.actions[cmd] || codeMirror.commands[cmd];
-		
-		return handler ? handler.call(this, this.editor) : false;
-	},
-
 	toggleFatCursor: function(state)
 	{
 		this.$el.toggleClass('cm-fat-cursor', state);
@@ -309,54 +318,6 @@ ide.Editor.Source = ide.Editor.extend({
 });
 
 ide.plugins.register('editor', new ide.Plugin({
-
-	actions: {
-		'enableInput': function(cm)
-		{
-			this.toggleFatCursor(false);
-			cm.setOption('disableInput', false);
-		},
-
-		'disableInput': function(cm)
-		{
-			this.toggleFatCursor(true);
-			cm.setOption('disableInput', true);
-		}
-	},
-
-	shortcuts: {
-		default: {
-			backspace: 'delCharBefore',
-			home: 'goLineStartSmart',
-			del: 'delCharAfter',
-			enter: 'newlineAndIndent',
-			'alt+u': 'redoSelection',
-			'mod+a': 'selectAll',
-			'mod+backspace': 'delGroupBefore',
-			'mod+d': 'deleteLine',
-			'mod+end': 'goDocEnd',
-			'mod+delete': 'delGroupAfter',
-			'mod+down': 'goLineDown',
-			'mod+g': 'findNext',
-			'mod+home': 'goDocStart',
-			'mod+left': 'goGroupLeft',
-			'mod+right': 'goGroupRight',
-			'mod+up': 'goLineUp',
-			'mod+u': 'undoSelection',
-			'mod+[': 'indentLess',
-			'mod+]': 'indentMore',
-			'shift+mod+f': 'replace',
-			'shift+mod+r': 'replaceAll',
-			'shift+mod+u': 'redoSelection',
-			'shift+mod+z': 'redo',
-			'shift+left': 'goCharLeft',
-			'shift+right': 'goCharRight',
-			'shift+up': 'goLineUp',
-			'shift+down': 'goLineDown',
-			'tab': 'defaultTab',
-			'shift+tab': 'indentAuto'
-		}
-	},
 
 	edit: function(file, options)
 	{

@@ -100,14 +100,10 @@ var
 	{
 	var
 		actions = name.split(' '),
-		editor = ide.editor, 
 		result, i=0
 	;
 		for (; i<actions.length; i++)
-		{
-			result = (editor && editor.action(actions[i])!==false) ||
-				ide.workspace.action(actions[i]);
-		}
+			result = ide.cmd(actions[i]);
 			
 		return result;
 	}
@@ -206,23 +202,17 @@ ide.Editor = cxl.View.extend({
 	file: null,
 
 	/**
-	 * Handles commands
+	 * Handles a single command. Returns false if command wasn't handled.
 	 * @type {Function}
 	 */
-	cmd: null,
-
-	/**
-	 * Executes action name in current editor.
-	 * @param name    Action name
-	 */
-	action: function(name)
+	cmd: function(name, args)
 	{
-	var
-		plugin = this.plugin,
-		fn = plugin && plugin.actions && plugin.actions[name]
-	;
-		if (fn)
-			return fn.call(this);
+		var fn = this.commands && this.commands[name];
+		
+		if (fn==='string')
+			fn = this.commands[fn];
+		
+		return (fn && fn.call(this, args)) || false;
 	},
 
 	_on_click: function()
