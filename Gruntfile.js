@@ -8,6 +8,7 @@ module.exports = function(grunt) {
 				src: [
 					'client/core.js',
 					'client/core.loader.js',
+					'client/core.keymap.js',
 					'client/core.plugins.js',
 					'client/core.workspace.js',
 					'client/core.socket.js',
@@ -81,7 +82,7 @@ module.exports = function(grunt) {
 			},
 
 			debug: {
-				src: '<%= jshint.client.src %>',
+				src: [ 'node_modules/cxl/client/cxl-debug.js', '<%= jshint.client.src %>' ],
 				dest: 'public/build/debug.js'
 			},
 
