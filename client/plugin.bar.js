@@ -175,7 +175,9 @@
 				return;
 
 			this.history_add(val);
-			ide.cmd(val);
+			
+			if (ide.cmd(val)===false)
+				ide.alert('Unknown Command: ' + val);
 		},
 
 		on_complete: function(s, start, end)

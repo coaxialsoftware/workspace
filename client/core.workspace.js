@@ -356,6 +356,15 @@ ide.plugins.register('workspace', {
 				ide.workspace.remove(ide.editor, true);
 		},
 		
+		f: 'file',
+		
+		file: function()
+		{
+			ide.notify((ide.editor && ide.editor.file) ?
+				ide.editor.file.id || '[No Name]' :
+				'No files open.');
+		},
+		
 		wq: function()
 		{
 			ide.cmd('w').cmd('q');

@@ -55,7 +55,7 @@ var
 	cmd = parse(source),
 	result, fn
 ;
-	result = ide.editor && ide.editor.cmd(cmd.fn, cmd.args);
+	result = ide.editor ? ide.editor.cmd(cmd.fn, cmd.args) : false;
 
 	if (result===false)
 	{
@@ -63,8 +63,6 @@ var
 
 		if (fn)
 			result = (typeof(fn)==='string' ? ide.commands[fn] : fn).apply(ide, cmd.args);
-		else
-			return ide.alert('Unknown Command: ' + source);
 	}
 
 	return result;

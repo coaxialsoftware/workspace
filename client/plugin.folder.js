@@ -123,14 +123,6 @@ ide.FileList = ide.Editor.extend({
 
 ide.plugins.register('find', new ide.Plugin({
 
-	shortcut:
-	{
-		'gf': function()
-		{
-			this.open();
-		}
-	},
-
 	open: function(mask)
 	{
 		ide.commands.find(mask);
