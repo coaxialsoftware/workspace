@@ -203,16 +203,17 @@ ide.Editor = cxl.View.extend({
 
 	/**
 	 * Handles a single command. Returns false if command wasn't handled.
-	 * @type {Function}
+	 * @param name
+	 * @param args
 	 */
 	cmd: function(name, args)
 	{
 		var fn = this.commands && this.commands[name];
 		
-		if (fn==='string')
+		if (typeof(fn)==='string')
 			fn = this.commands[fn];
-		
-		return (fn && fn.call(this, args)) || false;
+
+		return fn ? fn.apply(this, args) : false;
 	},
 
 	_on_click: function()
