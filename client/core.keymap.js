@@ -31,9 +31,6 @@ cxl.extend(KeyboardManager.prototype, {
 	t: 0,
 	sequence: null,
 	
-	state: null,
-	states: null,
-
 	// What to replace "mod" with, ctrl for win, meta for osx
 	MODREPLACE: null,
 
@@ -143,15 +140,23 @@ cxl.extend(KeyboardManager.prototype, {
 	},
 
 	/**
-	 * Handles Key
+	 * Handles Key. First checks if there is a keymap defined for the
+	 * current editor.
 	 */
 	handleKey: function(key)
 	{
 	var
-		state = this.states[ide.editor && ide.editor.keyState || this.state],
-		fn = state[key]
+		keymap = ide.editor && ide.editor.keymap,
+		state = ide.editor.keyState,
+		result = false
 	;
-		return fn ? fn() : false;
+		if (keymap)
+			result = keymap.handle(key); 
+		
+		if (result===false)
+			result = ide.keymap.handle(key, state);
+		
+		return result;
 	},
 
 	parseKey: function(key)
@@ -191,8 +196,20 @@ cxl.extend(KeyboardManager.prototype, {
 			sequence[i] = this.getKeyId(sequence[i]);
 		
 		return sequence.join(' ');
-	},
-
+	}
+	
+});
+	
+function KeyMap()
+{
+	this.states = {};
+}
+	
+cxl.extend(KeyMap.prototype, {
+	
+	state: null,
+	states: null,
+	
 	getHandler: function(fn)
 	{
 		var handler = typeof(fn)==='function' ?
@@ -215,18 +232,31 @@ cxl.extend(KeyboardManager.prototype, {
 		state = this.states[state] || (this.states[state]={});
 
 		for (key in map)
-			this.registerKey(state, this.normalize(key), this.getHandler(map[key]));
+			this.registerKey(state, ide.keyboard.normalize(key), this.getHandler(map[key]));
 	},
 
 	registerKeys: function(map)
 	{
 		for (var state in map)
 			this.registerState(state, map[state]);
+	},
+	
+	/**
+	 * Handles key in current state, or optional state parameter.
+	 */
+	handle: function(key, state)
+	{
+	var
+		map = this.states[state || this.state || ide.keyboard.state],
+		fn = map[key]
+	;
+		return fn ? fn(key) : false;
 	}
-
+	
 });
 
-ide.keymap = new KeyboardManager();
+ide.keyboard = new KeyboardManager();
+ide.keymap = new KeyMap();
 	
 ide.keymap.registerKeys({
 	
@@ -283,5 +313,7 @@ ide.keymap.registerKeys({
 		'shift+tab': 'indentAuto'
 	}
 });
+	
+ide.KeyMap = KeyMap;
 	
 })(this.ide, this.cxl);

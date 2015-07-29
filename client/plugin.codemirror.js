@@ -51,7 +51,7 @@ ide.Editor.Source = ide.Editor.extend({
 	cmd: function(fn, args)
 	{
 		if (!isNaN(fn))
-			return this.go(fn);
+			return this.go(fn);		 
 		
 		if (fn in codeMirror.commands)
 			return codeMirror.commands[fn].call(codeMirror, this.editor);
@@ -152,6 +152,7 @@ ide.Editor.Source = ide.Editor.extend({
 		editor.on('focus', this.on_focus.bind(this));
 		editor.on('blur', this.on_blur.bind(this));
 		
+		this.keymap = new ide.KeyMap();
 		this.listenTo(this.file, 'change:content', this.on_file_change);
 		//this.registers = codeMirror.Vim.getRegisterController();
 	},
@@ -292,14 +293,6 @@ ide.Editor.Source = ide.Editor.extend({
 	changed: function()
 	{
 		return this.file_content !== this.get_value();
-	},
-
-	vim_mode: function()
-	{
-		var state = this.editor.state.vim;
-		// TODO add more modes
-		return state.insertMode ? 'INSERT' : 
-			(state.visualMode ? 'VISUAL' : 'NORMAL');
 	},
 
 	get_info: function()
