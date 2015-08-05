@@ -147,7 +147,7 @@ cxl.extend(KeyboardManager.prototype, {
 	{
 	var
 		keymap = ide.editor && ide.editor.keymap,
-		state = ide.editor.keyState,
+		state = ide.editor && ide.editor.keyState,
 		result = false
 	;
 		if (keymap)
@@ -248,7 +248,7 @@ cxl.extend(KeyMap.prototype, {
 	{
 	var
 		map = this.states[state || this.state || ide.keyboard.state],
-		fn = map[key]
+		fn = map && map[key]
 	;
 		return fn ? fn(key) : false;
 	}
@@ -264,18 +264,30 @@ ide.keymap.registerKeys({
 	 * Default Keymap
 	 */
 	default: {
-		backspace: 'delCharBefore',
+		
+		// MOTION
 		home: 'goLineStartSmart',
-		del: 'delCharAfter',
-		enter: 'newlineAndIndent',
+		end: 'goLineEnd',
 		down: 'goLineDown',
 		up: 'goLineUp',
 		right: 'goCharRight',
-		end: 'goLineEnd',
-		insert: 'toggleOverwrite',
 		left: 'goCharLeft',
 		pagedown: 'goPageDown',
 		pageup: 'goPageUp',
+		'shift+left': 'selectLeft',
+		'shift+right': 'selectRight',
+		'shift+up': 'selectUp',
+		'shift+down': 'selectDown',
+		'shift+home': 'selectLineStart',
+		'shift+end': 'selectLineEnd',
+		'shift+pagedown': 'selectPageDown',
+		'shift+pageup': 'selectPageUp',
+		
+		// EDITING
+		backspace: 'delCharBefore',
+		del: 'delCharAfter',
+		enter: 'newlineAndIndent',
+		insert: 'toggleOverwrite',
 		'shift+backspace': 'delCharBefore',
 		"alt+left": 'nextEditor',
 		"alt+right": 'prevEditor',
@@ -305,10 +317,6 @@ ide.keymap.registerKeys({
 		'shift+mod+r': 'replaceAll',
 		'shift+mod+u': 'redoSelection',
 		'shift+mod+z': 'redo',
-		'shift+left': 'goCharLeft',
-		'shift+right': 'goCharRight',
-		'shift+up': 'goLineUp',
-		'shift+down': 'goLineDown',
 		'tab': 'defaultTab',
 		'shift+tab': 'indentAuto'
 	}

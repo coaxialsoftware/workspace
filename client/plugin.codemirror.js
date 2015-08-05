@@ -1,6 +1,18 @@
 
 (function(ide, cxl, codeMirror) {
 "use strict";
+	
+/**
+ * Use to implement selection(shift) commands
+ */
+function select(command)
+{
+	return function() {
+		this.editor.display.shift = true;
+		this.editor.execCommand(command);
+		this.editor.display.shift = false;
+	};	
+}
 
 /**
  * Events:
@@ -44,7 +56,16 @@ ide.Editor.Source = ide.Editor.extend({
 		{
 			this.toggleFatCursor(true);
 			this.editor.setOption('disableInput', true);
-		}
+		},
+		
+		selectLeft: select('goCharLeft'),
+		selectUp: select('goLineUp'),
+		selectDown: select('goLineDown'),
+		selectRight: select('goCharRight'),
+		selectLineStart: select('goLineStartSmart'),
+		selectLineEnd: select('goLineEnd'),
+		selectPageDown: select('goPageDown'),
+		selectPageUp: select('goPageUp')
 
 	},
 
