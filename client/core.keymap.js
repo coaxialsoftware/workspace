@@ -147,7 +147,7 @@ cxl.extend(KeyboardManager.prototype, {
 	{
 	var
 		keymap = ide.editor && ide.editor.keymap,
-		state = ide.editor && ide.editor.keyState,
+		state = keymap && keymap.state,
 		result = false
 	;
 		if (keymap)
@@ -203,6 +203,7 @@ cxl.extend(KeyboardManager.prototype, {
 function KeyMap()
 {
 	this.states = {};
+	this.state = ide.project && ide.project.get('keymap') || 'default';
 }
 	
 cxl.extend(KeyMap.prototype, {
@@ -247,7 +248,7 @@ cxl.extend(KeyMap.prototype, {
 	handle: function(key, state)
 	{
 	var
-		map = this.states[state || this.state || ide.keyboard.state],
+		map = this.states[state || this.state],
 		fn = map && map[key]
 	;
 		return fn ? fn(key) : false;
@@ -266,7 +267,7 @@ ide.keymap.registerKeys({
 	default: {
 		
 		// MOTION
-		home: 'goLineStartSmart',
+		home: 'goLineStart',
 		end: 'goLineEnd',
 		down: 'goLineDown',
 		up: 'goLineUp',
@@ -274,6 +275,22 @@ ide.keymap.registerKeys({
 		left: 'goCharLeft',
 		pagedown: 'goPageDown',
 		pageup: 'goPageUp',
+		
+		'mod+end': 'goDocEnd',
+		'mod+down': 'goLineDown',
+		'mod+home': 'goDocStart',
+		'mod+left': 'goGroupLeft',
+		'mod+right': 'goGroupRight',
+		'mod+up': 'goLineUp',
+		
+		// WORKSPACE
+		"alt+left": 'nextEditor',
+		"alt+right": 'prevEditor',
+		'alt+.': 'moveNext',
+		'alt+,': 'movePrev',
+		'alt+enter': 'ex',
+		
+		// SELECTION
 		'shift+left': 'selectLeft',
 		'shift+right': 'selectRight',
 		'shift+up': 'selectUp',
@@ -282,6 +299,12 @@ ide.keymap.registerKeys({
 		'shift+end': 'selectLineEnd',
 		'shift+pagedown': 'selectPageDown',
 		'shift+pageup': 'selectPageUp',
+		'alt+u': 'redoSelection',
+		'mod+a': 'selectAll',
+		
+		// SEARCH
+		'mod+f': 'search',
+		'mod+g': 'findNext',
 		
 		// EDITING
 		backspace: 'delCharBefore',
@@ -289,27 +312,12 @@ ide.keymap.registerKeys({
 		enter: 'newlineAndIndent',
 		insert: 'toggleOverwrite',
 		'shift+backspace': 'delCharBefore',
-		"alt+left": 'nextEditor',
-		"alt+right": 'prevEditor',
-		'alt+.': 'moveNext',
-		'alt+,': 'movePrev',
-		'alt+enter': 'ex',
 		'mod+s': 'write',
 		'mod+y': 'redo',
 		'mod+z': 'undo',
-		'mod+f': 'search',
-		'alt+u': 'redoSelection',
-		'mod+a': 'selectAll',
 		'mod+backspace': 'delGroupBefore',
 		'mod+d': 'deleteLine',
-		'mod+end': 'goDocEnd',
 		'mod+delete': 'delGroupAfter',
-		'mod+down': 'goLineDown',
-		'mod+g': 'findNext',
-		'mod+home': 'goDocStart',
-		'mod+left': 'goGroupLeft',
-		'mod+right': 'goGroupRight',
-		'mod+up': 'goLineUp',
 		'mod+u': 'undoSelection',
 		'mod+[': 'indentLess',
 		'mod+]': 'indentMore',

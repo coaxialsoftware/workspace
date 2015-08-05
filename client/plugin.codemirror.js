@@ -160,6 +160,31 @@ ide.Editor.Source = ide.Editor.extend({
 			}
 		));
 	},
+	
+	/**
+	 * Override keymap handle function to use codemirror plugin keymaps.
+	 * TODO see if we can replace some plugins to avoid using this method.
+	 */
+	keymapHandle: function(key)
+	{
+	var
+		maps = this.editor.state.keyMaps,
+		l = maps.length,
+		fn, result
+	;
+		while (l--)
+		{
+			if ((fn = maps[l][key]))
+			{
+				result = fn(this.editor);
+
+				if (result !== codeMirror.Pass)
+					return result;
+			}
+		}
+		
+		return false;
+	},
 
 	setup: function()
 	{
@@ -174,6 +199,7 @@ ide.Editor.Source = ide.Editor.extend({
 		editor.on('blur', this.on_blur.bind(this));
 		
 		this.keymap = new ide.KeyMap();
+		this.keymap.handle = this.keymapHandle.bind(this);
 		this.listenTo(this.file, 'change:content', this.on_file_change);
 		//this.registers = codeMirror.Vim.getRegisterController();
 	},

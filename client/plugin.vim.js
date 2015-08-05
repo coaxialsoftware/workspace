@@ -3,16 +3,20 @@
  * 
  */
 
-(function(ide) {
+(function(ide, _) {
 "use strict";
 
 ide.plugins.register('vim', {
 	
+	// VIM Mode only supported for editors that have their own keymap.
 	setupEditor: function(editor)
 	{
 		// Start in normal mode
-		editor.keyState = 'vim';
-		editor.cmd('disableInput');
+		if (editor.keymap)
+		{
+			editor.keymap.state = 'vim';
+			editor.cmd('disableInput');
+		}
 	},
 
 	ready: function()
@@ -29,9 +33,9 @@ ide.plugins.register('vim', {
 		{
 			var editor = ide.editor;
 
-			if (editor)
+			if (editor && editor.keymap)
 			{
-				editor.keyState = 'vim-insert';
+				editor.keymap.state = 'vim-insert';
 				editor.cmd('enableInput');
 			}
 		},
@@ -40,13 +44,12 @@ ide.plugins.register('vim', {
 		{
 			var editor = ide.editor;
 
-			if (editor)
+			if (editor && editor.keymap)
 			{
 				// Go back one char if coming back from insert mode.
-				if (editor.keyState==='vim-insert')
+				if (editor.keymap.state==='vim-insert')
 					editor.cmd('goCharLeft');
-				
-				editor.keyState = 'vim';
+				editor.keymap.state = 'vim';
 				editor.cmd('disableInput');
 			}
 		}
@@ -96,17 +99,17 @@ ide.plugins.register('vim', {
 
 		},
 
-		'vim-insert': {
+		'vim-insert': _.extend({}, ide.keymap.states.default, {
 			backspace: 'delCharBefore',
 			'mod+backspace': 'delGroupBefore',
 			'mod+left': 'goGroupLeft',
 			'mod+right': 'goGroupRight',
 			'esc': 'enterNormalMode',
 			'ctrl+[': 'enterNormalMode'
-		}
+		})
 	}
 
 });
 	
-})(this.ide);
+})(this.ide, this._);
  
