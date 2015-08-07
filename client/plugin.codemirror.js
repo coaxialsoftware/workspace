@@ -46,6 +46,11 @@ ide.Editor.Source = ide.Editor.extend({
 			ide.notify(char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8));
 		},
 		
+		deleteSelection: function()
+		{
+			this.editor.replaceSelection('');	
+		},
+		
 		enableInput: function()
 		{
 			this.toggleFatCursor(false);
