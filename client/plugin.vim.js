@@ -47,9 +47,6 @@ ide.plugins.register('vim', {
 
 			if (editor && editor.keymap)
 			{
-				// Go back one char if coming back from insert mode.
-				if (editor.keymap.state==='vim-insert')
-					editor.cmd('goCharLeft');
 				editor.keymap.state = 'vim';
 				editor.cmd('disableInput');
 				editor.cmd('clearSelection');

@@ -52,13 +52,17 @@ ide.Editor.Source = ide.Editor.extend({
 		},
 		
 		enableInput: function()
-		{
+		{	
 			this.toggleFatCursor(false);
 			this.editor.setOption('disableInput', false);
 		},
 
 		disableInput: function()
 		{
+			// Go back one char if coming back from insert mode.
+			if (this.editor.getCursor().ch>0)
+				this.editor.execCommand('goCharLeft');
+			
 			this.toggleFatCursor(true);
 			this.editor.setOption('disableInput', true);
 		},
