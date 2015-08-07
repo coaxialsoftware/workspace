@@ -62,10 +62,36 @@ ide.Editor.Source = ide.Editor.extend({
 		selectUp: select('goLineUp'),
 		selectDown: select('goLineDown'),
 		selectRight: select('goCharRight'),
-		selectLineStart: select('goLineStartSmart'),
+		selectLineStart: select('goLineStart'),
 		selectLineEnd: select('goLineEnd'),
 		selectPageDown: select('goPageDown'),
-		selectPageUp: select('goPageUp')
+		selectPageUp: select('goPageUp'),
+		
+		clearSelection: function()
+		{
+			this.editor.setSelection(this.editor.getCursor('anchor'));
+		},
+		
+		showCursorWhenSelecting: function()
+		{
+			this.editor.setOption('showCursorWhenSelecting', true);
+		},
+		
+		selectLine: function()
+		{
+		var
+			e = this.editor,
+			anchor = e.getCursor('anchor'),
+			head = e.getCursor(),
+			anchorEnd = head.line>anchor.line ? 0 : e.getLine(anchor.line).length,
+			headEnd = head.line>anchor.line ? e.getLine(head.line).length : 0	
+		;
+			e.extendSelection(
+				{ line: head.line, ch: headEnd },
+				{ line: anchor.line, ch: anchorEnd },
+				{ extending: true }
+			);
+		}
 
 	},
 

@@ -16,6 +16,7 @@ ide.plugins.register('vim', {
 		{
 			editor.keymap.state = 'vim';
 			editor.cmd('disableInput');
+			editor.cmd('showCursorWhenSelecting');
 		}
 	},
 
@@ -51,6 +52,25 @@ ide.plugins.register('vim', {
 					editor.cmd('goCharLeft');
 				editor.keymap.state = 'vim';
 				editor.cmd('disableInput');
+				editor.cmd('clearSelection');
+			}
+		},
+		
+		enterSelectMode: function()
+		{
+			if (ide.editor && ide.editor.keymap)
+			{
+				ide.editor.keymap.state = 'vim-select';
+				// TODO change cursor?
+			}
+		},
+		
+		enterBlockSelectMode: function()
+		{
+			if (ide.editor && ide.editor.keymap)
+			{
+				ide.editor.keymap.state = 'vim-block-select';	
+				ide.editor.cmd('selectLine');
 			}
 		}
 		
@@ -60,7 +80,7 @@ ide.plugins.register('vim', {
 	shortcuts: {
 		vim: {
 			backspace: 'goCharLeft',
-			home: 'goLineStartSmart',
+			home: 'goLineStart',
 			down: 'goLineDown',
 			up: 'goLineUp',
 			right: 'goCharRight',
@@ -87,8 +107,12 @@ ide.plugins.register('vim', {
 			'g t': 'nextEditor',
 			'g shift+t': 'prevEditor',
 			'g f': 'find',
-			'h': 'goCharLeft',
 			'i': 'enterInsertMode',
+			
+			'shift+v': 'enterBlockSelectMode',
+			'v': 'enterSelectMode',
+			
+			'h': 'goCharLeft',
 			'j': 'goLineDown',
 			'k': 'goLineUp',
 			'l': 'goCharRight',
@@ -98,6 +122,34 @@ ide.plugins.register('vim', {
 			'w': 'goGroupRight'
 
 		},
+		
+		'vim-select': {
+			home: 'selectLineStart',
+			down: 'selectDown',
+			up: 'selectUp',
+			right: 'selectRight',
+			left: 'selectLeft',
+			pagedown: 'selectPageDown',
+			pageup: 'selectPageUp',
+			end: 'selectLineEnd',
+			'h': 'selectLeft',
+			'j': 'selectDown',
+			'k': 'selectUp',
+			'l': 'selectRight',
+			
+			esc: 'enterNormalMode',
+			'mod+[': 'enterNormalMode'
+		},
+					 
+		'vim-block-select': {
+			h: 'selectLeft selectLine',
+			j: 'selectDown selectLine',
+			k: 'selectUp selectLine',
+			l: 'selectRight selectLine',
+			
+			esc: 'enterNormalMode',
+			'mod+[': 'enterNormalMode'
+		 },
 
 		'vim-insert': _.extend({}, ide.keymap.states.default, {
 			backspace: 'delCharBefore',
@@ -105,7 +157,7 @@ ide.plugins.register('vim', {
 			'mod+left': 'goGroupLeft',
 			'mod+right': 'goGroupRight',
 			'esc': 'enterNormalMode',
-			'ctrl+[': 'enterNormalMode'
+			'mod+[': 'enterNormalMode'
 		})
 	}
 
