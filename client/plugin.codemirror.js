@@ -51,6 +51,11 @@ ide.Editor.Source = ide.Editor.extend({
 			this.editor.replaceSelection('');	
 		},
 		
+		replaceSelection: function(text)
+		{
+			this.editor.replaceSelection(text);
+		},
+		
 		enableInput: function()
 		{	
 			this.toggleFatCursor(false);
@@ -276,10 +281,22 @@ ide.Editor.Source = ide.Editor.extend({
 	{
 		return this.editor.renderer.$cursorLayer.cursor;
 	},*/
+	
+	somethingSelected: function()
+	{
+		return this.editor.somethingSelected();
+	},
 
-	get_selection: function()
+	getSelection: function()
 	{
 		return this.editor.getSelection(this.line_separator);
+	},
+	
+	getLine: function(n)
+	{
+		n = n || this.editor.getCursor().line;
+		
+		return this.editor.getLine(n);
 	},
 
 	get_font: function()

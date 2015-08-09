@@ -3,10 +3,51 @@
  * 
  */
 
-(function(ide, _) {
+(function(ide, cxl) {
 "use strict";
+		
+/**
+ * Helper function for commands. Makes sure there is a valid editor
+ */
+function verify(fn)
+{
+	return function() {
+		if (ide.editor && ide.editor.keymap)
+			fn.call(this, ide.editor);
+	};
+}
+	
+function yank(data)
+{
+	vim.register.set(data);
+	
+	for (var i=9; i>0; i--)
+		vim.registers[i].set(vim.registers[i-1].data);
+	vim.registers[0].set(data);
+}
+	
+function Register(name)
+{
+	this.name = name;
+	this.data = vim.data('register.' + name);
+}
+	
+cxl.extend(Register.prototype, {
+	
+	name: null,
+	data: null,
+	
+	set: function(data)
+	{
+		this.data = data || '';
+		vim.data('register.' + this.name, this.data);
+	}
+		
+});
 
-ide.plugins.register('vim', {
+var vim = new ide.Plugin({
+	
+	registers: null,
 	
 	// VIM Mode only supported for editors that have their own keymap.
 	setupEditor: function(editor)
@@ -19,16 +60,51 @@ ide.plugins.register('vim', {
 			editor.cmd('showCursorWhenSelecting');
 		}
 	},
+	
+	initRegisters: function()
+	{
+		var r = this.registers = {
+			'"': this.register = new Register('"'),
+			'.': this.dotRegister = new Register('.'),
+			'*': this.clipboardRegister = new Register('*')
+		};
+		
+		for (var i=0; i<10; i++)
+			r[i] = new Register(i);
+	},
 
 	ready: function()
 	{
 		if (ide.project.get('keymap')!=='vim')
 			return;
 
+		this.initRegisters();
 		ide.workspace.on('add_child', this.setupEditor, this);
 	},
 	
 	commands: {
+		
+		yank: verify(function(editor) {
+			yank(editor.getSelection());
+		}),
+		
+		put: verify(function(editor) {
+			var data = this.register.data;
+			
+			if (data[0]==="\n" && !editor.somethingSelected())
+				editor.cmd('goLineEnd');
+			
+			editor.cmd('replaceSelection', [ this.register.data ]);
+		}),
+		
+		yankBlock: verify(function(editor)
+		{
+			var data = editor.somethingSelected() ? 
+				editor.getSelection() :
+				editor.getLine();
+			
+			yank("\n" + data);
+		}),
 		
 		enterInsertMode: function()
 		{
@@ -100,11 +176,15 @@ ide.plugins.register('vim', {
 			'shift+a': 'goLineEnd enterInsertMode',
 			'b': 'goGroupLeft',
 			'shift+d': 'delWrappedLineRight enterInsertMode',
-			'd d': 'deleteLine',
+			'd d': 'yankBlock deleteLine',
 			'g t': 'nextEditor',
+			'g g': 'goDocStart',
+			'shift+g': 'goDocEnd',
 			'g shift+t': 'prevEditor',
 			'g f': 'find',
 			'i': 'enterInsertMode',
+			'y y': 'yankBlock',
+			'p': 'put',
 			
 			'shift+v': 'enterBlockSelectMode',
 			'v': 'enterSelectMode',
@@ -133,6 +213,8 @@ ide.plugins.register('vim', {
 			'j': 'selectDown',
 			'k': 'selectUp',
 			'l': 'selectRight',
+			'd': 'yank deleteSelection enterNormalMode',
+			'y': 'yank enterNormalMode',
 			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
@@ -144,11 +226,14 @@ ide.plugins.register('vim', {
 			k: 'selectUp selectLine',
 			l: 'selectRight selectLine',
 			
+			d: 'yankBlock deleteSelection enterNormalMode',
+			y: 'yankBlock enterNormalMode',
+			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
 		 },
 
-		'vim-insert': _.extend({}, ide.keymap.states.default, {
+		'vim-insert': cxl.extend({}, ide.keymap.states.default, {
 			backspace: 'delCharBefore',
 			'mod+backspace': 'delGroupBefore',
 			'mod+left': 'goGroupLeft',
@@ -159,6 +244,7 @@ ide.plugins.register('vim', {
 	}
 
 });
+
+ide.plugins.register('vim', vim);
 	
-})(this.ide, this._);
- 
+})(this.ide, this.cxl);
