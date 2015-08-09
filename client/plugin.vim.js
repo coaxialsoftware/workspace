@@ -29,13 +29,18 @@ function yank(data)
 function Register(name)
 {
 	this.name = name;
-	this.data = vim.data('register.' + name);
+	this.update();
 }
 	
 cxl.extend(Register.prototype, {
 	
 	name: null,
 	data: null,
+	
+	update: function()
+	{
+		this.data = vim.data('register.' + this.name);
+	},
 	
 	set: function(data)
 	{
@@ -72,6 +77,17 @@ var vim = new ide.Plugin({
 		for (var i=0; i<10; i++)
 			r[i] = new Register(i);
 	},
+	
+	updateRegisters: function()
+	{
+		for (var i in this.registers)
+			this.registers[i].update();
+	},
+	
+	onFocus: function()
+	{
+		this.updateRegisters();
+	},
 
 	ready: function()
 	{
@@ -79,7 +95,9 @@ var vim = new ide.Plugin({
 			return;
 
 		this.initRegisters();
+		
 		ide.workspace.on('add_child', this.setupEditor, this);
+		ide.win.addEventListener('focus', this.onFocus.bind(this));
 	},
 	
 	commands: {
@@ -165,8 +183,8 @@ var vim = new ide.Plugin({
 			'alt+.': 'moveNext',
 			'alt+,': 'movePrev',
 			'mod+r': 'redo',
-			'>': 'indentMore',
-			'<': 'indentLess',
+			'> >': 'indentMore',
+			'< <': 'indentLess',
 			'$': 'goLineEnd',
 			'0': 'goLineStart',
 			'/': 'search',
@@ -215,6 +233,8 @@ var vim = new ide.Plugin({
 			'l': 'selectRight',
 			'd': 'yank deleteSelection enterNormalMode',
 			'y': 'yank enterNormalMode',
+			'>': 'indentMore enterNormalMode',
+			'<': 'indentLess enterNormalMode',
 			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
@@ -228,6 +248,8 @@ var vim = new ide.Plugin({
 			
 			d: 'yankBlock deleteSelection enterNormalMode',
 			y: 'yankBlock enterNormalMode',
+			'>': 'indentMore enterNormalMode',
+			'<': 'indentLess enterNormalMode',
 			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'

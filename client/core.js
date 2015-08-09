@@ -29,6 +29,8 @@ var
 
 	/** Asset, script loader */
 	loader: null,
+		
+	win: window,
 
 	/** Displays alert notification on right corner */
 	alert: function(message)

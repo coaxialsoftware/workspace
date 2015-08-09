@@ -241,7 +241,6 @@ ide.Editor.Source = ide.Editor.extend({
 		this.keymap = new ide.KeyMap();
 		this.keymap.handle = this.keymapHandle.bind(this);
 		this.listenTo(this.file, 'change:content', this.on_file_change);
-		//this.registers = codeMirror.Vim.getRegisterController();
 	},
 
 	resize: function()
