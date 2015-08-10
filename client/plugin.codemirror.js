@@ -80,6 +80,8 @@ ide.Editor.Source = ide.Editor.extend({
 		selectLineEnd: select('goLineEnd'),
 		selectPageDown: select('goPageDown'),
 		selectPageUp: select('goPageUp'),
+		selectGroupRight: select('goGroupRight'),
+		selectGroupLeft: select('goGroupLeft'),
 		
 		clearSelection: function()
 		{
