@@ -23,9 +23,10 @@ function yank(data)
 	
 	for (var i=9; i>0; i--)
 		vim.registers[i].set(vim.registers[i-1].data);
+	
 	vim.registers[0].set(data);
 }
-	
+
 function Register(name)
 {
 	this.name = name;
