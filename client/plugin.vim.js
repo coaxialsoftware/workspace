@@ -248,8 +248,6 @@ var vim = new ide.Plugin({
 			j: 'selectDown selectLine',
 			k: 'selectUp selectLine',
 			l: 'selectRight selectLine',
-			'w': 'selectGroupRight',
-			'b': 'selectGroupLeft',
 			
 			d: 'yankBlock deleteSelection enterNormalMode',
 			y: 'yankBlock enterNormalMode',
