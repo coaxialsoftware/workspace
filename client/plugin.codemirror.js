@@ -107,6 +107,18 @@ ide.Editor.Source = ide.Editor.extend({
 				{ line: anchor.line, ch: anchorEnd },
 				{ extending: true }
 			);
+		},
+		
+		lastInsert: function()
+		{
+		var
+			lastChange = this.getLastChange()
+		;
+			if (lastChange && lastChange.changes[0].text[0]==='')
+				return this.editor.getRange(
+					lastChange.changes[0].from,
+					lastChange.changes[0].to
+				);
 		}
 
 	},
@@ -125,6 +137,17 @@ ide.Editor.Source = ide.Editor.extend({
 	go: function(n)
 	{
 		this.editor.setCursor(n-1);
+	},
+	
+	getLastChange: function()
+	{
+	var
+		history = this.editor.getHistory().done,
+		l = history.length
+	;
+		while (l--)
+			if (history[l].changes)
+				return history[l];
 	},
 
 	get_value: function()

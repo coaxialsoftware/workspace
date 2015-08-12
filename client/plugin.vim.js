@@ -136,17 +136,17 @@ var vim = new ide.Plugin({
 			}
 		},
 		
-		enterNormalMode: function()
+		enterNormalMode: verify(function(editor)
 		{
-			var editor = ide.editor;
+			var lastInsert = editor.cmd('lastInsert');
 
-			if (editor && editor.keymap)
-			{
-				editor.keymap.state = 'vim';
-				editor.cmd('disableInput');
-				editor.cmd('clearSelection');
-			}
-		},
+			editor.keymap.state = 'vim';
+			editor.cmd('disableInput');
+			editor.cmd('clearSelection');
+				
+			if (lastInsert)
+				vim.dotRegister.set(lastInsert);
+		}),
 		
 		enterSelectMode: function()
 		{
@@ -238,6 +238,8 @@ var vim = new ide.Plugin({
 			'<': 'indentLess enterNormalMode',
 			'w': 'selectGroupRight',
 			'b': 'selectGroupLeft',
+			'$': 'selectLineEnd',
+			'0': 'selectLineStart',
 			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
