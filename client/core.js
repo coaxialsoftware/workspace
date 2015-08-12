@@ -13,6 +13,9 @@ var
 	/** @namespace */
 	window.ide = { /** @lends ide */
 		
+	/** Used by commands to indicate that the command wasn't handled. */
+	Pass: {},
+		
 	version: '0.1.0',
 
 	/** Current opened project */
@@ -202,20 +205,24 @@ ide.Editor = cxl.View.extend({
 	 * @required
 	 */
 	file: null,
+	
+	/**
+	 * Command Aliases
+	 */
+	alias: null,
 
 	/**
-	 * Handles a single command. Returns false if command wasn't handled.
+	 * Handles a single command. Returns false if command wasn't handled. Commands are
+	 * editor instance functions. It will ignore methods that start with '_'
+	 *
 	 * @param name
 	 * @param args
 	 */
 	cmd: function(name, args)
 	{
-		var fn = this.commands && this.commands[name];
-		
-		if (typeof(fn)==='string')
-			fn = this.commands[fn];
+		var fn = name[0]!=='_' && this[this.alias && this.alias[name] || name];
 
-		return fn ? fn.apply(this, args) : false;
+		return typeof(fn)==='function' ? fn.apply(this, args) : ide.Pass;
 	},
 
 	_on_click: function()
@@ -224,7 +231,7 @@ ide.Editor = cxl.View.extend({
 			this.focus();
 	},
 
-	get_info: function()
+	getInfo: function()
 	{
 		return this.file.toString() + ' [' + ide.project.get('name') + ']';
 	},
@@ -237,7 +244,7 @@ ide.Editor = cxl.View.extend({
 
 	focus: function()
 	{
-		var info = this.get_info();
+		var info = this.getInfo();
 
 		if (ide.editor)
 			ide.editor.$el.removeClass('ide-focus');

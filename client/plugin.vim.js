@@ -107,6 +107,12 @@ var vim = new ide.Plugin({
 			yank(editor.getSelection());
 		}),
 		
+		insertDotRegister: function()
+		{
+			if (ide.editor)
+				ide.editor.cmd('insert', [ vim.dotRegister.data ]);
+		},
+		
 		put: verify(function(editor) {
 			var data = this.register.data;
 			
@@ -136,17 +142,17 @@ var vim = new ide.Plugin({
 			}
 		},
 		
-		enterNormalMode: function()
-		{
-			var editor = ide.editor;
-
-			if (editor && editor.keymap)
-			{
-				editor.keymap.state = 'vim';
-				editor.cmd('disableInput');
-				editor.cmd('clearSelection');
-			}
-		},
+		enterNormalMode: verify(function(editor) {
+			var lastInsert = editor.cmd('lastInsert');
+			
+			editor.keymap.state = 'vim';
+			editor.cmd('disableInput');
+			editor.cmd('clearSelection');
+			
+			// dot register stores last edit
+			if (lastInsert)
+				vim.dotRegister.set(lastInsert);
+		}),
 		
 		enterSelectMode: function()
 		{
@@ -256,14 +262,19 @@ var vim = new ide.Plugin({
 			'mod+[': 'enterNormalMode'
 		 },
 
-		'vim-insert': cxl.extend({}, ide.keymap.states.default, {
+		'vim-insert': {
+			'mod+@': 'insertDotRegister enterNormalMode',
+			'mod+a': 'insertDotRegister',
+			
 			backspace: 'delCharBefore',
+			tab: 'insertTab',
+			del: 'delCharAfter',
 			'mod+backspace': 'delGroupBefore',
 			'mod+left': 'goGroupLeft',
 			'mod+right': 'goGroupRight',
 			'esc': 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
-		})
+		}
 	}
 
 });

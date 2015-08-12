@@ -47,25 +47,33 @@ ide.registerCommand = function(name, def, scope)
 	
 	ide.commands[name] = def;	
 };
+	
+function exec(cmd)
+{
+var
+	result, fn
+;
+	result = ide.editor ? ide.editor.cmd(cmd.fn, cmd.args) : ide.Pass;
+
+	if (result===ide.Pass)
+	{
+		fn = ide.commands[cmd.fn];
+
+		if (typeof(fn)==='string')
+		{
+			cmd.fn = fn;
+			return exec(cmd);
+		} else if (fn)
+			result = fn.apply(ide, cmd.args);
+	}
+
+	return result;
+}
 
 /** Parse and execute command. */
 ide.cmd = function(source)
 {
-var
-	cmd = parse(source),
-	result, fn
-;
-	result = ide.editor ? ide.editor.cmd(cmd.fn, cmd.args) : false;
-
-	if (result===false)
-	{
-		fn = ide.commands[cmd.fn];
-
-		if (fn)
-			result = (typeof(fn)==='string' ? ide.commands[fn] : fn).apply(ide, cmd.args);
-	}
-
-	return result;
+	return exec(parse(source));
 };
 
 /** @namespace */

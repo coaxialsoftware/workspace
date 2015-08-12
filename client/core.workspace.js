@@ -331,11 +331,6 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 		this.actions = this.plugin.actions;
 
 		window.addEventListener('beforeunload', this.on_beforeunload.bind(this));
-	},
-
-	action: function(name)
-	{
-		return this.actions && this.actions[name] && this.actions[name]();
 	}
 
 });
@@ -364,6 +359,8 @@ ide.plugins.register('workspace', {
 				ide.editor.file.id || '[No Name]' :
 				'No files open.');
 		},
+		
+		w: 'write',
 		
 		wq: function()
 		{
