@@ -113,6 +113,21 @@ var vim = new ide.Plugin({
 				ide.editor.cmd('insert', [ vim.dotRegister.data ]);
 		},
 		
+		insertCharacterBelow: function()
+		{
+			var e = ide.editor, pos, ch;
+
+			if (e && e.getPosition && e.getChar && e.insert)
+			{
+				pos = e.getPosition();
+				pos.line += 1;
+				ch = e.getChar(pos);
+				
+				if (ch)
+					e.insert(ch);
+			}
+		},
+		
 		put: verify(function(editor) {
 			var data = this.register.data;
 			
@@ -265,13 +280,27 @@ var vim = new ide.Plugin({
 		'vim-insert': {
 			'mod+@': 'insertDotRegister enterNormalMode',
 			'mod+a': 'insertDotRegister',
+			'mod+d': 'indentLess',
+			'mod+h': 'delCharBefore',
+			'mod+j': 'newlineAndIndent',
+			'mod+m': 'newlineAndIndent',
+			'mod+t': 'indentMore',
+			'mod+w': 'delWordAfter',
 			
 			backspace: 'delCharBefore',
 			tab: 'insertTab',
 			del: 'delCharAfter',
+			pageup: 'goPageUp',
+			pagedown: 'goPageDown',
+			'shift+up': 'goPageUp',
+			'shift+down': 'goPageDown',
+			'mod+home': 'goDocStart',
+			'mod+end': 'goDocEnd',
 			'mod+backspace': 'delGroupBefore',
 			'mod+left': 'goGroupLeft',
 			'mod+right': 'goGroupRight',
+			'shift+left': 'goGroupLeft',
+			'shift+right': 'goGroupRight',
 			'esc': 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
 		}

@@ -208,7 +208,9 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 
 	close_all: function()
 	{
-		this.each(this.remove.bind(this));
+		this.each(function(item) {
+			this.remove(item);
+		});
 	},
 
 	add: function(item)
@@ -225,13 +227,13 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	{
 	var
 		slot = item.slot,
-		msg = item.close(force)
+		msg = item._close(force)
 	;
 
 		if (typeof(msg)==='string')
 		{
 			if (window.confirm(msg))
-				item.close(true);
+				item._close(true);
 			else
 				return this;
 		}
@@ -274,7 +276,7 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 
 		for (; i<slots.length; i++)
 		{
-			msg = slots[i].editor && slots[i].editor.close();
+			msg = slots[i].editor && slots[i].editor._close();
 			if (typeof(msg)==='string')
 			{
 				ev.returnValue = msg;

@@ -114,20 +114,16 @@ ide.Editor.Source = ide.Editor.extend({
 		this.editor.setCursor(n-1);
 	},
 
-	get_value: function()
+	getValue: function()
 	{
 		return this.editor.getValue(this.options.lineSeparator);
 	},
 
-	/*get_position: function()
+	getPosition: function()
 	{
-		var pos = this.editor.getCursorPosition();
-		pos.index = this.editor.session.doc.positionToIndex(pos);
-
-		return pos;
-	}
-
-*/
+		return this.editor.getCursor();
+	},
+	
 	_findMode: function()
 	{
 	var
@@ -158,7 +154,7 @@ ide.Editor.Source = ide.Editor.extend({
 		return info.mime || mode;
 	},
 	
-	get_options: function()
+	_getOptions: function()
 	{
 		var ft = this._findMode(), s = ide.project.get('editor') || {};
 		
@@ -215,10 +211,10 @@ ide.Editor.Source = ide.Editor.extend({
 		return false;
 	},
 
-	setup: function()
+	_setup: function()
 	{
 	var
-		options = this.get_options(),
+		options = this._getOptions(),
 		editor = this.editor = codeMirror(this.el, options)
 	;
 		this.file_content = options.value;
@@ -254,10 +250,14 @@ ide.Editor.Source = ide.Editor.extend({
 
 	getChar: function(pos)
 	{
-		pos = pos || this.editor.getCursor();
-
-		return this.editor.getRange(pos, 
+		var cursor = this.editor.getCursor();
+		pos = pos || cursor;
+		var result = this.editor.getRange(pos, 
 			{ line: pos.line, ch: pos.ch+1 });
+		
+		this.editor.setCursor(cursor);
+		
+		return result;
 	},
 
 	/**
@@ -317,14 +317,6 @@ ide.Editor.Source = ide.Editor.extend({
 			this.editor.focus();
 	},
 
-	close: function(force)
-	{
-		if (!force && this.changed())
-			return "File has changed. Are you sure?";
-
-		ide.Editor.prototype.close.call(this);
-	},
-
 	write: function(filename)
 	{
 		if (filename)
@@ -335,7 +327,7 @@ ide.Editor.Source = ide.Editor.extend({
 		if (!this.file.get('filename'))
 			return ide.error('No file name.');
 
-		this.file.set('content', (this.file_content=this.get_value()));
+		this.file.set('content', (this.file_content=this.getValue()));
 		this.file.save();
 	},
 
@@ -346,7 +338,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 	changed: function()
 	{
-		return this.file_content !== this.get_value();
+		return this.file_content !== this.getValue();
 	},
 
 	getInfo: function()

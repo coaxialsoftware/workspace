@@ -194,7 +194,7 @@ ide.Editor = cxl.View.extend({
 		this.slot.editor = this;
 		this.info = new ide.Info({ editor: this });
 
-		this.setup();
+		this._setup();
 	},
 
 	/** Plugin that instantiated the editor @required */
@@ -220,7 +220,13 @@ ide.Editor = cxl.View.extend({
 	 */
 	cmd: function(name, args)
 	{
-		var fn = name[0]!=='_' && this[this.alias && this.alias[name] || name];
+		var fn;
+		
+		name = this.alias && this.alias[name] || name;
+
+		// TODO see if this makes sense or not.
+		if (name[0]!=='_' && this.constructor.prototype.hasOwnProperty(name))
+			fn = this[name];
 
 		return typeof(fn)==='function' ? fn.apply(this, args) : ide.Pass;
 	},
@@ -261,8 +267,10 @@ ide.Editor = cxl.View.extend({
 		this.trigger('focus');
 	},
 
-	close: function()
+	_close: function(force)
 	{
+		if (!force && this.changed && this.changed())
+			return "File has changed. Are you sure?";
 		// Remove first so do_layout of workspace works.
 		this.remove();
 		this.trigger('close', this);

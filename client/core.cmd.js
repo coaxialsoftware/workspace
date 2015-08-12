@@ -3,8 +3,6 @@
 "use strict";
 
 var REGEX = /(?:("[^"]+"|[^\s]+)\s*)/g;
-//var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-//var ARGUMENT_NAMES = /([^\s,]+)/g;
 	
 function scan(text)
 {
@@ -30,11 +28,6 @@ var
 		args: cmd
 	};
 }
-	
-/*function getParamNames(func) {
-  var fnStr = func.toString().replace(STRIP_COMMENTS, '');
-  return fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
-}*/
 	
 ide.registerCommand = function(name, def, scope)
 {
