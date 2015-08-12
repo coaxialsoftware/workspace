@@ -262,6 +262,8 @@ var vim = new ide.Plugin({
 			'y': 'yank enterNormalMode',
 			'>': 'indentMore enterNormalMode',
 			'<': 'indentLess enterNormalMode',
+			'w': 'selectGroupRight',
+			'b': 'selectGroupLeft',
 			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
