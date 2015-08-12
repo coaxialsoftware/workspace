@@ -201,6 +201,7 @@ var vim = new ide.Plugin({
 			pagedown: 'goPageDown',
 			pageup: 'goPageUp',
 			end: 'goLineEnd',
+			space: 'goCharLeft',
 			
 			'alt+.': 'moveNext',
 			'alt+,': 'movePrev',
@@ -210,7 +211,8 @@ var vim = new ide.Plugin({
 			'$': 'goLineEnd',
 			'0': 'goLineStart',
 			'/': 'search',
-			":": 'ex',
+			':': 'ex',
+			'= =': 'indentAuto',
 			
 			'a': 'goCharRight enterInsertMode',
 			'shift+a': 'goLineEnd enterInsertMode',
@@ -224,9 +226,11 @@ var vim = new ide.Plugin({
 			'g f': 'find',
 			'i': 'enterInsertMode',
 			'y y': 'yankBlock',
+			'shift+y': 'yankBlock',
 			'p': 'put',
 			
 			'shift+v': 'enterBlockSelectMode',
+			'mod+v': 'enterBlockSelectMode',
 			'v': 'enterSelectMode',
 			
 			'h': 'goCharLeft',
@@ -235,6 +239,7 @@ var vim = new ide.Plugin({
 			'l': 'goCharRight',
 			'n': 'findNext',
 			'o': 'goLineEnd enterInsertMode newlineAndIndent',
+			'shift+o': 'goLineUp goLineEnd enterInsertMode newlineAndIndent',
 			'u': 'undo',
 			'w': 'goGroupRight'
 
