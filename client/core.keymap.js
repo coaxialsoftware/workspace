@@ -309,7 +309,7 @@ ide.keymap.registerKeys({
 		// EDITING
 		backspace: 'delCharBefore',
 		del: 'delCharAfter',
-		enter: 'newlineAndIndent',
+		enter: 'newline',
 		insert: 'toggleOverwrite',
 		'shift+backspace': 'delCharBefore',
 		'mod+s': 'write',
@@ -317,7 +317,7 @@ ide.keymap.registerKeys({
 		'mod+z': 'undo',
 		'mod+backspace': 'delGroupBefore',
 		'mod+d': 'deleteLine',
-		'mod+delete': 'delGroupAfter',
+		'mod+del': 'delGroupAfter',
 		'mod+u': 'undoSelection',
 		'mod+[': 'indentLess',
 		'mod+]': 'indentMore',

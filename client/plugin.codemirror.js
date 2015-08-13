@@ -71,6 +71,12 @@ ide.Editor.Source = ide.Editor.extend({
 	selectLineEnd: select('goLineEnd'),
 	selectPageDown: select('goPageDown'),
 	selectPageUp: select('goPageUp'),
+	selectGroupRight: select('goGroupRight'),
+	selectGroupLeft: select('goGroupLeft'),
+	newline: function()
+	{
+		this.editor.execCommand('newlineAndIndent');	
+	},
 
 	clearSelection: function()
 	{
@@ -242,7 +248,7 @@ ide.Editor.Source = ide.Editor.extend({
 		setTimeout(this.editor.refresh.bind(this.editor), 200);
 	},
 	
-	find: function(n)
+	search: function(n)
 	{
 		if (n)
 			this.editor.find(n);

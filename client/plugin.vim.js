@@ -301,6 +301,7 @@ var vim = new ide.Plugin({
 			del: 'delCharAfter',
 			pageup: 'goPageUp',
 			pagedown: 'goPageDown',
+			enter: 'newline',
 			'shift+up': 'goPageUp',
 			'shift+down': 'goPageDown',
 			'mod+home': 'goDocStart',
@@ -311,7 +312,8 @@ var vim = new ide.Plugin({
 			'shift+left': 'goGroupLeft',
 			'shift+right': 'goGroupRight',
 			'esc': 'enterNormalMode',
-			'mod+[': 'enterNormalMode'
+			'mod+[': 'enterNormalMode',
+			'mod+del': 'delGroupAfter',
 		}
 	}
 

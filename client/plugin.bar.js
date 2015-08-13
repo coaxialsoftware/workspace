@@ -225,8 +225,6 @@
 
 		cancel: function()
 		{
-			if (ide.editor && ide.editor.find)
-				ide.editor.find();
 		},
 
 		on_change: function(val)
@@ -235,9 +233,9 @@
 			regex
 		;
 			try { regex = new RegExp(val, 'm'); } catch(e) { regex = val; }
-
-			if (ide.editor && ide.editor.find)
-				ide.editor.find(regex);
+			
+			if (ide.editor && ide.editor.search)
+				ide.editor.search(regex);
 		}
 
 	});
