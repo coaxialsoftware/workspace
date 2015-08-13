@@ -212,6 +212,15 @@ var vim = new ide.Plugin({
 			}
 		},
 		
+		enterDeleteMode: verify(function(editor)
+		{
+			editor.keymap.state = 'vim-delete';
+		}),
+		
+		enterYankMode: verify(function(editor) {
+			editor.keymap.state = 'vim-yank';
+		}),
+		
 		enterBlockSelectMode: function()
 		{
 			if (ide.editor && ide.editor.keymap)
@@ -241,31 +250,44 @@ var vim = new ide.Plugin({
 			'a': 'goCharRight enterInsertMode',
 			'shift+a': 'goLineEnd enterInsertMode',
 			'shift+d': 'delWrappedLineRight enterInsertMode',
-			'd d': 'yankBlock deleteLine',
 			'g t': 'nextEditor',
 			'g g': 'goDocStart',
 			'shift+g': 'goDocEnd',
 			'g shift+t': 'prevEditor',
 			'g f': 'find',
-			'i': 'enterInsertMode',
-			'y y': 'yankBlock',
 			'shift+y': 'yankBlock',
 			'p': 'put',
-			
-			'shift+v': 'enterBlockSelectMode',
-			'mod+v': 'enterBlockSelectMode',
-			'v': 'enterSelectMode',
 			'n': 'findNext',
 			'o': 'goLineEnd enterInsertMode newlineAndIndent',
 			'shift+o': 'goLineUp goLineEnd enterInsertMode newlineAndIndent',
 			'u': 'undo',
-			'c': 'enterChangeMode'
+			
+			// MODE SWITCH
+			'i': 'enterInsertMode',
+			'shift+v': 'enterBlockSelectMode',
+			'mod+v': 'enterBlockSelectMode',
+			'v': 'enterSelectMode',
+			'c': 'enterChangeMode',
+			'd': 'enterDeleteMode',
+			'y': 'enterYankMode'
 		}, MOTION),
+		
+		'vim-yank': _.extend({
+			esc: 'enterNormalMode',
+			'mod+[': 'enterNormalMode',
+			'y': 'yankBlock enterNormalMode'
+		}, map(MOTION, 'startSelect', 'endSelect yank clearSelection enterNormalMode')),
 		
 		'vim-change': _.extend({
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
 		}, map(MOTION, 'startSelect', 'endSelect deleteSelection enterInsertMode')),
+		
+		'vim-delete': _.extend({
+			esc: 'enterNormalMode',
+			'mod+[': 'enterNormalMode',
+			'd': 'yankBlock deleteLine enterNormalMode',
+		}, map(MOTION, 'startSelect', 'endSelect yank deleteSelection enterNormalMode')),
 		
 		'vim-select': _.extend({
 			'd': 'yank deleteSelection enterNormalMode',
