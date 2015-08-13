@@ -13,7 +13,7 @@ var
 	micromatch = require('micromatch'),
 
 	common = require('./common'),
-workspace = require('./workspace'),
+	workspace = require('./workspace'),
 	Watcher = require('./watcher'),
 
 	plugin = module.exports = cxl('workspace.project')
@@ -315,7 +315,9 @@ class ProjectManager {
 
 	loadProject(path)
 	{
-		return this.getProject(path).load();
+		return common.stat(path).bind(this).then(function() {
+			return this.getProject(path).load();
+		});
 	}
 
 	loadAll()

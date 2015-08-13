@@ -169,15 +169,20 @@
 		run: function()
 		{
 		var
-			val = this.el.value
+			val = this.el.value,
+			result
 		;
 			if (val==='')
 				return;
 
 			this.history_add(val);
 			
-			if (ide.cmd(val)===false)
+			result = ide.cmd(val);
+			
+			if (result===ide.Pass)
 				ide.alert('Unknown Command: ' + val);
+			else if (result !== undefined)
+				ide.notify(result);
 		},
 
 		on_complete: function(s, start, end)

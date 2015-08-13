@@ -99,7 +99,7 @@ ide.FileList = ide.Editor.extend({
 		ide.Editor.prototype.focus.call(this);
 	},
 
-	setup: function()
+	_setup: function()
 	{
 	var
 		me = this,

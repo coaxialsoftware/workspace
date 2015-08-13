@@ -107,6 +107,27 @@ var vim = new ide.Plugin({
 			yank(editor.getSelection());
 		}),
 		
+		insertDotRegister: function()
+		{
+			if (ide.editor)
+				ide.editor.cmd('insert', [ vim.dotRegister.data ]);
+		},
+		
+		insertCharacterBelow: function()
+		{
+			var e = ide.editor, pos, ch;
+
+			if (e && e.getPosition && e.getChar && e.insert)
+			{
+				pos = e.getPosition();
+				pos.line += 1;
+				ch = e.getChar(pos);
+				
+				if (ch)
+					e.insert(ch);
+			}
+		},
+		
 		put: verify(function(editor) {
 			var data = this.register.data;
 			
@@ -180,6 +201,7 @@ var vim = new ide.Plugin({
 			pagedown: 'goPageDown',
 			pageup: 'goPageUp',
 			end: 'goLineEnd',
+			space: 'goCharLeft',
 			
 			'alt+.': 'moveNext',
 			'alt+,': 'movePrev',
@@ -189,7 +211,8 @@ var vim = new ide.Plugin({
 			'$': 'goLineEnd',
 			'0': 'goLineStart',
 			'/': 'search',
-			":": 'ex',
+			':': 'ex',
+			'= =': 'indentAuto',
 			
 			'a': 'goCharRight enterInsertMode',
 			'shift+a': 'goLineEnd enterInsertMode',
@@ -203,9 +226,11 @@ var vim = new ide.Plugin({
 			'g f': 'find',
 			'i': 'enterInsertMode',
 			'y y': 'yankBlock',
+			'shift+y': 'yankBlock',
 			'p': 'put',
 			
 			'shift+v': 'enterBlockSelectMode',
+			'mod+v': 'enterBlockSelectMode',
 			'v': 'enterSelectMode',
 			
 			'h': 'goCharLeft',
@@ -214,6 +239,7 @@ var vim = new ide.Plugin({
 			'l': 'goCharRight',
 			'n': 'findNext',
 			'o': 'goLineEnd enterInsertMode newlineAndIndent',
+			'shift+o': 'goLineUp goLineEnd enterInsertMode newlineAndIndent',
 			'u': 'undo',
 			'w': 'goGroupRight'
 
@@ -260,14 +286,33 @@ var vim = new ide.Plugin({
 			'mod+[': 'enterNormalMode'
 		 },
 
-		'vim-insert': cxl.extend({}, ide.keymap.states.default, {
+		'vim-insert': {
+			'mod+@': 'insertDotRegister enterNormalMode',
+			'mod+a': 'insertDotRegister',
+			'mod+d': 'indentLess',
+			'mod+h': 'delCharBefore',
+			'mod+j': 'newlineAndIndent',
+			'mod+m': 'newlineAndIndent',
+			'mod+t': 'indentMore',
+			'mod+w': 'delWordAfter',
+			
 			backspace: 'delCharBefore',
+			tab: 'insertTab',
+			del: 'delCharAfter',
+			pageup: 'goPageUp',
+			pagedown: 'goPageDown',
+			'shift+up': 'goPageUp',
+			'shift+down': 'goPageDown',
+			'mod+home': 'goDocStart',
+			'mod+end': 'goDocEnd',
 			'mod+backspace': 'delGroupBefore',
 			'mod+left': 'goGroupLeft',
 			'mod+right': 'goGroupRight',
+			'shift+left': 'goGroupLeft',
+			'shift+right': 'goGroupRight',
 			'esc': 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
-		})
+		}
 	}
 
 });

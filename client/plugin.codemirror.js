@@ -28,99 +28,74 @@ ide.Editor.Source = ide.Editor.extend({
 	// Stores previous token. Used by tokenchange event.
 	_old_token: null,
 
-	commands: {
+	ascii: function()
+	{
+	var
+		char = this.getChar(),
+		code = char.charCodeAt(0)
+	;
+		ide.notify(char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8));
+	},
 
-		w: function(filename)
-		{
-			this.write(filename);
-		},
-		
-		write: 'w',
+	deleteSelection: function()
+	{
+		this.editor.replaceSelection('');	
+	},
 
-		ascii: function()
-		{
-		var
-			char = this.get_char(),
-			code = char.charCodeAt(0)
-		;
-			ide.notify(char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8));
-		},
+	replaceSelection: function(text)
+	{
+		this.editor.replaceSelection(text);
+	},
 		
-		deleteSelection: function()
-		{
-			this.editor.replaceSelection('');	
-		},
-		
-		replaceSelection: function(text)
-		{
-			this.editor.replaceSelection(text);
-		},
-		
-		enableInput: function()
-		{	
-			this.toggleFatCursor(false);
-			this.editor.setOption('disableInput', false);
-		},
+	enableInput: function()
+	{	
+		this.toggleFatCursor(false);
+		this.editor.setOption('disableInput', false);
+	},
 
-		disableInput: function()
-		{
-			// Go back one char if coming back from insert mode.
-			if (this.editor.getCursor().ch>0)
-				this.editor.execCommand('goCharLeft');
-			
-			this.toggleFatCursor(true);
-			this.editor.setOption('disableInput', true);
-		},
-		
-		selectLeft: select('goCharLeft'),
-		selectUp: select('goLineUp'),
-		selectDown: select('goLineDown'),
-		selectRight: select('goCharRight'),
-		selectLineStart: select('goLineStart'),
-		selectLineEnd: select('goLineEnd'),
-		selectPageDown: select('goPageDown'),
-		selectPageUp: select('goPageUp'),
-		selectGroupRight: select('goGroupRight'),
-		selectGroupLeft: select('goGroupLeft'),
-		
-		clearSelection: function()
-		{
-			this.editor.setSelection(this.editor.getCursor('anchor'));
-		},
-		
-		showCursorWhenSelecting: function()
-		{
-			this.editor.setOption('showCursorWhenSelecting', true);
-		},
-		
-		selectLine: function()
-		{
-		var
-			e = this.editor,
-			anchor = e.getCursor('anchor'),
-			head = e.getCursor(),
-			anchorEnd = head.line>anchor.line ? 0 : e.getLine(anchor.line).length,
-			headEnd = head.line>anchor.line ? e.getLine(head.line).length : 0	
-		;
-			e.extendSelection(
-				{ line: head.line, ch: headEnd },
-				{ line: anchor.line, ch: anchorEnd },
-				{ extending: true }
-			);
-		},
-		
-		lastInsert: function()
-		{
-		var
-			lastChange = this.getLastChange()
-		;
-			if (lastChange && lastChange.changes[0].text[0]==='')
-				return this.editor.getRange(
-					lastChange.changes[0].from,
-					lastChange.changes[0].to
-				);
-		}
+	disableInput: function()
+	{
+		// Go back one char if coming back from insert mode.
+		if (this.editor.getCursor().ch>0)
+			this.editor.execCommand('goCharLeft');
 
+		this.toggleFatCursor(true);
+		this.editor.setOption('disableInput', true);
+	},
+
+	selectLeft: select('goCharLeft'),
+	selectUp: select('goLineUp'),
+	selectDown: select('goLineDown'),
+	selectRight: select('goCharRight'),
+	selectLineStart: select('goLineStart'),
+	selectLineEnd: select('goLineEnd'),
+	selectPageDown: select('goPageDown'),
+	selectPageUp: select('goPageUp'),
+
+	clearSelection: function()
+	{
+		this.editor.setSelection(this.editor.getCursor('anchor'));
+	},
+
+	showCursorWhenSelecting: function()
+	{
+		this.editor.setOption('showCursorWhenSelecting', true);
+	},
+
+	selectLine: function()
+	{
+	var
+		e = this.editor,
+		anchor = e.getCursor('anchor'),
+		head = e.getCursor(),
+		anchorEnd = head.line>anchor.line ? 0 : e.getLine(anchor.line).length,
+		headEnd = head.line>anchor.line ? e.getLine(head.line).length : 0	
+	;
+		e.extendSelection(
+			{ line: head.line, ch: headEnd },
+			{ line: anchor.line, ch: anchorEnd },
+			{ extending: true }
+		);
 	},
 
 	cmd: function(fn, args)
@@ -150,21 +125,17 @@ ide.Editor.Source = ide.Editor.extend({
 				return history[l];
 	},
 
-	get_value: function()
+	getValue: function()
 	{
 		return this.editor.getValue(this.options.lineSeparator);
 	},
 
-	/*get_position: function()
+	getPosition: function()
 	{
-		var pos = this.editor.getCursorPosition();
-		pos.index = this.editor.session.doc.positionToIndex(pos);
-
-		return pos;
-	}
-
-*/
-	find_mode: function()
+		return this.editor.getCursor();
+	},
+	
+	_findMode: function()
 	{
 	var
 		filename = this.file.get('filename'),
@@ -194,9 +165,9 @@ ide.Editor.Source = ide.Editor.extend({
 		return info.mime || mode;
 	},
 	
-	get_options: function()
+	_getOptions: function()
 	{
-		var ft = this.find_mode(), s = ide.project.get('editor') || {};
+		var ft = this._findMode(), s = ide.project.get('editor') || {};
 		
 		return (this.options = cxl.extend(
 			{
@@ -251,21 +222,19 @@ ide.Editor.Source = ide.Editor.extend({
 		return false;
 	},
 
-	setup: function()
+	_setup: function()
 	{
 	var
-		options = this.get_options(),
+		options = this._getOptions(),
 		editor = this.editor = codeMirror(this.el, options)
 	;
 		this.file_content = options.value;
 		
-		//this.$el.on('keydown', this.on_keyup.bind(this));
-		editor.on('focus', this.on_focus.bind(this));
-		editor.on('blur', this.on_blur.bind(this));
+		editor.on('focus', this._on_focus.bind(this));
 		
 		this.keymap = new ide.KeyMap();
 		this.keymap.handle = this.keymapHandle.bind(this);
-		this.listenTo(this.file, 'change:content', this.on_file_change);
+		this.listenTo(this.file, 'change:content', this._on_file_change);
 	},
 
 	resize: function()
@@ -283,19 +252,23 @@ ide.Editor.Source = ide.Editor.extend({
 	 * Gets token at pos. If pos is ommited it will return the token
 	 * under the cursor
 	 */
-	get_token: function(pos)
+	getToken: function(pos)
 	{
 		pos = pos || this.editor.getCursor();
 
 		return this.editor.getTokenAt(pos, true);
 	},
 
-	get_char: function(pos)
+	getChar: function(pos)
 	{
-		pos = pos || this.editor.getCursor();
-
-		return this.editor.getRange(pos, 
+		var cursor = this.editor.getCursor();
+		pos = pos || cursor;
+		var result = this.editor.getRange(pos, 
 			{ line: pos.line, ch: pos.ch+1 });
+		
+		this.editor.setCursor(cursor);
+		
+		return result;
 	},
 
 	/**
@@ -323,44 +296,13 @@ ide.Editor.Source = ide.Editor.extend({
 		return this.editor.getLine(n);
 	},
 
-	get_font: function()
-	{
-		return this.$el.css('font');
-	},
-
-	on_keyup: function(ev)
-	{
-		if (this.vim_mode()==='INSERT')
-		{
-			ev.stopPropagation();
-		}
-	},
-
-	sync_registers: function()
-	{
-	var
-		data = this.plugin.data('registers'),
-		cb = data && JSON.parse(data)
-	;
-		for (var i in cb)
-			// TODO dangerous?
-			cxl.extend(this.registers.getRegister(i), cb[i]);
-	},
-	
-	on_blur: function()
-	{
-		// Save registers in localStorage for sync_registers.
-		// TODO move to a better place.
-		//this.plugin.data('registers', JSON.stringify(this.registers));
-	},
-
-	on_focus: function()
+	_on_focus: function()
 	{
 		this.focus(true);
 		//this.sync_registers();
 	},
 	
-	on_file_change: function()
+	_on_file_change: function()
 	{
 		var content = this.file.get('content');
 		
@@ -386,14 +328,6 @@ ide.Editor.Source = ide.Editor.extend({
 			this.editor.focus();
 	},
 
-	close: function(force)
-	{
-		if (!force && this.changed())
-			return "File has changed. Are you sure?";
-
-		ide.Editor.prototype.close.call(this);
-	},
-
 	write: function(filename)
 	{
 		if (filename)
@@ -404,7 +338,7 @@ ide.Editor.Source = ide.Editor.extend({
 		if (!this.file.get('filename'))
 			return ide.error('No file name.');
 
-		this.file.set('content', (this.file_content=this.get_value()));
+		this.file.set('content', (this.file_content=this.getValue()));
 		this.file.save();
 	},
 
@@ -415,10 +349,10 @@ ide.Editor.Source = ide.Editor.extend({
 
 	changed: function()
 	{
-		return this.file_content !== this.get_value();
+		return this.file_content !== this.getValue();
 	},
 
-	get_info: function()
+	getInfo: function()
 	{
 		return (this.changed() ? '+ ' : '') +
 			(this.file.get('filename') || '[No Name]') +

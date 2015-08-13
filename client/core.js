@@ -13,7 +13,10 @@ var
 	/** @namespace */
 	window.ide = { /** @lends ide */
 		
-	version: '0.1.0',
+	/** Used by commands to indicate that the command wasn't handled. */
+	Pass: {},
+		
+	version: '0.2.0',
 
 	/** Current opened project */
 	project: null,
@@ -191,7 +194,7 @@ ide.Editor = cxl.View.extend({
 		this.slot.editor = this;
 		this.info = new ide.Info({ editor: this });
 
-		this.setup();
+		this._setup();
 	},
 
 	/** Plugin that instantiated the editor @required */
@@ -202,20 +205,30 @@ ide.Editor = cxl.View.extend({
 	 * @required
 	 */
 	file: null,
+	
+	/**
+	 * Command Aliases
+	 */
+	alias: null,
 
 	/**
-	 * Handles a single command. Returns false if command wasn't handled.
+	 * Handles a single command. Returns false if command wasn't handled. Commands are
+	 * editor instance functions. It will ignore methods that start with '_'
+	 *
 	 * @param name
 	 * @param args
 	 */
 	cmd: function(name, args)
 	{
-		var fn = this.commands && this.commands[name];
+		var fn;
 		
-		if (typeof(fn)==='string')
-			fn = this.commands[fn];
+		name = this.alias && this.alias[name] || name;
 
-		return fn ? fn.apply(this, args) : false;
+		// TODO see if this makes sense or not.
+		if (name[0]!=='_' && this.constructor.prototype.hasOwnProperty(name))
+			fn = this[name];
+
+		return typeof(fn)==='function' ? fn.apply(this, args) : ide.Pass;
 	},
 
 	_on_click: function()
@@ -224,7 +237,7 @@ ide.Editor = cxl.View.extend({
 			this.focus();
 	},
 
-	get_info: function()
+	getInfo: function()
 	{
 		return this.file.toString() + ' [' + ide.project.get('name') + ']';
 	},
@@ -237,7 +250,7 @@ ide.Editor = cxl.View.extend({
 
 	focus: function()
 	{
-		var info = this.get_info();
+		var info = this.getInfo();
 
 		if (ide.editor)
 			ide.editor.$el.removeClass('ide-focus');
@@ -254,8 +267,10 @@ ide.Editor = cxl.View.extend({
 		this.trigger('focus');
 	},
 
-	close: function()
+	_close: function(force)
 	{
+		if (!force && this.changed && this.changed())
+			return "File has changed. Are you sure?";
 		// Remove first so do_layout of workspace works.
 		this.remove();
 		this.trigger('close', this);
