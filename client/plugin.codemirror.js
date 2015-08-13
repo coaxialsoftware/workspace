@@ -3,18 +3,6 @@
 "use strict";
 	
 /**
- * Use to implement selection(shift) commands
- */
-function select(command)
-{
-	return function() {
-		this.editor.display.shift = true;
-		this.editor.execCommand(command);
-		this.editor.display.shift = false;
-	};	
-}
-
-/**
  * Events:
  *
  * tokenchange
@@ -62,17 +50,17 @@ ide.Editor.Source = ide.Editor.extend({
 		this.toggleFatCursor(true);
 		this.editor.setOption('disableInput', true);
 	},
+	
+	startSelect: function()
+	{
+		this.editor.display.shift = true;
+	},
+	
+	endSelect: function()
+	{
+		this.editor.display.shift = false;
+	},
 
-	selectLeft: select('goCharLeft'),
-	selectUp: select('goLineUp'),
-	selectDown: select('goLineDown'),
-	selectRight: select('goCharRight'),
-	selectLineStart: select('goLineStart'),
-	selectLineEnd: select('goLineEnd'),
-	selectPageDown: select('goPageDown'),
-	selectPageUp: select('goPageUp'),
-	selectGroupRight: select('goGroupRight'),
-	selectGroupLeft: select('goGroupLeft'),
 	newline: function()
 	{
 		this.editor.execCommand('newlineAndIndent');	

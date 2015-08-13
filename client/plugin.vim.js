@@ -3,8 +3,37 @@
  * 
  */
 
-(function(ide, cxl) {
+(function(ide, _) {
 "use strict";
+	
+var
+	MOTION = {
+		h: 'goCharLeft',
+		l: 'goCharRight',
+		'0': 'goLineStart',
+		$: 'goLineEnd',
+		home: 'goLineStart',
+		end: 'goLineEnd',
+		k: 'goLineUp',
+		j: 'goLineDown',
+		w: 'goGroupRight',
+		b: 'goGroupLeft',
+		down: 'goLineDown',
+		up: 'goLineUp',
+		right: 'goCharRight',
+		left: 'goCharLeft',
+		pagedown: 'goPageDown',
+		pageup: 'goPageUp'
+	}
+;
+	
+function map(keymap, prefix, postfix)
+{
+	return _.reduce(keymap, function(result, v, k) {
+		result[k] = (prefix ? prefix + ' ' : '') + v + (postfix ? ' ' + postfix : '');
+		return result;
+	}, {});
+}
 		
 /**
  * Helper function for commands. Makes sure there is a valid editor
@@ -33,7 +62,7 @@ function Register(name)
 	this.update();
 }
 	
-cxl.extend(Register.prototype, {
+_.extend(Register.prototype, {
 	
 	name: null,
 	data: null,
@@ -169,6 +198,11 @@ var vim = new ide.Plugin({
 				vim.dotRegister.set(lastInsert);
 		}),
 		
+		enterChangeMode: verify(function(editor)
+		{
+			editor.keymap.state = 'vim-change';
+		}),
+		
 		enterSelectMode: function()
 		{
 			if (ide.editor && ide.editor.keymap)
@@ -191,16 +225,8 @@ var vim = new ide.Plugin({
 
 	// Vim style bindings
 	shortcuts: {
-		vim: {
+		vim: _.extend({
 			backspace: 'goCharLeft',
-			home: 'goLineStart',
-			down: 'goLineDown',
-			up: 'goLineUp',
-			right: 'goCharRight',
-			left: 'goCharLeft',
-			pagedown: 'goPageDown',
-			pageup: 'goPageUp',
-			end: 'goLineEnd',
 			space: 'goCharLeft',
 			
 			'alt+.': 'moveNext',
@@ -208,15 +234,12 @@ var vim = new ide.Plugin({
 			'mod+r': 'redo',
 			'> >': 'indentMore',
 			'< <': 'indentLess',
-			'$': 'goLineEnd',
-			'0': 'goLineStart',
 			'/': 'search',
 			':': 'ex',
 			'= =': 'indentAuto',
 			
 			'a': 'goCharRight enterInsertMode',
 			'shift+a': 'goLineEnd enterInsertMode',
-			'b': 'goGroupLeft',
 			'shift+d': 'delWrappedLineRight enterInsertMode',
 			'd d': 'yankBlock deleteLine',
 			'g t': 'nextEditor',
@@ -232,44 +255,27 @@ var vim = new ide.Plugin({
 			'shift+v': 'enterBlockSelectMode',
 			'mod+v': 'enterBlockSelectMode',
 			'v': 'enterSelectMode',
-			
-			'h': 'goCharLeft',
-			'j': 'goLineDown',
-			'k': 'goLineUp',
-			'l': 'goCharRight',
 			'n': 'findNext',
 			'o': 'goLineEnd enterInsertMode newlineAndIndent',
 			'shift+o': 'goLineUp goLineEnd enterInsertMode newlineAndIndent',
 			'u': 'undo',
-			'w': 'goGroupRight'
-
-		},
+			'c': 'enterChangeMode'
+		}, MOTION),
 		
-		'vim-select': {
-			home: 'selectLineStart',
-			down: 'selectDown',
-			up: 'selectUp',
-			right: 'selectRight',
-			left: 'selectLeft',
-			pagedown: 'selectPageDown',
-			pageup: 'selectPageUp',
-			end: 'selectLineEnd',
-			'h': 'selectLeft',
-			'j': 'selectDown',
-			'k': 'selectUp',
-			'l': 'selectRight',
+		'vim-change': _.extend({
+			esc: 'enterNormalMode',
+			'mod+[': 'enterNormalMode'
+		}, map(MOTION, 'startSelect', 'endSelect deleteSelection enterInsertMode')),
+		
+		'vim-select': _.extend({
 			'd': 'yank deleteSelection enterNormalMode',
 			'y': 'yank enterNormalMode',
 			'>': 'indentMore enterNormalMode',
 			'<': 'indentLess enterNormalMode',
-			'w': 'selectGroupRight',
-			'b': 'selectGroupLeft',
-			'$': 'selectLineEnd',
-			'0': 'selectLineStart',
 			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
-		},
+		}, map(MOTION, 'startSelect', 'endSelect')),
 					 
 		'vim-block-select': {
 			h: 'selectLeft selectLine',
@@ -321,4 +327,4 @@ var vim = new ide.Plugin({
 
 ide.plugins.register('vim', vim);
 	
-})(this.ide, this.cxl);
+})(this.ide, this._);
