@@ -72,7 +72,7 @@ function tryCmd(commands, cmd)
 function exec(cmd)
 {
 var
-	result
+	result = ide.Pass
 ;
 	if (ide.editor)
 	{
