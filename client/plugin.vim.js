@@ -50,7 +50,7 @@ function map(keymap, prefix, postfix)
 function verify(fn)
 {
 	return function() {
-		if (ide.editor && ide.editor.keymap)
+		if (ide.editor.keymap)
 			fn.call(this, ide.editor);
 	};
 }
@@ -58,7 +58,7 @@ function verify(fn)
 function setState(name)
 {
 	return function() {
-		if (ide.editor && ide.editor.keymap)
+		if (ide.editor.keymap)
 			ide.editor.keymap.state = name;
 	};
 }
@@ -147,16 +147,15 @@ var vim = new ide.Plugin({
 		ide.win.addEventListener('focus', this.onFocus.bind(this));
 	},
 	
-	commands: {
+	editorCommands: {
 		
-		yank: verify(function(editor) {
-			yank(editor.getSelection());
-		}),
+		yank: function() {
+			yank(ide.editor.getSelection());
+		},
 		
 		insertDotRegister: function()
 		{
-			if (ide.editor)
-				ide.editor.cmd('insert', [ vim.dotRegister.data ]);
+			ide.editor.cmd('insert', [ vim.dotRegister.data ]);
 		},
 		
 		insertCharacterBelow: function()
@@ -174,34 +173,33 @@ var vim = new ide.Plugin({
 			}
 		},
 		
-		put: verify(function(editor) {
-			var data = this.register.data;
-			
+		put: function() {
+		var
+			editor = ide.editor,
+			data = this.register.data
+		;
 			if (data[0]==="\n" && !editor.somethingSelected())
 				editor.cmd('goLineEnd');
 			
 			editor.cmd('replaceSelection', [ this.register.data ]);
-		}),
-		
-		yankBlock: verify(function(editor)
-		{
-			var data = editor.somethingSelected() ? 
-				editor.getSelection() :
-				editor.getLine();
-			
-			yank("\n" + data);
-		}),
-		
-		enterInsertMode: function()
-		{
-			var editor = ide.editor;
-
-			if (editor && editor.keymap)
-			{
-				editor.keymap.state = 'vim-insert';
-				editor.cmd('enableInput');
-			}
 		},
+		
+		yankBlock: function()
+		{
+		var
+			editor = ide.editor,
+			data = editor.somethingSelected() ? 
+				editor.getSelection() :
+				editor.getLine()
+		;
+			yank("\n" + data);
+		},
+		
+		enterInsertMode: verify(function(editor)
+		{
+			editor.keymap.state = 'vim-insert';
+			editor.cmd('enableInput');
+		}),
 		
 		enterNormalMode: verify(function(editor)
 		{

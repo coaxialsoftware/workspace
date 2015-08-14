@@ -31,7 +31,7 @@ var
 	
 ide.registerCommand = function(name, def, scope)
 {
-	if (ide.commands[name])
+	if (name in ide.commands)
 		window.console.warn('Overriding command "' + name + '"');
 	
 	if (typeof(def)==='function' && scope)
@@ -41,24 +41,47 @@ ide.registerCommand = function(name, def, scope)
 	ide.commands[name] = def;	
 };
 	
+/**
+ * Registers a command that only gets executed if an editor is active
+ */
+ide.registerEditorCommand = function(name, def, scope)
+{
+	if (name in ide.editorCommands)
+		window.console.warn('Overriding editor command "' + name + '"');
+	
+	if (typeof(def)==='function' && scope)
+		def = def.bind(scope);
+	
+	ide.editorCommands[name] = def;
+};
+
+function tryCmd(commands, cmd)
+{
+	var fn = commands[cmd.fn];
+	
+	if (typeof(fn)==='string')
+	{
+		cmd.fn = fn;
+		return exec(cmd);
+	} else if (fn)
+		return fn.apply(ide, cmd.args);
+}
+	
 function exec(cmd)
 {
 var
-	result, fn
+	result
 ;
-	result = ide.editor ? ide.editor.cmd(cmd.fn, cmd.args) : ide.Pass;
+	if (ide.editor)
+	{
+		result = ide.editor.cmd(cmd.fn, cmd.args);
+		
+		if (result === ide.Pass)
+			result = tryCmd(ide.editorCommands, cmd);
+	}
 
 	if (result===ide.Pass)
-	{
-		fn = ide.commands[cmd.fn];
-
-		if (typeof(fn)==='string')
-		{
-			cmd.fn = fn;
-			return exec(cmd);
-		} else if (fn)
-			result = fn.apply(ide, cmd.args);
-	}
+		result = tryCmd(ide.commands, cmd);
 
 	return result;
 }
@@ -71,5 +94,6 @@ ide.cmd = function(source)
 
 /** @namespace */
 ide.commands = {};
+ide.editorCommands = {};
 
 })(this.ide);

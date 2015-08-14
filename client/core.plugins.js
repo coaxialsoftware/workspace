@@ -135,8 +135,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 			if (plug.start)
 				plug.start(ide.project[name]);
 			
-			if (plug.commands)
-				this.registerCommands(plug, plug.commands);
+			this.registerCommands(plug);
 			
 			if (plug.shortcuts)
 				this.registerShortcuts(plug);
@@ -160,10 +159,13 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		ide.loader.ready(this.load_plugins.bind(this));
 	},
 	
-	registerCommands: function(plugin, commands)
+	registerCommands: function(plugin)
 	{
-		for (var i in commands)
-			ide.registerCommand(i, commands[i], plugin);
+		for (var i in plugin.commands)
+			ide.registerCommand(i, plugin.commands[i], plugin);
+		
+		for (i in plugin.editorCommands)
+			ide.registerEditorCommand(i, plugin.editorCommands[i], plugin);
 	},
 
 	registerShortcuts: function(plugin)
