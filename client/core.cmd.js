@@ -65,6 +65,8 @@ function tryCmd(commands, cmd)
 		return exec(cmd);
 	} else if (fn)
 		return fn.apply(ide, cmd.args);
+	
+	return ide.Pass;
 }
 	
 function exec(cmd)

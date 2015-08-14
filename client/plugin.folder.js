@@ -16,7 +16,7 @@ ide.FileList = ide.Editor.extend({
 	/** Compiled file template */
 	tpl: null,
 
-	on_click: function(ev)
+	_on_click: function(ev)
 	{
 	var
 		data = ev.currentTarget.dataset,
@@ -37,7 +37,7 @@ ide.FileList = ide.Editor.extend({
 		ev.preventDefault();
 	},
 	
-	find_focus: function()
+	_find_focus: function()
 	{
 		var focused = this.$el.find(':focus');
 		if (!focused.is(':visible'))
@@ -46,13 +46,13 @@ ide.FileList = ide.Editor.extend({
 		return focused;
 	},
 
-	on_keydown: function(ev)
+	_on_keydown: function(ev)
 	{
 		var me=this;
 
 		function go(dir)
 		{
-			me.find_focus().parent()[dir]().find('.content:visible').focus();
+			me._find_focus().parent()[dir]().find('.content:visible').focus();
 			ev.preventDefault();
 		}
 		if (ev.keyCode===0x26 || ev.keyCode===0x4b)
@@ -61,7 +61,7 @@ ide.FileList = ide.Editor.extend({
 			go('next');
 	},
 
-	add_files: function(files)
+	addFiles: function(files)
 	{
 	var
 		result = '',
@@ -75,27 +75,27 @@ ide.FileList = ide.Editor.extend({
 		this.$content.append(result);
 		this.children = this.$content.children();
 		
-		this.find_focus().focus();
+		this._find_focus().focus();
 	},
 
-	findTest: function(regex, file)
+	_findTest: function(regex, file)
 	{
 		return regex.test(file.filename);
 	},
 
-	find: function(regex)
+	search: function(regex)
 	{
 		var i=0, files = this.files, children = this.children, clear=!regex;
 
 		for (; i<files.length; i++)
 			children[i].style.display =
-				(clear || this.findTest(regex, files[i])) ?
+				(clear || this._findTest(regex, files[i])) ?
 					'block' : 'none';
 	},
 
 	focus: function()
 	{
-		this.find_focus().focus();
+		this._find_focus().focus();
 		ide.Editor.prototype.focus.call(this);
 	},
 
@@ -114,10 +114,10 @@ ide.FileList = ide.Editor.extend({
 		me.tpl = _.template($(me.file_template).html());
 
 		if (me.files)
-			me.add_files(me.files);
+			me.addFiles(me.files);
 
-		me.$el.on('click', '.content', me.on_click.bind(me));
-		me.$el.on('keydown', me.on_keydown.bind(me));
+		me.$el.on('click', '.content', me._on_click.bind(me));
+		me.$el.on('keydown', me._on_keydown.bind(me));
 	}
 });
 
