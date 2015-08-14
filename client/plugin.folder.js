@@ -22,6 +22,9 @@ ide.FileList = ide.Editor.extend({
 		data = ev.currentTarget.dataset,
 		options = {}
 	;
+		if (!data.path)
+			return;
+			
 		if (data.line)
 			options.line = data.line;
 
@@ -45,20 +48,26 @@ ide.FileList = ide.Editor.extend({
 		
 		return focused;
 	},
-
-	_on_keydown: function(ev)
+	
+	goDocStart: function()
 	{
-		var me=this;
-
-		function go(dir)
-		{
-			me._find_focus().parent()[dir]().find('.content:visible').focus();
-			ev.preventDefault();
-		}
-		if (ev.keyCode===0x26 || ev.keyCode===0x4b)
-			go('prev');
-		else if (ev.keyCode===0x28 || ev.keyCode===0x4a)
-			go('next');
+		this.$el.find('.content:visible:eq(0)').focus();
+	},
+	
+	goDocEnd: function()
+	{
+		this.$el.find('.content:visible:last-child').focus();
+	},
+	
+	goLineDown: function(dir)
+	{
+		dir = dir || 'next';
+		this._find_focus().parent()[dir]().find('.content:visible').focus();
+	},
+	
+	goLineUp: function()
+	{
+		this.goLineDown('prev');
 	},
 
 	addFiles: function(files)
@@ -117,7 +126,6 @@ ide.FileList = ide.Editor.extend({
 			me.addFiles(me.files);
 
 		me.$el.on('click', '.content', me._on_click.bind(me));
-		me.$el.on('keydown', me._on_keydown.bind(me));
 	}
 });
 
@@ -130,8 +138,8 @@ ide.plugins.register('find', new ide.Plugin({
 
 	get_mask: function()
 	{
-		var token = ide.editor && ide.editor.get_token &&
-			ide.editor.get_token();
+		var token = ide.editor && ide.editor.getToken &&
+			ide.editor.getToken();
 
 		if (token)
 		{
