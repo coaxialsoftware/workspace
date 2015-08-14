@@ -10,7 +10,7 @@ var
 	MOTION = {
 		h: 'goCharLeft',
 		l: 'goCharRight',
-		'0': 'goLineStart',
+		0: 'goLineStart',
 		$: 'goLineEnd',
 		home: 'goLineStart',
 		end: 'goLineEnd',
@@ -24,7 +24,16 @@ var
 		left: 'goCharLeft',
 		pagedown: 'goPageDown',
 		pageup: 'goPageUp'
+	},
+	
+	PRINTCHAR = {
+		plus: '+',
+		space: ' ',
+		tab: "\t"
 	}
+	/*,
+
+	DIGIT = { 1: '', 2: '', 3: '', 4: '', 5: '', 6: '', 7:'', 8:'', 9:'' },*/
 ;
 	
 function map(keymap, prefix, postfix)
@@ -43,6 +52,14 @@ function verify(fn)
 	return function() {
 		if (ide.editor && ide.editor.keymap)
 			fn.call(this, ide.editor);
+	};
+}
+	
+function setState(name)
+{
+	return function() {
+		if (ide.editor && ide.editor.keymap)
+			ide.editor.keymap.state = name;
 	};
 }
 	
@@ -198,28 +215,11 @@ var vim = new ide.Plugin({
 				vim.dotRegister.set(lastInsert);
 		}),
 		
-		enterChangeMode: verify(function(editor)
-		{
-			editor.keymap.state = 'vim-change';
-		}),
-		
-		enterSelectMode: function()
-		{
-			if (ide.editor && ide.editor.keymap)
-			{
-				ide.editor.keymap.state = 'vim-select';
-				// TODO change cursor?
-			}
-		},
-		
-		enterDeleteMode: verify(function(editor)
-		{
-			editor.keymap.state = 'vim-delete';
-		}),
-		
-		enterYankMode: verify(function(editor) {
-			editor.keymap.state = 'vim-yank';
-		}),
+		enterChangeMode: setState('vim-change'),
+		enterSelectMode: setState('vim-select'),
+		enterDeleteMode: setState('vim-delete'),
+		enterYankMode: setState('vim-yank'),
+		enterReplaceMode: setState('vim-replace'),
 		
 		enterBlockSelectMode: function()
 		{
@@ -243,7 +243,7 @@ var vim = new ide.Plugin({
 			'mod+r': 'redo',
 			'> >': 'indentMore',
 			'< <': 'indentLess',
-			'/': 'search',
+			'/': 'searchbar',
 			':': 'ex',
 			'= =': 'indentAuto',
 			
@@ -269,8 +269,27 @@ var vim = new ide.Plugin({
 			'v': 'enterSelectMode',
 			'c': 'enterChangeMode',
 			'd': 'enterDeleteMode',
-			'y': 'enterYankMode'
+			'y': 'enterYankMode',
+			'r': 'enterReplaceMode'
 		}, MOTION),
+		
+		'vim-replace': {
+			
+			esc: 'enterNormalMode',
+			'mod+[': 'enterNormalMode',
+			
+			all: function(key) {
+				
+				if (key in PRINTCHAR)
+					key = PRINTCHAR[key];
+				
+				if (ide.editor && ide.editor.replaceSelection &&
+					key.length===1)
+					ide.editor.replaceSelection(key);
+				ide.cmd('enterNormalMode');
+			}
+			
+		},
 		
 		'vim-yank': _.extend({
 			esc: 'enterNormalMode',
@@ -294,25 +313,22 @@ var vim = new ide.Plugin({
 			'y': 'yank enterNormalMode',
 			'>': 'indentMore enterNormalMode',
 			'<': 'indentLess enterNormalMode',
+			'p': 'put enterNormalMode',
 			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
 		}, map(MOTION, 'startSelect', 'endSelect')),
 					 
-		'vim-block-select': {
-			h: 'selectLeft selectLine',
-			j: 'selectDown selectLine',
-			k: 'selectUp selectLine',
-			l: 'selectRight selectLine',
-			
+		'vim-block-select': _.extend({
 			d: 'yankBlock deleteSelection enterNormalMode',
 			y: 'yankBlock enterNormalMode',
+			p: 'put enterNormalMode',
 			'>': 'indentMore enterNormalMode',
 			'<': 'indentLess enterNormalMode',
 			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
-		 },
+		 }, map(MOTION, 'startSelect', 'selectLine endSelect')),
 
 		'vim-insert': {
 			'mod+@': 'insertDotRegister enterNormalMode',

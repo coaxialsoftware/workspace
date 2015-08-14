@@ -32,7 +32,15 @@ ide.Editor.Source = ide.Editor.extend({
 
 	replaceSelection: function(text)
 	{
-		this.editor.replaceSelection(text);
+		var e = this.editor, c;
+		
+		if (!this.somethingSelected())
+		{
+			c = e.getCursor();
+			e.setSelection({ line: c.line, ch: c.ch+1 }, c);
+		}
+		
+		e.replaceSelection(text, 'start');
 	},
 		
 	enableInput: function()
@@ -202,7 +210,7 @@ ide.Editor.Source = ide.Editor.extend({
 	 * Override keymap handle function to use codemirror plugin keymaps.
 	 * TODO see if we can replace some plugins to avoid using this method.
 	 */
-	keymapHandle: function(key)
+	_keymapHandle: function(key)
 	{
 	var
 		maps = this.editor.state.keyMaps,
@@ -234,7 +242,7 @@ ide.Editor.Source = ide.Editor.extend({
 		editor.on('focus', this._on_focus.bind(this));
 		
 		this.keymap = new ide.KeyMap();
-		this.keymap.handle = this.keymapHandle.bind(this);
+		this.keymap.handle = this._keymapHandle.bind(this);
 		this.listenTo(this.file, 'change:content', this._on_file_change);
 	},
 

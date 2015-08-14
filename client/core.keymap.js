@@ -209,6 +209,10 @@ function KeyMap()
 cxl.extend(KeyMap.prototype, {
 	
 	state: null,
+	
+	/**
+	 * Object with shortcuts as keys and actions as values.
+	 */
 	states: null,
 	
 	getHandler: function(fn)
@@ -249,7 +253,7 @@ cxl.extend(KeyMap.prototype, {
 	{
 	var
 		map = this.states[state || this.state],
-		fn = map && map[key]
+		fn = map && map[key] || map.all
 	;
 		return fn ? fn(key) : false;
 	}

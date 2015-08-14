@@ -216,7 +216,7 @@
 		el: $('<input id="search" />'),
 		
 		commands: {
-			search: function() { this.show(); }
+			searchbar: function() { this.show(); }
 		},
 
 		run: function()
