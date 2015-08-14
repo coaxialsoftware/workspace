@@ -42,7 +42,7 @@ var
 			files.push(match);
 	}
 
-	editor.add_files(files);
+	editor.addFiles(files);
 }
 
 function cmd(name, args, onprogress)
