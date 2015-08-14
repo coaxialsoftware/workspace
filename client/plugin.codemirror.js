@@ -100,9 +100,9 @@ ide.Editor.Source = ide.Editor.extend({
 		anchorEnd = head.line>anchor.line ? 0 : e.getLine(anchor.line).length,
 		headEnd = head.line>anchor.line ? e.getLine(head.line).length : 0	
 	;
-		e.extendSelection(
-			{ line: head.line, ch: headEnd },
+		e.setSelection(
 			{ line: anchor.line, ch: anchorEnd },
+			{ line: head.line, ch: headEnd },
 			{ extending: true }
 		);
 	},

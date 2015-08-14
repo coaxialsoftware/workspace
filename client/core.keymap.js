@@ -307,7 +307,7 @@ ide.keymap.registerKeys({
 		'mod+a': 'selectAll',
 		
 		// SEARCH
-		'mod+f': 'search',
+		'mod+f': 'searchbar',
 		'mod+g': 'findNext',
 		
 		// EDITING

@@ -220,15 +220,7 @@ var vim = new ide.Plugin({
 		enterDeleteMode: setState('vim-delete'),
 		enterYankMode: setState('vim-yank'),
 		enterReplaceMode: setState('vim-replace'),
-		
-		enterBlockSelectMode: function()
-		{
-			if (ide.editor && ide.editor.keymap)
-			{
-				ide.editor.keymap.state = 'vim-block-select';	
-				ide.editor.cmd('selectLine');
-			}
-		}
+		enterBlockSelectMode: setState('vim-block-select')
 		
 	},
 
@@ -264,7 +256,7 @@ var vim = new ide.Plugin({
 			
 			// MODE SWITCH
 			'i': 'enterInsertMode',
-			'shift+v': 'enterBlockSelectMode',
+			'shift+v': 'selectLine enterBlockSelectMode',
 			'mod+v': 'enterBlockSelectMode',
 			'v': 'enterSelectMode',
 			'c': 'enterChangeMode',
