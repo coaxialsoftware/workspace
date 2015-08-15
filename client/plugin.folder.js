@@ -20,10 +20,11 @@ ide.FileList = ide.Editor.extend({
 	{
 	var
 		data = ev.currentTarget.dataset,
-		options = {}
+		options
 	;
 		if (!data.path)
 			return;
+		options = {};
 			
 		if (data.line)
 			options.line = data.line;

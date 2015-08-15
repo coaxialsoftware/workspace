@@ -31,17 +31,24 @@ var
 		space: ' ',
 		tab: "\t"
 	}
-	/*,
-
-	DIGIT = { 1: '', 2: '', 3: '', 4: '', 5: '', 6: '', 7:'', 8:'', 9:'' },*/
 ;
 	
 function map(keymap, prefix, postfix)
 {
 	return _.reduce(keymap, function(result, v, k) {
-		result[k] = (prefix ? prefix + ' ' : '') + v + (postfix ? ' ' + postfix : '');
+		result[k] = count((prefix ? prefix + ' ' : '') + v + (postfix ? ' ' + postfix : ''));
 		return result;
 	}, {});
+}
+	
+function count(action)
+{
+	return function() {
+		var i = vim.count || 1;
+		while (i--)
+			ide.action(action);
+		vim.count = null;
+	};
 }
 		
 /**
@@ -72,6 +79,12 @@ function yank(data)
 	
 	vim.registers[0].set(data);
 }
+	
+var enterCountMode = function(key) {
+	vim.count = key;
+	if (ide.editor.keymap)
+		ide.editor.keymap.state = 'vim-count';
+};
 
 function Register(name)
 {
@@ -100,6 +113,7 @@ _.extend(Register.prototype, {
 var vim = new ide.Plugin({
 	
 	registers: null,
+	count: null,
 	
 	// VIM Mode only supported for editors that have their own keymap.
 	setupEditor: function(editor)
@@ -219,20 +233,19 @@ var vim = new ide.Plugin({
 		enterYankMode: setState('vim-yank'),
 		enterReplaceMode: setState('vim-replace'),
 		enterBlockSelectMode: setState('vim-block-select')
-		
 	},
 
 	// Vim style bindings
 	shortcuts: {
 		vim: _.extend({
-			backspace: 'goCharLeft',
-			space: 'goCharLeft',
+			backspace: count('goCharLeft'),
+			space: count('goCharRight'),
 			
 			'alt+.': 'moveNext',
 			'alt+,': 'movePrev',
 			'mod+r': 'redo',
-			'> >': 'indentMore',
-			'< <': 'indentLess',
+			'> >': count('indentMore'),
+			'< <': count('indentLess'),
 			'/': 'searchbar',
 			':': 'ex',
 			'= =': 'indentAuto',
@@ -240,17 +253,17 @@ var vim = new ide.Plugin({
 			'a': 'goCharRight enterInsertMode',
 			'shift+a': 'goLineEnd enterInsertMode',
 			'shift+d': 'delWrappedLineRight enterInsertMode',
-			'g t': 'nextEditor',
+			'g t': count('nextEditor'),
 			'g g': 'goDocStart',
 			'shift+g': 'goDocEnd',
-			'g shift+t': 'prevEditor',
+			'g shift+t': count('prevEditor'),
 			'g f': 'find',
 			'shift+y': 'yankBlock',
-			'p': 'put',
-			'n': 'findNext',
+			'p': count('put'),
+			'n': count('findNext'),
 			'o': 'goLineEnd enterInsertMode newlineAndIndent',
 			'shift+o': 'goLineUp goLineEnd enterInsertMode newlineAndIndent',
-			'u': 'undo',
+			'u': count('undo'),
 			
 			// MODE SWITCH
 			'i': 'enterInsertMode',
@@ -260,8 +273,32 @@ var vim = new ide.Plugin({
 			'c': 'enterChangeMode',
 			'd': 'enterDeleteMode',
 			'y': 'enterYankMode',
-			'r': 'enterReplaceMode'
-		}, MOTION),
+			'r': 'enterReplaceMode',
+			1: enterCountMode,
+			2: enterCountMode,
+			3: enterCountMode,
+			4: enterCountMode,
+			5: enterCountMode,
+			6: enterCountMode,
+			7: enterCountMode,
+			8: enterCountMode,
+			9: enterCountMode
+		}, map(MOTION)),
+		
+		'vim-count': {
+			esc: 'enterNormalMode',
+			'mod+[': 'enterNormalMode',
+			
+			all: function(key) {
+				if (key.length===1 && /\d/.test(key))
+					vim.count += key;
+				else
+				{
+					vim.editorCommands.enterNormalMode();
+					ide.keyboard.handleKey(key);
+				}
+			}
+		},
 		
 		'vim-replace': {
 			
@@ -295,15 +332,15 @@ var vim = new ide.Plugin({
 		'vim-delete': _.extend({
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode',
-			'd': 'yankBlock deleteLine enterNormalMode',
+			'd': count('yankBlock deleteLine enterNormalMode'),
 		}, map(MOTION, 'startSelect', 'endSelect yank deleteSelection enterNormalMode')),
 		
 		'vim-select': _.extend({
 			'd': 'yank deleteSelection enterNormalMode',
 			'y': 'yank enterNormalMode',
-			'>': 'indentMore enterNormalMode',
-			'<': 'indentLess enterNormalMode',
-			'p': 'put enterNormalMode',
+			'>': count('indentMore enterNormalMode'),
+			'<': count('indentLess enterNormalMode'),
+			'p': count('put enterNormalMode'),
 			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
@@ -312,9 +349,9 @@ var vim = new ide.Plugin({
 		'vim-block-select': _.extend({
 			d: 'yankBlock deleteSelection enterNormalMode',
 			y: 'yankBlock enterNormalMode',
-			p: 'put enterNormalMode',
-			'>': 'indentMore enterNormalMode',
-			'<': 'indentLess enterNormalMode',
+			p: count('put enterNormalMode'),
+			'>': count('indentMore enterNormalMode'),
+			'<': count('indentLess enterNormalMode'),
 			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
