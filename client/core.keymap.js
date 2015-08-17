@@ -296,14 +296,15 @@ ide.keymap.registerKeys({
 		'alt+enter': 'ex',
 		
 		// SELECTION
-		'shift+left': 'selectLeft',
-		'shift+right': 'selectRight',
-		'shift+up': 'selectUp',
-		'shift+down': 'selectDown',
-		'shift+home': 'selectLineStart',
-		'shift+end': 'selectLineEnd',
-		'shift+pagedown': 'selectPageDown',
-		'shift+pageup': 'selectPageUp',
+		'shift+left': 'selectStart goCharLeft selectEnd',
+		'shift+right': 'selectStart goCharRight selectEnd',
+		'shift+up': 'selectStart goLineUp selectEnd',
+		'shift+down': 'selectStart goLineDown selectEnd',
+		'shift+home': 'selectStart goLineStart selectEnd',
+		'shift+end': 'selectStart goLineEnd selectEnd',
+		'shift+pagedown': 'selectStart goPageDown selectEnd',
+		'shift+pageup': 'selectStart goPageUp selectEnd',
+		
 		'alt+u': 'redoSelection',
 		'mod+a': 'selectAll',
 		
