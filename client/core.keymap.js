@@ -134,7 +134,8 @@ cxl.extend(KeyboardManager.prototype, {
 				t = 0;
 				break;
 			}
-		} while (seq.shift());
+			seq.shift();
+		} while (seq.length);
 
 		this.t = t;
 	},

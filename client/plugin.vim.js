@@ -18,6 +18,8 @@ var
 		'mod+home': 'goDocStart',
 		'mod+end': 'goDocEnd',
 		'shift+g': 'goDocEnd',
+		'shift+left': 'goGroupLeft',
+		'shift+right': 'goGroupRight',
 		k: 'goLineUp',
 		j: 'goLineDown',
 		'mod+j': 'goLineDown',
@@ -291,6 +293,8 @@ var vim = new ide.Plugin({
 			'u': count('undo'),
 			'v': 'enterSelectMode',
 			'y': 'enterYankMode',
+			'z c': 'fold',
+			'z o': 'unfold',
 			
 			insert: 'enterInsertMode'
 
