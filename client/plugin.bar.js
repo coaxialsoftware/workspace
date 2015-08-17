@@ -51,6 +51,7 @@
 			};
 
 			this.$el.on('keydown', this.on_key.bind(this));
+			this.$el.on('keyup', this.on_keyup.bind(this));
 			this.$el.on('keyup keypress', this.on_keypress.bind(this));
 			this.$el.on('blur', this.on_blur.bind(this));
 		},
@@ -58,6 +59,19 @@
 		on_blur: function()
 		{
 			this.hide();
+		},
+		
+		on_keyup: function(ev)
+		{
+			if (this.el.value!==this._value)
+			{
+				this._lastSearch = null;
+				if (this.on_change)
+					this.on_change(this.el.value);
+			}
+
+			this._value = this.el.value;
+			ev.stopPropagation();
 		},
 		
 		on_keypress: function(ev)
@@ -79,14 +93,6 @@
 			if (fn)
 				fn.call(this, ev);
 
-			if (this.el.value!==this._value)
-			{
-				this._lastSearch = null;
-				if (this.on_change)
-					this.on_change(this.el.value);
-			}
-
-			this._value = this.el.value;
 			ev.stopPropagation();
 		},
 
@@ -215,8 +221,17 @@
 
 		el: $('<input id="search" />'),
 		
+		reverse: false,
+		
 		commands: {
-			searchbar: function() { this.show(); }
+			searchbar: function() {
+				this.reverse = false;
+				this.show();
+			},
+			searchbarReverse: function() {
+				this.reverse = true;
+				this.show();
+			}
 		},
 
 		run: function()
@@ -235,7 +250,7 @@
 			try { regex = new RegExp(val, 'm'); } catch(e) { regex = val; }
 			
 			if (ide.editor && ide.editor.search)
-				ide.editor.search(regex);
+				ide.editor.search(regex, { backwards: this.reverse });
 		}
 
 	});

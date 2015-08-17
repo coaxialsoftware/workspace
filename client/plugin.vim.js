@@ -251,6 +251,7 @@ var vim = new ide.Plugin({
 			'mod+r': count('redo'),
 			space: count('goCharRight'),
 			'/': 'searchbar',
+			'?': 'searchbarReverse',
 			
 			1: enterCountMode,
 			2: enterCountMode,
@@ -356,6 +357,7 @@ var vim = new ide.Plugin({
 			'>': count('indentMore enterNormalMode'),
 			'<': count('indentLess enterNormalMode'),
 			'p': count('put enterNormalMode'),
+			'=': 'indentAuto',
 			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
@@ -367,6 +369,7 @@ var vim = new ide.Plugin({
 			p: count('put enterNormalMode'),
 			'>': count('indentMore enterNormalMode'),
 			'<': count('indentLess enterNormalMode'),
+			'=': 'indentAuto',
 			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'

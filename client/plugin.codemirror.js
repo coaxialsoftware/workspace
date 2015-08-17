@@ -198,6 +198,8 @@ ide.Editor.Source = ide.Editor.extend({
 			}, s,
 			{
 				value: this.file.get('content') || '',
+				// Disable drag and drop so dragdrop plugin works.
+				dragDrop: false,
 				mode: ft,
 				scrollbarStyle: 'null',
 				gutters: ['CodeMirror-lint-markers', "CodeMirror-linenumbers", 
@@ -251,10 +253,10 @@ ide.Editor.Source = ide.Editor.extend({
 		setTimeout(this.editor.refresh.bind(this.editor), 200);
 	},
 	
-	search: function(n)
+	search: function(n, options)
 	{
 		if (n)
-			this.editor.find(n);
+			this.editor.find(n, null , options);
 	},
 
 	/**

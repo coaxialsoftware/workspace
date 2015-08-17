@@ -128,6 +128,8 @@ ide.Info = cxl.View.extend({ /** @lends ide.Info# */
 	/** @type {ide.Editor} */
 	editor: null,
 	
+	visible: false,
+	
 	_delay: 1500,
 
 	_timeout: null,
@@ -138,17 +140,23 @@ ide.Info = cxl.View.extend({ /** @lends ide.Info# */
 	{
 		this.editor.el.appendChild(this.el);
 	},
+	
+	forceHide: function()
+	{
+		this.$el.hide();
+		this.visible = this._timeout = false;
+	},
 
 	hide: function()
 	{
 		var me = this;
 		
 		if (this._timeout)
-			window.clearTimeout(this._timeout);
+			return;
 
 		me._timeout = window.setTimeout(function() {
 			me.$el.css('opacity', 0);
-			window.setTimeout(me.$el.hide.bind(me.$el), 250);
+			window.setTimeout(me.forceHide.bind(me), 250);
 		}, me._delay);
 	},
 
@@ -160,6 +168,8 @@ ide.Info = cxl.View.extend({ /** @lends ide.Info# */
 		s2 = el.style,
 		cursor = this.editor.get_cursor && this.editor.get_cursor()
 	;
+		this.visible = true;
+		
 		if (cursor && cursor.offsetTop > 20)
 		{
 			s.top = s2.top;
@@ -227,6 +237,11 @@ ide.Editor = cxl.View.extend({
 		// TODO see if this makes sense or not.
 		if (name[0]!=='_' && this.constructor.prototype.hasOwnProperty(name))
 			fn = this[name];
+		
+		// Make sure info window doesnt interfere with commands.
+		// TODO see if we can move this out of here?
+		if (this.info.visible)
+			this.info.forceHide();
 
 		return typeof(fn)==='function' ? fn.apply(this, args) : ide.Pass;
 	},
