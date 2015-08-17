@@ -193,7 +193,7 @@ ide.Editor = cxl.View.extend({
 		
 		this.slot.editor = this;
 		this.info = new ide.Info({ editor: this });
-
+		
 		this._setup();
 	},
 
@@ -250,22 +250,27 @@ ide.Editor = cxl.View.extend({
 
 	focus: function()
 	{
-		var info = this.getInfo();
-
 		if (ide.editor)
 			ide.editor.$el.removeClass('ide-focus');
+		
+		this.showInfo();
 
 		// TODO move this to workspace?
 		ide.editor = this;
-		window.document.title = info || 'workspace';
 
 		this.$el.addClass('ide-focus');
-
-		if (info)
-			this.info.show(info);
-		
 		this.trigger('focus');
 	},
+	
+	showInfo: function()
+	{
+		var info = this.getInfo();
+		
+		window.document.title = info || 'workspace';
+		
+		if (info)
+			this.info.show(info);
+	},	
 
 	_close: function(force)
 	{

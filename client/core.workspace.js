@@ -338,6 +338,16 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 });
 
 ide.plugins.register('workspace', {
+	
+	editorCommands: {
+		
+		// TODO See if there's a vim equivalent ex command
+		showInfo: function()
+		{
+			ide.editor.showInfo();
+		}
+		
+	},
 
 	commands: {
 		
@@ -362,6 +372,11 @@ ide.plugins.register('workspace', {
 				'No files open.');
 		},
 		
+		close: function()
+		{
+			window.close();
+		},
+		
 		w: 'write',
 		
 		wq: function()
@@ -383,23 +398,14 @@ ide.plugins.register('workspace', {
 			ide.workspace.close_all();
 		},
 		
-		Next: function()
+		nextEditor: function()
 		{
 			ide.workspace.next().focus();
 		},
 
-		N: 'Next',
-		
-		nextEditor: function()
-		{
-			if (ide.editor)
-				ide.workspace.next().focus();
-		},
-
 		prevEditor: function()
 		{
-			if (ide.editor)
-				ide.workspace.previous().focus();
+			ide.workspace.previous().focus();
 		},
 
 		moveNext: function()

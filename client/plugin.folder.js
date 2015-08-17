@@ -151,7 +151,7 @@ ide.plugins.register('find', new ide.Plugin({
 	},
 
 	commands: { /** @lends ide.commands */
-
+		
 		/**
 		 * Finds file by mask and displays all matches, if only one found
 		 * it will automatically open it. If not mask is specified it will use
@@ -193,6 +193,16 @@ ide.plugins.register('find', new ide.Plugin({
 }));
 
 ide.plugins.register('folder', new ide.Plugin({
+	
+	commands: {
+		
+		browse: function()
+		{
+			ide.open('.');
+		},
+			
+		bro: 'browse'
+	},
 
 	edit: function(file, options)
 	{

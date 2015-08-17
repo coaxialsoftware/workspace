@@ -119,6 +119,34 @@ ide.fileManager = {
 	
 ide.plugins.register('file', {
 	
+	editorCommands: {
+
+		/**
+		 * Insert the file [file] (default: current file) below the cursor.
+		 */
+		read: function(file)
+		{
+			if (ide.editor.insert)
+			{
+				file = file || ide.editor.file.get('filename');
+
+				$.get('/file?p=' + ide.project.id + '&n=' + file)
+					.then(function(content) {
+						if (content.new)
+							ide.notify('File does not exist.');
+						else
+							ide.editor.insert(content.content.toString());
+					}, function(err) {
+						ide.error(err);
+					});
+			} else
+				ide.error('Current editor does not support command.');
+		},
+
+		r: 'read'
+		
+	},
+	
 	commands: {
 		
 		/**
@@ -139,31 +167,8 @@ ide.plugins.register('file', {
 		tabe: function(name)
 		{
 			ide.open_tab(name, '_blank');
-		},
+		}
 
-		/**
-		 * Insert the file [file] (default: current file) below the cursor.
-		 */
-		read: function(file)
-		{
-			if (ide.editor && ide.editor.insert)
-			{
-				file = file || ide.editor.file.get('filename');
-
-				$.get('/file?p=' + ide.project.id + '&n=' + file)
-					.then(function(content) {
-						if (content.new)
-							ide.notify('File does not exist.');
-						else
-							ide.editor.insert(content.content.toString());
-					}, function(err) {
-						ide.error(err);
-					});
-			} else
-				ide.error('Current editor does not support command.');
-		},
-
-		r: 'read'
 	},
 	
 	onMessageStat: function(data)

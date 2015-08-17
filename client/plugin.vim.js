@@ -9,13 +9,18 @@
 var
 	MOTION = {
 		h: 'goCharLeft',
+		'mod+h': 'goCharLeft',
 		l: 'goCharRight',
 		0: 'goLineStart',
 		$: 'goLineEnd',
 		home: 'goLineStart',
 		end: 'goLineEnd',
+		'mod+home': 'goDocStart',
+		'mod+end': 'goDocEnd',
+		'shift+g': 'goDocEnd',
 		k: 'goLineUp',
 		j: 'goLineDown',
+		'mod+j': 'goLineDown',
 		w: 'goGroupRight',
 		b: 'goGroupLeft',
 		down: 'goLineDown',
@@ -235,45 +240,16 @@ var vim = new ide.Plugin({
 		enterBlockSelectMode: setState('vim-block-select')
 	},
 
-	// Vim style bindings
+	// Vim style bindings. NOTE Follow vimdoc index order
 	shortcuts: {
 		vim: _.extend({
+			
+			'mod+g': 'showInfo',
 			backspace: count('goCharLeft'),
+			'mod+r': count('redo'),
 			space: count('goCharRight'),
-			
-			'alt+.': 'moveNext',
-			'alt+,': 'movePrev',
-			'mod+r': 'redo',
-			'> >': count('indentMore'),
-			'< <': count('indentLess'),
 			'/': 'searchbar',
-			':': 'ex',
-			'= =': 'indentAuto',
 			
-			'a': 'goCharRight enterInsertMode',
-			'shift+a': 'goLineEnd enterInsertMode',
-			'shift+d': 'delWrappedLineRight enterInsertMode',
-			'g t': count('nextEditor'),
-			'g g': 'goDocStart',
-			'shift+g': 'goDocEnd',
-			'g shift+t': count('prevEditor'),
-			'g f': 'find',
-			'shift+y': 'yankBlock',
-			'p': count('put'),
-			'n': count('findNext'),
-			'o': 'goLineEnd enterInsertMode newlineAndIndent',
-			'shift+o': 'goLineUp goLineEnd enterInsertMode newlineAndIndent',
-			'u': count('undo'),
-			
-			// MODE SWITCH
-			'i': 'enterInsertMode',
-			'shift+v': 'selectLine enterBlockSelectMode',
-			'mod+v': 'enterBlockSelectMode',
-			'v': 'enterSelectMode',
-			'c': 'enterChangeMode',
-			'd': 'enterDeleteMode',
-			'y': 'enterYankMode',
-			'r': 'enterReplaceMode',
 			1: enterCountMode,
 			2: enterCountMode,
 			3: enterCountMode,
@@ -282,7 +258,42 @@ var vim = new ide.Plugin({
 			6: enterCountMode,
 			7: enterCountMode,
 			8: enterCountMode,
-			9: enterCountMode
+			9: enterCountMode,
+			
+			'< <': count('indentLess'),
+			'= =': 'indentAuto',
+			'> >': count('indentMore'),
+			
+			'shift+a': 'goLineEnd enterInsertMode',
+			'shift+c': 'startSelect goLineEnd endSelect deleteSelection enterInsertMode',
+			'shift+d': 'delWrappedLineRight enterInsertMode',
+			'shift+o': 'goLineUp goLineEnd enterInsertMode newlineAndIndent',
+			'shift+v': 'selectLine enterBlockSelectMode',
+			'shift+y': 'yankBlock',
+			
+			'alt+.': 'moveNext',
+			'alt+,': 'movePrev',
+			':': 'ex',
+			
+			'a': count('goCharRight enterInsertMode'),
+			'c': 'enterChangeMode',
+			'd': 'enterDeleteMode',
+			'g a': 'ascii',
+			'g t': count('nextEditor'),
+			'g g': 'goDocStart',
+			'g shift+t': count('prevEditor'),
+			'g f': 'find',
+			'i': 'enterInsertMode',
+			'n': count('findNext'),
+			'o': 'goLineEnd enterInsertMode newlineAndIndent',
+			'p': count('put'),
+			'r': 'enterReplaceMode',
+			'u': count('undo'),
+			'v': 'enterSelectMode',
+			'y': 'enterYankMode',
+			
+			insert: 'enterInsertMode'
+
 		}, map(MOTION)),
 		
 		'vim-count': {
