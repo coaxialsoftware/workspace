@@ -357,7 +357,7 @@ var vim = new ide.Plugin({
 			'>': count('indentMore enterNormalMode'),
 			'<': count('indentLess enterNormalMode'),
 			'p': count('put enterNormalMode'),
-			'=': 'indentAuto',
+			'=': 'indentAuto enterNormalMode',
 			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'
@@ -369,7 +369,7 @@ var vim = new ide.Plugin({
 			p: count('put enterNormalMode'),
 			'>': count('indentMore enterNormalMode'),
 			'<': count('indentLess enterNormalMode'),
-			'=': 'indentAuto',
+			'=': 'indentAuto enterNormalMode',
 			
 			esc: 'enterNormalMode',
 			'mod+[': 'enterNormalMode'

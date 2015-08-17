@@ -1,6 +1,62 @@
 
 (function(ide, $, _) {
 "use strict";
+	
+function globToRegex(glob) {
+var
+	// The regexp we are building, as a string.
+	reStr = "",
+
+	// If we are doing extended matching, this boolean is true when we are inside
+	// a group (eg {*.html,*.js}), and false otherwise.
+	inGroup = false,
+
+	c, len = glob.length, i=0
+;
+	
+	for (;i < len; i++) {
+		c = glob[i];
+
+		switch (c) {
+			case "\\": case "/": case "$":
+			case "^": case "+": case ".": case "(":
+			case ")": case "=": case "!": case "|":
+				reStr += "\\" + c;
+				break;
+			case "?":
+				reStr += ".";
+				break;
+			case "[":
+			case "]":
+				reStr += c;
+				break;
+			case "{":
+				inGroup = true;
+				reStr += "(";
+				break;
+			case "}":
+				inGroup = false;
+				reStr += ")";
+				break;
+			case ",":
+				if (inGroup) {
+					reStr += "|";
+					break;
+				}
+				reStr += "\\" + c;
+				break;
+
+			case "*":
+				reStr += ".*";
+				break;
+
+			default:
+				reStr += c;
+		}
+	}
+
+	return new RegExp(reStr);
+}
 
 ide.FileList = ide.Editor.extend({
 
@@ -165,7 +221,7 @@ ide.plugins.register('find', new ide.Plugin({
 		;
 			mask = mask || this.get_mask() || '';
 
-			regex = new RegExp(mask);
+			regex = globToRegex(mask);
 
 			if (!files)
 				return ide.warn('[find] No files found in project.');
@@ -199,9 +255,8 @@ ide.plugins.register('folder', new ide.Plugin({
 		browse: function()
 		{
 			ide.open('.');
-		},
-			
-		bro: 'browse'
+		}
+		
 	},
 
 	edit: function(file, options)

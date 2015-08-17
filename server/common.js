@@ -112,6 +112,11 @@ common = module.exports = {
 				filename: file,
 				directory: stat.isDirectory()
 			};
+		}, function(err) {
+			return {
+				filename: file,
+				error: err.cause.code
+			};
 		});
 	},
 
