@@ -176,14 +176,16 @@
 		{
 		var
 			val = this.el.value,
-			result
+			cmd, result
 		;
 			if (val==='')
 				return;
 
 			this.history_add(val);
 			
-			result = ide.cmd(val);
+			cmd = ide.parseCommand(val);
+
+			result = cmd ? ide.cmd(cmd.fn, cmd.args) : ide.Pass;
 			
 			if (result===ide.Pass)
 				ide.alert('Unknown Command: ' + val);

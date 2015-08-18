@@ -272,7 +272,7 @@ var vim = new ide.Plugin({
 			'shift+c': 'startSelect goLineEnd endSelect deleteSelection enterInsertMode',
 			'shift+d': 'delWrappedLineRight enterInsertMode',
 			'shift+o': 'goLineUp goLineEnd enterInsertMode newlineAndIndent',
-			'shift+n': 'findPrev',
+			'shift+n': count('findPrev'),
 			'shift+v': 'selectLine enterBlockSelectMode',
 			'shift+y': 'yankBlock',
 			

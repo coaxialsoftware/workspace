@@ -1,34 +1,39 @@
 
 (function(ide) {
 "use strict";
-
-var REGEX = /(?:("[^"]+"|[^\s]+)\s*)/g;
 	
-function scan(text)
+var
+	CMD_REGEX = /^([^\s]+)\s*(.*)\s*$/
+;
+	
+function parseArguments(args)
 {
-	var m, result = [];
-
-	while ((m = REGEX.exec(text)))
-		result.push(m[1]);
-
+	var result;
+	
+	// TODO this is cool, but dangerous?
+	try {
+		/* jshint evil:true */
+		result = (new Function('return ([' + args + ']);'))();
+	} catch(e) {
+		result = [ args ];
+	}
+	
 	return result;
 }
 	
-	
-function parse(text)
+ide.parseCommand = function(src)
 {
 var
-	cmd = scan(text),
-	name = cmd[0]
+	fn = CMD_REGEX.exec(src),
+	args
 ;
-	cmd.shift();
+	if (fn && fn[1])
+	{
+		args = fn[2] ? parseArguments(fn[2]) : undefined;
+		return { fn: fn[1], args: args };
+	}
+};
 
-	return {
-		fn: name,
-		args: cmd
-	};
-}
-	
 ide.registerCommand = function(name, def, scope)
 {
 	if (name in ide.commands)
@@ -55,45 +60,40 @@ ide.registerEditorCommand = function(name, def, scope)
 	ide.editorCommands[name] = def;
 };
 
-function tryCmd(commands, cmd)
+function tryCmd(commands, cmd, args)
 {
-	var fn = commands[cmd.fn];
+	var fn = commands[cmd];
 	
 	if (typeof(fn)==='string')
 	{
-		cmd.fn = fn;
-		return exec(cmd);
+		return ide.cmd(fn, args);
 	} else if (fn)
-		return fn.apply(ide, cmd.args);
+		return fn.apply(ide, args);
 	
 	return ide.Pass;
 }
 	
-function exec(cmd)
+/** Execute command. */
+ide.cmd = function(fn, args)
 {
 var
 	result = ide.Pass
 ;
 	if (ide.editor)
 	{
-		result = ide.editor.cmd(cmd.fn, cmd.args);
+		result = ide.editor.cmd(fn, args);
 		
 		if (result === ide.Pass)
-			result = tryCmd(ide.editorCommands, cmd);
+			result = tryCmd(ide.editorCommands, fn, args);
 	}
 
 	if (result===ide.Pass)
-		result = tryCmd(ide.commands, cmd);
+		result = tryCmd(ide.commands, fn, args);
 
 	return result;
-}
-
-/** Parse and execute command. */
-ide.cmd = function(source)
-{
-	return exec(parse(source));
+	
 };
-
+	
 /** @namespace */
 ide.commands = {};
 ide.editorCommands = {};

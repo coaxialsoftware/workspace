@@ -263,7 +263,7 @@ ide.Editor.Source = ide.Editor.extend({
 	{
 		this.editor.replace(pattern, str, options);
 	},
-	
+
 	replaceRange: function(pattern, str, from, to)
 	{
 		from = from || { line: 0, ch: 0 };
