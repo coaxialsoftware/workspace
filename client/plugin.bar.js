@@ -247,7 +247,7 @@
 		var
 			regex
 		;
-			try { regex = new RegExp(val, 'm'); } catch(e) { regex = val; }
+			try { regex = val && new RegExp(val, 'm'); } catch(e) { regex = val; }
 			
 			if (ide.editor && ide.editor.search)
 				ide.editor.search(regex, { backwards: this.reverse });

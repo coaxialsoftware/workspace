@@ -256,7 +256,12 @@ ide.Editor.Source = ide.Editor.extend({
 	search: function(n, options)
 	{
 		if (n)
-			this.editor.find(n, null , options);
+			this.editor.find(n, options);
+	},
+	
+	replace: function(pattern, str, options)
+	{
+		this.editor.replace(pattern, str, options);
 	},
 
 	/**

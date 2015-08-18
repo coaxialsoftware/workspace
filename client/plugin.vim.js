@@ -266,11 +266,13 @@ var vim = new ide.Plugin({
 			'< <': count('indentLess'),
 			'= =': 'indentAuto',
 			'> >': count('indentMore'),
+			'&': count('replace'),
 			
 			'shift+a': 'goLineEnd enterInsertMode',
 			'shift+c': 'startSelect goLineEnd endSelect deleteSelection enterInsertMode',
 			'shift+d': 'delWrappedLineRight enterInsertMode',
 			'shift+o': 'goLineUp goLineEnd enterInsertMode newlineAndIndent',
+			'shift+n': 'findPrev',
 			'shift+v': 'selectLine enterBlockSelectMode',
 			'shift+y': 'yankBlock',
 			
