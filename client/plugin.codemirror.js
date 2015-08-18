@@ -180,7 +180,7 @@ ide.Editor.Source = ide.Editor.extend({
 		
 		return (this.options = cxl.extend(
 			{
-				theme: 'twilight',
+				theme: 'workspace',
 				tabSize: 4,
 				indentWithTabs: true,
 				lineWrapping: true,

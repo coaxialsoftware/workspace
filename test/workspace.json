@@ -2,6 +2,7 @@
 	"port": 9004,
 	"debug": true,
 	"keymap": "vim",
+	"theme": "cobalt",
 
 	"socket": {
 		"port": 9005

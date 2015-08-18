@@ -384,6 +384,7 @@ var vim = new ide.Plugin({
 			'mod+m': 'newlineAndIndent',
 			'mod+t': 'indentMore',
 			'mod+w': 'delWordAfter',
+			'alt+enter': 'ex',
 			
 			backspace: 'delCharBefore',
 			tab: 'insertTab',

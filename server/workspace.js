@@ -10,6 +10,7 @@ var
 	fs = require('fs'),
 	bodyParser = require('body-parser'),
 	compression = require('compression'),
+	path = require('path'),
 
 	cxl = require('cxl'),
 
@@ -33,6 +34,9 @@ class Configuration {
 
 		if (this.debug)
 			cxl.enableDebug();
+		
+		if (this.theme)
+			this.loadTheme();
 
 		var secure = this.secure;
 
@@ -45,7 +49,23 @@ class Configuration {
 		}
 
 	}
-
+	
+	loadTheme()
+	{
+	var
+		file = path.isAbsolute(this.theme) ? this.theme :
+			basePath + 'public/theme/' + this.theme + '.css'
+	;
+		workspace.log(`Loading Theme "${this.theme}"`);
+		
+		try {
+			this.themeCSS = fs.readFileSync(file, 'utf8');
+		} catch (e)
+		{
+			workspace.error(e);
+		}
+	}
+	
 	/**
 	 * Loads a JSON configuration file.
 	 */
@@ -122,7 +142,7 @@ workspace.extend({
 {
 	this.port = this.configuration.port;
 	process.title = 'workspace:' + this.port;
-
+	
 	// Register Default Plugins
 	this.plugins.register(require('./project'))
 		.register(require('./file'))
@@ -132,6 +152,7 @@ workspace.extend({
 		.register(require('./npm'))
 		.register(require('./bower'))
 	;
+	
 	
 })
 
@@ -144,7 +165,6 @@ workspace.extend({
 .use(cxl.static(basePath + 'node_modules', { maxAge: 86400000 }))
 
 .use(bodyParser.json({ limit: Infinity }))
-
 
 .run(function() {
 	this.plugins.start();

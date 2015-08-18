@@ -13,9 +13,9 @@ ide.Project = cxl.Model.extend({
 	{
 		return '/project' + (this.id ? '?n=' + this.id : '');
 	},
-
+	
 	initialize: function()
-	{
+	{		
 		this.on('sync', this.on_project);
 		this.on('error', this.on_error);
 	},
@@ -38,6 +38,16 @@ ide.Project = cxl.Model.extend({
 	;
 		return file.fetch({ success: callback });
 	},
+	
+	loadTheme: function(css)
+	{
+		if (this.themeEl)
+			cxl.body.removeChild(this.themeEl);
+		
+		this.themeEl = document.createElement('STYLE');
+		this.themeEl.innerHTML = css;
+		cxl.$body.append(this.themeEl);
+	},
 
 	parse: function(data)
 	{
@@ -45,6 +55,8 @@ ide.Project = cxl.Model.extend({
 			this.set_files(data.files);
 		if (data.ignore_regex)
 			this.ignoreRegex = new RegExp(data.ignore_regex);
+		if (data.themeCSS)
+			this.loadTheme(data.themeCSS);
 		
 		return data;
 	},

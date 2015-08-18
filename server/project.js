@@ -30,15 +30,15 @@ function ProjectConfiguration(path) {
 	
 	cxl.extend(this, workspace.configuration.project, project);
 	
+	
 	this.path = path;
 	
 	if (!this.ignore)
 		// TODO better default?
 		this.ignore = [ '**/.*', 'node_modules', 'bower_components' ];
 	
-	// TODO Find a better way to inherit workspace config
-	if (!this.keymap)
-		this.keymap = workspace.configuration.keymap;
+	_.defaults(this, _.pick(workspace.configuration,
+		['keymap', 'themeCSS']));
 
 	this.tags = {
 		workspace: !!project
