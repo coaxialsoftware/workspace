@@ -263,6 +263,15 @@ ide.Editor.Source = ide.Editor.extend({
 	{
 		this.editor.replace(pattern, str, options);
 	},
+	
+	replaceRange: function(pattern, str, from, to)
+	{
+		from = from || { line: 0, ch: 0 };
+		to = to || { line: this.editor.lastLine() };
+		this.editor.replace(pattern, str, {
+			from: from, to: to, separator: this.line_separator
+		});
+	},
 
 	/**
 	 * Gets token at pos. If pos is ommited it will return the token
