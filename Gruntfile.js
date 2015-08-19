@@ -150,7 +150,8 @@ module.exports = function(grunt) {
 				frameworks: [ 'qunit' ],
 				browsers: [ 'PhantomJS' ],
 				reporters: [ 'progress', 'coverage' ],
-				singleRun: true,
+				background: true,
+				singleRun: false,
 				coverageReporter: {
 					subdir: 'report'
 				}

@@ -1,38 +1,98 @@
 
-(function(ide) {
+(function(ide, cxl) {
 "use strict";
 	
-var
-	CMD_REGEX = /^([^\s]+)\s*(.*)\s*$/
-;
+ide.sandbox = function(a) {
+	/* jshint evil:true */
+	return (new Function(
+		'var window, document;' +
+		'return (' + a + ');'
+	)).call(undefined);
+};
 	
-function parseArguments(args)
+function CommandParser()
 {
-	var result;
-	
-	// TODO this is cool, but dangerous?
-	try {
-		/* jshint evil:true */
-		result = (new Function('return ([' + args + ']);'))();
-	} catch(e) {
-		result = [ args ];
-	}
-	
-	return result;
+	this.CMD_REGEX = /^([^\s]+)\s*(.*)\s*$/;
 }
 	
-ide.parseCommand = function(src)
-{
-var
-	fn = CMD_REGEX.exec(src),
-	args
-;
-	if (fn && fn[1])
+cxl.extend(CommandParser.prototype, {
+	
+	error: function(state, msg)
 	{
-		args = fn[2] ? parseArguments(fn[2]) : undefined;
-		return { fn: fn[1], args: args };
+		throw new Error("Column " + state.i + ': ' + msg);
+	},
+	
+	parseUntil: function(args, state, end, fn)
+	{
+		end.lastIndex = state.i;
+		var pos = end.exec(args), i = state.i;
+		
+		if (!pos)
+			this.error(state, "Unexpected end of line.");
+		
+		state.i = pos.index + pos[0].length;
+		
+		if (fn)
+			state.result.push(fn(args.slice(i, state.i)));
+	},
+	
+	parseString: function(args, state)
+	{
+		this.parseUntil(args, state, /[^\\]"/g, JSON.parse);
+	},
+	
+	parseRegex: function(args, state)
+	{
+		this.parseUntil(args, state, /[^\\]\/\w*/g, ide.sandbox);
+	},
+	
+	parseJS: function(args, state)
+	{
+		this.parseUntil(args, state, /[^\\]`/g, ide.sandbox);
+	},
+	
+	parsePath: function(args, state)
+	{
+		this.parseUntil(args, state, /[^\\]\s|$/g, function(a) {
+			return a.trim(); });
+	},
+	
+	parseArguments: function(args)
+	{
+		var state = { i: 0, result: [], end: args.length };
+
+		do {
+			switch(args[state.i]) {
+			case '"': this.parseString(args, state); break;
+			case '/': this.parseRegex(args, state); break;
+			case '`': this.parseJS(args, state); break;
+			default: this.parsePath(args, state); break;
+			}
+			
+			while (/\s/.test(args[state.i]))
+				state.i++;
+			
+		} while (state.i !== state.end);
+
+		return state.result;
+	},
+	
+	parse: function(src)
+	{
+	var
+		fn = this.CMD_REGEX.exec(src),
+		args
+	;
+		if (fn && fn[1])
+		{
+			args = fn[2] ? this.parseArguments(fn[2]) : undefined;
+			return { fn: fn[1], args: args };
+		}
 	}
-};
+	
+});
+
+ide.commandParser = new CommandParser();
 
 ide.registerCommand = function(name, def, scope)
 {
@@ -95,7 +155,12 @@ var
 };
 	
 /** @namespace */
-ide.commands = {};
+ide.commands = {
+	log: function() {
+		window.console.log(arguments);
+	}
+};
+	
 ide.editorCommands = {};
 
-})(this.ide);
+})(this.ide, this.cxl);

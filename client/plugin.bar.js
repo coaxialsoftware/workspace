@@ -183,7 +183,11 @@
 
 			this.history_add(val);
 			
-			cmd = ide.parseCommand(val);
+			try {
+				cmd = ide.commandParser.parse(val);
+			} catch(e) {
+				return ide.error(e.message);
+			}
 
 			result = cmd ? ide.cmd(cmd.fn, cmd.args) : ide.Pass;
 			
