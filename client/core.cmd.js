@@ -53,8 +53,8 @@ cxl.extend(CommandParser.prototype, {
 	
 	parsePath: function(args, state)
 	{
-		this.parseUntil(args, state, /[^\\]\s|$/g, function(a) {
-			return a.trim(); });
+		this.parseUntil(args, state, /[^\\] |$/g, function(a) {
+			return a.trim().replace(/\\ /g, ' '); });
 	},
 	
 	parseArguments: function(args)

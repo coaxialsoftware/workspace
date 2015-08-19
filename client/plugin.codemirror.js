@@ -180,7 +180,6 @@ ide.Editor.Source = ide.Editor.extend({
 		
 		return (this.options = cxl.extend(
 			{
-				theme: 'workspace',
 				tabSize: 4,
 				indentWithTabs: true,
 				lineWrapping: true,
@@ -198,6 +197,7 @@ ide.Editor.Source = ide.Editor.extend({
 			}, s,
 			{
 				value: this.file.get('content') || '',
+				theme: 'workspace',
 				// Disable drag and drop so dragdrop plugin works.
 				dragDrop: false,
 				mode: ft,

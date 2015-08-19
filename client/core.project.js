@@ -71,7 +71,7 @@ ide.Project = cxl.Model.extend({
 		this.attributes.files = files;
 		this.files_json = files && JSON.parse(files);
 		this.files_text = files ? _.pluck(this.files_json,
-			'filename').join("\n") : '';
+			'filename').join("\n").replace(/ /g, '\\ ') : '';
 	}
 
 });
