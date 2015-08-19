@@ -11,6 +11,7 @@ var
 	_ = require('lodash'),
 	colors = require('colors'),
 	micromatch = require('micromatch'),
+	path = require('path'),
 
 	common = require('./common'),
 	workspace = require('./workspace'),
@@ -38,7 +39,7 @@ function ProjectConfiguration(path) {
 		this.ignore = [ '**/.*', 'node_modules', 'bower_components' ];
 	
 	_.defaults(this, _.pick(workspace.configuration,
-		['keymap', 'themeCSS']));
+		['keymap', 'theme']));
 
 	this.tags = {
 		workspace: !!project
@@ -231,6 +232,24 @@ class Project {
 	{
 		this.generateIgnore();
 		this.rebuildFiles();
+		
+		if (this.configuration.theme)
+			this.loadTheme();
+	}
+	
+	loadTheme()
+	{
+	var
+		theme = this.configuration.theme,
+		file = path.isAbsolute(theme) ? theme :
+			workspace.basePath + 'public/theme/' + theme + '.css'
+	;
+		this.log(`Loading Theme "${theme}"`);
+		
+		common.read(file).bind(this).then(function(data) {
+			this.configuration.themeCSS = data;
+			this.broadcast({ themeCSS: data });
+		}, this.error);
 	}
 
 	onResolved()

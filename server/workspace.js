@@ -10,7 +10,6 @@ var
 	fs = require('fs'),
 	bodyParser = require('body-parser'),
 	compression = require('compression'),
-	path = require('path'),
 
 	cxl = require('cxl'),
 
@@ -34,9 +33,6 @@ class Configuration {
 
 		if (this.debug)
 			cxl.enableDebug();
-		
-		if (this.theme)
-			this.loadTheme();
 
 		var secure = this.secure;
 
@@ -48,22 +44,6 @@ class Configuration {
 			};
 		}
 
-	}
-	
-	loadTheme()
-	{
-	var
-		file = path.isAbsolute(this.theme) ? this.theme :
-			basePath + 'public/theme/' + this.theme + '.css'
-	;
-		workspace.log(`Loading Theme "${this.theme}"`);
-		
-		try {
-			this.themeCSS = fs.readFileSync(file, 'utf8');
-		} catch (e)
-		{
-			workspace.error(e);
-		}
 	}
 	
 	/**
@@ -136,7 +116,8 @@ class PluginManager extends EventEmitter {
 workspace.extend({
 
 	configuration: new Configuration(),
-	plugins: new PluginManager()
+	plugins: new PluginManager(),
+	basePath: basePath
 
 }).config(function()
 {
