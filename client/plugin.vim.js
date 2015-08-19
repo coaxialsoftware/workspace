@@ -8,9 +8,9 @@
 	
 var
 	MOTION = {
-		h: 'goCharLeft',
-		'mod+h': 'goCharLeft',
-		l: 'goCharRight',
+		h: 'goColumnLeft',
+		'mod+h': 'goColumnLeft',
+		l: 'goColumnRight',
 		0: 'goLineStart',
 		$: 'goLineEnd',
 		home: 'goLineStart',
@@ -27,8 +27,8 @@ var
 		b: 'goGroupLeft',
 		down: 'goLineDown',
 		up: 'goLineUp',
-		right: 'goCharRight',
-		left: 'goCharLeft',
+		right: 'goColumnRight',
+		left: 'goColumnLeft',
 		pagedown: 'goPageDown',
 		pageup: 'goPageUp'
 	},
@@ -280,7 +280,7 @@ var vim = new ide.Plugin({
 			'alt+,': 'movePrev',
 			':': 'ex',
 			
-			'a': count('goCharRight enterInsertMode'),
+			'a': count('goColumnRight enterInsertMode'),
 			'c': 'enterChangeMode',
 			'd': 'enterDeleteMode',
 			'g a': 'ascii',
