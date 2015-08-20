@@ -57,8 +57,6 @@ h4 {
 	overflow: auto;
 }
 
-#workspace > .ace_editor { overflow: hidden; }
-
 .ide-panel {
 	color: #eee; padding: 6px;
 	outline: 0 solid #eee;
@@ -195,27 +193,20 @@ h4 {
 .ide-error { background-color: rgba(231, 76, 60, 0.8); color: #eee;}
 .ide-warn{ background-color: rgba(241, 196, 15, 0.8); color: #333; }
 
-@media (min-width: 980px) {
-	
-	#projects > .project {
-		width: 25%;
-	}
-	
+@media (min-width: 980px)
+{
+	#projects > .project { width: 25%; }
 }
 
-@media (max-width: 800px) {
-	#projects > .project {
-		width: 50%;
-	}
+@media (max-width: 800px)
+{
+	#projects > .project { width: 50%; }
 }
 
-@media (max-width: 500px) {
-	
-	#projects > .project {
-		width: 100%;
-	}
+@media (max-width: 500px)
+{
+	#projects > .project { width: 100%; }
 }
-
 
 .label {
 	font-size: 10px; border-radius: 2px; 
@@ -285,15 +276,10 @@ h4 {
 #workspace > div:nth-child(4) { background-color: #002024; }
 #workspace > div:nth-child(5) { background-color: #010062; }
 
-.ace-twilight .ace_gutter { background-color: rgba(35,35,35,0.6) !important; }
-
 pre {
 	text-align: left; padding: 6px 10px 6px 6px;
 	background-color: rgba(0,0,0,0.5); margin: 6px 0 0 0;
 }
-
-.ace-twilight .ace_comment { color: #aaa !important; }
-.ace_scrollbar-v { display: none; }
 
 .ide-focus {
 	animation-duration: 0.5s;

@@ -16,9 +16,9 @@ function Watcher(options)
 	this.events = {};
 	
 	if (this.base)
-		this.initWatcher('.');
+		this.watchPath('.');
 	
-	this.paths.forEach(this.initWatcher.bind(this));
+	this.paths.forEach(this.watchPath.bind(this));
 }
 
 _.extend(Watcher.prototype, {
@@ -72,20 +72,48 @@ _.extend(Watcher.prototype, {
 		this.watchers = {};
 	},
 	
-	initWatcher: function(p)
+	getId: function(p)
+	{
+		return this.base ? path.join(this.base, p) : p;
+	},
+	
+	watchFile: function(f)
 	{
 	var
-		id = this.base ? path.join(this.base, p) : p,
-		w
+		id = this.getId(f),
+		dir = path.dirname(id)
 	;
+		return this._doWatch(id, dir);
+	},
+	
+	unwatch: function(id)
+	{
 		if (this.watchers[id])
-			throw `${p} already watched.`;
+		{
+			this.watchers[id].close();	
+			delete this.watchers[id];
+		}
+	},
+	
+	_doWatch: function(id, dir)
+	{
+		if (this.watchers[id])
+			throw `${id} already watched.`;
 		
-		w = fs.watch(id);
-		w.on('change', this.onWatch.bind(this, id));
-		w.on('error', this.onError.bind(this, id));
+		var w = fs.watch(id);
+		w.on('change', this.onWatch.bind(this, dir));
+		w.on('error', this.onError.bind(this, dir));
 		
 		this.watchers[id] = w;
+		
+		return id;
+	},
+	
+	watchPath: function(p)
+	{
+		var id = this.getId(p);
+		
+		return this._doWatch(id, id);
 	}
 	
 });

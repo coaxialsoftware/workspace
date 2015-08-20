@@ -44,6 +44,7 @@ function ProjectConfiguration(path) {
 	this.tags = {
 		workspace: !!project
 	};
+	
 }
 
 cxl.extend(ProjectConfiguration.prototype, {
@@ -72,6 +73,8 @@ class Project {
 		this.path = path;
 		this.clients = [];
 		this.create();
+		
+		workspace.plugins.on('workspace.reload', this.reload.bind(this));
 	}
 	
 	create()
@@ -192,6 +195,8 @@ class Project {
 					this.broadcast({
 						stat: { p: full, t: s.mtime.getTime() }
 					}, 'file');
+				}, function() {
+					this.error(`Unable to stat ${full}`);
 				});
 			
 			workspace.plugins.emit('project.filechange', this, ev, filepath);
@@ -200,6 +205,9 @@ class Project {
 			if (filepath==='project.json')
 				this.reload();
 		}
+		
+		if (filepath===this.themePath)
+			this.loadTheme();
 
 		this.dbg(ev + ' ' + filepath);
 	}
@@ -226,6 +234,7 @@ class Project {
 			paths: files,
 			onEvent: this.onWatch.bind(this)
 		});
+		this.watchTheme();
 	}
 
 	onTimeout()
@@ -237,6 +246,12 @@ class Project {
 			this.loadTheme();
 	}
 	
+	watchTheme()
+	{
+		this.dbg(`Watching theme ${this.themePath}`);
+		this.themeId = this.watcher.watchFile(this.themePath);
+	}
+	
 	loadTheme()
 	{
 	var
@@ -244,7 +259,14 @@ class Project {
 		file = path.isAbsolute(theme) ? theme :
 			workspace.basePath + 'public/theme/' + theme + '.css'
 	;
-		this.log(`Loading Theme "${theme}"`);
+		this.themePath = path.relative(this.path, file);
+		this.log(`Loading Theme "${theme}"(${this.themePath})`);
+		
+		if (this.themeId)
+		{
+			this.watcher.unwatch(this.themeId);
+			this.watchTheme();
+		}
 		
 		common.read(file).bind(this).then(function(data) {
 			this.configuration.themeCSS = data;

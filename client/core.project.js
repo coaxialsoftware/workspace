@@ -42,7 +42,7 @@ ide.Project = cxl.Model.extend({
 	loadTheme: function(css)
 	{
 		if (this.themeEl)
-			cxl.body.removeChild(this.themeEl);
+			cxl.$body[0].removeChild(this.themeEl);
 		
 		this.themeEl = document.createElement('STYLE');
 		this.themeEl.innerHTML = css;

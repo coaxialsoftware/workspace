@@ -14,6 +14,7 @@ var
 	cxl = require('cxl'),
 
 	common = require('./common.js'),
+	Watcher = require('./watcher.js'),
 
 	basePath = __dirname + '/../',
 	workspace = module.exports = cxl('workspace')
@@ -117,11 +118,22 @@ workspace.extend({
 
 	configuration: new Configuration(),
 	plugins: new PluginManager(),
-	basePath: basePath
+	basePath: basePath,
+	
+	onWatch: function()
+	{
+		this.configuration= new Configuration();
+		workspace.plugins.emit('workspace.reload');
+	}
 
 }).config(function()
 {
 	this.port = this.configuration.port;
+	this.watcher = new Watcher({
+		paths: ['workspace.json'],
+		onEvent: this.onWatch.bind(this)
+	});
+	
 	process.title = 'workspace:' + this.port;
 	
 	// Register Default Plugins
