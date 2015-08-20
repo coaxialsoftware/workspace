@@ -234,7 +234,9 @@ class Project {
 			paths: files,
 			onEvent: this.onWatch.bind(this)
 		});
-		this.watchTheme();
+
+		if (this.configuration.theme)
+			this.watchTheme();
 	}
 
 	onTimeout()
