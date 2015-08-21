@@ -176,8 +176,10 @@ ide.Editor.Source = ide.Editor.extend({
 	
 	_getOptions: function()
 	{
-		var ft = this._findMode(), s = ide.project.get('editor') || {};
-		
+	var
+		ft = this.mode = this._findMode(),
+		s = ide.project.get('editor') || {}
+	;
 		return (this.options = cxl.extend(
 			{
 				tabSize: 4,
@@ -240,12 +242,11 @@ ide.Editor.Source = ide.Editor.extend({
 		editor = this.editor = codeMirror(this.el, options)
 	;
 		this.file_content = options.value;
-		
-		editor.on('focus', this._on_focus.bind(this));
-		
 		this.keymap = new ide.KeyMap();
 		this.keymap.handle = this._keymapHandle.bind(this);
+		
 		this.listenTo(this.file, 'change:content', this._on_file_change);
+		this.listenTo(editor, 'focus', this._on_focus);
 	},
 
 	resize: function()

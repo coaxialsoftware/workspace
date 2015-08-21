@@ -144,6 +144,7 @@ workspace.extend({
 		.register(require('./git'))
 		.register(require('./npm'))
 		.register(require('./bower'))
+		.register(require('./plugin.jshint'))
 	;
 	
 	

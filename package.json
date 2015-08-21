@@ -18,7 +18,8 @@
 		"cxl": "*",
 		"websocket": "*",
 		"lodash": "*",
-		"micromatch": "*"
+		"micromatch": "*",
+		"jshint": "*"
 	},
 
 	"devDependencies": {
