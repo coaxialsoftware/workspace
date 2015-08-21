@@ -2,6 +2,7 @@
 var
 	jshint = require('jshint').JSHINT,
 	
+	cxl = require('cxl'),
 	workspace = require('./workspace'),
 	socket = require('./socket'),
 	
@@ -12,7 +13,7 @@ plugin.extend({
 	
 	onMessage: function(client, data)
 	{
-		this.dbg(`Linting file ${data.f}`)
+		this.dbg(`Linting file ${data.f}`);
 		jshint(data.js);
 		
 		socket.send('jshint', { data: jshint.data() });
