@@ -155,7 +155,7 @@ class Project {
 
 	broadcast(data, plugin)
 	{
-		var payload = common.payload(plugin || 'project', data);
+		var payload = workspace.socket.payload(plugin || 'project', data);
 		
 		this.dbg(`Broadcasting ${payload} (${payload.length})`);
 
@@ -178,7 +178,8 @@ class Project {
 		{
 			this.log(`Registering client ${client.id}.`);
 			this.clients.push(client);
-			client.send(common.payload('project', common.diff(data, this.configuration)));
+			
+			workspace.socket.respond(client, 'project', common.diff(data, this.configuration));
 		}
 	}
 	

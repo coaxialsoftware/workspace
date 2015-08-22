@@ -43,11 +43,6 @@ common = module.exports = {
 		
 		return result;	
 	},
-	
-	payload: function(plugin, data)
-	{
-		return JSON.stringify({ plugin: plugin, data: data });
-	},
 
 	respond: function(module, res, promise)
 	{

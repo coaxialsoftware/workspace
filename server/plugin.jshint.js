@@ -13,10 +13,9 @@ plugin.extend({
 	
 	onMessage: function(client, data)
 	{
-		this.dbg(`Linting file ${data.f}`);
-		jshint(data.js);
+		this.operation(`Linting file ${data.f}`, jshint.bind(jshint, data.js));
 		
-		socket.send('jshint', { data: jshint.data() });
+		socket.respond(client, 'jshint', jshint.data() );
 	}
 	
 }).run(function() {

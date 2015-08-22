@@ -21,18 +21,34 @@ plugin.extend({
 	onMessage: function()
 	{
 	},
+	
+	payload: function(plugin, data)
+	{
+		return JSON.stringify({ plugin: plugin, data: data });
+	},
 
 	/**
 	 * Send data to all clients.
 	 * @param plugin to send data to.
 	 * @param data Payload
+	 * @param clients Optional array of socket clients to send data.
 	 */
-	send: function(plugin, data)
+	broadcast: function(plugin, data, clients)
 	{
-		var payload = JSON.stringify({ plugin: plugin, data: data }), i;
+		var i, payload = this.payload(plugin, data);
+		
+		clients = clients || this.clients;
 
-		for (i in this.clients)
-			this.clients[i].send(payload);
+		for (i in clients)
+			clients[i].send(payload);
+	},
+	
+	/**
+	 * Send message back to client.
+	 */
+	respond: function(client, plugin, data)
+	{
+		client.send(this.payload(plugin, data));
 	},
 	
 	onProjectLoad: function(project)
@@ -53,6 +69,7 @@ plugin.extend({
 
 	workspace.plugins.on('project.load', this.onProjectLoad);
 	workspace.plugins.on('workspace.load', this.onProjectLoad);
+	workspace.socket = plugin;
 
 }).run(function() {
 

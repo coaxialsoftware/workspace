@@ -109,11 +109,11 @@ plugin.config(function() {
 				this.dbg(`[onMessageStat] File changed: ${data.p}`);
 				
 				common.read(data.p).then(function(content) {
-					client.send(common.payload('file', {
+					workspace.socket.respond(client, 'file', {
 						path: data.p,
 						mtime: stat.mtime.getTime(),
 						content: content
-					}));
+					});
 				});
 			}
 		});

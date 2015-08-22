@@ -78,8 +78,11 @@ ide.FileList = ide.Editor.extend({
 		data = ev.currentTarget.dataset,
 		options
 	;
+		this.focus();
+		
 		if (!data.path)
 			return;
+		
 		options = {};
 			
 		if (data.line)
