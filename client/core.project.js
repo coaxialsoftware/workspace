@@ -18,6 +18,8 @@ ide.Project = cxl.Model.extend({
 	{		
 		this.on('sync', this.on_project);
 		this.on('error', this.on_error);
+		
+		ide.plugins.on('socket.message.project', this.onMessage, this);
 	},
 
 	on_error: function()
@@ -60,10 +62,21 @@ ide.Project = cxl.Model.extend({
 		
 		return data;
 	},
+	
+	onMessage: function(msg)
+	{
+		if (!msg) return;
+
+		var diff = ide.diff(this.attributes, msg);
+
+		if (diff)
+			this.set(this.parse(diff));
+	},
 
 	on_project: function()
 	{
-		this.trigger('load');
+		ide.plugins.trigger('project.load', this);
+		ide.socket.send('project', this.attributes);
 	},
 	
 	set_files: function(files)
@@ -75,37 +88,14 @@ ide.Project = cxl.Model.extend({
 	}
 
 });
-
-ide.plugins.register('project', {
 	
-	commands: {
-		
-		/**
-		 * Open project by path
-		 */
-		project: function(name)
-		{
-			window.open('#' + ide.workspace.hash.encode({ p: name || null, f: null }));
-		}
-		
-	},
-
-	onMessage: function(msg)
-	{
-		if (!msg) return;
-		
-		var diff = ide.diff(ide.project.attributes, msg);
-		
-		if (diff)
-			ide.project.set(ide.project.parse(diff));
-	},
-
-	ready: function()
-	{
-		ide.plugins.on('socket.message.project', this.onMessage, this);
-		ide.socket.send('project', ide.project.attributes);
-	}
-
+/**
+ * Open project by path
+ */
+ide.registerCommand('project', function(name) {
+	window.open('#' + ide.workspace.hash.encode({ p: name || null, f: null }));
 });
+	
+
 
 })(this.cxl, this.ide, this._);

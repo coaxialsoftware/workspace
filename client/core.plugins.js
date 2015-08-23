@@ -6,6 +6,7 @@
 ide.Plugin = function Plugin(p)
 {
 	cxl.extend(this, p);
+	this.__listeners = [];
 };
 	
 cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
@@ -54,7 +55,23 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 	{
 		ide.socket.send(this.name, data);
 		return this;
+	},
+	
+	listenTo: function(name, fn)
+	{
+		this.__listeners.push({ name: name, fn: fn });
+		ide.plugins.on(name, fn, this);
+		
+		return this;
+	},
+	
+	destroy: function()
+	{
+		this.__listeners.forEach(function(l) {
+			ide.plugins.off(l.name, l.fn, this);
+		}, this);
 	}
+	
 });
 	
 function PluginManager()
@@ -79,8 +96,35 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		for (var i in this._plugins)
 		{
 			if (fn.bind(this)(this._plugins[i], i))
-				break;
+				return true;
 		}
+	},
+	
+	findEditor: function(file, options, plugin)
+	{
+		var me = this;
+		
+		function cb(plug)
+		{
+			return plug.edit && plug.edit(file, options);
+		}
+		
+		function find()
+		{
+			var result = me.each(cb);
+			
+			if (!result)
+				ide.defaultEdit(file, options);
+		}
+		
+		if (file.attributes.content || !file.attributes.filename)
+			find();
+		else
+			file.fetch({
+				success: plugin ?
+					cb.bind(me, plugin) :
+					find
+			});
 	},
 
 	/**
@@ -93,10 +137,6 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	{
 	var
 		plugin = options.plugin && this.get(options.plugin),
-		cb = function(plug)
-		{
-			return plug.edit && plug.edit(file, options);
-		},
 		file
 	;
 		if (plugin && plugin.open)
@@ -112,14 +152,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 
 		options.slot = ide.workspace.slot();
 
-		if (file.attributes.content || !file.attributes.filename)
-			this.each(cb);
-		else
-			file.fetch({
-				success: plugin ?
-					cb.bind(this, plugin) :
-					this.each.bind(this, cb)
-			});
+		this.findEditor(file, options, plugin);
 	},
 
 	/**
@@ -177,6 +210,17 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	{
 		this._plugins[name] = plugin;
 		plugin.name = name;
+	},
+	
+	unregister: function(name)
+	{
+		this._plugins[name].destroy();
+		delete this._plugins[name];
+	},
+	
+	unregisterAll: function()
+	{
+		Object.keys(this._plugins).forEach(this.unregister, this);
 	}
 
 });

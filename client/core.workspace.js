@@ -332,15 +332,13 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	{
 		this.load_project(this.load_workspace.bind(this));
 		this._on_hashchange = this.on_hashchange.bind(this);
-		this.plugin = ide.plugins.get('workspace');
-		this.actions = this.plugin.actions;
 
 		window.addEventListener('beforeunload', this.on_beforeunload.bind(this));
 	}
 
 });
 
-ide.plugins.register('workspace', {
+ide.plugins.registerCommands({
 	
 	editorCommands: {
 		

@@ -24,9 +24,9 @@ var plugin = new ide.Plugin({
 		if (file && e.mode==='text/javascript' && e.hints)
 		{
 			version = Date.now();
+			
 			this.files[e.id] = { editor: e, version: version };
-
-			ide.socket.send('jshint', {
+			this.send({
 				$: e.id, p: ide.project.id,
 				f: file.id, v: version, js: e.getValue()
 			});
@@ -38,6 +38,7 @@ var plugin = new ide.Plugin({
 		editor.hints.clear('jshint');
 		
 		if (errors)
+		{
 			errors.forEach(function(e) {
 				editor.hints.add('jshint', {
 					line: e.line,
@@ -47,28 +48,28 @@ var plugin = new ide.Plugin({
 					hint: e.reason 
 				});
 			});
+		}
 	},
 	
 	onMessage: function(data)
 	{
 	var
-		me = this,
-		f = me.files[data.$]
+		f = this.files[data.$]
 	;
 		if (f.version===data.v)
 		{
-			me.updateHints(f.editor, data.errors);
-			delete me.files[data.$];
+			this.updateHints(f.editor, data.errors);
+			delete this.files[data.$];
 		}
 	},
 	
 	ready: function()
 	{
 		this.files = {};
-		
-		ide.plugins.on('socket.message.jshint', this.onMessage, this);
-		ide.plugins.on('editor.write', this.getHints, this);
-		ide.plugins.on('editor.load', this.getHints, this);
+		this.listenTo('socket.message.jshint', this.onMessage)
+			.listenTo('editor.write', this.getHints)
+			.listenTo('editor.load', this.getHints)
+		;
 	}
 	
 });

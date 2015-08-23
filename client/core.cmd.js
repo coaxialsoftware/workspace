@@ -101,7 +101,6 @@ ide.registerCommand = function(name, def, scope)
 	
 	if (typeof(def)==='function' && scope)
 		def = def.bind(scope);
-		//def.args = getParamNames(def);
 	
 	ide.commands[name] = def;	
 };

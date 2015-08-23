@@ -241,6 +241,13 @@ var vim = new ide.Plugin({
 		enterReplaceMode: setState('vim-replace'),
 		enterBlockSelectMode: setState('vim-block-select')
 	},
+	
+	commands: {
+		
+		r: 'read',
+		e: 'edit'
+		
+	},
 
 	// Vim style bindings. NOTE Follow vimdoc index order
 	shortcuts: {

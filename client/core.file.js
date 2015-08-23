@@ -65,7 +65,12 @@ ide.File = cxl.Model.extend({
 
 });
 	
-ide.fileManager = {
+function FileManager()
+{
+	ide.plugins.on('socket.message.file', this.onMessage, this);
+}
+	
+FileManager.prototype = {
 	
 	each: function(callback)
 	{
@@ -95,6 +100,23 @@ ide.fileManager = {
 		});
 	},
 	
+	onMessageStat: function(data)
+	{
+		var file = this.findFile(data.p);
+		
+		if (file && file.get('mtime')!==data.t)
+		{
+			ide.notify('File ' + file.get('filename') + ' was updated.');
+			file.fetch();
+		}
+	},
+	
+	onMessage: function(data)
+	{
+		if (data.stat)
+			this.onMessageStat(data.stat);
+	},
+	
 	/**
 	 * Creates a new file object if it is already open returns 
 	 * that instance instead.
@@ -115,82 +137,48 @@ ide.fileManager = {
 	}
 	
 };
+	
+ide.fileManager = new FileManager();
+ide.registerEditorCommand('read', function(file) {
+	if (ide.editor.insert)
+	{
+		file = file || ide.editor.file.get('filename');
 
+		$.get('/file?p=' + ide.project.id + '&n=' + file)
+			.then(function(content) {
+				if (content.new)
+					ide.notify('File does not exist.');
+				else
+					ide.editor.insert(content.content.toString());
+			}, function(err) {
+				ide.error(err);
+			});
+	} else
+		ide.error('Current editor does not support command.');
+});
+	
+/**
+ * Edits file with registered plugins.
+ * @param {string} ... Files to open.
+ */
+ide.registerCommand('edit', function() {
+	if (arguments.length)
+		for (var i=0; i<arguments.length; i++)
+			ide.open(arguments[i]);
+	else
+		ide.open();
+});
+	
+ide.registerCommand('tabe', function() {
+	ide.open_tab(name, '_blank');
+});
 	
 ide.plugins.register('file', {
 	
-	editorCommands: {
 
-		/**
-		 * Insert the file [file] (default: current file) below the cursor.
-		 */
-		read: function(file)
-		{
-			if (ide.editor.insert)
-			{
-				file = file || ide.editor.file.get('filename');
-
-				$.get('/file?p=' + ide.project.id + '&n=' + file)
-					.then(function(content) {
-						if (content.new)
-							ide.notify('File does not exist.');
-						else
-							ide.editor.insert(content.content.toString());
-					}, function(err) {
-						ide.error(err);
-					});
-			} else
-				ide.error('Current editor does not support command.');
-		},
-
-		r: 'read'
-		
-	},
-	
-	commands: {
-		
-		/**
-		 * Edits file with registered plugins.
-		 * @param {string} ... Files to open.
-		 */
-		edit: function()
-		{
-			if (arguments.length)
-				for (var i=0; i<arguments.length; i++)
-					ide.open(arguments[i]);
-			else
-				ide.open();
-		},
-
-		e: 'edit',
-		
-		tabe: function(name)
-		{
-			ide.open_tab(name, '_blank');
-		}
-
-	},
-	
-	onMessageStat: function(data)
-	{
-		var file = ide.fileManager.findFile(data.p);
-		
-		if (file && file.get('mtime')!==data.t)
-		{
-			ide.notify('File ' + file.get('filename') + ' was updated.');
-			file.fetch();
-		}
-	},
-	
-	onMessage: function(data)
-	{
-		if (data.stat)
-			this.onMessageStat(data.stat);
-	},
 	
 	ready: function()
 	{
-		ide.plugins.on('socket.message.file', this.onMessage, this);
 	}
 	
 });

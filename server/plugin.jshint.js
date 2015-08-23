@@ -29,6 +29,9 @@ plugin.extend({
 			this.dbg(`Using ${file} as config.`);
 			
 			try { data = JSON.parse(fs.readFileSync(file, 'utf8')); }
+			catch(e) {
+				this.dbg('Coult not read jshintrc file.');
+			}
 			finally {
 				return data;
 			}
@@ -40,10 +43,10 @@ plugin.extend({
 	 */
 	onMessage: function(client, data)
 	{
-		var options = this.findOptions(data.p, data.f);
-			
-		this.operation(`Linting file ${data.f}`,
-			jshint.bind(jshint, data.js, options));
+		this.operation(`Linting file ${data.f}`, function() {
+			var options = this.findOptions(data.p, data.f);
+			jshint(data.js, options);
+		});
 		
 		var payload = jshint.data();
 		

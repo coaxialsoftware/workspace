@@ -54,6 +54,16 @@
 			this.$el.on('keyup', this.on_keyup.bind(this));
 			this.$el.on('keyup keypress', this.on_keypress.bind(this));
 			this.$el.on('blur', this.on_blur.bind(this));
+			
+			$(this.onReady.bind(this));
+			
+			if (this.start)
+				this.start();
+		},
+		
+		onReady: function()
+		{
+			document.body.appendChild(this.el);
 		},
 
 		on_blur: function()
@@ -121,11 +131,6 @@
 			if (ide.editor)
 				ide.editor.focus();
 			return false;
-		},
-
-		start: function()
-		{
-			document.body.appendChild(this.el);
 		}
 
 	});
@@ -133,10 +138,6 @@
 	ide.Bar.Command = ide.Bar.extend({
 
 		el: $('<input id="command" />'),
-		
-		commands: {
-			ex: function() { this.show(); }
-		},
 		
 		history: [],
 		history_max: 50,
@@ -166,7 +167,7 @@
 			this.history_up(ev);
 		},
 
-		ready: function()
+		start: function()
 		{
 			this._keys[38] = this.history_up.bind(this);
 			this._keys[40] = this.history_down.bind(this);
@@ -229,17 +230,6 @@
 		
 		reverse: false,
 		
-		commands: {
-			searchbar: function() {
-				this.reverse = false;
-				this.show();
-			},
-			searchbarReverse: function() {
-				this.reverse = true;
-				this.show();
-			}
-		},
-
 		run: function()
 		{
 		},
@@ -260,8 +250,21 @@
 		}
 
 	});
-
-	ide.plugins.register('search', new ide.Bar.Search());
-	ide.plugins.register('command', new ide.Bar.Command());
+	
+	ide.registerCommand('ex', function() {
+		ide.commandBar.show();
+	});
+	
+	ide.registerCommand('searchbar', function() { 
+		ide.searchBar.reverse = false;
+		ide.searchBar.show();
+	});
+	ide.registerCommand('searchbarReverse', function() {
+		ide.searchBar.reverse = true;
+		ide.searchBar.show();
+	});
+	
+	ide.searchBar = new ide.Bar.Search();
+	ide.commandBar = new ide.Bar.Command();
 
 })(this.ide, this.Backbone, this.jQuery);

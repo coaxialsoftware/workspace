@@ -4,9 +4,18 @@
 
 (function(window, ide, cxl) {
 "use strict";
+	
+function SocketManager()
+{
+	if (!window.WebSocket)
+		return ide.warn('WebSockets not supported. Some features will not be available.');
 
-ide.plugins.register('socket', ide.socket = new ide.Plugin({
-
+	ide.plugins.on('project.load', this.connect, this);
+	window.addEventListener('focus', this.checkConnection.bind(this));
+}
+	
+SocketManager.prototype = {
+	
 	__doSend: function(plugin, data)
 	{
 		this.ws.send(JSON.stringify({
@@ -55,9 +64,7 @@ ide.plugins.register('socket', ide.socket = new ide.Plugin({
 			}
 			else
 			{
-				ide.project.fetch({
-					success: ide.socket.checkConnection.bind(ide.socket)
-				});
+				ide.project.fetch();
 				retry = true;
 			}
 		});
@@ -73,18 +80,10 @@ ide.plugins.register('socket', ide.socket = new ide.Plugin({
 	{
 		if (this.ws && this.ws.readyState===3 /* closed */)
 			this.connect();
-	},
-
-	start: function()
-	{
-		if (!window.WebSocket)
-			return ide.warn('WebSockets not supported. Some features will not be available.');
-
-		this.connect();
-
-		cxl.$window.focus(this.checkConnection.bind(this));
 	}
 
-}));
+};
+	
+ide.socket = new SocketManager();
 
 })(this, this.ide, this.cxl);

@@ -448,35 +448,31 @@ ide.Editor.Source = ide.Editor.extend({
 	}
 
 });
-
-ide.plugins.register('editor', new ide.Plugin({
-
-	edit: function(file, options)
+	
+ide.defaultEdit = function(file, options)
+{
+	if (!file.get('directory'))
 	{
-		if (!file.get('directory'))
-		{
-			if (!file.attributes.content)
-				file.attributes.content = '';
-			
-		var
-			editor = new ide.Editor.Source({
-				slot: options.slot,
-				plugin: this,
-				file: file
-			})
-		;
-			if (options && options.line)
-				setTimeout(function() {
-					editor.go(options.line);
-				});
+		if (!file.attributes.content)
+			file.attributes.content = '';
 
-			ide.workspace.add(editor);
-			ide.plugins.trigger('editor.load', editor);
+	var
+		editor = new ide.Editor.Source({
+			slot: options.slot,
+			plugin: this,
+			file: file
+		})
+	;
+		if (options && options.line)
+			setTimeout(function() {
+				editor.go(options.line);
+			});
 
-			return true;
-		}
+		ide.workspace.add(editor);
+		ide.plugins.trigger('editor.load', editor);
+
+		return true;
 	}
-
-}));
+};
 
 })(this.ide, this.cxl, this._, this.CodeMirror);
