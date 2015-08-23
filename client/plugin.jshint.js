@@ -21,14 +21,14 @@ var plugin = new ide.Plugin({
 	{
 		var file = e.file, version;
 		
-		if (file && e.mode==='javascript' && e.hints);
+		if (file && e.mode==='text/javascript' && e.hints)
 		{
 			version = Date.now();
 			this.files[e.id] = { editor: e, version: version };
 
 			ide.socket.send('jshint', {
 				$: e.id, p: ide.project.id,
-				f: file.id, v: version, js: ide.editor.getValue()
+				f: file.id, v: version, js: e.getValue()
 			});
 		}
 	},
@@ -43,7 +43,7 @@ var plugin = new ide.Plugin({
 					line: e.line,
 					ch: e.character,
 					type: e.id==='(error)' ? 'error' : 'warning',
-					length: e.evidence.length,
+					length: e.evidence && e.evidence.length,
 					hint: e.reason 
 				});
 			});
