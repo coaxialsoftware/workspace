@@ -2,31 +2,77 @@
 (function(ide) {
 "use strict";
 	
-ide.plugins.register('jshint', new ide.Plugin({
+var plugin = new ide.Plugin({
+	
+	delay: 250,
+	
+	files: null,
 	
 	editorCommands: {
 		
 		jshint: function()
 		{
-			if (ide.editor.file && ide.editor.mode==='javascript' &&
-				ide.editor.addHint);
-			{
-				ide.socket.send('jshint', { f: ide.editor.file.id, js: ide.editor.getValue() });
-			}
+			plugin.getHints(ide.editor);
 		}
 		
 	},
 	
+	getHints: function(e)
+	{
+		var file = e.file, version;
+		
+		if (file && e.mode==='javascript' && e.hints);
+		{
+			version = Date.now();
+			this.files[e.id] = { editor: e, version: version };
+
+			ide.socket.send('jshint', {
+				$: e.id, p: ide.project.id,
+				f: file.id, v: version, js: ide.editor.getValue()
+			});
+		}
+	},
+	
+	updateHints: function(editor, errors)
+	{
+		editor.hints.clear('jshint');
+		
+		if (errors)
+			errors.forEach(function(e) {
+				editor.hints.add('jshint', {
+					line: e.line,
+					ch: e.character,
+					type: e.id==='(error)' ? 'error' : 'warning',
+					length: e.evidence.length,
+					hint: e.reason 
+				});
+			});
+	},
+	
 	onMessage: function(data)
 	{
-		window.console.log(data);
+	var
+		me = this,
+		f = me.files[data.$]
+	;
+		if (f.version===data.v)
+		{
+			me.updateHints(f.editor, data.errors);
+			delete me.files[data.$];
+		}
 	},
 	
 	ready: function()
 	{
+		this.files = {};
+		
 		ide.plugins.on('socket.message.jshint', this.onMessage, this);
+		ide.plugins.on('editor.write', this.getHints, this);
+		ide.plugins.on('editor.load', this.getHints, this);
 	}
 	
-}));
+});
+	
+ide.plugins.register('jshint', plugin);
 	
 })(this.ide);

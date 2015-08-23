@@ -3,7 +3,8 @@
 "use strict";
 
 var
-	FILE_REGEX = /(\w+):(.*)/
+	FILE_REGEX = /(\w+):(.*)/,
+	id=1
 ;
 
 function Hash()
@@ -216,6 +217,7 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 
 	add: function(item)
 	{
+		item.id = id++;
 		this.trigger('add_child', item);
 		item.focus();
 
@@ -346,6 +348,15 @@ ide.plugins.register('workspace', {
 		showInfo: function()
 		{
 			ide.editor.showInfo();
+		},
+		
+		ascii: function()
+		{
+		var
+			char = this.getChar(),
+			code = char.charCodeAt(0)
+		;
+			ide.notify(char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8));
 		}
 		
 	},

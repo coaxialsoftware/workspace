@@ -1,6 +1,67 @@
 
-(function(ide, cxl, codeMirror) {
+(function(ide, cxl, _, codeMirror) {
 "use strict";
+	
+function HintManager(editor) {
+	this.__cm = editor.editor;
+	this.hints = {};
+}
+
+_.extend(HintManager.prototype, {
+	
+	hints: null,
+	
+	clear: function(id)
+	{
+		_.invoke(this.hints[id], 'remove');
+		this.hints = [];
+	},
+	
+	get: function(id)
+	{
+		return this.hints[id] || (this.hints[id]=[]);
+	},
+	
+	__createMark: function(line, lineHandle)
+	{
+		var el = document.createElement('DIV');
+			
+		el.style.height=(lineHandle.height|0) + 'px';
+		this.__cm.setGutterMarker(line, 'ide-editor-hint', el);	
+		
+		return el;
+	},
+	
+	__getMarker: function(line)
+	{
+		var h = this.__cm.lineInfo(line);
+	
+		return h.gutterMarkers && h.gutterMarkers['ide-editor-hint'] ||
+			this.__createMark(line, h.handle);
+	},
+	
+	__removeHint: function(el)
+	{
+		this.removeChild(el);	
+	},
+	
+	add: function(id, hint)
+	{
+	var
+		el = document.createElement('DIV'),
+		marker = this.__getMarker(hint.line-1),
+		hints = this.get(id)
+	;
+		hints.push({ el: el, remove: this.__removeHint.bind(marker, el) });
+		
+		el.setAttribute('class', 'ide-hint ide-hint-' + (hint.type || 'info'));
+		el.setAttribute('title', hint.hint);
+		
+		marker.appendChild(el);
+	}
+	
+});
+
 	
 /**
  * Events:
@@ -12,18 +73,10 @@ ide.Editor.Source = ide.Editor.extend({
 
 	editor: null,
 	mode: null,
+	hints: null,
 
 	// Stores previous token. Used by tokenchange event.
 	_old_token: null,
-
-	ascii: function()
-	{
-	var
-		char = this.getChar(),
-		code = char.charCodeAt(0)
-	;
-		ide.notify(char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8));
-	},
 
 	deleteSelection: function()
 	{
@@ -204,8 +257,8 @@ ide.Editor.Source = ide.Editor.extend({
 				dragDrop: false,
 				mode: ft,
 				scrollbarStyle: 'null',
-				gutters: ['CodeMirror-lint-markers', "CodeMirror-linenumbers", 
-				"CodeMirror-foldgutter"]	
+				gutters: [ "CodeMirror-linenumbers", 
+				"CodeMirror-foldgutter",'ide-editor-hint']	
 			}
 		));
 	},
@@ -244,6 +297,7 @@ ide.Editor.Source = ide.Editor.extend({
 		this.file_content = options.value;
 		this.keymap = new ide.KeyMap();
 		this.keymap.handle = this._keymapHandle.bind(this);
+		this.hints = new HintManager(this);
 		
 		this.listenTo(this.file, 'change:content', this._on_file_change);
 		this.listenTo(editor, 'focus', this._on_focus);
@@ -366,6 +420,8 @@ ide.Editor.Source = ide.Editor.extend({
 
 		this.file.set('content', (this.file_content=this.getValue()));
 		this.file.save();
+		
+		ide.plugins.trigger('editor.write', this);
 	},
 
 	insert: function(text)
@@ -415,6 +471,7 @@ ide.plugins.register('editor', new ide.Plugin({
 				});
 
 			ide.workspace.add(editor);
+			ide.plugins.trigger('editor.load', editor);
 
 			return true;
 		}
@@ -422,4 +479,4 @@ ide.plugins.register('editor', new ide.Plugin({
 
 }));
 
-})(this.ide, this.cxl, this.CodeMirror);
+})(this.ide, this.cxl, this._, this.CodeMirror);

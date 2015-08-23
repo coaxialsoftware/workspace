@@ -31,7 +31,6 @@ function ProjectConfiguration(path) {
 	
 	cxl.extend(this, workspace.configuration.project, project);
 	
-	
 	this.path = path;
 	
 	if (!this.ignore)
@@ -153,15 +152,12 @@ class Project {
 		});
 	}
 
+	/**
+	 * Broadcast data to all project clients.
+	 */
 	broadcast(data, plugin)
 	{
-		var payload = workspace.socket.payload(plugin || 'project', data);
-		
-		this.dbg(`Broadcasting ${payload} (${payload.length})`);
-
-		this.clients.forEach(function(client) {
-			client.send(payload);
-		});
+		workspace.socket.broadcast(plugin || 'project', data, this.clients);
 	}
 	
 	setConfig(attr)
@@ -272,8 +268,8 @@ class Project {
 		}
 		
 		common.read(file).bind(this).then(function(data) {
-			this.configuration.themeCSS = data;
-			this.broadcast({ themeCSS: data });
+			var css = this.configuration.themeCSS = data.replace(/\n/g, '');
+			this.broadcast({ themeCSS: css });
 		}, this.error);
 	}
 

@@ -1,6 +1,8 @@
 
 var
 	jshint = require('jshint').JSHINT,
+	path = require('path'),
+	fs = require('fs'),
 	
 	cxl = require('cxl'),
 	workspace = require('./workspace'),
@@ -11,11 +13,44 @@ var
 
 plugin.extend({
 	
+	findOptions: function(p, f)
+	{
+		var file = path.dirname(f) + '/.jshintrc', data;
+		
+		if (!fs.existsSync(file))
+		{
+			file = p + '/.jshintrc';
+			if (!fs.existsSync(file))
+				file = false;
+		}
+		
+		if (file)
+		{
+			this.dbg(`Using ${file} as config.`);
+			
+			try { data = JSON.parse(fs.readFileSync(file, 'utf8')); }
+			finally {
+				return data;
+			}
+		}
+	},
+	
+	/**
+	 * data: { $:id, p:project, f:path, js:code }
+	 */
 	onMessage: function(client, data)
 	{
-		this.operation(`Linting file ${data.f}`, jshint.bind(jshint, data.js));
+		var options = this.findOptions(data.p, data.f);
+			
+		this.operation(`Linting file ${data.f}`,
+			jshint.bind(jshint, data.js, options));
 		
-		socket.respond(client, 'jshint', jshint.data() );
+		var payload = jshint.data();
+		
+		payload.$ = data.$;
+		payload.v = data.v;
+		
+		socket.respond(client, 'jshint', payload);
 	}
 	
 }).run(function() {

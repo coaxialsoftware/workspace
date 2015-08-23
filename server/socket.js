@@ -35,9 +35,14 @@ plugin.extend({
 	 */
 	broadcast: function(plugin, data, clients)
 	{
-		var i, payload = this.payload(plugin, data);
-		
+	var
+		payload = this.payload(plugin, data),
+		size = Buffer.byteLength(payload),
+		i
+	;
 		clients = clients || this.clients;
+		
+		this.dbg(`Broadcasting ${payload} (${size} bytes) to ${clients.length} clients.`);
 
 		for (i in clients)
 			clients[i].send(payload);
