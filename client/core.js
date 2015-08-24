@@ -274,7 +274,7 @@ ide.Editor = cxl.View.extend({
 		ide.editor = this;
 
 		this.$el.addClass('ide-focus');
-		this.trigger('focus');
+		ide.plugins.trigger('editor.focus', this);
 	},
 	
 	showInfo: function()
@@ -293,7 +293,6 @@ ide.Editor = cxl.View.extend({
 			return "File has changed. Are you sure?";
 		// Remove first so do_layout of workspace works.
 		this.remove();
-		this.trigger('close', this);
 	}
 
 });

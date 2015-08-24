@@ -218,7 +218,8 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	add: function(item)
 	{
 		item.id = id++;
-		this.trigger('add_child', item);
+		
+		ide.plugins.trigger('workspace.add_child', item);
 		item.focus();
 
 		this.save();
@@ -249,7 +250,7 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 			ide.editor = null;
 
 		this.do_layout();
-		this.trigger('remove_child', item);
+		ide.plugins.trigger('workspace.remove_child', item);
 
 		return this;
 	},
@@ -323,6 +324,7 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 			path: hash.data.p || hash.data.project
 		})
 	;
+		window.console.log(this.hash);
 		this.slots = [];
 
 		project.fetch({ success: cb });
@@ -373,6 +375,18 @@ ide.plugins.registerCommands({
 				ide.workspace.remove(ide.editor, true);
 		},
 		
+		/**
+		 * Edits file with registered plugins.
+		 * @param {string} ... Files to open.
+		 */
+		edit: function() {
+			if (arguments.length)
+				for (var i=0; i<arguments.length; i++)
+					ide.open(arguments[i]);
+			else
+				ide.open();
+		},
+		
 		f: 'file',
 		
 		file: function()
@@ -380,6 +394,11 @@ ide.plugins.registerCommands({
 			ide.notify((ide.editor && ide.editor.file) ?
 				ide.editor.file.id || '[No Name]' :
 				'No files open.');
+		},
+		
+		tabe: function(name)
+		{
+			ide.open_tab(name, '_blank');
 		},
 		
 		close: function()

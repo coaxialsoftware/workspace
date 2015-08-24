@@ -157,30 +157,5 @@ ide.registerEditorCommand('read', function(file) {
 		ide.error('Current editor does not support command.');
 });
 	
-/**
- * Edits file with registered plugins.
- * @param {string} ... Files to open.
- */
-ide.registerCommand('edit', function() {
-	if (arguments.length)
-		for (var i=0; i<arguments.length; i++)
-			ide.open(arguments[i]);
-	else
-		ide.open();
-});
-	
-ide.registerCommand('tabe', function() {
-	ide.open_tab(name, '_blank');
-});
-	
-ide.plugins.register('file', {
-	
-
-	
-	ready: function()
-	{
-	}
-	
-});
 
 })(this.cxl, this.ide, this.jQuery);

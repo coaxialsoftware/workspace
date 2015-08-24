@@ -164,7 +164,7 @@ var vim = new ide.Plugin({
 
 		this.initRegisters();
 		
-		ide.workspace.on('add_child', this.setupEditor, this);
+		ide.plugins.on('workspace.add_child', this.setupEditor, this);
 		ide.win.addEventListener('focus', this.onFocus.bind(this));
 	},
 	
