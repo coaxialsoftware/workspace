@@ -15,6 +15,8 @@ module.exports = function(grunt) {
 					'client/core.socket.js',
 					'client/core.file.js',
 					'client/core.project.js',
+					'client/core.bar.js',
+					'client/core.source.js',
 					'client/plugin*.js'
 				]
 			},
