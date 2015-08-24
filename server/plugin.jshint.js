@@ -45,7 +45,7 @@ plugin.extend({
 	{
 		this.operation(`Linting file ${data.f}`, function() {
 			var options = this.findOptions(data.p, data.f);
-			jshint(data.js, options);
+			jshint(data.js, options, options.globals);
 		});
 		
 		var payload = jshint.data();
