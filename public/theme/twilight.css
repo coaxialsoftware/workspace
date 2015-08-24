@@ -40,8 +40,5 @@
 #command { background-color: rgba(44, 62, 80, 0.7); }
 #search { background-color: rgba(142, 68, 173, 0.7); }
 
-.ide-editor-hint { width: 100%; position: absolute; left: 0; }
-
-.ide-hint { position: absolute; width: 100%; height: 100%; }
 .ide-hint-error { background-color: rgba(255, 0, 0, 0.3); }
 .ide-hint-info { background-color: rgba(0,0,255, 0.3); }

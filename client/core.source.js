@@ -459,7 +459,6 @@ ide.defaultEdit = function(file, options)
 	var
 		editor = new ide.Editor.Source({
 			slot: options.slot,
-			plugin: this,
 			file: file
 		})
 	;
@@ -469,7 +468,6 @@ ide.defaultEdit = function(file, options)
 			});
 
 		ide.workspace.add(editor);
-		ide.plugins.trigger('editor.load', editor);
 
 		return true;
 	}

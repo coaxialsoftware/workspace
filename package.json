@@ -19,7 +19,8 @@
 		"websocket": "*",
 		"lodash": "*",
 		"micromatch": "*",
-		"jshint": "*"
+		"jshint": "*",
+		"firebase": "*"
 	},
 
 	"devDependencies": {

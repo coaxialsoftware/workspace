@@ -199,12 +199,14 @@ ide.Editor = cxl.View.extend({
 			this.slot = ide.workspace.slot();
 
 		this.setElement(this.slot.el);
-		this.$el.on('click', this._on_click.bind(this));
+		this.listenTo(this.$el, 'click', this._on_click);
 		
 		this.slot.editor = this;
 		this.info = new ide.Info({ editor: this });
 		
 		this._setup();
+		
+		ide.plugins.trigger('editor.load', this);
 	},
 
 	/** Plugin that instantiated the editor @required */
@@ -254,13 +256,14 @@ ide.Editor = cxl.View.extend({
 
 	getInfo: function()
 	{
-		return this.file.toString() + ' [' + ide.project.get('name') + ']';
+		return (this.file ? this.file.toString() : '') + ' [' + ide.project.get('name') + ']';
 	},
 
 	/** Gets the current editor state. Used to persist workspace state in the url hash. */
 	state: function()
 	{
-		return this.plugin.name + ':' + this.file.toString();
+		return (this.plugin ? this.plugin.name + ':' : '') + 
+			(this.file ? this.file.toString() : '');
 	},
 
 	focus: function()

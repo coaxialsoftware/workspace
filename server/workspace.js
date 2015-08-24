@@ -145,6 +145,7 @@ workspace.extend({
 		.register(require('./npm'))
 		.register(require('./bower'))
 		.register(require('./plugin.jshint'))
+		.register(require('./online'))
 	;
 	
 	

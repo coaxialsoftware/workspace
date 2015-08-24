@@ -324,7 +324,6 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 			path: hash.data.p || hash.data.project
 		})
 	;
-		window.console.log(this.hash);
 		this.slots = [];
 
 		project.fetch({ success: cb });

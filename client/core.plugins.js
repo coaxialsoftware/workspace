@@ -81,6 +81,8 @@ function PluginManager()
 
 cxl.extend(PluginManager.prototype, cxl.Events, {
 
+	started: false,
+	
 	_plugins: null,
 
 	get: function(name)
@@ -182,14 +184,8 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 
 	start: function()
 	{
-	var
-		plugins = ide.project.plugins,
-		i
-	;
-		for (i in plugins)
-			ide.loader.script(plugins[i]);
-
-		ide.loader.ready(this.load_plugins.bind(this));
+		this.started = true;
+		this.load_plugins();
 	},
 	
 	registerCommands: function(plugin)
