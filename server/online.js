@@ -67,7 +67,7 @@ online.extend({
 })
 .run(function() {
 var
-	url = workspace.configuration['online.url']
+	url = workspace.configuration['online.url'] || 'https://cxl.firebaseio.com'
 ;
 	this.dbg(`Connecting to ${url}`);
 	
