@@ -57,7 +57,8 @@ plugin.extend({
 		
 		if (payload.errors)
 			payload.errors.forEach(function(e) {
-				this.error(`${e.line}:${e.character} ${e.reason}`);
+				if (e)
+					this.error(`${e.line}:${e.character} ${e.reason}`);
 			}, this);
 	}
 	

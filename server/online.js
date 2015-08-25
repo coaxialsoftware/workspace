@@ -21,19 +21,24 @@ online.extend({
 	
 	onAuth: function(auth)
 	{
+		var response;
+		
 		if (!auth)
-			return this.log('Disconnected');
-		
-		this.log('Connected!');
-		
-		this.uid = auth.uid;
-		this.token = auth.token;
-		this.username = auth.password.email;
-		this.gravatar = auth.password && auth.password.profileImageURL;
-		
-		workspace.socket.broadcast('online', {
-			auth: { uid: this.uid, gravatar: this.gravatar }
-		});
+		{
+			response = { auth: null };
+			this.log('Disconnected');
+		} else
+		{
+			this.uid = auth.uid;
+			this.token = auth.token;
+			this.username = auth.password.email;
+			this.gravatar = auth.password && auth.password.profileImageURL;
+			this.log('Connected!');
+			
+			response = { auth: { uid: this.uid, gravatar: this.gravatar } };
+		}
+
+		workspace.socket.broadcast('online', response);
 	},
 	
 	onComplete: function(client, err)

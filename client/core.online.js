@@ -8,9 +8,15 @@ var LoginDialog = ide.Editor.extend({
 	
 	file: 'login',
 	
+	onAuth: function(auth)
+	{
+		this.auth = auth;
+	},
+	
 	_setup: function()
 	{
 		this.template = cxl.id(this.templateUrl).innerHTML;
+		this.listenTo(ide.plugins, 'online.auth', this.onAuth);
 	},
 	
 	submit: function()
@@ -50,8 +56,13 @@ ide.plugins.register('online', {
 	
 	onMessage: function(data)
 	{
-		if (data.auth)
-			ide.notify('Logged in as ' + data.auth.uid);
+		if ('auth' in data)
+		{
+			if (data.auth)
+				ide.notify('Logged in as ' + data.auth.uid);
+			
+			ide.plugins.trigger('online.auth', data.auth);
+		}
 	},
 	
 	ready: function()
