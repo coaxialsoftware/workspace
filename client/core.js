@@ -193,7 +193,7 @@ ide.Info = cxl.View.extend({ /** @lends ide.Info# */
 
 ide.Editor = cxl.View.extend({
 
-	initialize: function()
+	load: function()
 	{
 		if (!this.slot)
 			this.slot = ide.workspace.slot();
@@ -205,6 +205,9 @@ ide.Editor = cxl.View.extend({
 		this.info = new ide.Info({ editor: this });
 		
 		this._setup();
+		
+		if (this.template)
+			this.loadTemplate(this.template);
 		
 		ide.plugins.trigger('editor.load', this);
 	},

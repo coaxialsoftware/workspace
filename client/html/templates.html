@@ -52,12 +52,12 @@
 </script>	
 
 <script id="tpl/login" type="text/template">
-<form>
+<form &="submit(submit)">
 	<label>Username</label>
-	<input name="username" />
+	<input &="stop(keydown)" name="username" />
 	
 	<label>Password</label>
-	<input name="password" type="password" />
+	<input &="stop(keydown)" name="password" type="password" />
 	
 	<button type="submit">Submit</button>
 </form>

@@ -64,16 +64,20 @@ function count(action)
 function verify(fn)
 {
 	return function() {
-		if (ide.editor.keymap)
+		if (ide.editor.keymap instanceof ide.KeyMap)
 			fn.call(this, ide.editor);
+		else
+			return ide.Pass;
 	};
 }
 	
 function setState(name)
 {
 	return function() {
-		if (ide.editor.keymap)
+		if (ide.editor.keymap instanceof ide.KeyMap)
 			ide.editor.keymap.state = name;
+		else
+			return ide.Pass;
 	};
 }
 	
@@ -89,7 +93,7 @@ function yank(data)
 	
 var enterCountMode = function(key) {
 	vim.count = key;
-	if (ide.editor.keymap)
+	if (ide.editor.keymap instanceof ide.KeyMap)
 		ide.editor.keymap.state = 'vim-count';
 };
 
@@ -126,7 +130,7 @@ var vim = new ide.Plugin({
 	setupEditor: function(editor)
 	{
 		// Start in normal mode
-		if (editor.keymap)
+		if (editor.keymap instanceof ide.KeyMap)
 		{
 			editor.keymap.state = 'vim';
 			editor.cmd('disableInput');

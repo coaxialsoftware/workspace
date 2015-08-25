@@ -6,40 +6,57 @@ var LoginDialog = ide.Editor.extend({
 	
 	templateUrl: 'tpl/login',
 	
+	file: 'login',
+	
 	_setup: function()
 	{
-		this.$el.html(cxl.id(this.templateUrl).innerHTML);
-		
-		this.listenTo(this.$el.find('form'), 'submit', this.submit);
+		this.template = cxl.id(this.templateUrl).innerHTML;
 	},
 	
-	submit: function(ev)
+	submit: function()
 	{
 		ide.socket.send('online', {
-			u: this.$el.find('[name="username"]').val(),
-			p: this.$el.find('[name="password"]').val()
+			login: {
+				u: this.$el.find('[name="username"]').val(),
+				p: this.$el.find('[name="password"]').val()
+			}
 		});
-		
-		ev.preventDefault();
 	}
 });
 	
 ide.plugins.register('online', {
 	
-	open: function()
+	login: function()
 	{
 		var editor = new LoginDialog({
 			plugin: this
 		});
-		
+
 		ide.workspace.add(editor);
+	},
+	
+	open: function(file)
+	{
+		if (file==='login')
+			this.login();
 	},
 	
 	commands: {
 		login: function()
 		{
-			this.open();
+			this.login();
 		}
+	},
+	
+	onMessage: function(data)
+	{
+		if (data.auth)
+			ide.notify('Logged in as ' + data.auth.uid);
+	},
+	
+	ready: function()
+	{
+		ide.plugins.on('socket.message.online', this.onMessage, this);
 	}
 
 });

@@ -148,10 +148,10 @@ cxl.extend(KeyboardManager.prototype, {
 	{
 	var
 		keymap = ide.editor && ide.editor.keymap,
-		state = keymap && keymap.state,
+		state = keymap && (typeof(keymap)==='string' ? keymap : keymap.state),
 		result = false
 	;
-		if (keymap)
+		if (keymap instanceof ide.KeyMap)
 			result = keymap.handle(key); 
 		
 		if (result===false)
@@ -265,6 +265,15 @@ ide.keyboard = new KeyboardManager();
 ide.keymap = new KeyMap();
 	
 ide.keymap.registerKeys({
+	
+	basic: {
+		
+		'alt+enter': 'ex',
+		'alt+.': 'moveNext',
+		'alt+,': 'movePrev',
+		'mod+f': 'searchbar'
+		
+	},
 	
 	/**
 	 * Default Keymap

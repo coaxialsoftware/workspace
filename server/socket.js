@@ -42,10 +42,11 @@ plugin.extend({
 	;
 		clients = clients || this.clients;
 		
-		this.dbg(`Broadcasting ${payload} (${size} bytes) to ${clients.length} clients.`);
+		this.dbg(`Broadcasting ${payload} (${size} bytes) to ${clients.length} client(s).`);
 
 		for (i in clients)
-			clients[i].send(payload);
+			if (clients[i].send)
+				clients[i].send(payload);
 	},
 	
 	/**
@@ -70,7 +71,7 @@ plugin.extend({
 	this.port = config.port;
 	this.host = config.host;
 
-	this.clients = {};
+	this.clients = { length: 0 };
 
 	workspace.plugins.on('project.load', this.onProjectLoad);
 	workspace.plugins.on('workspace.load', this.onProjectLoad);
@@ -102,9 +103,11 @@ var
 
 		// TODO is this safe?
 		me.clients[(client.id=id++)] = client;
+		me.clients.length++;
 
 		client.on('close', function(reason, description) {
 			me.log(`Client disconnected ${client.remoteAddress} (${reason} ${description})`);
+			me.clients.length--;
 			delete(me.clients[client.id]);
 		});
 

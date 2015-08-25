@@ -44,7 +44,6 @@ class Configuration {
 				cert: fs.readFileSync(secure.cert)
 			};
 		}
-
 	}
 	
 	/**

@@ -54,6 +54,11 @@ plugin.extend({
 		payload.v = data.v;
 		
 		socket.respond(client, 'jshint', payload);
+		
+		if (payload.errors)
+			payload.errors.forEach(function(e) {
+				this.error(`${e.line}:${e.character} ${e.reason}`);
+			}, this);
 	}
 	
 }).run(function() {
