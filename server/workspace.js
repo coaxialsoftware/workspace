@@ -10,13 +10,14 @@ var
 	fs = require('fs'),
 	bodyParser = require('body-parser'),
 	compression = require('compression'),
+	path = require('path'),
 
 	cxl = require('cxl'),
 
 	common = require('./common.js'),
 	Watcher = require('./watcher.js'),
 
-	basePath = __dirname + '/../',
+	basePath = path.resolve(__dirname + '/../'),
 	workspace = module.exports = cxl('workspace')
 ;
 
@@ -119,6 +120,35 @@ workspace.extend({
 	plugins: new PluginManager(),
 	basePath: basePath,
 	
+	__data: null,
+	__dataFile: basePath + '/data.json',
+	
+	/**
+	 * Persist data for plugins.
+	 */
+	data: function(plugin, data)
+	{
+		if (arguments.length===1)
+			return this.__data[plugin];
+		
+		this.__data[plugin] = data;
+		this.__saveData();
+	},
+	
+	__saveData: function()
+	{
+		var me = this;
+		
+		if (this.__dataTimeout)
+			clearTimeout(this.__dataTimeout);
+		
+		this.__dataTimeout = setTimeout(function() {
+			me.dbg(`Writing data file. ${me.__dataFile} (${Buffer.byteLength(me.__data)} bytes)`);
+			
+			common.writeFile(me.__dataFile, JSON.stringify(me.__data));
+		});
+	},
+	
 	onWatch: function()
 	{
 		this.configuration= new Configuration();
@@ -132,6 +162,8 @@ workspace.extend({
 		paths: ['workspace.json'],
 		onEvent: this.onWatch.bind(this)
 	});
+	
+	this.__data = common.load_json_sync(this.__dataFile) || {};
 	
 	process.title = 'workspace:' + this.port;
 	
@@ -154,9 +186,9 @@ workspace.extend({
 
 .use(compression())
 
-.use(cxl.static(basePath + 'public', { maxAge: 86400000 }))
+.use(cxl.static(basePath + '/public', { maxAge: 86400000 }))
 
-.use(cxl.static(basePath + 'node_modules', { maxAge: 86400000 }))
+.use(cxl.static(basePath + '/node_modules', { maxAge: 86400000 }))
 
 .use(bodyParser.json({ limit: Infinity }))
 

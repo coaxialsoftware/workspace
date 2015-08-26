@@ -18,7 +18,7 @@ online.extend({
 	token: null,
 	gravatar: null,
 	username: null,
-	
+
 	onAuth: function(auth)
 	{
 		var response;
@@ -31,9 +31,22 @@ online.extend({
 		{
 			this.uid = auth.uid;
 			this.token = auth.token;
-			this.username = auth.password.email;
-			this.gravatar = auth.password && auth.password.profileImageURL;
-			this.log('Connected!');
+			
+			if (auth.password)
+			{
+				this.username = auth.password.email;
+				this.gravatar = auth.password && auth.password.profileImageURL;
+			}
+
+			this.log(`Logged In as ${this.username}!`);
+			
+			workspace.configuration.user = this.username;
+			
+			workspace.data('online', {
+				username: this.username,
+				gravatar: this.gravatar,
+				token: this.token
+			});
 			
 			response = { auth: { uid: this.uid, gravatar: this.gravatar } };
 		}
@@ -45,9 +58,10 @@ online.extend({
 	{
 		if (err)
 		{
-			workspace.socket.respond(client, 'online', {
-				login: false
-			});
+			if (client)
+				workspace.socket.respond(client, 'online', {
+					login: false
+				});
 			return this.error('Authentication failed.');
 		}
 	},
@@ -60,7 +74,11 @@ online.extend({
 			email: data.u,
 			password: data.p
 		}, this.onComplete.bind(this, client));
-		
+	},
+	
+	loginToken: function(token)
+	{
+		this.fb.authWithCustomToken(token, this.onComplete.bind(this, null));
 	},
 	
 	onMessage: function(client, msg)
@@ -72,12 +90,20 @@ online.extend({
 })
 .run(function() {
 var
-	url = workspace.configuration['online.url'] || 'https://cxl.firebaseio.com'
+	url = workspace.configuration['online.url'] || 'https://cxl.firebaseio.com',
+	data = workspace.data('online')
 ;
 	this.dbg(`Connecting to ${url}`);
 	
 	this.fb = new Firebase(url);
 	this.fb.onAuth(this.onAuth.bind(this));
+	
+	if (data && data.token)
+	{
+		this.loginToken(data.token);
+		this.username = data.username;
+		this.gravatar = data.gravatar;
+	}
 	
 	workspace.plugins.on('socket.message.online', this.onMessage.bind(this));
 });
