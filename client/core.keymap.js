@@ -254,7 +254,7 @@ cxl.extend(KeyMap.prototype, {
 	{
 	var
 		map = this.states[state || this.state],
-		fn = map && map[key] || map.all
+		fn = map && (map[key] || map.all)
 	;
 		return fn ? fn(key) : false;
 	}
@@ -305,14 +305,14 @@ ide.keymap.registerKeys({
 		'alt+enter': 'ex',
 		
 		// SELECTION
-		'shift+left': 'selectStart goCharLeft selectEnd',
-		'shift+right': 'selectStart goCharRight selectEnd',
-		'shift+up': 'selectStart goLineUp selectEnd',
-		'shift+down': 'selectStart goLineDown selectEnd',
-		'shift+home': 'selectStart goLineStart selectEnd',
-		'shift+end': 'selectStart goLineEnd selectEnd',
-		'shift+pagedown': 'selectStart goPageDown selectEnd',
-		'shift+pageup': 'selectStart goPageUp selectEnd',
+		'shift+left': 'startSelect goCharLeft endSelect',
+		'shift+right': 'startSelect goCharRight endSelect',
+		'shift+up': 'startSelect goLineUp endSelect',
+		'shift+down': 'startSelect goLineDown endSelect',
+		'shift+home': 'startSelect goLineStart endSelect',
+		'shift+end': 'startSelect goLineEnd endSelect',
+		'shift+pagedown': 'startSelect goPageDown endSelect',
+		'shift+pageup': 'startSelect goPageUp endSelect',
 		
 		'alt+u': 'redoSelection',
 		'mod+a': 'selectAll',

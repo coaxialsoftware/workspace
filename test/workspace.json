@@ -1,7 +1,7 @@
 {
 	"port": 9004,
 	"debug": true,
-	"keymap": "vim",
+	"keymap": "default",
 	"theme": "the-matrix",
 
 	"socket": {

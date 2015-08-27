@@ -40,6 +40,8 @@ function ProjectConfiguration(path) {
 	_.defaults(this, _.pick(workspace.configuration,
 		['keymap', 'theme']));
 	
+	Object.defineProperty(this, 'plugins', { writable: true, enumerable: false });
+	
 	if (workspace.configuration.plugins)
 		this.plugins = (this.plugins || []).concat(workspace.configuration.plugins); 
 	
