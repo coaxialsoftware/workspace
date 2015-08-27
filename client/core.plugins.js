@@ -181,10 +181,19 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 				plug.ready();
 		});
 	},
+	
+	loadSource: function(src)
+	{
+		/* jshint evil:true */
+		if (src)
+			(new Function(src)).call(window);
+	},
 
 	start: function()
 	{
 		this.started = true;
+		
+		this.loadSource(ide.project.get('src'));
 		this.load_plugins();
 	},
 	

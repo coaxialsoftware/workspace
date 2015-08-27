@@ -16,7 +16,7 @@ var
 	/** Used by commands to indicate that the command wasn't handled. */
 	Pass: {},
 		
-	version: '0.2.0',
+	version: '0.3.0',
 
 	/** Current opened project */
 	project: null,

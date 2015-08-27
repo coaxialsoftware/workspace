@@ -11,6 +11,8 @@ var
 	bodyParser = require('body-parser'),
 	compression = require('compression'),
 	path = require('path'),
+	_ = require('lodash'),
+	Q = require('bluebird'),
 
 	cxl = require('cxl'),
 
@@ -18,7 +20,7 @@ var
 	Watcher = require('./watcher.js'),
 
 	basePath = path.resolve(__dirname + '/../'),
-	workspace = module.exports = cxl('workspace')
+	workspace = global.workspace = module.exports = cxl('workspace')
 ;
 
 class Configuration {
@@ -90,7 +92,10 @@ class PluginManager extends EventEmitter {
 	constructor()
 	{
 		super();
+		
 		this.plugins = {};
+		this.sources = {};
+		
 		this.path = basePath + '/plugins';
 	}
 
@@ -101,25 +106,52 @@ class PluginManager extends EventEmitter {
 	 */
 	register(plugin)
 	{
+		if (plugin.name in this.plugins)
+			workspace.log(`WARNING Plugin ${plugin} already loaded`);
+						  
 		this.plugins[plugin.name] = plugin;
 		
 		return this;
 	}
 	
-	require(name)
+	requirePlugin(plugins, name, i)
 	{
+	var
+		parsed = /^(?:(\w+):)?(.+)/.exec(name),
+		file, plugin
+	;
+		if (parsed[1]==='file')
+		{
+			file = path.resolve(parsed[2]);
+			plugin = require(file);
+			
+			this.register(plugin);
+			
+			// Change plugin name so project can easily include it.
+			plugins[i] = plugin.name;
+
+			this.sources[plugin.name] = plugin.source ? _.result(plugin, 'source') :
+				(plugin.sourcePath ? common.read(plugin.sourcePath) : '');
+		}
 	}
 
 	start()
 	{
-		var plugins = workspace.configuration.plugins;
-		
+	var
+		plugins = workspace.configuration.plugins
+	;
 		this.package = workspace.data('plugins');
 		
-		for (var i in plugins)
-			this.require(i);
+		_.each(plugins, this.requirePlugin.bind(this, plugins));
 		
-		setImmediate(this.emit.bind(this, 'workspace.load', workspace));
+		Q.props(this.sources).bind(this).then(function(sources) {
+			this.sources = sources;
+			
+			for (var i in this.plugins)
+				this.plugins[i].start();
+
+			setImmediate(this.emit.bind(this, 'workspace.load', workspace));
+		});
 	}
 
 }

@@ -39,11 +39,15 @@ function ProjectConfiguration(path) {
 	
 	_.defaults(this, _.pick(workspace.configuration,
 		['keymap', 'theme']));
-
+	
+	if (workspace.configuration.plugins)
+		this.plugins = (this.plugins || []).concat(workspace.configuration.plugins); 
+	
+	this.buildSources();
+	
 	this.tags = {
 		workspace: !!project
 	};
-	
 }
 
 cxl.extend(ProjectConfiguration.prototype, {
@@ -61,7 +65,15 @@ cxl.extend(ProjectConfiguration.prototype, {
 	/**
 	 * Project description.
 	 */
-	description: null
+	description: null,
+	
+	buildSources()
+	{
+		if (this.plugins)
+			this.src = this.plugins.map(function(p) {
+				return workspace.plugins.sources[p];
+			}, this).join('');
+	}
 	
 });
 
