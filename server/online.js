@@ -41,6 +41,7 @@ online.extend({
 			this.log(`Logged In as ${this.username}!`);
 			
 			workspace.configuration.user = this.username;
+			workspace.configuration.gravatar = this.gravatar;
 			
 			workspace.data('online', {
 				username: this.username,

@@ -256,7 +256,7 @@ class Project {
 	var
 		theme = this.configuration.theme,
 		file = path.isAbsolute(theme) ? theme :
-			workspace.basePath + 'public/theme/' + theme + '.css'
+			workspace.basePath + '/public/theme/' + theme + '.css'
 	;
 		this.themePath = path.relative(this.path, file);
 		this.log(`Loading Theme "${theme}"(${this.themePath})`);

@@ -91,6 +91,7 @@ class PluginManager extends EventEmitter {
 	{
 		super();
 		this.plugins = {};
+		this.path = basePath + '/plugins';
 	}
 
 	/**
@@ -101,13 +102,22 @@ class PluginManager extends EventEmitter {
 	register(plugin)
 	{
 		this.plugins[plugin.name] = plugin;
+		
 		return this;
+	}
+	
+	require(name)
+	{
 	}
 
 	start()
 	{
-		for (var i in this.plugins)
-			this.plugins[i].start();
+		var plugins = workspace.configuration.plugins;
+		
+		this.package = workspace.data('plugins');
+		
+		for (var i in plugins)
+			this.require(i);
 		
 		setImmediate(this.emit.bind(this, 'workspace.load', workspace));
 	}
@@ -170,15 +180,14 @@ workspace.extend({
 	// Register Default Plugins
 	this.plugins.register(require('./project'))
 		.register(require('./file'))
-		.register(require('./shell'))
+	//	.register(require('./shell'))
 		.register(require('./socket'))
-		.register(require('./git'))
-		.register(require('./npm'))
-		.register(require('./bower'))
-		.register(require('./plugin.jshint'))
+	//	.register(require('./git'))
+	//	.register(require('./npm'))
+	//	.register(require('./bower'))
+	//	.register(require('./plugin.jshint'))
 		.register(require('./online'))
 	;
-	
 	
 })
 
