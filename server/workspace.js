@@ -161,6 +161,7 @@ workspace.extend({
 	configuration: new Configuration(),
 	plugins: new PluginManager(),
 	basePath: basePath,
+	common: common,
 	
 	__data: null,
 	__dataFile: basePath + '/data.json',

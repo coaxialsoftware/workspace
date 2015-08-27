@@ -18,10 +18,7 @@ SocketManager.prototype = {
 	
 	__doSend: function(plugin, data)
 	{
-		this.ws.send(JSON.stringify({
-			plugin: plugin,
-			data: data
-		}));
+		this.ws.send(JSON.stringify({ plugin: plugin, data: data }));
 	},
 
 	/**
