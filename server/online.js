@@ -26,6 +26,7 @@ online.extend({
 		if (!auth)
 		{
 			response = { auth: null };
+			workspace.data('online', null);
 			this.log('Disconnected');
 		} else
 		{

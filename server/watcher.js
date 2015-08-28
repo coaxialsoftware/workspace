@@ -18,7 +18,8 @@ function Watcher(options)
 	if (this.base)
 		this.watchPath('.');
 	
-	this.paths.forEach(this.watchPath.bind(this));
+	if (this.paths)
+		this.paths.forEach(this.watchPath.bind(this));
 }
 
 _.extend(Watcher.prototype, {
@@ -100,13 +101,17 @@ _.extend(Watcher.prototype, {
 		if (this.watchers[id])
 			throw `${id} already watched.`;
 		
-		var w = fs.watch(id);
-		w.on('change', this.onWatch.bind(this, dir));
-		w.on('error', this.onError.bind(this, dir));
-		
-		this.watchers[id] = w;
-		
-		return id;
+		try {
+			var w = fs.watch(id);
+			w.on('change', this.onWatch.bind(this, dir));
+			w.on('error', this.onError.bind(this, dir));
+			
+			this.watchers[id] = w;
+			
+			return id;
+		} catch(e) {
+			workspace.error(e);
+		}
 	},
 	
 	watchPath: function(p)

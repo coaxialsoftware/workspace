@@ -14,7 +14,6 @@
 		"mime": "*",
 		"bluebird": "*",
 		"colors": "*",
-		"cxl": "*",
 		"websocket": "*",
 		"lodash": "*",
 		"micromatch": "*",

@@ -162,6 +162,9 @@ workspace.extend({
 	plugins: new PluginManager(),
 	basePath: basePath,
 	common: common,
+
+	_: _,
+	Q: Q,
 	
 	__data: null,
 	__dataFile: basePath + '/data.json',
@@ -202,9 +205,12 @@ workspace.extend({
 {
 	this.port = this.configuration.port;
 	this.watcher = new Watcher({
-		paths: ['workspace.json'],
 		onEvent: this.onWatch.bind(this)
 	});
+
+	common.stat('workspace.json')
+		.then(this.watcher.watchFile.bind(this.watcher, 'workspace.json'),
+			this.log.bind(this, 'No workspace.json found.'));
 	
 	this.__data = common.load_json_sync(this.__dataFile) || {};
 	
