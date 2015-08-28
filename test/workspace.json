@@ -4,6 +4,10 @@
 	"keymap": "default",
 	"theme": "the-matrix",
 
+	"plugins": [
+		"workspace.jshint"
+	],
+	
 	"socket": {
 		"port": 9005
 	},

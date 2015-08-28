@@ -107,32 +107,33 @@ class PluginManager extends EventEmitter {
 	register(plugin)
 	{
 		if (plugin.name in this.plugins)
-			workspace.log(`WARNING Plugin ${plugin} already loaded`);
+			workspace.log(`WARNING Plugin ${plugin.name} already registered.`);
 						  
 		this.plugins[plugin.name] = plugin;
 		
 		return this;
 	}
 	
+	requireFile(plugins, i, file)
+	{
+		var plugin = require(file);
+
+		this.register(plugin);
+
+		// Change plugin name so project can easily include it.
+		plugins[i] = plugin.name;
+
+		this.sources[plugin.name] = plugin.source ? _.result(plugin, 'source') :
+			(plugin.sourcePath ? common.read(plugin.sourcePath) : '');
+	}
+	
 	requirePlugin(plugins, name, i)
 	{
 	var
-		parsed = /^(?:(\w+):)?(.+)/.exec(name),
-		file, plugin
+		parsed = /^(?:(\w+):)?(.+)/.exec(name)
 	;
 		if (parsed[1]==='file')
-		{
-			file = path.resolve(parsed[2]);
-			plugin = require(file);
-			
-			this.register(plugin);
-			
-			// Change plugin name so project can easily include it.
-			plugins[i] = plugin.name;
-
-			this.sources[plugin.name] = plugin.source ? _.result(plugin, 'source') :
-				(plugin.sourcePath ? common.read(plugin.sourcePath) : '');
-		}
+			this.requireFile(plugins, i, path.resolve(parsed[2]));
 	}
 
 	start()

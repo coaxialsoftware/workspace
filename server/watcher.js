@@ -2,7 +2,9 @@
 var
 	fs = require('fs'),
 	_ = require('lodash'),
-	path = require('path')
+	path = require('path'),
+	
+	workspace = require('./workspace')
 ;
 
 function Watcher(options)
