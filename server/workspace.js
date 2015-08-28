@@ -31,7 +31,7 @@ class Configuration {
 		this.loadFile('workspace.json');
 
 		cxl.extend(this, {
-			version: '0.1',
+			version: '0.3.0',
 			user: process.env.USER || process.env.USERNAME
 		});
 
