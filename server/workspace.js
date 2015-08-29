@@ -114,26 +114,35 @@ class PluginManager extends EventEmitter {
 		return this;
 	}
 	
-	requireFile(plugins, i, file)
+	requireFile(file)
 	{
 		var plugin = require(file);
 
 		this.register(plugin);
-
-		// Change plugin name so project can easily include it.
-		plugins[i] = plugin.name;
-
 		this.sources[plugin.name] = plugin.source ? _.result(plugin, 'source') :
 			(plugin.sourcePath ? common.read(plugin.sourcePath) : '');
+		
+		return plugin;
 	}
 	
-	requirePlugin(plugins, name, i)
+	requirePlugins(plugins)
+	{
+		_.each(plugins, function(p, i) {
+			var plugin = this.requirePlugin(p);
+			
+			// Change plugin name so project can easily include it.
+			if (plugin)
+				plugins[i] = plugin.name;
+		}, this);
+	}
+	
+	requirePlugin(name)
 	{
 	var
 		parsed = /^(?:(\w+):)?(.+)/.exec(name)
 	;
 		if (parsed[1]==='file')
-			this.requireFile(plugins, i, path.resolve(parsed[2]));
+			return this.requireFile(path.resolve(parsed[2]));
 	}
 
 	start()
@@ -142,8 +151,7 @@ class PluginManager extends EventEmitter {
 		plugins = workspace.configuration.plugins
 	;
 		this.package = workspace.data('plugins');
-		
-		_.each(plugins, this.requirePlugin.bind(this, plugins));
+		this.requirePlugins(plugins);
 		
 		Q.props(this.sources).bind(this).then(function(sources) {
 			this.sources = sources;

@@ -18,7 +18,8 @@ module.exports = function(grunt) {
 					'client/core.bar.js',
 					'client/core.source.js',
 					'client/core.folder.js',
-					'client/core.online.js'
+					'client/core.online.js',
+					'client/plugin.welcome.js'
 				]
 			},
 			server: {
