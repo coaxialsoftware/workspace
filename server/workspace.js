@@ -94,9 +94,7 @@ class PluginManager extends EventEmitter {
 		super();
 		
 		this.plugins = {};
-		this.sources = {};
-		
-		this.path = basePath + '/plugins';
+		this.sources = {};		
 	}
 
 	/**
@@ -127,13 +125,7 @@ class PluginManager extends EventEmitter {
 	
 	requirePlugins(plugins)
 	{
-		_.each(plugins, function(p, i) {
-			var plugin = this.requirePlugin(p);
-			
-			// Change plugin name so project can easily include it.
-			if (plugin)
-				plugins[i] = plugin.name;
-		}, this);
+		_.each(plugins, this.requirePlugin, this);
 	}
 	
 	requirePlugin(name)
@@ -143,6 +135,16 @@ class PluginManager extends EventEmitter {
 	;
 		if (parsed[1]==='file')
 			return this.requireFile(path.resolve(parsed[2]));
+		
+		return this.requireFile(this.path + '/' + name);
+	}
+	
+	setupFirebase()
+	{
+		this.fb = workspace.fb.child('plugins');
+		this.fb.on('value', function(data) {
+			this.available = data;
+		}, this);
 	}
 
 	start()
@@ -150,7 +152,10 @@ class PluginManager extends EventEmitter {
 	var
 		plugins = workspace.configuration.plugins
 	;
+		this.path = workspace.configuration['plugins.path'] ||
+			(basePath + '/plugins');
 		this.package = workspace.data('plugins');
+		
 		this.requirePlugins(plugins);
 		
 		Q.props(this.sources).bind(this).then(function(sources) {
@@ -159,6 +164,8 @@ class PluginManager extends EventEmitter {
 			for (var i in this.plugins)
 				this.plugins[i].start();
 
+			this.setupFirebase();
+			
 			setImmediate(this.emit.bind(this, 'workspace.load', workspace));
 		});
 	}
@@ -228,12 +235,7 @@ workspace.extend({
 	// Register Default Plugins
 	this.plugins.register(require('./project'))
 		.register(require('./file'))
-	//	.register(require('./shell'))
 		.register(require('./socket'))
-	//	.register(require('./git'))
-	//	.register(require('./npm'))
-	//	.register(require('./bower'))
-	//	.register(require('./plugin.jshint'))
 		.register(require('./online'))
 	;
 	

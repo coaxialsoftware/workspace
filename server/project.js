@@ -29,7 +29,7 @@ var
 function ProjectConfiguration(path) {
 	var project = common.load_json_sync(path+'/project.json');
 	
-	cxl.extend(this, workspace.configuration.project, project);
+	common.extend(this, workspace.configuration.project, project);
 	
 	this.path = path;
 	
@@ -39,11 +39,6 @@ function ProjectConfiguration(path) {
 	
 	_.defaults(this, _.pick(workspace.configuration,
 		['keymap', 'theme']));
-	
-	Object.defineProperty(this, 'plugins', { writable: true, enumerable: false });
-	
-	if (workspace.configuration.plugins)
-		this.plugins = (this.plugins || []).concat(workspace.configuration.plugins); 
 	
 	this.buildSources();
 	
@@ -73,7 +68,8 @@ cxl.extend(ProjectConfiguration.prototype, {
 	{
 		if (this.plugins)
 			this.src = this.plugins.map(function(p) {
-				return workspace.plugins.sources[p];
+				return workspace.plugins.sources[p] ||
+					workspace.plugins.sources['workspace.'+p];
 			}, this).join('');
 	}
 	

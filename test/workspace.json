@@ -3,14 +3,18 @@
 	"debug": true,
 	"keymap": "default",
 	"theme": "the-matrix",
-
+	
+	"project": {
+		"plugins": [ "jshint" ]
+	},
+	
 	"plugins": [
-		"workspace.jshint"
+		"file:/home/giancarlo/projects/workspace.base/workspace.jshint"	
 	],
 	
 	"socket": {
 		"port": 9005
 	},
     
-    "online.url": "https://cxl-dev.firebaseio.com/"
+    "online.url": "https://cxl-test.firebaseio.com/workspace"
 }

@@ -27,7 +27,7 @@ online.extend({
 		{
 			response = { auth: null };
 			workspace.data('online', null);
-			this.log('Disconnected');
+			this.log('Not Authenticated');
 		} else
 		{
 			this.uid = auth.uid;
@@ -47,7 +47,8 @@ online.extend({
 			workspace.data('online', {
 				username: this.username,
 				gravatar: this.gravatar,
-				token: this.token
+				token: this.token,
+				url: this.url
 			});
 			
 			response = { auth: { uid: this.uid, gravatar: this.gravatar } };
@@ -92,19 +93,26 @@ online.extend({
 })
 .run(function() {
 var
-	url = workspace.configuration['online.url'] || 'https://cxl.firebaseio.com',
+	url = this.url = workspace.configuration['online.url'] ||
+		'https://cxl.firebaseio.com/workspace',
 	data = workspace.data('online')
 ;
 	this.dbg(`Connecting to ${url}`);
 	
-	this.fb = new Firebase(url);
+	this.fb = workspace.fb = new Firebase(url);
 	this.fb.onAuth(this.onAuth.bind(this));
 	
-	if (data && data.token)
+	if (data)
 	{
-		this.loginToken(data.token);
-		this.username = data.username;
-		this.gravatar = data.gravatar;
+		if (data.url !== url)
+			delete data.token;
+
+		if (data.token)
+		{
+			this.loginToken(data.token);
+			this.username = data.username;
+			this.gravatar = data.gravatar;
+		}
 	}
 	
 	workspace.plugins.on('socket.message.online', this.onMessage.bind(this));

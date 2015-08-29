@@ -236,4 +236,19 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
  */
 ide.plugins = new PluginManager();
 	
+ide.plugins.register('plugins', {
+	commands: {
+		plugins: function() { this.open(); }
+	},
+	
+	open: function()
+	{
+		var l = new ide.FileList({
+			plugin: this
+		});
+		
+		ide.workspace.add(l);
+	}
+});
+
 })(this.ide, this.cxl);
