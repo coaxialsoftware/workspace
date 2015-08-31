@@ -6,6 +6,7 @@
 
 var
 	cxl = require('cxl'),
+	Firebase = require('firebase'),
 	
 	workspace = require('./workspace'),
 	online = module.exports = cxl('workspace.online')
@@ -94,7 +95,8 @@ online.extend({
 var
 	fb = this.fb = workspace.fb,
 	url = fb.toString(),
-	data = workspace.data('online')
+	data = workspace.data('online'),
+	info = new Firebase(this.fb.root() + '/.info')
 ;
 	fb.onAuth(this.onAuth.bind(this));
 	
@@ -111,5 +113,9 @@ var
 		}
 	}
 	
+	info.child('connected').on('value', function(snap) {
+		var status = snap.val();
+		this.log(status ? 'Connected' : 'Disconnected');
+	}, this);
 	workspace.plugins.on('socket.message.online', this.onMessage.bind(this));
 });

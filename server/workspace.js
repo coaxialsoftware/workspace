@@ -101,6 +101,9 @@ class Plugin {
 		}).bind(this).then(function(data) {
 			this.source = data.source;
 			this.package = data.pkg;
+		}, function(e) {
+			this.mod.error(`Failed to load plugin ${this.name}`);
+			this.mod.error(e);
 		});
 		
 		this.setupFirebase();
@@ -202,6 +205,7 @@ class PluginManager extends EventEmitter {
 		
 		this.setupFirebase();
 		this.requirePlugins(plugins);
+		
 		Q.all(_.pluck(this.plugins, 'ready')).bind(this).then(function() {
 			this.sources = _.transform(this.plugins, function(result, n, k) {
 				result[k] = n.source;
