@@ -9,7 +9,7 @@
 	},
 	
 	"plugins": [
-		"file:/home/giancarlo/projects/workspace.base/workspace.jshint"	
+		"file:../../workspace.base/workspace.jshint"	
 	],
 	
 	"socket": {

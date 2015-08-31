@@ -94,8 +94,14 @@ class Plugin {
 		this.path = path;
 		this.name = mod.name;
 		
-		this.source = mod.source ? _.result(mod, 'source') :
-			(mod.sourcePath ? common.read(mod.sourcePath) : '');
+		this.ready = Q.props({
+			source: mod.source ? _.result(mod, 'source') :
+				(mod.sourcePath ? common.read(mod.sourcePath) : ''),
+			pkg: common.read(path + '/package.json')
+		}).bind(this).then(function(data) {
+			this.source = data.source;
+			this.package = data.pkg;
+		});
 		
 		this.setupFirebase();
 	}
@@ -114,7 +120,8 @@ class Plugin {
 	
 	onValue(data)
 	{
-		this.package = data.val();
+		if (data.version !== this.package.version)
+			this.mod.dbg(`New version ${data.version} available!`);
 	}
 }
 
@@ -151,7 +158,6 @@ class PluginManager extends EventEmitter {
 		var plugin = new Plugin(file);
 
 		this.register(plugin);
-		this.sources[plugin.name] = plugin.source;
 		
 		return plugin;
 	}
@@ -196,9 +202,10 @@ class PluginManager extends EventEmitter {
 		
 		this.setupFirebase();
 		this.requirePlugins(plugins);
-		
-		Q.props(this.sources).bind(this).then(function(sources) {
-			this.sources = sources;
+		Q.all(_.pluck(this.plugins, 'ready')).bind(this).then(function() {
+			this.sources = _.transform(this.plugins, function(result, n, k) {
+				result[k] = n.source;
+			});
 			
 			for (var i in this.plugins)
 				this.plugins[i].start();
