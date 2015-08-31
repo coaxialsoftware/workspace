@@ -1,5 +1,5 @@
 
-(function(ide, cxl) {
+(function(ide, cxl, $, _) {
 "use strict";
 	
 /** @class */
@@ -215,17 +215,6 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	{
 		this._plugins[name] = plugin;
 		plugin.name = name;
-	},
-	
-	unregister: function(name)
-	{
-		this._plugins[name].destroy();
-		delete this._plugins[name];
-	},
-	
-	unregisterAll: function()
-	{
-		Object.keys(this._plugins).forEach(this.unregister, this);
 	}
 
 });
@@ -244,11 +233,17 @@ ide.plugins.register('plugins', {
 	open: function()
 	{
 		var l = new ide.FileList({
+			title: 'plugins',
+			file_template: '#tpl-plugins',
 			plugin: this
+		});
+		
+		$.get('/plugins', function(data) {
+			l.addFiles(_.values(data));
 		});
 		
 		ide.workspace.add(l);
 	}
 });
 
-})(this.ide, this.cxl);
+})(this.ide, this.cxl, this.jQuery, this._);

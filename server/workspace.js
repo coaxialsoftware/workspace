@@ -7,6 +7,7 @@
 
 var
 	EventEmitter = require('events').EventEmitter,
+	Firebase = require('firebase'),
 	fs = require('fs'),
 	bodyParser = require('body-parser'),
 	compression = require('compression'),
@@ -84,6 +85,39 @@ cxl.define(Configuration, {
 
 });
 
+class Plugin {
+	
+	constructor(path)
+	{
+		var mod = this.mod = require(path);
+		this.id = mod.name.replace(/^workspace\./, '');
+		this.path = path;
+		this.name = mod.name;
+		
+		this.source = mod.source ? _.result(mod, 'source') :
+			(mod.sourcePath ? common.read(mod.sourcePath) : '');
+		
+		this.setupFirebase();
+	}
+	
+	setupFirebase()
+	{
+		this.fb = workspace.plugins.fb.child(this.id);
+		this.fb.on('value', this.onValue, this);
+		this.mod.dbg(`Plugin listening to ${this.fb.toString()}`);
+	}
+	
+	start()
+	{
+		this.mod.start();
+	}
+	
+	onValue(data)
+	{
+		this.package = data.val();
+	}
+}
+
 /**
  * Plugin Manager
  */
@@ -104,21 +138,20 @@ class PluginManager extends EventEmitter {
 	 */
 	register(plugin)
 	{
-		if (plugin.name in this.plugins)
+		if (plugin.id in this.plugins)
 			workspace.log(`WARNING Plugin ${plugin.name} already registered.`);
 						  
-		this.plugins[plugin.name] = plugin;
+		this.plugins[plugin.id] = plugin;
 		
 		return this;
 	}
 	
 	requireFile(file)
 	{
-		var plugin = require(file);
+		var plugin = new Plugin(file);
 
 		this.register(plugin);
-		this.sources[plugin.name] = plugin.source ? _.result(plugin, 'source') :
-			(plugin.sourcePath ? common.read(plugin.sourcePath) : '');
+		this.sources[plugin.name] = plugin.source;
 		
 		return plugin;
 	}
@@ -139,12 +172,17 @@ class PluginManager extends EventEmitter {
 		return this.requireFile(this.path + '/' + name);
 	}
 	
+	getAll(cb)
+	{
+		// TODO see if we can make this into promise
+		this.fb.once('value', function(data) {
+			cb(data.val());
+		});
+	}
+	
 	setupFirebase()
 	{
 		this.fb = workspace.fb.child('plugins');
-		this.fb.on('value', function(data) {
-			this.available = data;
-		}, this);
 	}
 
 	start()
@@ -156,6 +194,7 @@ class PluginManager extends EventEmitter {
 			(basePath + '/plugins');
 		this.package = workspace.data('plugins');
 		
+		this.setupFirebase();
 		this.requirePlugins(plugins);
 		
 		Q.props(this.sources).bind(this).then(function(sources) {
@@ -163,8 +202,6 @@ class PluginManager extends EventEmitter {
 			
 			for (var i in this.plugins)
 				this.plugins[i].start();
-
-			this.setupFirebase();
 			
 			setImmediate(this.emit.bind(this, 'workspace.load', workspace));
 		});
@@ -215,6 +252,15 @@ workspace.extend({
 	{
 		this.configuration= new Configuration();
 		workspace.plugins.emit('workspace.reload');
+	},
+	
+	setupFirebase: function()
+	{
+	var
+		url = this.configuration['online.url'] ||
+			'https://cxl.firebaseio.com/workspace'
+	;
+		this.fb = new Firebase(url);
 	}
 
 }).config(function()
@@ -223,6 +269,7 @@ workspace.extend({
 	this.watcher = new Watcher({
 		onEvent: this.onWatch.bind(this)
 	});
+	this.setupFirebase();
 
 	common.stat('workspace.json')
 		.then(this.watcher.watchFile.bind(this.watcher, 'workspace.json'),
@@ -231,14 +278,6 @@ workspace.extend({
 	this.__data = common.load_json_sync(this.__dataFile) || {};
 	
 	process.title = 'workspace:' + this.port;
-	
-	// Register Default Plugins
-	this.plugins.register(require('./project'))
-		.register(require('./file'))
-		.register(require('./socket'))
-		.register(require('./online'))
-	;
-	
 })
 
 .createServer()
@@ -251,7 +290,18 @@ workspace.extend({
 
 .use(bodyParser.json({ limit: Infinity }))
 
+.route('GET', '/plugins', function(req, res) {
+	this.plugins.getAll(function(data) {
+		res.send(data);
+	});
+})
+
 .run(function() {
+	require('./project').start();
+	require('./file').start();
+	require('./socket').start();
+	require('./online').start();
+	
 	this.plugins.start();
 });
 

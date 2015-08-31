@@ -29,6 +29,16 @@
 <h3><%= title %></h3>
 <div class="filelist-content"></div>
 </script>
+
+<script id="tpl-plugins" type="text/template">
+<div class="file">
+	<div class="content">
+		<button class="pull-right" type="button">Add</button>
+		<h4><%- obj.name %> <small><%- obj.version %></small></h4>
+		<p><%- obj.description %></p>
+	</div>
+</div>
+</script>
 	
 <script id="tpl-project" type="text/template">
 <% _.each(projects, function(p) { %>

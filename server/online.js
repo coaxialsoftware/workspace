@@ -6,7 +6,6 @@
 
 var
 	cxl = require('cxl'),
-	Firebase = require('firebase'),
 	
 	workspace = require('./workspace'),
 	online = module.exports = cxl('workspace.online')
@@ -48,7 +47,7 @@ online.extend({
 				username: this.username,
 				gravatar: this.gravatar,
 				token: this.token,
-				url: this.url
+				url: this.fb.toString()
 			});
 			
 			response = { auth: { uid: this.uid, gravatar: this.gravatar } };
@@ -93,14 +92,11 @@ online.extend({
 })
 .run(function() {
 var
-	url = this.url = workspace.configuration['online.url'] ||
-		'https://cxl.firebaseio.com/workspace',
+	fb = this.fb = workspace.fb,
+	url = fb.toString(),
 	data = workspace.data('online')
 ;
-	this.dbg(`Connecting to ${url}`);
-	
-	this.fb = workspace.fb = new Firebase(url);
-	this.fb.onAuth(this.onAuth.bind(this));
+	fb.onAuth(this.onAuth.bind(this));
 	
 	if (data)
 	{

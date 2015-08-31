@@ -14,7 +14,7 @@ var
 ;
 
 plugin.extend({
-
+	
 	/** We store all active connections here */
 	clients: null,
 

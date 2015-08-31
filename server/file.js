@@ -96,7 +96,7 @@ plugin.config(function() {
 	workspace.plugins.on('socket.message.file', this.onMessage.bind(this));
 
 }).extend({
-
+	
 	/**
 	 * data.p    File path.
 	 * data.t    File mtime.
