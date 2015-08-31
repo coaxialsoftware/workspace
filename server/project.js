@@ -29,7 +29,9 @@ var
 function ProjectConfiguration(path) {
 	var project = common.load_json_sync(path+'/project.json');
 	
-	common.extend(this, workspace.configuration.project, project);
+	// TODO ?
+	common.extend(this, workspace.configuration.project);
+	common.extend(this, project);
 	
 	this.path = path;
 	
