@@ -32,8 +32,15 @@
 
 <script id="tpl-plugins" type="text/template">
 <div class="file">
-	<div class="content">
-		<button class="pull-right" type="button">Add</button>
+	<div tabindex="0" class="content">
+		<button class="pull-right" type="button">
+			<%= obj.installed ? 'Uninstall' : 'Install' %>
+		</button>
+		<% if (obj.installed) { %>
+			<button class="pull-right" type="button">
+				<%= obj.enabled ? 'Disable' : 'Enable' %>
+			</button>
+		<% } %>
 		<h4><%- obj.name %> <small><%- obj.version %></small></h4>
 		<p><%- obj.description %></p>
 	</div>

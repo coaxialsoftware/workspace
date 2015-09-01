@@ -203,5 +203,43 @@ common = module.exports = {
 		} catch(e) {
 			return null;
 		}
+	},
+	
+	/**
+	 * Returns a promise that resolves when the object property is set
+	 * to something other than undefined|null, optional timeout (default 5000)
+	 */
+	promiseProp: function(obj, prop, timeout)
+	{
+		var start = Date.now();
+		timeout = timeout || 2000;
+		
+		return new Q(function(resolve, reject) {
+			var check = function() {
+				var val = obj[prop];
+				
+				if (val!==null || val!==undefined)
+					return resolve(val);
+				
+				if (timeout < start-Date.now())
+					setTimeout(check);
+				else
+					reject('Timeout');
+			};
+		});
+	},
+	
+	promiseCallback: function(fn, timeout)
+	{
+		timeout = timeout || 2000;
+		return new Q(function(resolve, reject) {
+			var timeout = setTimeout(reject, timeout);
+			
+			fn(function(data) {
+				clearTimeout(timeout);
+				resolve(data);
+			});
+		});
 	}
+	
 };

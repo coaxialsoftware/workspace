@@ -55,10 +55,10 @@ ide.Project = cxl.Model.extend({
 	{
 		if (data.files)
 			this.set_files(data.files);
-		if (data.ignore_regex)
-			this.ignoreRegex = new RegExp(data.ignore_regex);
-		if (data.themeCSS)
-			this.loadTheme(data.themeCSS);
+		if (data['ignore.regex'])
+			this.ignoreRegex = new RegExp(data['ignore.regex']);
+		if (data['theme.css'])
+			this.loadTheme(data['theme.css']);
 		
 		return data;
 	},

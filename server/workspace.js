@@ -7,7 +7,6 @@
 
 var
 	EventEmitter = require('events').EventEmitter,
-	Firebase = require('firebase'),
 	fs = require('fs'),
 	bodyParser = require('body-parser'),
 	compression = require('compression'),
@@ -28,7 +27,7 @@ class Configuration {
 
 	constructor()
 	{
-		this.loadFile('~/.workspace/config.json');
+		this.loadFile('~/.workspace.json');
 		this.loadFile('workspace.json');
 
 		cxl.extend(this, {
@@ -97,7 +96,7 @@ class Plugin {
 		this.ready = Q.props({
 			source: mod.source ? _.result(mod, 'source') :
 				(mod.sourcePath ? common.read(mod.sourcePath) : ''),
-			pkg: common.read(path + '/package.json')
+			pkg: common.load_json(path + '/package.json')
 		}).bind(this).then(function(data) {
 			this.source = data.source;
 			this.package = data.pkg;
@@ -106,14 +105,7 @@ class Plugin {
 			this.mod.error(e);
 		});
 		
-		this.setupFirebase();
-	}
-	
-	setupFirebase()
-	{
-		this.fb = workspace.plugins.fb.child(this.id);
-		this.fb.on('value', this.onValue, this);
-		this.mod.dbg(`Plugin listening to ${this.fb.toString()}`);
+		workspace.online.watch('/plugins/'+this.id, this.onValue, this);
 	}
 	
 	start()
@@ -181,17 +173,9 @@ class PluginManager extends EventEmitter {
 		return this.requireFile(this.path + '/' + name);
 	}
 	
-	getAll(cb)
+	getPackages()
 	{
-		// TODO see if we can make this into promise
-		this.fb.once('value', function(data) {
-			cb(data.val());
-		});
-	}
-	
-	setupFirebase()
-	{
-		this.fb = workspace.fb.child('plugins');
+		return _.mapValues(this.plugins, 'package');
 	}
 
 	start()
@@ -202,8 +186,6 @@ class PluginManager extends EventEmitter {
 		this.path = workspace.configuration['plugins.path'] ||
 			(basePath + '/plugins');
 		this.package = workspace.data('plugins');
-		
-		this.setupFirebase();
 		this.requirePlugins(plugins);
 		
 		Q.all(_.pluck(this.plugins, 'ready')).bind(this).then(function() {
@@ -263,15 +245,6 @@ workspace.extend({
 	{
 		this.configuration= new Configuration();
 		workspace.plugins.emit('workspace.reload');
-	},
-	
-	setupFirebase: function()
-	{
-	var
-		url = this.configuration['online.url'] ||
-			'https://cxl.firebaseio.com/workspace'
-	;
-		this.fb = new Firebase(url);
 	}
 
 }).config(function()
@@ -280,7 +253,6 @@ workspace.extend({
 	this.watcher = new Watcher({
 		onEvent: this.onWatch.bind(this)
 	});
-	this.setupFirebase();
 
 	common.stat('workspace.json')
 		.then(this.watcher.watchFile.bind(this.watcher, 'workspace.json'),
@@ -302,16 +274,14 @@ workspace.extend({
 .use(bodyParser.json({ limit: Infinity }))
 
 .route('GET', '/plugins', function(req, res) {
-	this.plugins.getAll(function(data) {
-		res.send(data);
-	});
+	res.send(this.plugins.getPackages());
 })
 
 .run(function() {
-	require('./project').start();
-	require('./file').start();
 	require('./socket').start();
 	require('./online').start();
+	require('./project').start();
+	require('./file').start();
 	
 	this.plugins.start();
 });

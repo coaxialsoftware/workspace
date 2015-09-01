@@ -230,16 +230,41 @@ ide.plugins.register('plugins', {
 		plugins: function() { this.open(); }
 	},
 	
+	addPlugins: function(l, all, installed)
+	{
+		var enabled = ide.project.get('plugins');
+		
+		if (!all)
+		{
+			ide.warn('Could not retrieve plugins from server.');
+			all = _.extend({}, installed);
+		}
+		
+		_.each(all, function(p, k) {
+			if (k in installed)
+				all[k].installed = true;
+			if (enabled && enabled.indexOf(k)!==-1)
+				all[k].enabled = true;
+		});
+
+		l.addFiles(_.values(all));
+	},
+	
 	open: function()
 	{
-		var l = new ide.FileList({
+	var
+		me = this,
+		l = new ide.FileList({
 			title: 'plugins',
 			file_template: '#tpl-plugins',
 			plugin: this
-		});
-		
-		$.get('/plugins', function(data) {
-			l.addFiles(_.values(data));
+		})
+	;
+		$.when(
+			$.get(ide.project.get('online.url') + '/plugins.json'),
+			$.get('/plugins')
+		).then(function(all, installed) {
+			me.addPlugins(l, all[0], installed[0]);
 		});
 		
 		ide.workspace.add(l);

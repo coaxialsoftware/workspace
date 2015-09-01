@@ -8,6 +8,7 @@ var
 	cxl = require('cxl'),
 	Firebase = require('firebase'),
 	
+	common = require('./common'),
 	workspace = require('./workspace'),
 	online = module.exports = cxl('workspace.online')
 ;
@@ -18,6 +19,7 @@ online.extend({
 	token: null,
 	gravatar: null,
 	username: null,
+	__connected: null,
 
 	onAuth: function(auth)
 	{
@@ -88,15 +90,68 @@ online.extend({
 	{
 		if (msg.login)
 			this.login(client, msg.login);
+	},
+	
+	isConnected: function()
+	{
+		return common.promiseProp(this, '__connected', 1000);
+	},
+	
+	setupFirebase: function()
+	{
+	var
+		url = this.url = workspace.configuration['online.url'] ||
+			'https://cxl.firebaseio.com/workspace'
+	;
+		this.fb = new Firebase(url);
+		this.__info = new Firebase(this.fb.root() + '/.info');
+	},
+	
+	__getRef: function(p)
+	{
+		return new Firebase(this.url + p);
+	},
+	
+	getRest: function()
+	{
+	},
+	
+	get: function(p)
+	{
+		var fb = this.__getRef(p);
+		
+		return common.promiseCallback(fb.once.bind(fb, 'value'))
+			.bind(this).then(
+				function(data) { return data.val(); },
+				function() { this.error(`Could not read "${p}"`); }
+			);
+	},
+	
+	watch: function(p, cb, scope)
+	{
+		var fb = this.__getRef(p);
+		
+		this.dbg(`Watching ${p}`);
+		fb.on('value', function(data) {
+			cb.call(scope, data.val());
+		});
+	},
+	
+	onProject: function(project)
+	{
+		project.configuration['online.url'] = this.url;
 	}
 	
 })
+.config(function() {
+	this.setupFirebase();	
+	workspace.online = this;
+})
 .run(function() {
 var
-	fb = this.fb = workspace.fb,
-	url = fb.toString(),
-	data = workspace.data('online'),
-	info = new Firebase(this.fb.root() + '/.info')
+	fb = this.fb,
+	url = this.url,
+	data = workspace.data('online')
 ;
 	fb.onAuth(this.onAuth.bind(this));
 	
@@ -113,9 +168,11 @@ var
 		}
 	}
 	
-	info.child('connected').on('value', function(snap) {
-		var status = snap.val();
+	this.__info.child('connected').on('value', function(snap) {
+		var status = this.__connected = snap.val();
 		this.log(status ? 'Connected' : 'Disconnected');
 	}, this);
+	
+	workspace.plugins.on('project.load', this.onProject.bind(this));
 	workspace.plugins.on('socket.message.online', this.onMessage.bind(this));
 });

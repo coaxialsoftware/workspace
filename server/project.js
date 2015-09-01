@@ -113,7 +113,7 @@ class Project {
 	var
 		ignore = this.configuration.ignore = _.uniq(this.configuration.ignore)
 	;		
-		this.configuration.ignore_regex = '^' + _.map(ignore, function(glob) {
+		this.configuration['ignore.regex'] = '^' + _.map(ignore, function(glob) {
 			try {
 				var regex = micromatch.makeRe(glob).source;
 				return regex.substr(1, regex.length-2);
@@ -280,8 +280,8 @@ class Project {
 		}
 		
 		common.read(file).bind(this).then(function(data) {
-			var css = this.configuration.themeCSS = data.replace(/\n/g, '');
-			this.broadcast({ themeCSS: css });
+			var css = this.configuration['theme.css'] = data.replace(/\n/g, '');
+			this.broadcast({ 'theme.css': css });
 		}, this.error);
 	}
 
