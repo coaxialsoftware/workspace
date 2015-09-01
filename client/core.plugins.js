@@ -236,7 +236,7 @@ ide.plugins.register('plugins', {
 		
 		if (!all)
 		{
-			ide.warn('Could not retrieve plugins from server.');
+			ide.notify('Could not retrieve plugins from server.', 'warn');
 			all = _.extend({}, installed);
 		}
 		
