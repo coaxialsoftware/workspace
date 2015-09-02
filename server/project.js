@@ -7,7 +7,6 @@
 
 var
 	Q = require('bluebird'),
-	cxl = require('cxl'),
 	_ = require('lodash'),
 	colors = require('colors'),
 	micromatch = require('micromatch'),

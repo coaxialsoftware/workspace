@@ -5,7 +5,6 @@
  */
 
 var
-	cxl = require('cxl'),
 	Firebase = require('firebase'),
 	
 	common = require('./common'),

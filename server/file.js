@@ -8,8 +8,6 @@ var
 	mime = require('mime'),
 	Q = require('bluebird'),
 
-	cxl = require('cxl'),
-
 	workspace = require('./workspace'),
 	common = require('./common'),
 

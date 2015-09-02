@@ -2,93 +2,56 @@
 workspace
 =========
 
-Lean and fast vim-based editor for the web. 
+Lean and fast browser based IDE. 
+
+Dependencies
+------------
+
+- iojs >3.0 and npm.
+- A modern web browser.
 
 Installation
 ------------
 
-	npm install
+To install from npm
 
-Global Settings
----------------
+	npm -g install @cxl/workspace
 
-~/.workspace/config.json
+To install from source
 
+	git clone https://github.com/coaxialsoftware/workspace.git
+	cd workspace
+	npm link
+	
+To install from github
 
-Define a Workspace (optional)
------------------------------
-
-workspace.json
-
-	{
-		// Optional for basic authentication.
-		"user": "username",
-		"password": "password",
-		
-		// Port to listen to
-		"port": 9001,
-		
-		// Enable https
-		"https": {
-			cert: "certificate file",
-			key: "key file"
-		},
-		
-		// project.json default settings. See project.json for details.
-		"default_settings": {
-		}
-	}
-
-
-Define a Project (optional)
----------------------------
-
-Workspace will look for values in package.json and use them to populate some of 
-the project fields.
-
-project.json
-
-{
-	"ignore": Regex | Array of file names
-		Files to ignore. If an Array is passed, it will be converted to a regex.
-		
-	// Default Editor Settings
-	"editor": {
-		// Theme name from available ace themes.
-		"theme": "ace/theme/twilight"
-		
-		// Editor font size
-		"font_size: "16px",
-		
-		// Keyboard bindings
-		"bindings": "ace/keyboard/vim",
-		
-		// Show indentation guides
-		"indent_guides": false,
-		
-		// Use hard tabs "tab" or spaces "space"
-		"indent_style": "tab",
-		
-		// A whole number defining the number of columns used 
-		// for each indentation level and the width of soft tabs
-		"indent_size": 4,
-		
-	}
-}
-
-Startup
+	npm -g install coaxialsoftware/workspace
+	
+Plugins
 -------
 
-From the workspace folder call "node bin/workspace", or install using npm install/link and run "workspace".
+Install plugins using npm.
 
-Commands
---------
+	npm -g install @cxl/workspace.plugin
+	
+or
 
-Press ":" in normal mode to get the command bar.
+	cd folder
+	npm link
+	
+You can also download it to a folder and manually load it using the "plugins"
+property of workspace.json
 
-e
-	Open File
-tabe
-	Open File in new Tab
-q
-	Quit
+	{
+		// Install the plugin
+		"plugins": [ "file:path" ]
+		
+		// Load it for all projects
+		"project" { "plugins": [ "name" ] },
+	}
+	
+In order to use the plugin you must load it using the plugins property of the project.json file 
+	
+	{
+		"plugins": [ "plugin name", "plugin2" ]
+	}

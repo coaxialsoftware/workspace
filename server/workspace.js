@@ -13,8 +13,9 @@ var
 	path = require('path'),
 	_ = require('lodash'),
 	Q = require('bluebird'),
+	npm = require('npm'),
 
-	cxl = require('cxl'),
+	cxl = require('@cxl/cxl'),
 
 	common = require('./common.js'),
 	Watcher = require('./watcher.js'),
@@ -170,33 +171,59 @@ class PluginManager extends EventEmitter {
 		if (parsed[1]==='file')
 			return this.requireFile(path.resolve(parsed[2]));
 		
-		return this.requireFile(this.path + '/' + name);
+		return this.requireFile(name);
 	}
 	
 	getPackages()
 	{
 		return _.mapValues(this.plugins, 'package');
 	}
+	
+	loadGlobalPlugins()
+	{
+		var me = this, regex = /^\@cxl\/workspace\./;
+		
+		return new Q(function(resolve, reject) {
+			npm.load(function(er, npm) {
+				npm.config.set("global", true);
+				npm.config.set('json', true);
+				npm.config.set('depth', 0);
+				npm.commands.list(null, true, function(e, data) {
+					if (e)
+						reject(e);
+					
+					_.each(data.dependencies, function(d) {
+						if (regex.test(d.name))
+							me.requireFile(d.realPath);
+					});
+
+					resolve(_.pluck(me.plugins, 'ready'));
+				});
+
+			});
+		});
+	}
+	
+	loadLocalPlugins()
+	{
+		var plugins = workspace.configuration.plugins;
+		this.requirePlugins(plugins);
+	}
 
 	start()
 	{
-	var
-		plugins = workspace.configuration.plugins
-	;
-		this.path = workspace.configuration['plugins.path'] ||
-			(basePath + '/plugins');
-		this.package = workspace.data('plugins');
-		this.requirePlugins(plugins);
-		
-		Q.all(_.pluck(this.plugins, 'ready')).bind(this).then(function() {
-			this.sources = _.transform(this.plugins, function(result, n, k) {
-				result[k] = n.source;
+		this.loadLocalPlugins();
+		return this.loadGlobalPlugins().all().bind(this).then(function() {
+			this.sources = _.transform(this.plugins,
+				function(result, n, k) {
+					result[k] = n.source;
 			});
-			
+
 			for (var i in this.plugins)
 				this.plugins[i].start();
-			
-			setImmediate(this.emit.bind(this, 'workspace.load', workspace));
+
+			setImmediate(
+				this.emit.bind(this, 'workspace.load', workspace));
 		});
 	}
 
@@ -283,6 +310,6 @@ workspace.extend({
 	require('./project').start();
 	require('./file').start();
 	
-	this.plugins.start();
+	this.operation('Loading plugins', this.plugins.start.bind(this.plugins));
 });
 

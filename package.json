@@ -1,5 +1,5 @@
 {
-	"name": "workspace",
+	"name": "@cxl/workspace",
 	"description": "Javascript Web Editor",
 	"author": "Giancarlo Bellido <giancarlo@coaxialhost.com>",
 	"version": "0.3.0",
@@ -17,7 +17,9 @@
 		"websocket": "*",
 		"lodash": "*",
 		"micromatch": "*",
-		"firebase": "*"
+		"firebase": "*",
+		"@cxl/cxl": "*",
+		"npm": "*"
 	},
 
 	"devDependencies": {

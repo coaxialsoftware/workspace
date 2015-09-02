@@ -4,7 +4,6 @@
 "use strict";
 
 var
-	cxl = require('cxl'),
 	WebSocketServer = require('websocket').server,
 	http = require('http'),
 
