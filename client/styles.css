@@ -62,7 +62,7 @@ h4 {
 	outline: 0 solid #eee;
 }
 
-#projects > .project, .file {
+.file {
 	box-sizing: border-box;
 	display: block;
 	float: left;
@@ -83,12 +83,11 @@ h4 {
 
 .ide-panel > h3 { margin: 4px 4px 8px 4px; }
 
-#projects h4 { height: 18px; }
-
-#projects .content, .file > .content {
+.file > .content {
 	padding: 6px;
 	background-color: rgba(41, 128, 185, 0.5);
-	min-height: 200px; width: 100%;
+	width: 100%;
+	min-height: 0;
 	box-sizing: border-box;
 	display: block;
 	border: 0;
@@ -97,14 +96,6 @@ h4 {
 	color: #eee;
 	cursor: pointer;
 	text-align: left;
-}
-
-.file > .content {
-	min-height: 0;
-}
-
-#projects .content:hover {
-	background-color: rgba(71, 158, 215, 0.9);
 }
 
 .file > .content {
@@ -123,25 +114,6 @@ h4 {
 
 .directory h4::after {
 	content: '/';	
-}
-
-#projects .content:focus, .file > .content:focus {
-	background-color: rgba(22, 160, 133, 0.7);
-}
-
-#projects {
-	top: 0; left: 0; right: 0; bottom: 0;
-	padding: 200px 42px 50px 50px;
-	font-size: 0;
-	overflow: auto;
-	position: absolute;
-	transition: opacity 0.2s;
-	opacity: 0; display: none;
-}
-
-#project {
-	background-color: rgb(41, 128, 185);
-	background-color: rgba(41, 128, 185, 0.8);
 }
 
 #command, #search { 
@@ -232,10 +204,6 @@ h4 {
 
 .ide-select .label { position: relative; top: -3px; }
 
-#projects .label {
-	float: right;
-}
-
 .ide-select button {
 	margin: 2px; padding: 4px 8px;
 	border: 0;
@@ -308,3 +276,21 @@ div.CodeMirror-cursors { visibility: visible; }
  * LAYOUT
  */
 .pull-right { float: right; }
+
+/*
+ *
+ * core.welcome.js
+ *
+ */
+.project > .content:focus, .file > .content:focus {
+	background-color: rgba(22, 160, 133, 0.7);
+}
+.project > .content:hover {
+	background-color: rgba(71, 158, 215, 0.9);
+}
+.project > .content {
+}
+.project {
+	background-color: rgb(41, 128, 185);
+	background-color: rgba(41, 128, 185, 0.8);
+}

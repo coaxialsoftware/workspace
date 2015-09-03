@@ -48,24 +48,14 @@
 </script>
 	
 <script id="tpl-project" type="text/template">
-<% _.each(projects, function(p) { %>
-<div class="project">
-	<a href="#" tabindex="0" class="content" data-path="<%=p.path%>">
-		<h3>
-			<% for (var i in p.tags) { %>
-				<% if (p.tags[i]) { %>
-				<span class="label"><%= i %></span>
-				<% } %>
-			<% } %>
-
-			<%= p.path %>
-		</h3>
+<div class="file project">
+	<a href="#" tabindex="0" class="content" data-path="<%=obj.path%>">
+		<h3><%= obj.path %><small><%=obj.version%></small></h3>
 		<p>
-			<%= p.description %>
+			<%= obj.description %>
 		</p>
 	</a>
 </div>
-<% }); %>
 </script>	
 
 <script id="tpl/login" type="text/template">

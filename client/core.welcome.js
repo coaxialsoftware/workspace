@@ -1,29 +1,76 @@
 
 (function(ide, _, $) {
 "use strict";
+	
+var ProjectList = ide.FileList.extend({
+	
+	title: 'projects',
+	file: 'projects',
+	
+	file_template: '#tpl-project',
+	
+	_setup: function()
+	{
+		var projects = ide.project.get('projects');
+		
+		ide.FileList.prototype._setup.call(this);
+		
+		if (projects)
+			this._renderProjects(projects);
+	},
+	
+	_on_click: function(ev)
+	{
+		if (ev.currentTarget.dataset.path)
+			ide.commands.project(ev.currentTarget.dataset.path);
+		ev.preventDefault();
+	},
+	
+	_renderProjects: function(projects)
+	{
+	var
+		all = _.sortBy(projects, 'name')
+	;
+		this.addFiles(all);
+	}
+	
+});
 
 ide.plugins.register('welcome', new ide.Plugin({
 
 	commands: {
-		hello: function() {
+		hello: function()
+		{
 			ide.notify('Hello, ' + ide.project.get('user'));
+		},
+		
+		projects: function()
+		{
+			this.openProjects();
 		}
 	},
-
-	el: '#projects',
+	
+	openProjects: function()
+	{
+		ide.workspace.add(new ProjectList({ plugin: this }));
+	},
+	
+	open: function(file)
+	{
+		if (file==='projects')
+			this.openProjects();
+	},
 
 	start: function()
 	{
 	var
 		p = ide.project,
-		projects = p.get('projects'),
 		user = p.get('user'),
 		project = p.get('name')
 	;
-		this.$el = $(this.el);
-
 		if (user)
 			ide.alert('Welcome ' + user);
+		
 		if (project)
 		{
 			window.document.title = project;
@@ -31,36 +78,6 @@ ide.plugins.register('welcome', new ide.Plugin({
 		}
 		
 		$('#title > small').html(ide.version);
-
-		if (projects)
-		{
-			this.renderProjects(projects);
-
-			this.show();
-		}
-	},
-
-	show: function()
-	{
-		this.$el.css('display', 'block').css('opacity', 1);
-	},
-
-	renderProjects: function(projects)
-	{
-	var
-		tplProject = _.template($('#tpl-project').html()),
-		container = $('#projects'),
-		all = _.sortBy(projects, 'name')
-	;
-		container.html(tplProject({
-			projects: all,
-			version: ide.project.get('version')
-		}));
-
-		container.find('.content').click(function(ev) {
-			ide.commands.project(ev.currentTarget.dataset.path);
-			ev.preventDefault();
-		});
 	}
 
 }));
