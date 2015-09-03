@@ -24,6 +24,8 @@ h1 {
 	color: #333;
 }
 
+small { font-size: 0.7em; opacity: 0.9; }
+
 h1 > small { font-size: 20px; }
 
 h2 {
@@ -65,7 +67,6 @@ h4 {
 .file {
 	box-sizing: border-box;
 	display: block;
-	float: left;
 	width: 33%; 
 	font-size: 12px;
 	border-style: solid;
@@ -289,8 +290,9 @@ div.CodeMirror-cursors { visibility: visible; }
 	background-color: rgba(71, 158, 215, 0.9);
 }
 .project > .content {
-}
-.project {
 	background-color: rgb(41, 128, 185);
 	background-color: rgba(41, 128, 185, 0.8);
+}
+.project {
+	border: solid transparent 8px;
 }
