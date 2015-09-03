@@ -34,13 +34,13 @@ Install plugins using npm.
 
 	npm -g install @cxl/workspace.plugin
 	
-or
+or download it to a folder and:
 
 	cd folder
 	npm link
 	
-You can also download it to a folder and manually load it using the "plugins"
-property of workspace.json
+You can also manually load it using the "plugins"
+property of workspace.json.
 
 	{
 		// Install the plugin
@@ -50,7 +50,8 @@ property of workspace.json
 		"project" { "plugins": [ "name" ] },
 	}
 	
-In order to use the plugin you must load it using the plugins property of the project.json file 
+In order to use the plugin you must load it by adding it to the workspace, see example above,
+or by using the project.json file:
 	
 	{
 		"plugins": [ "plugin name", "plugin2" ]

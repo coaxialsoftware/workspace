@@ -75,7 +75,7 @@ module.exports = function(grunt) {
 					'node_modules/codemirror/addon/lint/css-lint.js',
 					'node_modules/codemirror/mode/css/css.js',
 
-					'node_modules/cxl/dist/cxl.js'
+					'node_modules/@cxl/cxl/dist/cxl.js'
 				],
 				dest: 'public/build/libs.js'
 			},
@@ -86,7 +86,7 @@ module.exports = function(grunt) {
 			},
 
 			debug: {
-				src: [ 'node_modules/cxl/client/cxl-debug.js', '<%= jshint.client.src %>' ],
+				src: [ 'node_modules/@cxl/cxl/client/cxl-debug.js', '<%= jshint.client.src %>' ],
 				dest: 'public/build/debug.js'
 			},
 
