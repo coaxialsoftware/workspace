@@ -216,12 +216,17 @@ cxl.extend(KeyMap.prototype, {
 	 */
 	states: null,
 	
-	getHandler: function(fn)
+	getHandler: function(map, key)
 	{
-		var handler = typeof(fn)==='function' ?
+	var
+		fn = map[key],
+		handler = typeof(fn)==='function' ?
 			fn :
-			ide.action.bind(ide, fn);
-
+			ide.action.bind(ide, fn)
+	;
+		handler.key = key;
+		handler.action = fn;
+		
 		return handler;
 	},
 	
@@ -238,13 +243,18 @@ cxl.extend(KeyMap.prototype, {
 		state = this.states[state] || (this.states[state]={});
 
 		for (key in map)
-			this.registerKey(state, ide.keyboard.normalize(key), this.getHandler(map[key]));
+			this.registerKey(state, ide.keyboard.normalize(key), this.getHandler(map, key));
 	},
 
 	registerKeys: function(map)
 	{
 		for (var state in map)
 			this.registerState(state, map[state]);
+	},
+	
+	getState: function(name)
+	{
+		return this.states[name || this.state];
 	},
 	
 	/**
@@ -289,6 +299,7 @@ ide.keymap.registerKeys({
 		left: 'goCharLeft',
 		pagedown: 'goPageDown',
 		pageup: 'goPageUp',
+		f1: 'assist',
 		
 		'mod+end': 'goDocEnd',
 		'mod+down': 'goLineDown',

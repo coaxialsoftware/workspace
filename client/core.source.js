@@ -209,7 +209,7 @@ ide.Editor.Source = ide.Editor.extend({
 	;
 		function getScript(mode)
 		{
-			return 'codemirror/mode/' + mode + '/' + mode + '.js';
+			return 'mode/' + mode + '/' + mode + '.js';
 		}
 
 		if (!codeMirror.modes[mode])

@@ -296,8 +296,6 @@ workspace.extend({
 
 .use(cxl.static(basePath + '/public', { maxAge: 86400000 }))
 
-.use(cxl.static(basePath + '/node_modules', { maxAge: 86400000 }))
-
 .use(bodyParser.json({ limit: Infinity }))
 
 .route('GET', '/plugins', function(req, res) {

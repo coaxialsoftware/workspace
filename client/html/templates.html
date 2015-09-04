@@ -67,7 +67,7 @@
 </div>
 </script>	
 
-<script id="tpl/login" type="text/template">
+<script id="tpl-login" type="text/template">
 <form &="submit(submit)">
 	<label>Username</label>
 	<input &="stop(keydown)" name="username" />
@@ -77,4 +77,10 @@
 	
 	<button type="submit">Submit</button>
 </form>
+</script>
+
+<script id="tpl-welcome" type="text/template">
+	<h1 id="title">workspace<small> <%=ide.version%></small></h1>
+	<p>Type <kbd><%=exKey%></kbd> to enter commands or <kbd><%=assistKey%></kbd> for the assist window.</p>
+	<h2 id="subtitle"><%=project%></h2>
 </script>

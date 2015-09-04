@@ -182,6 +182,17 @@ module.exports = function(grunt) {
 		},
 		
 		copy: {
+			codemirror: {
+				files: [
+					{
+						expand: true,
+						cwd: 'node_modules/codemirror/mode',
+						src: '**/*.js',
+						dest: 'public/mode'
+					}
+				]
+			},
+			
 			fonts: {
 				files: [
 					{

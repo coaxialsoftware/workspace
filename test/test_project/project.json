@@ -3,5 +3,6 @@
 	"version": "0.0.1",
 	"editor": {
 		"indentWithTabs": false
-	}
+	},
+    "description": "A test project for workspace."
 }

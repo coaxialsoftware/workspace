@@ -4,7 +4,7 @@
 	
 var LoginDialog = ide.Editor.extend({
 	
-	templateUrl: 'tpl/login',
+	templateUrl: 'tpl-login',
 	
 	file: 'login',
 	

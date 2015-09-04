@@ -71,24 +71,44 @@ ide.plugins.register('welcome', new ide.Plugin({
 		if (file==='projects')
 			this.openProjects();
 	},
+	
+	onChange: function()
+	{
+		if (ide.workspace.slots.length===0)
+			this.$el.show().css('opacity', 1);
+		else
+			this.$el.hide().css('opacity', 0);
+	},
+	
+	onTimeout: function()
+	{
+		var state = ide.keymap.getState();
+		
+		this.exKey = _.findKey(state, 'action', 'ex');
+		this.assistKey = _.findKey(state, 'action', 'assist');
+		
+		this.template = _.template($('#tpl-welcome').html())(this);
+		this.$el = $('#welcome').html(this.template);
+		this.onChange();
+		
+		ide.plugins.on('workspace.add_child', this.onChange, this);
+		ide.plugins.on('workspace.remove_child', this.onChange, this);
+	},
 
 	start: function()
 	{
 	var
 		p = ide.project,
 		user = p.get('user'),
-		project = p.get('name')
+		project = this.project = p.get('name')
 	;
 		if (user)
 			ide.alert('Welcome ' + user);
 		
 		if (project)
-		{
 			window.document.title = project;
-			$('#subtitle').html(project);
-		}
 		
-		$('#title > small').html(ide.version);
+		window.setTimeout(this.onTimeout.bind(this));
 	}
 
 }));
