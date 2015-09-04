@@ -17,6 +17,17 @@ var ProjectList = ide.FileList.extend({
 		
 		if (projects)
 			this._renderProjects(projects);
+		else
+			this._loadProjects();
+	},
+	
+	_loadProjects: function()
+	{
+		var me = this;
+		
+		$.get('/project', function(d) {
+			me._renderProjects(d.projects);
+		});
 	},
 	
 	_on_click: function(ev)

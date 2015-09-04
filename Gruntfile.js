@@ -180,6 +180,25 @@ module.exports = function(grunt) {
 				}
 			}
 		},
+		
+		copy: {
+			fonts: {
+				files: [
+					{
+						expand: true,
+						flatten: true,
+						src: 'node_modules/font-awesome/fonts/*',
+						dest: 'public/fonts/'
+					},
+					{
+						expand: true,
+						flatten: true,
+						src: 'node_modules/font-awesome/css/font-awesome.min.css',
+						dest: 'public/build'
+					}
+				]
+			}
+		}
 
 	});
 	
@@ -189,7 +208,8 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
+	grunt.loadNpmTasks('grunt-contrib-copy');
 
 	grunt.registerTask('default', [ 'jshint', 'concat' ]);
-	grunt.registerTask('minify', [ 'default', 'uglify' ]);
+	grunt.registerTask('publish', [ 'default', 'copy', 'uglify' ]);
 };

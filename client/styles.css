@@ -64,58 +64,7 @@ h4 {
 	outline: 0 solid #eee;
 }
 
-.file {
-	box-sizing: border-box;
-	display: block;
-	width: 33%; 
-	font-size: 12px;
-	border-style: solid;
-	border-color: transparent;
-	border-width: 0 8px 8px 0;
-	transition: width 0.2s, opacity 0.2s;
-}
-
-.file {
-	width: 100%;
-	border-right: 0;
-}
-
-.file pre { overflow-x: hidden; }
-
 .ide-panel > h3 { margin: 4px 4px 8px 4px; }
-
-.file > .content {
-	padding: 6px;
-	background-color: rgba(41, 128, 185, 0.5);
-	width: 100%;
-	min-height: 0;
-	box-sizing: border-box;
-	display: block;
-	border: 0;
-	text-decoration: none;
-	transition: background-color 0.2s;
-	color: #eee;
-	cursor: pointer;
-	text-align: left;
-}
-
-.file > .content {
-	background-color: rgba(117, 117, 117, 0.5);
-	border: 1px solid #424242;
-}
-
-.file > .content > img.primary { 
-	float: left; margin-right: 14px;
-	width: 32px; height: 32px;
-}
-
-.file > .content:hover {
-	background-color: rgba(170, 170, 170, 0.5);
-}
-
-.directory h4::after {
-	content: '/';	
-}
 
 #command, #search { 
 	display: none; position: fixed; 
@@ -164,24 +113,9 @@ h4 {
 .ide-error { background-color: rgba(231, 76, 60, 0.8); color: #eee;}
 .ide-warn{ background-color: rgba(241, 196, 15, 0.8); color: #333; }
 
-@media (min-width: 980px)
-{
-	#projects > .project { width: 25%; }
-}
-
-@media (max-width: 800px)
-{
-	#projects > .project { width: 50%; }
-}
-
-@media (max-width: 500px)
-{
-	#projects > .project { width: 100%; }
-}
-
 .label {
 	font-size: 10px; border-radius: 2px; 
-	background-color: #999; color: #000;
+	background-color: #666; color: #eee;
 	padding: 4px; margin: 0 2px;
 	font-weight: bold;
 }
@@ -280,6 +214,55 @@ div.CodeMirror-cursors { visibility: visible; }
 
 /*
  *
+ * core.folder.js
+ * 
+ */
+
+.file {
+	box-sizing: border-box;
+	display: block;
+	font-size: 12px;
+	border-style: solid;
+	border-color: transparent;
+	border-width: 0 8px 8px 0;
+	transition: width 0.2s, opacity 0.2s;
+	width: 100%;
+	border-right: 0;
+}
+
+.file pre { overflow-x: hidden; }
+
+
+.file > .content {
+	padding: 6px;
+	width: 100%;
+	min-height: 0;
+	box-sizing: border-box;
+	display: block;
+	text-decoration: none;
+	transition: background-color 0.2s;
+	color: #eee;
+	cursor: pointer;
+	text-align: left;
+	background-color: rgba(117, 117, 117, 0.5);
+	border: 1px solid #424242;
+}
+
+.file > .content > img.primary { 
+	float: left; margin-right: 14px;
+	width: 32px; height: 32px;
+}
+
+.file > .content:hover {
+	background-color: rgba(170, 170, 170, 0.5);
+}
+
+.directory h4::after {
+	content: '/';	
+}
+
+/*
+ *
  * core.welcome.js
  *
  */
@@ -293,6 +276,4 @@ div.CodeMirror-cursors { visibility: visible; }
 	background-color: rgb(41, 128, 185);
 	background-color: rgba(41, 128, 185, 0.8);
 }
-.project {
-	border: solid transparent 8px;
-}
+.project .link { display: inline-block; margin: 0 2px; padding-top: 4px; color: #ccc; }

@@ -49,12 +49,21 @@
 	
 <script id="tpl-project" type="text/template">
 <div class="file project">
-	<a href="#" tabindex="0" class="content" data-path="<%=obj.path%>">
-		<h3><%= obj.path %> &nbsp;<small><%=obj.version%></small></h3>
-		<p>
-			<%= obj.description %>
-		</p>
-	</a>
+	<button class="content" data-path="<%=obj.path%>">
+		<% _.each(obj.tags, function(v, t) { if (v) { %>
+		<span class="pull-right label"><%=t%></span>
+		<% } }) %>
+		<h4><%= obj.path %> &nbsp;<small><%=obj.version%></small></h4>
+		<% if (obj.description) { %>
+		<pre><%= obj.description %></pre>
+		<% } %>
+		<div>
+		<span class="pull-right"><%=obj.license%></span>
+		<% _.each(obj.links, function(l) { %>
+		<a target="_blank" class="link" href="<%=l.l%>"><i class="fa fa-<%=l.c%>"></i></a>
+		<% }) %>
+		</div>
+	</button>
 </div>
 </script>	
 
