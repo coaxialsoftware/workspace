@@ -38,8 +38,10 @@
 		"karma-coverage": "*",
 		"karma-phantomjs-launcher": "*"
 	},
+	
+	"files": [ "public", "server" ],
 
 	"scripts": {
-		"prepublish": "grunt minify"
+		"prepublish": "grunt publish"
 	}
 }
