@@ -19,11 +19,11 @@
 		"micromatch": "*",
 		"firebase": "*",
 		"@cxl/cxl": "*",
-		"npm": "*",
-		"font-awesome": "*"
+		"npm": "*"
 	},
 
 	"devDependencies": {
+		"font-awesome": "*",
 		"codemirror": "j5g3/CodeMirror",
 		"jquery-mockjax": "*",
 		"grunt": "*",
