@@ -32,6 +32,10 @@ var ProjectList = ide.FileList.extend({
 	
 	_on_click: function(ev)
 	{
+		// TODO umm ugly
+		if (ev.target.parentNode.tagName==='A')
+			return ev.stopPropagation();
+		
 		if (ev.currentTarget.dataset.path)
 		{
 			ide.commands.project(ev.currentTarget.dataset.path);
