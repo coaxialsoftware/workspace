@@ -226,7 +226,7 @@ div.CodeMirror-cursors { visibility: visible; }
 	border-right: 0;
 }
 
-.file pre { overflow-x: hidden; }
+.file pre { white-space: pre-wrap; }
 .filelist-content { padding-top: 8px; }
 
 .file > .content {
@@ -272,7 +272,10 @@ div.CodeMirror-cursors { visibility: visible; }
 	background-color: rgb(41, 128, 185);
 	background-color: rgba(41, 128, 185, 0.8);
 }
-.project .link { display: inline-block; margin: 0 2px; padding-top: 4px; color: #ccc; }
+.project .link {
+	display: inline-block; margin: 0 2px; padding-top: 4px; color: #ccc;
+}
+.project .link:hover { color: #fff; }
 
 #welcome { 
 	position: fixed; top: 50px; left: 50px; color: #999;

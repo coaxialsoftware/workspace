@@ -106,12 +106,23 @@ class Plugin {
 			this.mod.error(e);
 		});
 		
+		if (mod.sourcePath)
+			workspace.watch(mod.sourcePath, this.onWatch.bind(this));
+		
 		workspace.online.watch('/plugins/'+this.id, this.onValue, this);
 	}
 	
 	start()
 	{
 		this.mod.start();
+	}
+	
+	onWatch(ev, file)
+	{
+		common.read(file).bind(this).then(function(d) {
+			this.source = d;
+			workspace.plugins.emit('plugins.source', this.id, this.source);
+		}, function() { this.source = ''; });
 	}
 	
 	onValue(data)
@@ -131,7 +142,6 @@ class PluginManager extends EventEmitter {
 		super();
 		
 		this.plugins = {};
-		this.sources = {};		
 	}
 
 	/**
@@ -209,15 +219,22 @@ class PluginManager extends EventEmitter {
 		var plugins = workspace.configuration.plugins;
 		this.requirePlugins(plugins);
 	}
-
+	
+	getSources(plugins)
+	{
+		var me = this;
+		plugins = plugins || _.keys(this.plugins);
+		
+		return _.reduce(plugins, function(result, n) {
+			result += me.plugins[n].source;
+			return result;
+		}, '');
+	}
+	
 	start()
 	{
 		this.loadLocalPlugins();
 		return this.loadGlobalPlugins().all().bind(this).then(function() {
-			this.sources = _.transform(this.plugins,
-				function(result, n, k) {
-					result[k] = n.source;
-			});
 
 			for (var i in this.plugins)
 				this.plugins[i].start();
@@ -268,10 +285,24 @@ workspace.extend({
 		});
 	},
 	
-	onWatch: function()
+	watch: function(path, cb)
 	{
-		this.configuration= new Configuration();
-		workspace.plugins.emit('workspace.reload');
+		this.dbg(`Watching File ${path}`);
+		this.watcher.watchFile(path);
+
+		if (cb)
+			this.plugins.on('workspace.watch:' + path, cb);
+	},
+	
+	onWatch: function(ev, file)
+	{
+		if (file==='workspace.json')
+		{
+			this.configuration= new Configuration();
+			workspace.plugins.emit('workspace.reload');
+		}
+		
+		workspace.plugins.emit('workspace.watch:' + file, ev, file);
 	}
 
 }).config(function()

@@ -33,8 +33,10 @@ var ProjectList = ide.FileList.extend({
 	_on_click: function(ev)
 	{
 		if (ev.currentTarget.dataset.path)
+		{
 			ide.commands.project(ev.currentTarget.dataset.path);
-		ev.preventDefault();
+			ev.preventDefault();
+		}
 	},
 	
 	_renderProjects: function(projects)

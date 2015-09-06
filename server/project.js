@@ -23,7 +23,6 @@ var
  * Project Configuration (project.json)
  * 
  * Avoid using mutable objects as values to speed up diff algorithm.
- *
  */
 function ProjectConfiguration(path) {
 	var project = common.load_json_sync(path+'/project.json');
@@ -40,9 +39,7 @@ function ProjectConfiguration(path) {
 	
 	_.defaults(this, _.pick(workspace.configuration,
 		['keymap', 'theme']));
-	
-	this.buildSources();
-	
+		
 	this.tags = {
 		workspace: !!project
 	};
@@ -67,11 +64,7 @@ cxl.extend(ProjectConfiguration.prototype, {
 	
 	buildSources()
 	{
-		if (this.plugins)
-			this.src = this.plugins.map(function(p) {
-				return workspace.plugins.sources[p] ||
-					workspace.plugins.sources['workspace.'+p];
-			}, this).join('');
+
 	}
 	
 });
@@ -82,9 +75,7 @@ class Project {
 	{
 		this.path = path;
 		this.clients = [];
-		this.create();
-		
-		workspace.plugins.on('workspace.reload', this.reload.bind(this));
+		this.create();		
 	}
 	
 	create()
@@ -308,13 +299,25 @@ class Project {
 			this.setConfig(config);
 		});
 	}
+	
+	buildSources()
+	{
+		if (this.configuration.plugins)
+		{
+			this.dbg('Building plugin sources');
+			this.configuration.src = workspace.plugins.getSources(this.configuration.plugins);
+		}
+	}
 
 	load()
 	{
 		if (this.loaded)
 			return Q.resolve(this.configuration);
-
-		this.log('Loading.');
+		
+		this.buildSources();
+		
+		workspace.plugins.on('workspace.reload', this.reload.bind(this));
+		workspace.plugins.on('plugins.source', this.buildSources.bind(this));
 
 		this.configuration.user = process.env.USER || process.env.USERNAME;
 
@@ -393,6 +396,9 @@ class ProjectManager {
 	{
 		if (!path.directory)
 			return;
+		
+		if (this.projects[path.filename])
+			return this.projects[path.filename];
 
 		this.files.push(path);
 		this.projects[path.filename] = new Project(path.filename);

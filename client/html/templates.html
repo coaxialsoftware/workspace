@@ -58,7 +58,7 @@
 		<pre><%= obj.description %></pre>
 		<% } %>
 		<div>
-		<span class="pull-right"><%=obj.license%></span>
+		<span class="pull-right link"><%=obj.license%></span>
 		<% _.each(obj.links, function(l) { %>
 		<a target="_blank" class="link" href="<%=l.l%>"><i class="fa fa-<%=l.c%>"></i></a>
 		<% }) %>
@@ -81,6 +81,7 @@
 
 <script id="tpl-welcome" type="text/template">
 	<h1 id="title">workspace<small> <%=ide.version%></small></h1>
-	<p>Type <kbd><%=exKey%></kbd> to enter commands or <kbd><%=assistKey%></kbd> for the assist window.</p>
+	<p>Type <kbd><%=exKey%></kbd> to enter commands or <kbd><%=assistKey%></kbd>
+	for the assist window.</p>
 	<h2 id="subtitle"><%=project%></h2>
 </script>
