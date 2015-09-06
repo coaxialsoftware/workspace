@@ -240,7 +240,7 @@ ide.Editor = cxl.View.extend({
 		name = this.alias && this.alias[name] || name;
 
 		// TODO see if this makes sense or not.
-		if (name[0]!=='_' && this.constructor.prototype.hasOwnProperty(name))
+		if (name[0]!=='_')
 			fn = this[name];
 		
 		// Make sure info window doesnt interfere with commands.

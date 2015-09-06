@@ -227,7 +227,7 @@ div.CodeMirror-cursors { visibility: visible; }
 }
 
 .file pre { white-space: pre-wrap; }
-.filelist-content { padding-top: 8px; }
+.filelist-content { padding-top: 8px; overflow: hidden; }
 
 .file > .content {
 	padding: 6px;
@@ -276,6 +276,7 @@ div.CodeMirror-cursors { visibility: visible; }
 	display: inline-block; margin: 0 2px; padding-top: 4px; color: #ccc;
 }
 .project .link:hover { color: #fff; }
+.project .link:focus { color: #fff; outline: 1px solid #ccc; }
 
 #welcome { 
 	position: fixed; top: 50px; left: 50px; color: #999;

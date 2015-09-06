@@ -309,8 +309,8 @@ ide.keymap.registerKeys({
 		'mod+up': 'goLineUp',
 		
 		// WORKSPACE
-		"alt+left": 'nextEditor',
-		"alt+right": 'prevEditor',
+		"alt+left": 'prevEditor',
+		"alt+right": 'nextEditor',
 		'alt+.': 'moveNext',
 		'alt+,': 'movePrev',
 		'alt+enter': 'ex',

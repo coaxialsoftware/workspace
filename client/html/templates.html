@@ -60,7 +60,7 @@
 		<div>
 		<span class="pull-right link"><%=obj.license%></span>
 		<% _.each(obj.links, function(l) { %>
-		<a target="_blank" class="link" href="<%=l.l%>"><i class="fa fa-<%=l.c%>"></i></a>
+		<a title="<%=l.t%>" target="_blank" class="link" href="<%=l.l%>"><i class="fa fa-<%=l.c%>"></i></a>
 		<% }) %>
 		</div>
 	</button>

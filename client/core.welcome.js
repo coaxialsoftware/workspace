@@ -36,6 +36,8 @@ var ProjectList = ide.FileList.extend({
 		if (ev.target.parentNode.tagName==='A')
 			return ev.stopPropagation();
 		
+		this.focus();
+		
 		if (ev.currentTarget.dataset.path)
 		{
 			ide.commands.project(ev.currentTarget.dataset.path);
