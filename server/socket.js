@@ -62,13 +62,11 @@ plugin.extend({
 	}
 
 }).config(function() {
-
-	var config = cxl.extend({
-		host: workspace.host
-	}, workspace.configuration.socket);
-
-	this.port = config.port;
-	this.host = config.host;
+var
+	ws = workspace.configuration
+;
+	this.port = ws['socket.port'];
+	this.host = ws['socket.host'] || workspace.host; 
 
 	this.clients = { length: 0 };
 

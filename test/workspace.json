@@ -5,16 +5,14 @@
 	"theme": "the-matrix",
 	
 	"project": {
-		"plugins": [ "vim" ]
+		"plugins": [ "vim", "jshint" ]
 	},
 	
 	"plugins": [
 		"file:../../workspace.base/workspace.jshint"	
 	],
-	
-	"socket": {
-		"port": 9005
-	},
+
+	"socket.port": 9005,
     
     "online.url": "https://cxl-test.firebaseio.com/workspace"
 }
