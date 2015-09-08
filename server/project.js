@@ -8,13 +8,10 @@
 var
 	Q = require('bluebird'),
 	_ = require('lodash'),
-	colors = require('colors'),
-	micromatch = require('micromatch'),
-	path = require('path'),
+	colors = require('colors/safe'),
 
 	common = require('./common'),
 	workspace = require('./workspace'),
-	Watcher = require('./watcher'),
 
 	plugin = module.exports = cxl('workspace.project')
 ;
@@ -24,22 +21,18 @@ var
  * 
  * Avoid using mutable objects as values to speed up diff algorithm.
  */
-function ProjectConfiguration(path) {
-	var project = common.load_json_sync(path+'/project.json');
-	
-	// TODO ?
+function ProjectConfiguration(path)
+{
+var
+	project = common.load_json_sync(path+'/project.json')
+;
 	common.extend(this, workspace.configuration.project);
 	common.extend(this, project);
-	
-	this.path = path;
-	
-	if (!this.ignore)
-		// TODO better default?
-		this.ignore = [ '**/.*', 'node_modules', 'bower_components' ];
 	
 	_.defaults(this, _.pick(workspace.configuration,
 		['keymap', 'theme']));
 		
+	this.path = path;
 	this.tags = {
 		workspace: !!project
 	};
@@ -60,12 +53,7 @@ cxl.extend(ProjectConfiguration.prototype, {
 	/**
 	 * Project description.
 	 */
-	description: null,
-	
-	buildSources()
-	{
-
-	}
+	description: null
 	
 });
 
@@ -80,78 +68,20 @@ class Project {
 	
 	create()
 	{
-	var
-		config = this.configuration = new ProjectConfiguration(this.path)
-	;
-		workspace.plugins.emit('project.create', this);
+		this.configuration = new ProjectConfiguration(this.path);
+		this.promises = [];
 		
-		if (!config.name)
-			config.name = config.path;
+		workspace.plugins.emit('project.create', this, this.configuration);
 		
 		return this;
 	}
 
+	/**
+	 * Adds promises to be resolved on Project load.
+	 */
 	resolve(promise)
 	{
-		var p = this.promises || (this.promises = []);
-
-		p.push(promise);
-	}
-
-	generateIgnore()
-	{
-	var
-		ignore = this.configuration.ignore = _.uniq(this.configuration.ignore)
-	;		
-		this.configuration['ignore.regex'] = '^' + _.map(ignore, function(glob) {
-			try {
-				var regex = micromatch.makeRe(glob).source;
-				return regex.substr(1, regex.length-2);
-			} catch(e) {
-				this.error(`Invalid ignore parameter: "${glob}"`);
-			}
-		}, this).join('|') + '$';
-		
-		this.ignoreMatcher = function(path) {
-			return micromatch.any(path, ignore);
-		};
-	}
-
-	error(msg)
-	{
-		plugin.error(`${this.path} ${msg}`);
-	}
-	
-	log(msg)
-	{
-		plugin.log(`${colors.yellow(this.path)} ${msg}`);
-	}
-	
-	dbg(msg)
-	{
-		plugin.dbg(`${colors.yellow(this.path)} ${msg}`);
-	}
-
-	rebuildFiles()
-	{
-	var
-		me = this, time = Date.now()
-	;
-		me.rebuilding = true;
-
-		common.walk(this.path, this.ignoreMatcher, function(err, result) {
-			me.rebuilding = false;
-
-			if (err)
-				return plugin.error(err);
-
-			me.log(`${result.length} file(s) found (${Date.now()-time} ms).`);
-			
-			me.files = result;
-			me.configuration.files = JSON.stringify(_.sortBy(result, 'filename'));
-			me.watchFiles();
-			me.broadcast({ files: me.configuration.files });
-		});
+		this.promises.push(promise);
 	}
 
 	/**
@@ -162,14 +92,6 @@ class Project {
 		workspace.socket.broadcast(plugin || 'project', data, this.clients);
 	}
 	
-	setConfig(attr)
-	{
-		var diff = common.diff(this.configuration, attr);
-		this.broadcast(diff);
-		
-		this.configuration = attr;
-	}
-
 	onMessage(client, data)
 	{
 		if (this.clients.indexOf(client)===-1)
@@ -181,13 +103,9 @@ class Project {
 		}
 	}
 	
-	onWatch(ev, filepath, full)
+	onFileEvent(ev, filepath, full)
 	{
-		if (ev!=='change')
-		{
-			if (!this.rebuilding)
-				this.rebuildFiles();
-		} else 
+		if (ev==='change')
 		{
 			common.stat(full).bind(this)
 				.then(function(s) {
@@ -195,7 +113,7 @@ class Project {
 						stat: { p: full, t: s.mtime.getTime() }
 					}, 'file');
 				}, function() {
-					this.error(`Unable to stat ${full}`);
+					this.log.error(`Unable to stat ${full}`);
 				});
 			
 			workspace.plugins.emit('project.filechange', this, ev, filepath);
@@ -204,75 +122,38 @@ class Project {
 			if (filepath==='project.json')
 				this.reload();
 		}
-		
-		if (filepath===this.themePath)
-			this.loadTheme();
 
-		this.dbg(ev + ' ' + filepath);
+		this.log.dbg(ev + ' ' + filepath);
 	}
 	
-	onWatchError(err)
-	{
-		this.log(colors.red('watcher: ' + err));
-	}
-	
-	watchFiles()
-	{
-		var files = _(this.files).filter('directory', true)
-			.pluck('filename')
-			.value()
-		;
-		
-		if (this.watcher)
-			this.watcher.close();
-		
-		this.dbg(`Creating watcher for ${this.path}`);
-		this.watcher = new Watcher({
-			base: this.path,
-			ignore: this.ignoreMatcher,
-			paths: files,
-			onEvent: this.onWatch.bind(this)
-		});
-
-		if (this.configuration.theme)
-			this.watchTheme();
-	}
-
 	onTimeout()
 	{
-		this.generateIgnore();
-		this.rebuildFiles();
+		this.buildIgnore();
+		this.buildFiles();
 		
 		if (this.configuration.theme)
-			this.loadTheme();
+			workspace.themes.load(this.configuration.theme).bind(this)
+				.then(this.loadTheme);
 	}
 	
-	watchTheme()
+	onThemeReload(theme)
 	{
-		this.dbg(`Watching theme ${this.themePath}`);
-		this.themeId = this.watcher.watchFile(this.themePath);
+		this.broadcast({ 'theme.css': theme.source });
 	}
 	
-	loadTheme()
+	loadTheme(theme)
 	{
-	var
-		theme = this.configuration.theme,
-		file = path.isAbsolute(theme) ? theme :
-			workspace.basePath + '/public/theme/' + theme + '.css'
-	;
-		this.themePath = path.relative(this.path, file);
-		this.log(`Loading Theme "${theme}"(${this.themePath})`);
+		if (this.theme)
+			this.stopListening(workspace.plugins, 'themes.reload:' + this.theme.name);
 		
-		if (this.themeId)
-		{
-			this.watcher.unwatch(this.themeId);
-			this.watchTheme();
-		}
+		this.log(`Loading Theme "${theme.name}"(${theme.path})`);
+		this.theme = theme;
+		this.configuration['theme.css'] = theme;
 		
-		common.read(file).bind(this).then(function(data) {
-			var css = this.configuration['theme.css'] = data.replace(/\n/g, '');
-			this.broadcast({ 'theme.css': css });
-		}, this.error);
+		this.listenTo(workspace.plugins, 'themes.reload:' + this.theme.name,
+			this.onThemeReload);
+		
+		this.onThemeReload(theme);
 	}
 
 	onResolved()
@@ -286,17 +167,21 @@ class Project {
 		return this.configuration;
 	}
 
-	onLoadFail(err)
-	{
-		return Q.reject(err);
-	}
-	
 	reload()
 	{
 		this.log('Reloading project.');
-		this.loaded = false;
-		this.create().load().then(function(config) {
-			this.setConfig(config);
+		this.create().doLoad().then(function() {
+			this.broadcast({ reload: true });
+		});
+	}
+	
+	buildFiles()
+	{
+		this.files.ignore = this.ignore.matcher.bind(this.ignore);
+		this.files.build().bind(this).then(function(result) {
+			this.configuration.files = JSON.stringify(
+				_.sortBy(result, 'filename'));
+			this.broadcast({ files: this.configuration.files });
 		});
 	}
 	
@@ -304,47 +189,60 @@ class Project {
 	{
 		if (this.configuration.plugins)
 		{
-			this.dbg('Building plugin sources');
+			this.log.dbg('Building plugin sources');
 			this.configuration.src = workspace.plugins.getSources(this.configuration.plugins);
 		}
 	}
+	
+	buildIgnore()
+	{
+		this.ignore = new common.FileMatcher(
+			this.configuration.ignore ||
+			[ '**/.*', 'node_modules', 'bower_components' ]
+		);
+		this.configuration['ignore.regex'] = this.ignore;
+	}
+	
+	doLoad()
+	{
+		this.buildSources();
+		
+		workspace.plugins.emit('project.load', this);
+		
+		return Q.all(this.promises).bind(this).then(this.onResolved);
+	}
+	
+	loadFiles()
+	{
+		this.files = new common.FileManager({
+			path: this.path,
+			onEvent: this.onFileEvent.bind(this)
+		});
+	}
 
+	/**
+	 * Loads project. It should only run once, unlike doLoad()
+	 */
 	load()
 	{
 		if (this.loaded)
 			return Q.resolve(this.configuration);
 		
-		this.buildSources();
+		this.log = new cxl.Logger(
+			colors.green('workspace.project') + 
+			` ${colors.yellow(this.path)}`);
 		
-		workspace.plugins.on('workspace.reload', this.reload.bind(this));
-		workspace.plugins.on('plugins.source', this.buildSources.bind(this));
+		this.log.operation('Loading File Manager', this.loadFiles, this);
+		
+		this.listenTo(workspace.plugins, 'workspace.reload', this.reload);
+		this.listenTo(workspace.plugins, 'plugins.source', this.buildSources);
 
-		this.configuration.user = process.env.USER || process.env.USERNAME;
-
-		// Make sure project exists.
-		this.resolve(common.stat(this.path));
-
-		workspace.plugins.emit('project.load', this);
-
-		return Q.all(this.promises).bind(this).then(this.onResolved, this.onLoadFail);
+		return this.doLoad();
 	}
-	
-	toJSON()
-	{
-		return this.configuration;
-	}
+
 }
 
-cxl.define(Project, {
-
-	/** @type {ProjectConfiguration} */
-	configuration: null,
-	
-	loaded: false,
-	
-	watcher: null
-	
-});
+_.extend(Project.prototype, cxl.EventListener);
 
 class ProjectManager {
 
@@ -406,12 +304,12 @@ class ProjectManager {
 
 	findProjects()
 	{
-	 return common.list(this.path)
-	 	.bind(this)
-	 	.each(this.getProjectInformation)
-	 	.then(function() {
-	 		return this.projects;
-	 	});
+		return common.list(this.path)
+			.bind(this)
+			.each(this.getProjectInformation)
+			.then(function() {
+				return this.projects;
+			});
 	}
 }
 
@@ -441,6 +339,9 @@ plugin.extend({
 })
 .route('GET', '/project', function(req, res) {
 
+	// TODO Make sure project exists.
+	//this.resolve(common.stat(this.path));
+	
 	this.projectManager.load(req.query.n).then(function(result) {
 		res.send(result);
 	}, common.sendError(this, res));

@@ -5,7 +5,8 @@
 	"theme": "the-matrix",
 	
 	"project": {
-		"plugins": [ "vim", "jshint" ]
+        "ignore": [ ".*"],
+		"plugins": [ "vim" ]
 	},
 	
 	"plugins": [

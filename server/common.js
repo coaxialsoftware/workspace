@@ -6,11 +6,121 @@ var
 	Q = require('bluebird'),
 	_ = require('lodash'),
 	path = require('path'),
+	micromatch = require('micromatch'),
+	
+	Watcher = require('./watcher'),
 
 	common
 ;
 
+class FileMatcher {
+	
+	constructor(files)
+	{
+		this.files = [];
+		
+		if (files)
+			this.push(files);
+	}
+	
+	push(files)
+	{
+		this.files = _.uniq(this.files.concat(files));
+		this.build();
+	}
+	
+	matcher(path)
+	{
+		return micromatch.any(path, this.files);
+	}
+	
+	build()
+	{
+		this.source = '^' + 
+			_.map(this.files, function(glob) {
+			try {
+				var regex = micromatch.makeRe(glob).source;
+				return regex.substr(1, regex.length-2);
+			} catch(e) {
+				this.error(`Invalid ignore parameter: "${glob}"`);
+			}
+		}, this).join('|') + '$';
+	}
+	
+	toJSON()
+	{
+		return this.source;
+	}
+	
+	toRegex()
+	{
+		return new RegExp(this.source);
+	}
+}
+
+class FileManager {
+	
+	constructor(p)
+	{
+		this.path = p.path;
+		this.ignore = p.ignore;
+		this.onEvent = p.onEvent;
+	}
+	
+	onWalk(resolve, reject, err, data)
+	{
+		this.building = false;
+		
+		if (err)
+			return reject(err);
+
+		this.files = data;
+		this.watchFiles();
+		
+		resolve(data);
+	}
+	
+	build()
+	{
+		this.building = true;
+		return new Q((function(resolve, reject) {
+			common.walk(this.path, this.ignore,
+				this.onWalk.bind(this, resolve, reject));
+		}).bind(this));
+	}
+	
+	onWatch(ev, filepath, fullpath)
+	{
+		if (ev!=='change' && !this.building)
+			this.build();
+
+		this.onEvent(ev, filepath, fullpath);
+	}
+	
+	watchFiles()
+	{
+		var files = _(this.files).filter('directory', true)
+			.pluck('filename')
+			.value()
+		;
+		
+		if (this.watcher)
+			this.watcher.close();
+		
+		this.watcher = new Watcher({
+			base: this.path,
+			ignore: this.ignore,
+			paths: files,
+			onEvent: this.onWatch.bind(this)
+		});
+	}
+}
+
+
 common = module.exports = {
+	
+	FileMatcher: FileMatcher,
+	FileManager: FileManager,
 
 	readFile: Q.promisify(fs.readFile),
 	readDirectory: Q.promisify(fs.readdir),
@@ -243,3 +353,4 @@ common = module.exports = {
 	}
 	
 };
+

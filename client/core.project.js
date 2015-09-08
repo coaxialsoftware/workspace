@@ -65,12 +65,19 @@ ide.Project = cxl.Model.extend({
 	
 	onMessage: function(msg)
 	{
+		var diff;
+		
 		if (!msg) return;
+		
+		if (msg.reload===true)
+			this.fetch();
+		else
+		{
+			diff = ide.diff(this.attributes, msg);
 
-		var diff = ide.diff(this.attributes, msg);
-
-		if (diff)
-			this.set(this.parse(diff));
+			if (diff)
+				this.set(this.parse(diff));
+		}
 	},
 
 	on_project: function()

@@ -246,10 +246,63 @@ class PluginManager extends EventEmitter {
 
 }
 
+class Theme
+{
+	constructor(p)
+	{
+		this.name = p;
+		this.path = path.isAbsolute(p) ? p :
+			basePath + '/public/theme/' + p + '.css';
+		this.loaded = false;
+		
+		workspace.watch(this.path, this.onWatch.bind(this));
+	}
+	
+	onWatch()
+	{
+		this.load().then(function() {
+			workspace.plugins.emit('themes.reload:' + this.name, this);
+		});
+	}
+	
+	toJSON()
+	{
+		return this.source;
+	}
+	
+	load()
+	{
+		return common.read(this.path).bind(this).then(function(src)
+		{
+			this.loaded = true;
+			this.source = src.replace(/\n/g,'');
+			
+			return this;
+		});
+	}
+	
+}
+
+class ThemeManager
+{
+	constructor()
+	{
+		this.themes = {};
+	}
+	
+	load(path)
+	{
+		var theme = this.themes[path] || (this.themes[path]=new Theme(path));
+		return theme.loaded ? Q.resolve(theme) : theme.load();
+	}
+	
+}
+
 workspace.extend({
 
 	configuration: new Configuration(),
 	plugins: new PluginManager(),
+	themes: new ThemeManager(),
 	basePath: basePath,
 	common: common,
 

@@ -2,5 +2,8 @@ node_modules
 public/build
 public/index.html
 public/debug.html
+public/fonts
+public/mode
+data.json
 bower_components
 coverage
