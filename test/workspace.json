@@ -10,7 +10,7 @@
 	},
 	
 	"plugins": [
-		"file:../../workspace.base/workspace.jshint"	
+		"file:../../workspace.base/workspace.jshint"
 	],
 
 	"socket.port": 9005,

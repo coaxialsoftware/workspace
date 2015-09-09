@@ -40,6 +40,7 @@ h4 {
 }
 
 kbd { background-color: #666; border-radius: 4px; color: #eee; padding: 4px 8px; }
+button { transition: background-color 0.2s; }
 
 #workspace {
 	position: absolute; 
@@ -300,6 +301,15 @@ div.CodeMirror-cursors { visibility: visible; }
 #assist.ide-assist-show { display: block; width: 300px; }
 #workspace.ide-assist-show { right: 300px; }
 
-.ide-assist-notify { padding: 0; }
-.ide-assist-notify .ide-notification { display: block; }
+#assist .link { color: #eee; opacity: 0.7; text-decoration: none; }
+#assist .link:hover { opacity: 1; }
+#assist .ide-assist-hint {
+	border: 0; padding: 8px; display: block; margin-bottom: 4px;
+	width: 100%; text-align: left; cursor: pointer;
+}
+#assist .ide-assist-hint:hover { background-color: rgba(71, 158, 215, 0.9); }
+
+#assist code { margin-right: 10px; }
+#assist kbd { float: right; }
+
 

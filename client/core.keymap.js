@@ -299,7 +299,8 @@ ide.keymap.registerKeys({
 		left: 'goCharLeft',
 		pagedown: 'goPageDown',
 		pageup: 'goPageUp',
-		f1: 'assist',
+		f1: 'help',
+		f10: 'assist',
 		
 		'mod+end': 'goDocEnd',
 		'mod+down': 'goLineDown',

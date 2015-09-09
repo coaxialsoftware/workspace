@@ -226,7 +226,12 @@ class PluginManager extends EventEmitter {
 		plugins = plugins || _.keys(this.plugins);
 		
 		return _.reduce(plugins, function(result, n) {
-			result += me.plugins[n].source;
+			
+			if (n in me.plugins)
+				result += me.plugins[n].source;
+			else
+				workspace.error(`Plugin "${n}" not found.`);
+			
 			return result;
 		}, '');
 	}
