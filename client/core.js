@@ -33,6 +33,9 @@ var
 	/** Asset, script loader */
 	loader: null,
 		
+	/** Notification history. */
+	notifications: [],
+		
 	win: window,
 
 	/** Displays alert notification on right corner */
@@ -66,11 +69,11 @@ var
 	{
 		kls = kls || 'log';
 	var
-		span = $('<li><span class="ide-' + kls + '">' + message + '</span></li>')
+		span = $('<li><span class="ide-notification ide-' + kls + '">' + message + '</span></li>')
+			.prependTo(_nots),
+		timeout = setTimeout(span.remove.bind(span), 3000)
 	;
-		span.prependTo(_nots);
-		setTimeout(span.remove.bind(span), 3000);
-		window.console[kls](message);
+		ide.plugins.trigger('notify', message, kls, span, timeout);
 	},
 
 	/**

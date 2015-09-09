@@ -44,6 +44,7 @@ kbd { background-color: #666; border-radius: 4px; color: #eee; padding: 4px 8px;
 #workspace {
 	position: absolute; 
 	top: 0; left:0; bottom: 0; right: 0;
+	transition: right 0.2s;
 }
 
 #workspace > div, .ide-panel { 
@@ -103,9 +104,7 @@ kbd { background-color: #666; border-radius: 4px; color: #eee; padding: 4px 8px;
 	list-style: none; text-align: right;
 }
 
-#ide-notification span { display: inline-block; padding: 8px; }
-#ide-notification > li { margin-bottom: 4px; }
-
+.ide-notification { display: inline-block; padding: 8px; margin-bottom: 4px; }
 .ide-log { background-color: rgba(52, 152, 219, 0.8); color: #eee;}
 .ide-error { background-color: rgba(231, 76, 60, 0.8); color: #eee;}
 .ide-warn{ background-color: rgba(241, 196, 15, 0.8); color: #333; }
@@ -287,3 +286,20 @@ div.CodeMirror-cursors { visibility: visible; }
 	position: fixed; top: 50px; left: 50px; color: #999;
 	transition: opacity 0.2s; opacity: 0;
 }
+
+/*
+ *
+ * core.assist.js
+ *
+ */
+#assist {
+	display: none; position: fixed; right: 0; width: 0;
+	transition: width 0.2s; padding: 8px; box-sizing: border-box;
+	overflow-y: hidden; bottom: 0; top: 0;
+}
+#assist.ide-assist-show { display: block; width: 300px; }
+#workspace.ide-assist-show { right: 300px; }
+
+.ide-assist-notify { padding: 0; }
+.ide-assist-notify .ide-notification { display: block; }
+

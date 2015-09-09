@@ -31,8 +31,8 @@
 .cm-s-workspace .CodeMirror-activeline-background {background: #27282E }
 .cm-s-workspace .CodeMirror-matchingbracket {outline:1px solid grey; color:white; }
 
-#workspace > div:nth-child(1) { background-color: #141414; }
-#workspace > div:nth-child(2) { background-color: #263238; }
+#workspace > div:nth-child(1), .bg0 { background-color: #141414; }
+#workspace > div:nth-child(2), .bg1 { background-color: #263238; }
 #workspace > div:nth-child(3) { background-color: #002010; }
 #workspace > div:nth-child(4) { background-color: #002024; }
 #workspace > div:nth-child(5) { background-color: #010062; }
