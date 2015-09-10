@@ -88,6 +88,13 @@ cxl.extend(CommandParser.prototype, {
 			args = fn[2] ? this.parseArguments(fn[2]) : undefined;
 			return { fn: fn[1], args: args };
 		}
+	},
+	
+	/** Parses and executes command. */
+	run: function(src)
+	{
+		var cmd = this.parse(src);
+		return ide.cmd(cmd.fn, cmd.args);
 	}
 	
 });

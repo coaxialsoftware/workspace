@@ -90,10 +90,8 @@ ide.plugins.register('welcome', new ide.Plugin({
 	
 	onTimeout: function()
 	{
-		var state = ide.keymap.getState();
-		
-		this.exKey = _.findKey(state, 'action', 'ex');
-		this.assistKey = _.findKey(state, 'action', 'assist');
+		this.exKey = ide.keyboard.findKey('ex');
+		this.assistKey = ide.keyboard.findKey('assist');
 		
 		this.template = _.template($('#tpl-welcome').html())(this);
 		this.$el = $('#welcome').html(this.template);

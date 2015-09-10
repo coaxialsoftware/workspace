@@ -284,7 +284,6 @@ class ProjectManager {
 					projects: projects,
 					files: JSON.stringify(this.files)
 				}, workspace.configuration);
-			console.log(result);
 			
 				delete result.password;
 				return result;

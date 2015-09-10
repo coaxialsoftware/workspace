@@ -111,9 +111,12 @@
 			$.extend(this._keys, k);
 		},
 
-		show: function()
+		show: function(val)
 		{
-			this.$el.val('').css('display', 'block');
+			val = val || '';
+			this.$el.val(val).css('display', 'block');
+			if (val.length)
+				this.el.setSelectionRange(val.length, val.length);
 			this.hidden = false;
 			this.focus();
 		},

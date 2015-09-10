@@ -40,7 +40,15 @@ h4 {
 }
 
 kbd { background-color: #666; border-radius: 4px; color: #eee; padding: 4px 8px; }
-button { transition: background-color 0.2s; }
+a, button { transition: background-color 0.2s, color 0.2s, opacity 0.2s; }
+
+.icon {
+	display: inline-block; margin: 0 2px; padding-top: 4px; color: #ccc;
+	text-decoration: none;
+}
+
+.icon:hover { color: #fff; }
+.icon:focus { color: #fff; outline: 1px solid #ccc; }
 
 #workspace {
 	position: absolute; 
@@ -277,11 +285,6 @@ div.CodeMirror-cursors { visibility: visible; }
 	background-color: rgb(41, 128, 185);
 	background-color: rgba(41, 128, 185, 0.8);
 }
-.project .link {
-	display: inline-block; margin: 0 2px; padding-top: 4px; color: #ccc;
-}
-.project .link:hover { color: #fff; }
-.project .link:focus { color: #fff; outline: 1px solid #ccc; }
 
 #welcome { 
 	position: fixed; top: 50px; left: 50px; color: #999;
@@ -308,8 +311,9 @@ div.CodeMirror-cursors { visibility: visible; }
 	width: 100%; text-align: left; cursor: pointer;
 }
 #assist .ide-assist-hint:hover { background-color: rgba(71, 158, 215, 0.9); }
+#assist .ide-assist-hint > span { }
 
-#assist code { margin-right: 10px; }
+#assist code { margin-right: 10px; padding: 4px; display: inline-block; }
 #assist kbd { float: right; }
 
 

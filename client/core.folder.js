@@ -80,21 +80,24 @@ ide.FileList = ide.Editor.extend({
 	;
 		this.focus();
 		
-		if (!data.path)
+		if (data.path)
+		{
+			options = {};
+
+			if (data.line)
+				options.line = data.line;
+
+			if (ev.ctrlKey)
+				options.target = '_blank';
+
+			ide.open(data.path, options);
+
+			if (!ev.shiftKey)
+				ide.workspace.remove(this);
+		} else if (data.action)
+			ide.cmd(data.action);
+		else
 			return;
-		
-		options = {};
-			
-		if (data.line)
-			options.line = data.line;
-
-		if (ev.ctrlKey)
-			options.target = '_blank';
-
-		ide.open(data.path, options);
-
-		if (!ev.shiftKey)
-			ide.workspace.remove(this);
 	
 		ev.stopPropagation();
 		ev.preventDefault();

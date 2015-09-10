@@ -139,6 +139,31 @@ cxl.extend(KeyboardManager.prototype, {
 
 		this.t = t;
 	},
+	
+	_findKey: function(keymap, state, action)
+	{
+		state = state || keymap.getState();
+		
+		for (var i in state)
+			if (state[i].action===action)
+				return i;
+	},
+	
+	findKey: function(action, state)
+	{
+	var
+		keymap = ide.editor && ide.editor.keymap,
+		type = typeof(keymap),
+		result
+	;
+		if (type==='object')
+			result = this._findKey(keymap, state, action);
+		
+		if (!result)
+			result = this._findKey(ide.keymap, state, action);
+			
+		return result;
+	},
 
 	/**
 	 * Handles Key. First checks if there is a keymap defined for the
@@ -186,7 +211,7 @@ cxl.extend(KeyboardManager.prototype, {
 
 		return sequence;
 	},
-
+	
 	normalize: function(key)
 	{
 	var
@@ -252,9 +277,9 @@ cxl.extend(KeyMap.prototype, {
 			this.registerState(state, map[state]);
 	},
 	
-	getState: function(name)
+	getState: function(state)
 	{
-		return this.states[name || this.state];
+		return this.states[state || this.state];
 	},
 	
 	/**

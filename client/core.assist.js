@@ -14,6 +14,27 @@ var Assist = cxl.View.extend({
 		this.template = cxl.id('tpl-assist').innerHTML;
 	},
 	
+	setup: function()
+	{
+		this.$hints = this.$el.find('.ide-assist-hints');
+		this.$hints.on('click', 'button', this.onClick);
+	},
+	
+	onClick: function(ev)
+	{
+	var
+		action = ev.currentTarget.dataset.action,
+		type = ev.currentTarget.dataset.type
+	;
+		if (action)
+		{
+			if (type==='ex')
+				ide.commandBar.show(action);
+			else
+				ide.commandParser.run(action);
+		}
+	},
+	
 	hide: function()
 	{
 		this.$el.removeClass('ide-assist-show');
@@ -31,9 +52,6 @@ var Assist = cxl.View.extend({
 	
 	requestHints: function()
 	{
-		if (this.$hints===null)
-			this.$hints = this.$el.find('.ide-assist-hints');
-		
 		this.$hints.empty();
 		this.rendered = false;
 		this.hints = [];
@@ -56,9 +74,14 @@ var Assist = cxl.View.extend({
 	
 	renderHint: function(hint)
 	{
-		this.$hints.append('<button class="ide-assist-hint ide-log">' +
-			(hint.action ? '<code>' + hint.action + '</code> ' : '') +
-			hint.hint + '</button>');
+		var key = ide.keyboard.findKey(hint.action);
+		
+		this.$hints.append('<button data-action="' + hint.action +
+			'" data-type="' + hint.type + '"' +
+			' class="ide-assist-hint ide-log">' +
+			(key ? '<kbd>' + key + '</kbd>' : '') +
+			(hint.action ? '<code>:' + hint.action + '</code> ' : '') +
+			'<span>' + hint.hint + '</span></button>');
 	},
 	
 	render: function()
@@ -85,19 +108,22 @@ ide.plugins.register('assist', {
 	
 	onAssist: function(assist)
 	{
-		if (ide.workspace.length===0)
+		if (ide.project.id)
 		{
 			assist.addHint([
-				{ hint: 'Hello' },
-				{ hint: 'It should techincally render HTML too' }
+				{ hint: 'Open new file.', priority: 10, action: 'edit ', type: 'ex' },
+				{ hint: 'List project files', priority: 10, action: 'find .'}
 			]);
 		} else
 		{
 			assist.addHint([
-				{ hint: 'Open new file.', priority: 10, action: 'edit' },
-				{ hint: 'Documentation', priority: 10, action: 'help' }
+				{ hint: 'Open Project', priority: 10, action: 'project ' },
+				{ hint: 'List Projects', priority: 10, action: 'projects' }
 			]);
 		}
+		
+		assist.addHint({
+			hint: 'Documentation', priority: 10, action: 'help' });
 	},
 	
 	start: function()
