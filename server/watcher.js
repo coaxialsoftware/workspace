@@ -38,10 +38,21 @@ _.extend(Watcher.prototype, {
 	
 	trigger: function(id, ev, file, full)
 	{
+		var me = this;
+		
 		delete this.events[id];
 		
-		if (this.onEvent)
-			this.onEvent(ev, file, full);
+		if (me.onEvent)
+			fs.stat(full, function(err, s) {
+				if (err)
+				{
+					if (ev==='change')
+						me.onEvent('remove', file, full);
+					else
+						me.onEvent('error', file, full);
+				} else
+					me.onEvent(ev, file, full, s);
+			});
 	},
 	
 	onWatch: function(dir, ev, filename)

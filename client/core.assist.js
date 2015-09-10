@@ -5,6 +5,7 @@
 var Assist = cxl.View.extend({
 	el: '#assist',
 	visible: false,
+	delay: 500,
 	
 	$hints: null,
 	hints: null,
@@ -12,6 +13,7 @@ var Assist = cxl.View.extend({
 	initialize: function()
 	{
 		this.template = cxl.id('tpl-assist').innerHTML;
+		this.requestHints = _.debounce(this._requestHints, this.delay);
 	},
 	
 	setup: function()
@@ -40,6 +42,7 @@ var Assist = cxl.View.extend({
 		this.$el.removeClass('ide-assist-show');
 		this.visible = false;
 		ide.workspace.$el.removeClass('ide-assist-show');
+		ide.workspace.hash.set({ a: false });
 	},
 	
 	show: function()
@@ -47,10 +50,11 @@ var Assist = cxl.View.extend({
 		this.$el.addClass('ide-assist-show');
 		this.visible = true;
 		ide.workspace.$el.addClass('ide-assist-show');
-		this.requestHints();
+		this._requestHints();
+		ide.workspace.hash.set({ a: 1 });
 	},
 	
-	requestHints: function()
+	_requestHints: function()
 	{
 		this.$hints.empty();
 		this.rendered = false;
@@ -108,6 +112,9 @@ ide.plugins.register('assist', {
 	
 	onAssist: function(assist)
 	{
+		if (ide.workspace.slots.length)
+			return;
+		
 		if (ide.project.id)
 		{
 			assist.addHint([
@@ -129,6 +136,10 @@ ide.plugins.register('assist', {
 	start: function()
 	{
 		ide.assist = new Assist();
+		
+		if (ide.workspace.hash.data.a)
+			ide.assist.show();
+		
 		ide.plugins.on('assist', this.onAssist, this);
 	}
 	

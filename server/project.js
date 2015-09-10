@@ -103,21 +103,17 @@ class Project {
 		}
 	}
 	
-	onFileEvent(ev, filepath, full)
+	onFileEvent(ev, filepath, full, s)
 	{
 		if (ev==='change')
 		{
-			common.stat(full).bind(this)
-				.then(function(s) {
-					this.broadcast({
-						stat: { p: full, t: s.mtime.getTime() }
-					}, 'file');
-				}, function() {
-					this.log.error(`Unable to stat ${full}`);
-				});
+			this.broadcast({
+				stat: { p: full, t: s.mtime.getTime() }
+			}, 'file');
 			
-			workspace.plugins.emit('project.filechange', this, ev, filepath);
-			workspace.plugins.emit('project.filechange:' + filepath, this, ev, filepath);
+			// TODO see if we need to include full path instead
+			workspace.plugins.emit('project.filechange', this, ev, filepath, s);
+			workspace.plugins.emit('project.filechange:' + filepath, this, ev, filepath, s);
 			
 			if (filepath==='project.json')
 				this.reload();
@@ -181,7 +177,7 @@ class Project {
 		this.files.build().bind(this).then(function(result) {
 			this.configuration.files = JSON.stringify(
 				_.sortBy(result, 'filename'));
-			this.broadcast({ files: this.configuration.files });
+			this.broadcast({ reload: true });
 		});
 	}
 	
@@ -196,10 +192,8 @@ class Project {
 	
 	buildIgnore()
 	{
-		this.ignore = new common.FileMatcher(
-			this.configuration.ignore ||
-			[ '**/.*', 'node_modules', 'bower_components' ]
-		);
+		this.ignore.push(
+			this.configuration.ignore || [ '**/.*', 'node_modules', 'bower_components' ]);
 		this.configuration['ignore.regex'] = this.ignore;
 	}
 	
@@ -231,6 +225,7 @@ class Project {
 		this.log = new cxl.Logger(
 			colors.green('workspace.project') + 
 			` ${colors.yellow(this.path)}`);
+		this.ignore = new common.FileMatcher();
 		
 		this.log.operation('Loading File Manager', this.loadFiles, this);
 		

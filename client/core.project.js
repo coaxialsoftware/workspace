@@ -18,6 +18,7 @@ ide.Project = cxl.Model.extend({
 	{		
 		this.on('sync', this.on_project);
 		this.on('error', this.on_error);
+		this.reload = _.debounce(this.fetch.bind(this), 500);
 		
 		ide.plugins.on('socket.message.project', this.onMessage, this);
 	},
@@ -70,7 +71,7 @@ ide.Project = cxl.Model.extend({
 		if (!msg) return;
 		
 		if (msg.reload===true)
-			this.fetch();
+			this.reload();
 		else
 		{
 			diff = ide.diff(this.attributes, msg);

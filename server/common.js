@@ -25,8 +25,13 @@ class FileMatcher {
 	
 	push(files)
 	{
-		this.files = _.uniq(this.files.concat(files));
-		this.build();
+		if (Array.isArray(files))
+			this.files = this.files.concat(files);
+		else
+			this.files.push(files);
+		
+		this.files = _.uniq(this.files);
+		this.dirty = true;
 	}
 	
 	matcher(path)
@@ -36,25 +41,31 @@ class FileMatcher {
 	
 	build()
 	{
-		this.source = '^' + 
-			_.map(this.files, function(glob) {
-			try {
-				var regex = micromatch.makeRe(glob).source;
-				return regex.substr(1, regex.length-2);
-			} catch(e) {
-				this.error(`Invalid ignore parameter: "${glob}"`);
-			}
-		}, this).join('|') + '$';
+		if (this.dirty)
+		{
+			this.source = '^' + 
+				_.map(this.files, function(glob) {
+				try {
+					var regex = micromatch.makeRe(glob).source;
+					return regex.substr(1, regex.length-2);
+				} catch(e) {
+					this.error(`Invalid ignore parameter: "${glob}"`);
+				}
+			}, this).join('|') + '$';
+			this.dirty = false;
+		}
+		
+		return this.source;
 	}
 	
 	toJSON()
 	{
-		return this.source;
+		return this.build();
 	}
 	
 	toRegex()
 	{
-		return new RegExp(this.source);
+		return new RegExp(this.build());
 	}
 }
 
@@ -89,12 +100,12 @@ class FileManager {
 		}).bind(this));
 	}
 	
-	onWatch(ev, filepath, fullpath)
+	onWatch(ev, filepath, fullpath, stat)
 	{
 		if (ev!=='change' && !this.building)
 			this.build();
 
-		this.onEvent(ev, filepath, fullpath);
+		this.onEvent(ev, filepath, fullpath, stat);
 	}
 	
 	watchFiles()
