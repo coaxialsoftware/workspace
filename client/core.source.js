@@ -2,6 +2,9 @@
 (function(ide, cxl, _, codeMirror) {
 "use strict";
 	
+/**
+ * Use to provide Hints capabilities.
+ */
 function HintManager(editor) {
 	this.__cm = editor.editor;
 	this.hints = {};
@@ -20,6 +23,12 @@ _.extend(HintManager.prototype, {
 	get: function(id)
 	{
 		return this.hints[id] || (this.hints[id]=[]);
+	},
+	
+	getLine: function(id, line)
+	{
+		var hints = this.get(id);
+		return _.filter(hints, 'line', line);
 	},
 	
 	__createMark: function(line, lineHandle)
@@ -52,7 +61,11 @@ _.extend(HintManager.prototype, {
 		marker = this.__getMarker(hint.line-1),
 		hints = this.get(id)
 	;
-		hints.push({ el: el, remove: this.__removeHint.bind(marker, el) });
+		hint.line--;
+		hint.el = el;
+		hint.remove = this.__removeHint.bind(marker, el);
+		
+		hints.push(hint);
 		
 		el.setAttribute('class', 'ide-hint ide-hint-' + (hint.type || 'info'));
 		el.setAttribute('title', hint.hint);
@@ -287,6 +300,17 @@ ide.Editor.Source = ide.Editor.extend({
 		
 		return false;
 	},
+	
+	onCursorActivity: function()
+	{
+		var token = this.getToken();
+		
+		if (this.__token !== token)
+		{
+			this.__token = token;
+			ide.plugins.trigger('token', this, token);
+		}
+	},
 
 	_setup: function()
 	{
@@ -301,6 +325,7 @@ ide.Editor.Source = ide.Editor.extend({
 		
 		this.listenTo(this.file, 'change:content', this._on_file_change);
 		this.listenTo(editor, 'focus', this._on_focus);
+		this.listenTo(editor, 'cursorActivity', this.onCursorActivity);
 	},
 
 	resize: function()
@@ -335,8 +360,9 @@ ide.Editor.Source = ide.Editor.extend({
 	getToken: function(pos)
 	{
 		pos = pos || this.editor.getCursor();
-
-		return this.editor.getTokenAt(pos, true);
+		var token = this.editor.getTokenAt(pos, true);
+		token.line = pos.line;
+		return token;
 	},
 
 	getChar: function(pos)

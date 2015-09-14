@@ -1,11 +1,66 @@
 
 (function(window, ide, cxl, _) {
 "use strict";
+	
+ide.Hint = function ideHint(p)
+{
+	_.extend(this, p);
+	
+	if (this.action)
+		this.key = ide.keyboard.findKey(this.action);
+};
+
+_.extend(ide.Hint.prototype, {
+	
+	/** Hint element */
+	el: null,
+	
+	priority: 10,
+	
+	/** Shortcut */
+	key: null,
+	
+	type: 'log',
+	
+	onClick: function()
+	{
+		if (this.action)
+		{
+			if (this.type==='ex')
+				ide.commandBar.show(this.action);
+			else
+				ide.commandParser.run(this.action);
+		}
+	},
+	
+	render: function()
+	{
+	var
+		el = this.el = document.createElement('BUTTON'),
+		hint = this, key = this.key
+	;
+		el.type = 'button';
+		el.className = 'ide-assist-hint ide-' + this.type;
+		el.addEventListener('click', this.onClick.bind(this));
+		el.innerHTML = (key ? '<kbd>' + key + '</kbd>' : '') +
+			(hint.action ? '<code>:' + hint.action + '</code> ' : '') +
+			'<span>' + hint.hint + '</span>';
+		
+		return el;
+	}
+});
 
 var Assist = cxl.View.extend({
 	el: '#assist',
 	visible: false,
 	delay: 500,
+	
+	/** Current requrest for hints version. */
+	version: 0,
+	/** Current Editor */
+	editor: null,
+	/** Current Token */
+	token: null,
 	
 	$hints: null,
 	hints: null,
@@ -14,27 +69,14 @@ var Assist = cxl.View.extend({
 	{
 		this.template = cxl.id('tpl-assist').innerHTML;
 		this.requestHints = _.debounce(this._requestHints, this.delay);
+		this.listenTo(ide.plugins, 'token', this.onToken);
 	},
 	
-	setup: function()
+	onToken: function(editor, token)
 	{
-		this.$hints = this.$el.find('.ide-assist-hints');
-		this.$hints.on('click', 'button', this.onClick);
-	},
-	
-	onClick: function(ev)
-	{
-	var
-		action = ev.currentTarget.dataset.action,
-		type = ev.currentTarget.dataset.type
-	;
-		if (action)
-		{
-			if (type==='ex')
-				ide.commandBar.show(action);
-			else
-				ide.commandParser.run(action);
-		}
+		this.editor = editor;
+		this.token = token;
+		this.requestHints();
 	},
 	
 	hide: function()
@@ -56,10 +98,19 @@ var Assist = cxl.View.extend({
 	
 	_requestHints: function()
 	{
-		this.$hints.empty();
+		if (!this.visible)
+			return;
+		
+		this.version++;
+		this.$hints.innerHTML = '';
 		this.rendered = false;
 		this.hints = [];
-		ide.plugins.trigger('assist', this);	
+		
+		ide.plugins.trigger('assist',
+			this.addHint.bind(this, this.version), this.editor, this.token);
+		
+		ide.socket.send('assist',
+			{ version: this.version, token: this.token });
 		this.render();
 	},
 	
@@ -68,31 +119,47 @@ var Assist = cxl.View.extend({
 		return this.visible ? this.hide() : this.show();
 	},
 	
-	addHint: function(hint)
+	/**
+	 * @param hints {object|array} A Single hint or an array of hints.
+	 */
+	addHint: function(version, hints)
 	{
-		if (Array.isArray(hint))
-			hint.forEach(this.addHint, this);
+		if (!this.visible || version!==this.version)
+			return;
+		
+		if (Array.isArray(hints))
+			hints.forEach(this.addHint.bind(this, version));
 		else
-			this.hints.push(hint);
+		{
+			var h = hints instanceof ide.Hint ? hints : new ide.Hint(hints);
+			if (this.rendered)
+				this.renderHintOrder(h);
+			else
+				this.hints.push(h);
+		}
+	},
+	
+	renderHintOrder: function(hint)
+	{
+	var
+		i = _.sortedIndex(this.hints, hint, 'priority'),
+		el = hint.render(),
+		ref = this.hints[i].el
+	;
+		this.hints.splice(i, 0, hint);
+		this.$hints.insertBefore(el, ref);
 	},
 	
 	renderHint: function(hint)
 	{
-		var key = ide.keyboard.findKey(hint.action);
-		
-		this.$hints.append('<button data-action="' + hint.action +
-			'" data-type="' + hint.type + '"' +
-			' class="ide-assist-hint ide-log">' +
-			(key ? '<kbd>' + key + '</kbd>' : '') +
-			(hint.action ? '<code>:' + hint.action + '</code> ' : '') +
-			'<span>' + hint.hint + '</span></button>');
+		this.$hints.appendChild(hint.render());
 	},
 	
 	render: function()
 	{
 		var hints = this.hints = _.sortBy(this.hints, 'priority');
-		
 		hints.forEach(this.renderHint, this);
+		this.rendered = true;
 	}
 	
 });
@@ -110,37 +177,44 @@ ide.plugins.register('assist', {
 		ide.assist.toggle();
 	},
 	
-	onAssist: function(assist)
+	onAssist: function(done, editor, token)
 	{
-		if (ide.workspace.slots.length)
-			return;
+		var hints = [];
 		
-		if (ide.project.id)
+		if (token)
 		{
-			assist.addHint([
-				{ hint: 'Open new file.', priority: 10, action: 'edit ', type: 'ex' },
-				{ hint: 'List project files', priority: 10, action: 'find .'}
-			]);
-		} else
+			if (token.type)
+				hints.push({ hint: token.string });
+		}
+		else
 		{
-			assist.addHint([
-				{ hint: 'Open Project', priority: 10, action: 'project ' },
-				{ hint: 'List Projects', priority: 10, action: 'projects' }
-			]);
+			hints.push({ hint: 'Documentation', action: 'help' });
+		
+			if (ide.project.id)
+			{
+				hints.push([
+					{ hint: 'Open new file.', action: 'edit ', type: 'ex' },
+					{ hint: 'List project files', action: 'find .'}
+				]);
+			} else
+			{
+				hints.push([
+					{ hint: 'Open Project', action: 'project ' },
+					{ hint: 'List Projects', action: 'projects' }
+				]);
+			}
 		}
 		
-		assist.addHint({
-			hint: 'Documentation', priority: 10, action: 'help' });
+		done(hints);
 	},
 	
-	start: function()
+	ready: function()
 	{
 		ide.assist = new Assist();
+		ide.plugins.on('assist', this.onAssist, this);
 		
 		if (ide.workspace.hash.data.a)
 			ide.assist.show();
-		
-		ide.plugins.on('assist', this.onAssist, this);
 	}
 	
 });

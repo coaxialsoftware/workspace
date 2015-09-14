@@ -27,7 +27,7 @@ SocketManager.prototype = {
 	 */
 	send: function(plugin, data)
 	{
-		if (this.ws.readyState!==WebSocket.OPEN)
+		if (!this.ws || this.ws.readyState!==WebSocket.OPEN)
 			ide.plugins.once('socket.ready', this.__doSend.bind(this, plugin, data));
 		else
 			this.__doSend(plugin, data);
