@@ -1,5 +1,5 @@
 
-(function(ide, $, _) {
+(function(ide, $, _, cxl) {
 "use strict";
 	
 function globToRegex(glob) {
@@ -57,7 +57,27 @@ var
 
 	return new RegExp(reStr);
 }
-
+	
+ide.ItemList = ide.Editor.extend({
+	
+	itemTemplate: null,
+	list: null,
+	
+	quit: function()
+	{
+		ide.workspace.remove(this);
+	},
+	
+	_setup: function()
+	{
+		if (!this.template)
+			this.template = cxl.template('tpl-itemlist');
+		if (!this.itemTemplate)
+			this.itemTemplate = cxl.template('tpl-item');
+	}
+	
+});
+	
 ide.FileList = ide.Editor.extend({
 
 	$content: null,
@@ -177,12 +197,8 @@ ide.FileList = ide.Editor.extend({
 		me = this,
 		tpl = _.template($(me.list_template).html())
 	;
-		me.$el.addClass('ide-panel').html(tpl({
-			title: me.title
-		}));
-
+		me.$el.addClass('ide-panel').html(tpl(this));
 		me.$content = me.$el.find('.filelist-content');
-
 		me.tpl = _.template($(me.file_template).html());
 
 		if (me.files)
@@ -292,4 +308,4 @@ ide.plugins.register('folder', new ide.Plugin({
 
 }));
 
-})(this.ide, this.jQuery, this._);
+})(this.ide, this.jQuery, this._, this.cxl);

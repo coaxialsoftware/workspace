@@ -162,9 +162,7 @@ var
 	
 /** @namespace */
 ide.commands = {
-	log: function() {
-		window.console.log(arguments);
-	}
+
 };
 	
 ide.editorCommands = {};

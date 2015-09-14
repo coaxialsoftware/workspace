@@ -60,7 +60,7 @@ a, button {
 	transition: right 0.2s;
 }
 
-#workspace > div, .ide-panel { 
+#workspace > div { 
 	min-height: 100px;
 	border: 0;
 	font-size: 16px;
