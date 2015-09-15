@@ -195,6 +195,9 @@ ide.Info = cxl.View.extend({ /** @lends ide.Info# */
 });
 
 ide.Editor = cxl.View.extend({
+	
+	/* Executes after template has been loaded */
+	_ready: null,
 
 	load: function()
 	{
@@ -211,6 +214,9 @@ ide.Editor = cxl.View.extend({
 		
 		if (this.template)
 			this.loadTemplate(this.template);
+		
+		if (this._ready)
+			this._ready();
 		
 		ide.plugins.trigger('editor.load', this);
 	},

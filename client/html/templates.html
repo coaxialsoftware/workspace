@@ -1,7 +1,19 @@
+<script id="tpl-editor-list" type="text/template">
+<h3><a href="#" &="click(quit)" class="pull-right icon">&times;</a><span &="html::const(title)"></span></h3>
+<div &="$$list" class="ide-list-content"></div>
+</script>
+
+<script id="tpl-editor-item" type="text/template">
+<div class="ide-item <%= obj.className %>">
+	<button class="ide-item-content" title="<%= obj.title %>">
+		<h4><%- obj.title %></h4>
+	</button>
+</div>
+</script>
 
 <script id="tpl-file" type="text/template">
 <div class="file <%= obj.directory ? 'directory' : '' %>">
-	<button class="content" title="<%= this.path + obj.filename %>" data-path="<%= this.path + obj.filename %>">
+	<button class="content" title="<%= this.path + obj.filename %>" data-path="<%= this.file + obj.filename %>">
 		<h4><%- obj.filename %></h4>
 	</button>
 </div>
@@ -22,13 +34,6 @@
 		<strong><%- obj[1]%></strong>:<%= obj[2] %>
 		<pre><%- obj[3] %></pre>
 	</button>
-</div>
-</script>
-
-<script id="tpl-itemlist" type="text/template">
-<div class="ws-panel">
-<h3><a href="#" &="click(quit)" class="pull-right icon">&times;</a><span &="html::const(title)"></span></h3>
-<div class="itemlist-content"></div>
 </div>
 </script>
 

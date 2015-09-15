@@ -58,10 +58,19 @@ var
 	return new RegExp(reStr);
 }
 	
-ide.ItemList = ide.Editor.extend({
+ide.Editor.ListItem = cxl.View.extend({
 	
+});
+	
+ide.Editor.List = ide.Editor.extend({
+	
+	title: '',
+	template: null,
 	itemTemplate: null,
-	list: null,
+	items: null,
+	
+	// content DOM element
+	$list: null,
 	
 	quit: function()
 	{
@@ -70,10 +79,28 @@ ide.ItemList = ide.Editor.extend({
 	
 	_setup: function()
 	{
+		this.$el.addClass('ide-panel');
+		
 		if (!this.template)
-			this.template = cxl.template('tpl-itemlist');
+			this.template = cxl.templateId('tpl-editor-list');
 		if (!this.itemTemplate)
-			this.itemTemplate = cxl.template('tpl-item');
+			this.itemTemplate = cxl.templateId('tpl-editor-item');
+	},
+	
+	_ready: function()
+	{
+		this.$list = $(this.$list);
+		if (this.items)
+			this.add(this.items);
+		else
+			this.items = [];
+	},
+	
+	add: function(files)
+	{
+		files.forEach(function(f) {
+			this.$list.append(this.itemTemplate(f));
+		}, this);
 	}
 	
 });
@@ -291,15 +318,15 @@ ide.plugins.register('folder', new ide.Plugin({
 			files.unshift({ filename: '..' });
 
 			path = file.get('filename');
-			path = path==='.' ? '' : (path + '/');
 
-			editor = new ide.FileList({
+			editor = new ide.Editor.List({
 				slot: options.slot,
-				file: file,
+				file: path,
 				plugin: this,
-				files: files,
-				title: file.get('filename'),
-				path: path
+				itemTemplate: cxl._templateId('tpl-file'),
+				items: files,
+				title: path,
+				prefix: path==='.' ? '' : (path + '/')
 			});
 			ide.workspace.add(editor);
 			return true;

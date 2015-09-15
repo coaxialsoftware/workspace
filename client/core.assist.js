@@ -181,9 +181,9 @@ ide.plugins.register('assist', {
 	{
 		var hints = [];
 		
-		if (token)
+		if (ide.workspace.slots.length)
 		{
-			if (token.type)
+			if (token && token.type)
 				hints.push({ hint: token.string });
 		}
 		else
@@ -194,7 +194,7 @@ ide.plugins.register('assist', {
 			{
 				hints.push([
 					{ hint: 'Open new file.', action: 'edit ', type: 'ex' },
-					{ hint: 'List project files', action: 'find .'}
+					{ hint: 'List project files', action: 'find'}
 				]);
 			} else
 			{
@@ -214,7 +214,7 @@ ide.plugins.register('assist', {
 		ide.plugins.on('assist', this.onAssist, this);
 		
 		if (ide.workspace.hash.data.a)
-			ide.assist.show();
+			window.setTimeout(ide.assist.show.bind(ide.assist), 150);
 	}
 	
 });
