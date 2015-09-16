@@ -1,19 +1,24 @@
 
-(function(ide, _, $) {
+(function(ide, _, $, cxl) {
 "use strict";
 	
-var ProjectList = ide.FileList.extend({
+var ProjectList = ide.Editor.List.extend({
 	
 	title: 'projects',
 	file: 'projects',
 	
-	file_template: '#tpl-project',
-	
 	_setup: function()
 	{
-		var projects = ide.project.get('projects');
+		ide.Editor.List.prototype._setup.call(this);
 		
-		ide.FileList.prototype._setup.call(this);
+		this.itemTemplate = cxl._templateId('tpl-project');
+	},
+	
+	_ready: function()
+	{
+		ide.Editor.List.prototype._ready.call(this);
+		
+		var projects = ide.project.get('projects');
 		
 		if (projects)
 			this._renderProjects(projects);
@@ -30,17 +35,15 @@ var ProjectList = ide.FileList.extend({
 		});
 	},
 	
-	_on_click: function(ev)
+	onItemClick: function(ev, item)
 	{
 		// TODO umm ugly
 		if (ev.target.parentNode.tagName==='A')
 			return ev.stopPropagation();
 		
-		this.focus();
-		
-		if (ev.currentTarget.dataset.path)
+		if (item.path)
 		{
-			ide.commands.project(ev.currentTarget.dataset.path);
+			ide.commands.project(item.path);
 			ev.preventDefault();
 		}
 	},
@@ -50,7 +53,7 @@ var ProjectList = ide.FileList.extend({
 	var
 		all = _.sortBy(projects, 'name')
 	;
-		this.addFiles(all);
+		this.add(all);
 	}
 	
 });
@@ -119,4 +122,4 @@ ide.plugins.register('welcome', new ide.Plugin({
 
 }));
 
-})(window.ide, this._, this.jQuery);
+})(window.ide, this._, this.jQuery, this.cxl);

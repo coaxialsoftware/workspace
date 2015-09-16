@@ -4,5 +4,9 @@
 	"editor": {
 		"indentWithTabs": false
 	},
-    "description": "A test project for workspace."
+    "description": "A test project for workspace.",
+    "links": [
+        { "href": "hello", "class": "home", "title": "Homepage" }
+    ],
+    "license": "MIT"
 }

@@ -43,6 +43,7 @@ _.extend(ide.Hint.prototype, {
 		el.className = 'ide-assist-hint ide-' + this.type;
 		el.addEventListener('click', this.onClick.bind(this));
 		el.innerHTML = (key ? '<kbd>' + key + '</kbd>' : '') +
+			(hint.tag ? '<code>' + hint.tag + '</code>' : '') +
 			(hint.action ? '<code>:' + hint.action + '</code> ' : '') +
 			'<span>' + hint.hint + '</span>';
 		
@@ -70,17 +71,20 @@ var Assist = cxl.View.extend({
 		this.template = cxl.id('tpl-assist').innerHTML;
 		this.requestHints = _.debounce(this._requestHints, this.delay);
 		this.listenTo(ide.plugins, 'token', this.onToken);
+		this.listenTo(ide.plugins, 'editor.focus', this.onToken);
+		this.listenTo(ide.plugins, 'workspace.remove_child', this.onToken);
 	},
 	
 	onToken: function(editor, token)
 	{
-		this.editor = editor;
+		this.editor = ide.editor;
 		this.token = token;
 		this.requestHints();
 	},
 	
 	hide: function()
 	{
+		cxl.$body.append(ide.$notifications);
 		this.$el.removeClass('ide-assist-show');
 		this.visible = false;
 		ide.workspace.$el.removeClass('ide-assist-show');
@@ -90,6 +94,7 @@ var Assist = cxl.View.extend({
 	show: function()
 	{
 		this.$el.addClass('ide-assist-show');
+		this.el.insertBefore(ide.$notifications, this.$hints);
 		this.visible = true;
 		ide.workspace.$el.addClass('ide-assist-show');
 		this._requestHints();
@@ -177,16 +182,11 @@ ide.plugins.register('assist', {
 		ide.assist.toggle();
 	},
 	
-	onAssist: function(done, editor, token)
+	onAssist: function(done)
 	{
 		var hints = [];
 		
-		if (ide.workspace.slots.length)
-		{
-			if (token && token.type)
-				hints.push({ hint: token.string });
-		}
-		else
+		if (!ide.workspace.slots.length)
 		{
 			hints.push({ hint: 'Documentation', action: 'help' });
 		

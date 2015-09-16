@@ -5,15 +5,15 @@
 
 <script id="tpl-editor-item" type="text/template">
 <div class="ide-item <%= obj.className %>">
-	<button class="ide-item-content" title="<%= obj.title %>">
+	<button data-id="<%= obj.id %>" class="ide-item-content" title="<%= obj.title %>">
 		<h4><%- obj.title %></h4>
 	</button>
 </div>
 </script>
 
 <script id="tpl-file" type="text/template">
-<div class="file <%= obj.directory ? 'directory' : '' %>">
-	<button class="content" title="<%= this.path + obj.filename %>" data-path="<%= this.file + obj.filename %>">
+<div class="ide-item <%= obj.directory ? 'ide-directory' : 'ide-file' %>">
+	<button class="ide-item-content" title="<%= this.path + obj.filename %>" data-id="<%= obj.id %>">
 		<h4><%- obj.filename %></h4>
 	</button>
 </div>
@@ -28,23 +28,9 @@
 </div>
 </script>
 
-<script id="tpl-grep" type="text/template">
-<div class="file">
-	<button class="content" data-path="<%= obj[1] %>" data-line="<%= obj[2]%>">
-		<strong><%- obj[1]%></strong>:<%= obj[2] %>
-		<pre><%- obj[3] %></pre>
-	</button>
-</div>
-</script>
-
-<script id="tpl-filelist" type="text/template">
-<h3><a href="#" data-action="q" class="pull-right icon">&times;</a><%= title %></h3>
-<div class="filelist-content"></div>
-</script>
-
 <script id="tpl-plugins" type="text/template">
-<div class="file">
-	<div tabindex="0" class="content">
+<div class="ide-item">
+	<div tabindex="0" class="ide-item-content">
 		<button class="pull-right" type="button">
 			<%= obj.installed ? 'Uninstall' : 'Install' %>
 		</button>
@@ -54,14 +40,14 @@
 			</button>
 		<% } %>
 		<h4><%- obj.name %> <small><%- obj.version %></small></h4>
-		<p><%- obj.description %></p>
+		<pre><%- obj.description %></pre>
 	</div>
 </div>
 </script>
 	
 <script id="tpl-project" type="text/template">
-<div class="file project">
-	<button class="content" data-path="<%=obj.path%>">
+<div class="ide-item ide-project">
+	<button class="ide-item-content" data-id="<%=obj.id%>">
 		<% _.each(obj.tags, function(v, t) { if (v) { %>
 		<span class="pull-right label"><%=t%></span>
 		<% } }) %>
@@ -70,9 +56,9 @@
 		<pre><%= obj.description %></pre>
 		<% } %>
 		<div>
-		<span class="pull-right link"><%=obj.license%></span>
+		<span class="pull-right icon"><%=obj.license%></span>
 		<% _.each(obj.links, function(l) { %>
-		<a title="<%=l.t%>" target="_blank" class="link" href="<%=l.l%>"><i class="fa fa-<%=l.c%>"></i></a>
+		<a title="<%=l.title%>" target="_blank" class="icon" href="<%=l.href%>"><i class="fa fa-<%=l.class%>"></i></a>
 		<% }) %>
 		</div>
 	</button>

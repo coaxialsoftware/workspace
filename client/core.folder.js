@@ -58,16 +58,29 @@ var
 	return new RegExp(reStr);
 }
 	
-ide.Editor.ListItem = cxl.View.extend({
-	
-});
-	
 ide.Editor.List = ide.Editor.extend({
 	
 	title: '',
 	template: null,
 	itemTemplate: null,
 	items: null,
+	
+	onItemClick: null,
+	
+	_onClick: function(ev)
+	{
+	var
+		id = ev.currentTarget.dataset.id
+	;		
+		if (id && this.onItemClick)
+		{
+			if (this.onItemClick)
+				this.onItemClick(ev, this.items[id]);
+		}
+	
+		ev.stopPropagation();
+		ev.preventDefault();
+	},
 	
 	// content DOM element
 	$list: null,
@@ -83,156 +96,131 @@ ide.Editor.List = ide.Editor.extend({
 		
 		if (!this.template)
 			this.template = cxl.templateId('tpl-editor-list');
+		// Use lodash template as default for faster rendering
 		if (!this.itemTemplate)
-			this.itemTemplate = cxl.templateId('tpl-editor-item');
+			this.itemTemplate = cxl._templateId('tpl-editor-item');
 	},
 	
 	_ready: function()
 	{
-		this.$list = $(this.$list);
+		this.$list = $(this.$list)
+			.on('click', '.ide-item-content', this._onClick.bind(this));
+		this.$el.on('click', this.focus.bind(this));
+		
 		if (this.items)
-			this.add(this.items);
+			this._addElements(this.items, 0);
 		else
 			this.items = [];
 	},
 	
-	add: function(files)
+	// TODO support remove?
+	_addElements: function(items, i)
 	{
-		files.forEach(function(f) {
+		var l = i===undefined ? this.items.length : i;
+		
+		items.forEach(function(f, i) {
+			f.id = l + i;
 			this.$list.append(this.itemTemplate(f));
 		}, this);
-	}
-	
-});
-	
-ide.FileList = ide.Editor.extend({
-
-	$content: null,
-
-	list_template: '#tpl-filelist',
-	file_template: '#tpl-file',
-
-	title: null,
-	path: null,
-	files: null,
-
-	/** Compiled file template */
-	tpl: null,
-
-	_on_click: function(ev)
-	{
-	var
-		data = ev.currentTarget.dataset,
-		options
-	;
-		this.focus();
-		
-		if (data.path)
-		{
-			options = {};
-
-			if (data.line)
-				options.line = data.line;
-
-			if (ev.ctrlKey)
-				options.target = '_blank';
-
-			ide.open(data.path, options);
-
-			if (!ev.shiftKey)
-				ide.workspace.remove(this);
-		} else if (data.action)
-			ide.cmd(data.action);
-		else
-			return;
-	
-		ev.stopPropagation();
-		ev.preventDefault();
-	},
-	
-	_find_focus: function()
-	{
-		var focused = this.$el.find(':focus');
-		if (!focused.is(':visible'))
-			focused = this.$el.find('.content:visible:eq(0)');
-		
-		return focused;
-	},
-	
-	goDocStart: function()
-	{
-		this.$el.find('.content:visible:eq(0)').focus();
-	},
-	
-	goDocEnd: function()
-	{
-		this.$el.find('.content:visible:last-child').focus();
-	},
-	
-	goLineDown: function(dir)
-	{
-		dir = dir || 'next';
-		this._find_focus().parent()[dir]().find('.content:visible').focus();
-	},
-	
-	goLineUp: function()
-	{
-		this.goLineDown('prev');
-	},
-
-	addFiles: function(files)
-	{
-	var
-		result = '',
-		i = 0
-	;
-		for (; i<files.length;i++)
-			result += this.tpl(files[i]);
-
-		if (files !== this.files)
-			this.files = this.files ? this.files.concat(files) : files;
-		this.$content.append(result);
-		this.children = this.$content.children();
 		
 		this._find_focus().focus();
 	},
-
-	_findTest: function(regex, file)
+	
+	add: function(items)
 	{
-		return regex.test(file.filename);
+		this._addElements(items);
+		this.items = this.items.concat(items);
 	},
-
-	search: function(regex)
-	{
-		var i=0, files = this.files, children = this.children, clear=!regex;
-
-		for (; i<files.length; i++)
-			children[i].style.display =
-				(clear || this._findTest(regex, files[i])) ?
-					'block' : 'none';
-	},
-
+	
 	focus: function()
 	{
 		this._find_focus().focus();
 		ide.Editor.prototype.focus.call(this);
 	},
 
-	_setup: function()
+	_findTest: function(regex, file)
+	{
+		return regex.test(file.title);
+	},
+
+	search: function(regex)
 	{
 	var
-		me = this,
-		tpl = _.template($(me.list_template).html())
+		i=0, files = this.items,
+		children = this.$list[0].children, clear=!regex
 	;
-		me.$el.addClass('ide-panel').html(tpl(this));
-		me.$content = me.$el.find('.filelist-content');
-		me.tpl = _.template($(me.file_template).html());
-
-		if (me.files)
-			me.addFiles(me.files);
-
-		me.$el.on('click', '.content', me._on_click.bind(me));
+		for (; i<files.length; i++)
+			children[i].style.display =
+				(clear || this._findTest(regex, files[i])) ?
+					'block' : 'none';
+	},
+	
+	_find_focus: function()
+	{
+		var focused = this.$list.find(':focus');
+		
+		if (!focused.is(':visible'))
+			focused = this.$list.find('.ide-item-content:visible:eq(0)');
+		
+		return focused;
+	},
+	
+	goDocStart: function()
+	{
+		this.$list.find('.ide-item-content:visible:eq(0)').focus();
+	},
+	
+	goDocEnd: function()
+	{
+		this.$list.find('.ide-item-content:visible:last-child').focus();
+	},
+	
+	goLineDown: function(dir)
+	{
+		dir = dir || 'next';
+		this._find_focus().parent()[dir]().find('.ide-item-content:visible').focus();
+	},
+	
+	goLineUp: function()
+	{
+		this.goLineDown('prev');
 	}
+	
+});
+	
+ide.Editor.FileList = ide.Editor.List.extend({
+
+	_findTest: function(regex, file)
+	{
+		return regex.test(file.filename);
+	},
+	
+	onItemClick: function(ev, item)
+	{
+	var
+		options = {},
+		path = (this.prefix ? this.prefix+'/' : '') + item.filename;
+
+		if (item.line)
+			options.line = item.line;
+
+		if (ev.ctrlKey)
+			ide.open_tab(path);
+		else
+			ide.open(path, options);
+
+		if (!ev.shiftKey)
+			ide.workspace.remove(this);
+	},
+
+	_setup: function()
+	{
+		ide.Editor.List.prototype._setup.call(this);
+		
+		if (!this.itemTemplate)
+			this.itemTemplate = cxl._templateId('tpl-file');
+	}
+	
 });
 
 ide.plugins.register('find', new ide.Plugin({
@@ -284,7 +272,7 @@ ide.plugins.register('find', new ide.Plugin({
 			else if (files.length===0)
 				ide.notify('No files found that match "' + mask + '"');
 			else
-				ide.workspace.add(new ide.FileList({
+				ide.workspace.add(new ide.Editor.FileList({
 					file: mask,
 					plugin: this,
 					files: files,
@@ -319,11 +307,10 @@ ide.plugins.register('folder', new ide.Plugin({
 
 			path = file.get('filename');
 
-			editor = new ide.Editor.List({
+			editor = new ide.Editor.FileList({
 				slot: options.slot,
-				file: path,
+				file: file,
 				plugin: this,
-				itemTemplate: cxl._templateId('tpl-file'),
 				items: files,
 				title: path,
 				prefix: path==='.' ? '' : (path + '/')

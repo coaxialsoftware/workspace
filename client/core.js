@@ -83,7 +83,7 @@ var
 	{
 		window.open(
 			'#' + ide.workspace.hash.encode({ f: filename || false }),
-			target
+			target || '_blank'
 		);
 	},
 
@@ -121,7 +121,7 @@ var
 	{
 		ide.workspace = new ide.Workspace();
 
-		_nots = cxl.id('ide-notification');
+		ide.$notifications = _nots = cxl.id('ide-notification');
 	}
 
 ;

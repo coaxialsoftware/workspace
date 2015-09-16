@@ -153,7 +153,7 @@ cxl.extend(KeyboardManager.prototype, {
 	{
 	var
 		keymap = ide.editor && ide.editor.keymap,
-		type = typeof(keymap),
+		type = keymap && typeof(keymap),
 		result
 	;
 		if (type==='object')

@@ -237,7 +237,7 @@ div.CodeMirror-cursors { visibility: visible; }
  * 
  */
 
-.file {
+.ide-item {
 	box-sizing: border-box;
 	font-size: 12px;
 	border-style: solid;
@@ -248,10 +248,9 @@ div.CodeMirror-cursors { visibility: visible; }
 	border-right: 0;
 }
 
-.file pre { white-space: pre-wrap; }
-.filelist-content { padding-top: 8px; overflow: hidden; }
+.ide-item pre { white-space: pre-wrap; }
 
-.file > .content {
+.ide-item-content {
 	padding: 6px;
 	width: 100%;
 	min-height: 0;
@@ -266,16 +265,16 @@ div.CodeMirror-cursors { visibility: visible; }
 	border: 1px solid #424242;
 }
 
-.file > .content > img.primary { 
+.ide-item-content > img.primary { 
 	float: left; margin-right: 14px;
 	width: 32px; height: 32px;
 }
 
-.file > .content:hover {
+.ide-item-content:hover {
 	background-color: rgba(170, 170, 170, 0.5);
 }
 
-.directory h4::after {
+.ide-directory h4::after {
 	content: '/';	
 }
 
@@ -284,13 +283,13 @@ div.CodeMirror-cursors { visibility: visible; }
  * core.welcome.js
  *
  */
-.project > .content:focus, .file > .content:focus {
+.ide-project > .ide-item-content:focus, .file > .content:focus {
 	background-color: rgba(22, 160, 133, 0.7);
 }
-.project > .content:hover {
+.ide-project > .ide-item-content:hover {
 	background-color: rgba(71, 158, 215, 0.9);
 }
-.project > .content {
+.ide-project > .ide-item-content {
 	background-color: rgb(41, 128, 185);
 	background-color: rgba(41, 128, 185, 0.8);
 }
@@ -326,4 +325,6 @@ div.CodeMirror-cursors { visibility: visible; }
 
 #assist code { margin-right: 10px; padding: 4px; display: inline-block; }
 #assist kbd { float: right; }
+#assist > ul { position: static; padding: 0; }
+#assist .ide-notification { display: block; text-align: left; }
 

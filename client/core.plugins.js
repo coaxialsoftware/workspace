@@ -247,16 +247,16 @@ ide.plugins.register('plugins', {
 				all[k].enabled = true;
 		});
 
-		l.addFiles(_.values(all));
+		l.add(_.values(all));
 	},
 	
 	open: function()
 	{
 	var
 		me = this,
-		l = new ide.FileList({
+		l = new ide.Editor.List({
 			title: 'plugins',
-			file_template: '#tpl-plugins',
+			itemTemplate: cxl._templateId('tpl-plugins'),
 			plugin: this
 		})
 	;
