@@ -123,7 +123,7 @@ ide.Editor.List = ide.Editor.extend({
 			this.$list.append(this.itemTemplate(f));
 		}, this);
 		
-		this._find_focus().focus();
+		this._findFocus().focus();
 	},
 	
 	add: function(items)
@@ -134,7 +134,7 @@ ide.Editor.List = ide.Editor.extend({
 	
 	focus: function()
 	{
-		this._find_focus().focus();
+		this._findFocus().focus();
 		ide.Editor.prototype.focus.call(this);
 	},
 
@@ -155,7 +155,7 @@ ide.Editor.List = ide.Editor.extend({
 					'block' : 'none';
 	},
 	
-	_find_focus: function()
+	_findFocus: function()
 	{
 		var focused = this.$list.find(':focus');
 		
@@ -178,7 +178,7 @@ ide.Editor.List = ide.Editor.extend({
 	goLineDown: function(dir)
 	{
 		dir = dir || 'next';
-		this._find_focus().parent()[dir]().find('.ide-item-content:visible').focus();
+		this._findFocus().parent()[dir]().find('.ide-item-content:visible').focus();
 	},
 	
 	goLineUp: function()
@@ -215,10 +215,10 @@ ide.Editor.FileList = ide.Editor.List.extend({
 
 	_setup: function()
 	{
-		ide.Editor.List.prototype._setup.call(this);
-		
 		if (!this.itemTemplate)
 			this.itemTemplate = cxl._templateId('tpl-file');
+		
+		ide.Editor.List.prototype._setup.call(this);
 	}
 	
 });
