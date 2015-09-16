@@ -90,7 +90,9 @@ class Plugin {
 	constructor(path)
 	{
 		var mod = this.mod = require(path);
-		this.id = mod.name.replace(/^workspace\./, '');
+		// TODO ...umm
+		this.id = mod.name.replace(/^workspace\./, '')
+			.replace(/\./g, '-');
 		this.path = path;
 		this.name = mod.name;
 		
@@ -127,6 +129,8 @@ class Plugin {
 	
 	onValue(data)
 	{
+		if (!data)
+			return this.mod.dbg('Plugin not in main repository.');
 		if (data.version !== this.package.version)
 			this.mod.dbg(`New version ${data.version} available!`);
 	}
