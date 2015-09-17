@@ -275,9 +275,8 @@ ide.plugins.register('find', new ide.Plugin({
 				ide.workspace.add(new ide.Editor.FileList({
 					file: mask,
 					plugin: this,
-					files: files,
-					title: 'find ' + mask,
-					path: ''
+					items: files,
+					title: 'find ' + mask
 				}));
 		}
 
