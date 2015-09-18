@@ -124,12 +124,16 @@ class Project {
 	
 	onTimeout()
 	{
+		var onReady = workspace.plugins.emit.bind(workspace.plugins, 'project.ready', this);
 		this.buildIgnore();
 		this.buildFiles();
 		
 		if (this.configuration.theme)
 			workspace.themes.load(this.configuration.theme).bind(this)
-				.then(this.loadTheme);
+				.then(this.loadTheme)
+				.then(onReady);
+		else
+			onReady();
 	}
 	
 	onThemeReload(theme)
