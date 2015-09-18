@@ -261,7 +261,7 @@ ide.plugins.register('find', new ide.Plugin({
 			regex = globToRegex(mask);
 
 			if (!files)
-				return ide.warn('[find] No files found in project.');
+				return ide.notify('[find] No files found in project.', 'warn');
 
 			files = files.filter(function(val) {
 				return regex.test(val.filename);

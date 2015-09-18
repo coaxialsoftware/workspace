@@ -165,11 +165,14 @@ class PluginManager extends EventEmitter {
 	
 	requireFile(file)
 	{
-		var plugin = new Plugin(file);
-
-		this.register(plugin);
-		
-		return plugin;
+		try {
+			fs.statSync(file);
+			var plugin = new Plugin(file);
+			this.register(plugin);
+			return plugin;
+		} catch(e) {
+			workspace.error(`Could not load plugin: ${file}`);
+		}
 	}
 	
 	requirePlugins(plugins)

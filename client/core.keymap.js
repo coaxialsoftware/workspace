@@ -21,8 +21,6 @@ function KeyboardManager()
 	window.addEventListener('keydown', this.onKeyDown.bind(this));
 
 	this.MODREPLACE = /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'meta+' : 'ctrl+';
-	this.states = {};
-	this.state = 'default';
 }
 	
 cxl.extend(KeyboardManager.prototype, {

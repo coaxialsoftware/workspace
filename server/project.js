@@ -248,6 +248,7 @@ class Project {
 
 _.extend(Project.prototype, cxl.EventListener);
 
+
 class ProjectManager {
 
 	constructor()
@@ -255,6 +256,7 @@ class ProjectManager {
 		/**
 		* List of projects
 		*/
+		this.workspaceProject = new Project('');
 		this.projects = {};
 		this.files = [];
 		this.path = '.';
@@ -276,22 +278,9 @@ class ProjectManager {
 		});
 	}
 
-	loadAll()
-	{
-		return this.findProjects().then(function(projects) {
-				var result = cxl.extend({
-					projects: projects,
-					files: JSON.stringify(this.files)
-				}, workspace.configuration);
-			
-				delete result.password;
-				return result;
-			});
-	}
-
 	load(path)
 	{
-		return path ? this.loadProject(path) : this.loadAll();
+		return path ? this.loadProject(path) : this.workspaceProject.load();
 	}
 
 	getProjectInformation(path)
@@ -340,6 +329,13 @@ plugin.extend({
 	workspace.plugins.on('socket.message.project',
 		this.onMessage.bind(this));
 
+})
+.route('GET', '/projects', function(req, res) {
+	
+	this.projectManager.findProjects().then(function(p) {
+		res.send(p);
+	}, common.sendError(this, res));
+	
 })
 .route('GET', '/project', function(req, res) {
 

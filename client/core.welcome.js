@@ -30,8 +30,8 @@ var ProjectList = ide.Editor.List.extend({
 	{
 		var me = this;
 		
-		$.get('/project', function(d) {
-			me._renderProjects(d.projects);
+		$.get('/projects', function(d) {
+			me._renderProjects(d);
 		});
 	},
 	
