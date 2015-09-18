@@ -13,7 +13,7 @@
 
 <script id="tpl-file" type="text/template">
 <div class="ide-item <%= obj.directory ? 'ide-directory' : 'ide-file' %>">
-	<button class="ide-item-content" title="<%= this.path + obj.filename %>" data-id="<%= obj.id %>">
+	<button class="ide-item-content" title="<%= obj.filename %>" data-id="<%= obj.id %>">
 		<h4><%- obj.filename %></h4>
 	</button>
 </div>
