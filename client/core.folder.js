@@ -92,7 +92,7 @@ ide.Editor.List = ide.Editor.extend({
 	
 	_setup: function()
 	{
-		this.$el.addClass('ide-panel');
+		this.$el.addClass('panel');
 		
 		if (!this.template)
 			this.template = cxl.templateId('tpl-editor-list');
@@ -104,7 +104,7 @@ ide.Editor.List = ide.Editor.extend({
 	_ready: function()
 	{
 		this.$list = $(this.$list)
-			.on('click', '.ide-item-content', this._onClick.bind(this));
+			.on('click', '.item-content', this._onClick.bind(this));
 		this.$el.on('click', this.focus.bind(this));
 		
 		if (this.items)
@@ -160,25 +160,25 @@ ide.Editor.List = ide.Editor.extend({
 		var focused = this.$list.find(':focus');
 		
 		if (!focused.is(':visible'))
-			focused = this.$list.find('.ide-item-content:visible:eq(0)');
+			focused = this.$list.find('.item-content:visible:eq(0)');
 		
 		return focused;
 	},
 	
 	goDocStart: function()
 	{
-		this.$list.find('.ide-item-content:visible:eq(0)').focus();
+		this.$list.find('.item-content:visible:eq(0)').focus();
 	},
 	
 	goDocEnd: function()
 	{
-		this.$list.find('.ide-item-content:visible:last-child').focus();
+		this.$list.find('.item-content:visible:last-child').focus();
 	},
 	
 	goLineDown: function(dir)
 	{
 		dir = dir || 'next';
-		this._findFocus().parent()[dir]().find('.ide-item-content:visible').focus();
+		this._findFocus().parent()[dir]().find('.item-content:visible').focus();
 	},
 	
 	goLineUp: function()

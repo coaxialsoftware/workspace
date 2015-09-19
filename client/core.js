@@ -69,7 +69,7 @@ var
 	{
 		kls = kls || 'log';
 	var
-		span = $('<li><span class="ide-notification ide-' + kls + '">' + message + '</span></li>')
+		span = $('<li><span class="notification ' + kls + '">' + message + '</span></li>')
 			.prependTo(_nots),
 		timeout = setTimeout(span.remove.bind(span), 3000)
 	;
@@ -137,7 +137,7 @@ ide.Info = cxl.View.extend({ /** @lends ide.Info# */
 
 	_timeout: null,
 
-	el: '<div class="ide-info"></div>',
+	el: '<div class="info"></div>',
 	
 	initialize: function()
 	{
@@ -281,14 +281,14 @@ ide.Editor = cxl.View.extend({
 	focus: function()
 	{
 		if (ide.editor)
-			ide.editor.$el.removeClass('ide-focus');
+			ide.editor.$el.removeClass('focus');
 		
 		this.showInfo();
 
 		// TODO move this to workspace?
 		ide.editor = this;
 
-		this.$el.addClass('ide-focus');
+		this.$el.addClass('focus');
 		ide.plugins.trigger('editor.focus', this);
 	},
 	

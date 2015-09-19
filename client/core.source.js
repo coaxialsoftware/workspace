@@ -36,7 +36,7 @@ _.extend(HintManager.prototype, {
 		var el = document.createElement('DIV');
 			
 		el.style.height=(lineHandle.height|0) + 'px';
-		this.__cm.setGutterMarker(line, 'ide-editor-hint', el);	
+		this.__cm.setGutterMarker(line, 'editor-hint', el);	
 		
 		return el;
 	},
@@ -45,7 +45,7 @@ _.extend(HintManager.prototype, {
 	{
 		var h = this.__cm.lineInfo(line);
 	
-		return h.gutterMarkers && h.gutterMarkers['ide-editor-hint'] ||
+		return h.gutterMarkers && h.gutterMarkers['editor-hint'] ||
 			this.__createMark(line, h.handle);
 	},
 	
@@ -67,7 +67,7 @@ _.extend(HintManager.prototype, {
 		
 		hints.push(hint);
 		
-		el.setAttribute('class', 'ide-hint ide-hint-' + (hint.type || 'info'));
+		el.setAttribute('class', 'hint hint-' + (hint.type || 'info'));
 		el.setAttribute('title', hint.hint);
 		
 		marker.appendChild(el);
@@ -271,7 +271,7 @@ ide.Editor.Source = ide.Editor.extend({
 				mode: ft,
 				scrollbarStyle: 'null',
 				gutters: [ "CodeMirror-linenumbers", 
-				"CodeMirror-foldgutter",'ide-editor-hint']	
+				"CodeMirror-foldgutter",'editor-hint']	
 			}
 		));
 	},

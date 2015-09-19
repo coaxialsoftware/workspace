@@ -40,7 +40,7 @@ _.extend(ide.Hint.prototype, {
 		hint = this, key = this.key
 	;
 		el.type = 'button';
-		el.className = 'ide-assist-hint ide-' + this.type;
+		el.className = 'assist-hint ' + this.type;
 		el.addEventListener('click', this.onClick.bind(this));
 		el.innerHTML = (key ? '<kbd>' + key + '</kbd>' : '') +
 			(hint.tag ? '<code>' + hint.tag + '</code>' : '') +
@@ -85,18 +85,18 @@ var Assist = cxl.View.extend({
 	hide: function()
 	{
 		cxl.$body.append(ide.$notifications);
-		this.$el.removeClass('ide-assist-show');
+		this.$el.removeClass('assist-show');
 		this.visible = false;
-		ide.workspace.$el.removeClass('ide-assist-show');
+		ide.workspace.$el.removeClass('assist-show');
 		ide.workspace.hash.set({ a: false });
 	},
 	
 	show: function()
 	{
-		this.$el.addClass('ide-assist-show');
+		this.$el.addClass('assist-show');
 		this.el.insertBefore(ide.$notifications, this.$hints);
 		this.visible = true;
-		ide.workspace.$el.addClass('ide-assist-show');
+		ide.workspace.$el.addClass('assist-show');
 		this._requestHints();
 		ide.workspace.hash.set({ a: 1 });
 	},

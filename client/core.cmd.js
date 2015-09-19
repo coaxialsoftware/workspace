@@ -161,10 +161,7 @@ var
 };
 	
 /** @namespace */
-ide.commands = {
-
-};
-	
+ide.commands = {};
 ide.editorCommands = {};
 
 })(this.ide, this.cxl);
