@@ -305,9 +305,9 @@ ide.Editor.Source = ide.Editor.extend({
 	{
 		var token = this.getToken();
 		
-		if (this.__token !== token)
+		if (this.token !== token)
 		{
-			this.__token = token;
+			this.token = token;
 			ide.plugins.trigger('token', this, token);
 		}
 	},
@@ -362,6 +362,7 @@ ide.Editor.Source = ide.Editor.extend({
 		pos = pos || this.editor.getCursor();
 		var token = this.editor.getTokenAt(pos, true);
 		token.line = pos.line;
+		token.ch = pos.ch;
 		return token;
 	},
 

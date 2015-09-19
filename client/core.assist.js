@@ -75,10 +75,10 @@ var Assist = cxl.View.extend({
 		this.listenTo(ide.plugins, 'workspace.remove_child', this.onToken);
 	},
 	
-	onToken: function(editor, token)
+	onToken: function()
 	{
 		this.editor = ide.editor;
-		this.token = token;
+		this.token = this.editor.token;
 		this.requestHints();
 	},
 	
@@ -115,7 +115,7 @@ var Assist = cxl.View.extend({
 			this.addHint.bind(this, this.version), this.editor, this.token);
 		
 		ide.socket.send('assist',
-			{ version: this.version, token: this.token });
+			{ version: this.version, file: this.editor.file.id, token: this.token });
 		this.render();
 	},
 	
@@ -208,10 +208,16 @@ ide.plugins.register('assist', {
 		done(hints);
 	},
 	
+	onSocket: function(data)
+	{
+		ide.assist.addHint(data.version, data.hints);
+	},
+	
 	ready: function()
 	{
 		ide.assist = new Assist();
 		ide.plugins.on('assist', this.onAssist, this);
+		ide.plugins.on('socket.message.assist', this.onSocket, this);
 		
 		if (ide.workspace.hash.data.a)
 			window.setTimeout(ide.assist.show.bind(ide.assist), 150);

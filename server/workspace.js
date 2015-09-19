@@ -403,6 +403,7 @@ workspace.extend({
 	require('./online').start();
 	require('./project').start();
 	require('./file').start();
+	require('./assist').start();
 	
 	this.operation('Loading plugins', this.plugins.start.bind(this.plugins));
 });

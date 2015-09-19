@@ -149,8 +149,7 @@ ide.plugins.on('assist', function(done, editor, token) {
 		
 		if (token && (token.type===null || token.type==='string' ||
 			token.type==='string property') && token.string)
-			hints.push({ hint: 'Find file ' + '"' +
-				token.string + '"', action: 'find'
+			hints.push({ hint: 'Find file ' + token.string, action: 'find'
 			});
 		
 		done(hints);

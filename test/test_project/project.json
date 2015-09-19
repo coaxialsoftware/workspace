@@ -5,6 +5,7 @@
 		"indentWithTabs": false
 	},
     "description": "A test project for workspace.",
+    "plugins": [ "js-infer" ],
     "links": [
         { "href": "hello", "class": "home", "title": "Homepage" }
     ],

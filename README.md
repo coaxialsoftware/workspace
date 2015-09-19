@@ -2,18 +2,26 @@
 workspace
 =========
 
-Lean and fast browser based IDE. 
+A new IDE concept based on web technologies with a focus on
+extendibility and user experience.
+
+The editor main features are:
+
+- Easy to install and portable. Runs locally or remotely.
+- Client/Server based. Client handles rendering, while server handles most heavy tasks.
+- A Plugin API. Plugins can be enabled by project or by workspace.
+- A simplistic yet powerful UI.
 
 Dependencies
 ------------
 
-- iojs >3.0 and npm.
+- node >3.0 and npm.
 - A modern web browser.
 
 Installation
 ------------
 
-To install from npm
+To install from npm (stable)
 
 	npm -g install @cxl/workspace
 
