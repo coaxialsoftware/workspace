@@ -115,7 +115,7 @@ var Assist = cxl.View.extend({
 			this.addHint.bind(this, this.version), this.editor, this.token);
 		
 		ide.socket.send('assist',
-			{ version: this.version, file: this.editor.file.id, token: this.token });
+			{ version: this.version, file: _.get(this.editor, 'file.id'), token: this.token });
 		this.render();
 	},
 	

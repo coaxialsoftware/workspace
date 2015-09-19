@@ -7,7 +7,7 @@ extendibility and user experience.
 
 The editor main features are:
 
-- Easy to install and portable. Runs locally or remotely.
+- Easy to install and configure. Runs locally or remotely.
 - Client/Server based. Client handles rendering, while server handles most heavy tasks.
 - A Plugin API. Plugins can be enabled by project or by workspace.
 - A simplistic yet powerful UI.
