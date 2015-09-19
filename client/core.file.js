@@ -62,7 +62,7 @@ ide.File = cxl.Model.extend({
 	{
 		return this.get('filename') || '';
 	}
-
+	
 });
 	
 function FileManager()
