@@ -119,9 +119,12 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 		op = {
 			file: m[2] ? m[3] || null : m[3],
 			plugin: m[1],
-			params: m[2]
+			params: m[2] && decodeURIComponent(m[2])
 		}
 	;
+		if (op.file)
+			op.file = decodeURIComponent(op.file);
+		
 		ide.open(op);
 	},
 
@@ -148,8 +151,8 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	state: function(editor)
 	{
 		return (editor.plugin ? editor.plugin.name + ':' : '') +
-			(editor.params ? editor.params + ':' : '') +
-			(editor.file && editor.file.get('filename') || '');
+			(editor.params ? encodeURIComponent(editor.params) + ':' : '') +
+			(editor.file && encodeURIComponent(editor.file.get('filename')) || '');
 	},
 
 	/**
