@@ -36,7 +36,7 @@ _.extend(HintManager.prototype, {
 		var el = document.createElement('DIV');
 			
 		el.style.height=(lineHandle.height|0) + 'px';
-		this.__cm.setGutterMarker(line, 'editor-hint', el);	
+		this.__cm.setGutterMarker(line, 'editor-hint-gutter', el);	
 		
 		return el;
 	},
@@ -45,7 +45,7 @@ _.extend(HintManager.prototype, {
 	{
 		var h = this.__cm.lineInfo(line);
 	
-		return h.gutterMarkers && h.gutterMarkers['editor-hint'] ||
+		return h.gutterMarkers && h.gutterMarkers['editor-hint-gutter'] ||
 			this.__createMark(line, h.handle);
 	},
 	
@@ -67,7 +67,7 @@ _.extend(HintManager.prototype, {
 		
 		hints.push(hint);
 		
-		el.setAttribute('class', 'hint hint-' + (hint.type || 'info'));
+		el.setAttribute('class', 'editor-hint ' + (hint.type || 'info'));
 		el.setAttribute('title', hint.hint);
 		
 		marker.appendChild(el);
@@ -271,7 +271,7 @@ ide.Editor.Source = ide.Editor.extend({
 				mode: ft,
 				scrollbarStyle: 'null',
 				gutters: [ "CodeMirror-linenumbers", 
-				"CodeMirror-foldgutter",'editor-hint']	
+				"CodeMirror-foldgutter",'editor-hint-gutter']	
 			}
 		));
 	},
@@ -303,7 +303,7 @@ ide.Editor.Source = ide.Editor.extend({
 	
 	onCursorActivity: function()
 	{
-		var token = this.getToken();
+		var token = this._getToken();
 		
 		if (this.token !== token)
 		{
@@ -319,13 +319,17 @@ ide.Editor.Source = ide.Editor.extend({
 		editor = this.editor = codeMirror(this.el, options)
 	;
 		this.file_content = options.value;
-		this.keymap = new ide.KeyMap();
+		
+		this.features({
+			keymap: new ide.KeyMap(),
+			hints: new HintManager(this)
+		});
 		this.keymap.handle = this._keymapHandle.bind(this);
-		this.hints = new HintManager(this);
 		
 		this.listenTo(this.file, 'change:content', this._on_file_change);
 		this.listenTo(editor, 'focus', this._on_focus);
 		this.listenTo(editor, 'cursorActivity', this.onCursorActivity);
+		this.listenTo(ide.plugins, 'workspace.resize', this.resize);
 	},
 
 	resize: function()
@@ -357,7 +361,7 @@ ide.Editor.Source = ide.Editor.extend({
 	 * Gets token at pos. If pos is ommited it will return the token
 	 * under the cursor
 	 */
-	getToken: function(pos)
+	_getToken: function(pos)
 	{
 		pos = pos || this.editor.getCursor();
 		var token = this.editor.getTokenAt(pos, true);
@@ -476,27 +480,23 @@ ide.Editor.Source = ide.Editor.extend({
 
 });
 	
-ide.defaultEdit = function(file, options)
+ide.defaultEdit = function(options)
 {
+	var file = options.file;
+	
 	if (!file.get('directory'))
 	{
 		if (!file.attributes.content)
 			file.attributes.content = '';
 
-	var
-		editor = new ide.Editor.Source({
-			slot: options.slot,
-			file: file
-		})
-	;
+		var editor = new ide.Editor.Source(options);
+
 		if (options && options.line)
 			setTimeout(function() {
 				editor.go(options.line);
 			});
 
-		ide.workspace.add(editor);
-
-		return true;
+		return editor;
 	}
 };
 

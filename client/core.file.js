@@ -56,11 +56,6 @@ ide.File = cxl.Model.extend({
 	;
 		return '/file?p=' + this.get('project') +
 			'&n=' + this.get('filename') + '&t=' + mtime;
-	},
-
-	toString: function()
-	{
-		return this.get('filename') || '';
 	}
 	
 });
@@ -77,7 +72,7 @@ FileManager.prototype = {
 		var result;
 		
 		ide.workspace.each(function(editor) {
-			if (editor.file)
+			if (editor && editor.file)
 			{
 				result = callback(editor.file);
 				if (result) return false;
@@ -127,10 +122,11 @@ FileManager.prototype = {
 		
 		if (filename)
 		{
+			if (typeof(filename)==='string')
+				filename = { filename: filename };
+			
 			file = this.findFile(this.getPath(filename)) ||
-				new ide.File({
-					filename: filename
-				});
+				new ide.File(filename);
 		} 
 		
 		return file || new ide.File();

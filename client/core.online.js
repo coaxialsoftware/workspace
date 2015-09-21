@@ -6,7 +6,7 @@ var LoginDialog = ide.Editor.extend({
 	
 	templateUrl: 'tpl-login',
 	
-	file: 'login',
+	params: 'login',
 	
 	onAuth: function(auth)
 	{
@@ -32,25 +32,18 @@ var LoginDialog = ide.Editor.extend({
 	
 ide.plugins.register('online', {
 	
-	login: function()
+	open: function(options)
 	{
-		var editor = new LoginDialog({
-			plugin: this
-		});
-
-		ide.workspace.add(editor);
-	},
-	
-	open: function(file)
-	{
-		if (file==='login')
-			this.login();
+		if (options.params==='login')
+			return new LoginDialog(options);
 	},
 	
 	commands: {
 		login: function()
 		{
-			this.login();
+			ide.workspace.add(new LoginDialog({
+				plugin: this
+			}));
 		}
 	},
 	

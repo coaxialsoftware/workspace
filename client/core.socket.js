@@ -8,7 +8,7 @@
 function SocketManager()
 {
 	if (!window.WebSocket)
-		return ide.notify('WebSockets not supported. Some features will not be available.', 'warn');
+		return ide.alert('WebSockets not supported. Some features will not be available.');
 
 	ide.plugins.on('project.load', this.connect, this);
 	window.addEventListener('focus', this.checkConnection.bind(this));

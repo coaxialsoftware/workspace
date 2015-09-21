@@ -2,6 +2,16 @@
 (function(ide, cxl) {
 "use strict";
 	
+ide.Feature = function Feature(p)
+{
+	cxl.extend(this, p);
+};
+
+ide.cmd = function Command()
+{
+	
+};
+	
 ide.sandbox = function(a) {
 	/* jshint evil:true */
 	return (new Function(
@@ -94,7 +104,7 @@ cxl.extend(CommandParser.prototype, {
 	run: function(src)
 	{
 		var cmd = this.parse(src);
-		return ide.cmd(cmd.fn, cmd.args);
+		return ide.run(cmd.fn, cmd.args);
 	}
 	
 });
@@ -132,7 +142,7 @@ function tryCmd(commands, cmd, args)
 	
 	if (typeof(fn)==='string')
 	{
-		return ide.cmd(fn, args);
+		return ide.run(fn, args);
 	} else if (fn)
 		return fn.apply(ide, args);
 	
@@ -140,7 +150,7 @@ function tryCmd(commands, cmd, args)
 }
 	
 /** Execute command. */
-ide.cmd = function(fn, args)
+ide.run = function(fn, args)
 {
 var
 	result = ide.Pass

@@ -5,7 +5,6 @@
 var ProjectList = ide.Editor.List.extend({
 	
 	title: 'projects',
-	file: 'projects',
 	
 	_setup: function()
 	{
@@ -68,19 +67,22 @@ ide.plugins.register('welcome', new ide.Plugin({
 		
 		projects: function()
 		{
-			this.openProjects();
+			this.openProjects({ plugin: this, params: 'projects' });
 		}
 	},
 	
-	openProjects: function()
+	openProjects: function(options)
 	{
-		ide.workspace.add(new ProjectList({ plugin: this }));
+		ide.workspace.add(new ProjectList(options));
 	},
 	
-	open: function(file)
+	edit: function(options)
 	{
-		if (file==='projects')
-			this.openProjects();
+		if (options.plugin!==this)
+			return;
+			
+		if (options.params==='projects')
+			return new ProjectList(options);
 	},
 	
 	onChange: function()
@@ -100,8 +102,8 @@ ide.plugins.register('welcome', new ide.Plugin({
 		this.$el = $('#welcome').html(this.template);
 		this.onChange();
 		
-		ide.plugins.on('workspace.add_child', this.onChange, this);
-		ide.plugins.on('workspace.remove_child', this.onChange, this);
+		ide.plugins.on('workspace.add', this.onChange, this);
+		ide.plugins.on('workspace.remove', this.onChange, this);
 	},
 
 	start: function()

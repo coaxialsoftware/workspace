@@ -198,16 +198,17 @@ ide.Editor.FileList = ide.Editor.List.extend({
 	onItemClick: function(ev, item)
 	{
 	var
-		options = {},
-		path = (this.prefix ? this.prefix+'/' : '') + item.filename;
-
+		options = {
+			file: (this.prefix ? this.prefix+'/' : '') + item.filename
+		}
+	;
 		if (item.line)
 			options.line = item.line;
 
 		if (ev.ctrlKey)
-			ide.open_tab(path);
+			ide.open_tab(options.file);
 		else
-			ide.open(path, options);
+			ide.open(options);
 
 		if (!ev.shiftKey)
 			ide.workspace.remove(this);
@@ -232,8 +233,7 @@ ide.plugins.register('find', new ide.Plugin({
 
 	get_mask: function()
 	{
-		var token = ide.editor && ide.editor.getToken &&
-			ide.editor.getToken();
+		var token = ide.editor && ide.editor.token;
 
 		if (token)
 		{
@@ -261,7 +261,7 @@ ide.plugins.register('find', new ide.Plugin({
 			regex = globToRegex(mask);
 
 			if (!files)
-				return ide.notify('[find] No files found in project.', 'warn');
+				return ide.alert('[find] No files found in project.');
 
 			files = files.filter(function(val) {
 				return regex.test(val.filename);
@@ -295,27 +295,21 @@ ide.plugins.register('folder', new ide.Plugin({
 		
 	},
 
-	edit: function(file, options)
+	edit: function(options)
 	{
-		var editor, files, path;
+		var file=options.file, files, path;
 
 		if (file.get('directory'))
 		{
-			files = file.get('content');
+			files = options.items = file.get('content');
 			files.unshift({ filename: '..' });
 
 			path = file.get('filename');
+			
+			options.prefix = path==='.' ? '' : (path + '/');
+			options.title = path;
 
-			editor = new ide.Editor.FileList({
-				slot: options.slot,
-				file: file,
-				plugin: this,
-				items: files,
-				title: path,
-				prefix: path==='.' ? '' : (path + '/')
-			});
-			ide.workspace.add(editor);
-			return true;
+			return new ide.Editor.FileList(options);
 		}
 	}
 

@@ -3,8 +3,7 @@
 "use strict";
 
 var
-	FILE_REGEX = /(\w+):(.*)/,
-	id=1
+	FILE_REGEX = /^(?:([\w\.\-]+):)?(?:([^:]+):)?([^:]*)$/
 ;
 
 function Hash()
@@ -109,19 +108,27 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	el: '#workspace',
 
 	slots: null,
+	editors: null,
 
 	layout: ide.Layout.Smart,
 
 	load_editor: function(file)
 	{
-		var m = FILE_REGEX.exec(file) || [ null, null, file ];
-		ide.open(m[2], { plugin: m[1] });
+	var
+		m = FILE_REGEX.exec(file),
+		op = {
+			file: m[2] ? m[3] || null : m[3],
+			plugin: m[1],
+			params: m[2]
+		}
+	;
+		ide.open(op);
 	},
 
 	load_files: function()
 	{
 	var
-		files = this.hash.data.f || this.hash.data.file
+		files = this.hash.data.f
 	;
 		if (!files)
 			return;
@@ -137,6 +144,13 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 		ide.plugins.start();
 		this.load_files();
 	},
+	
+	state: function(editor)
+	{
+		return (editor.plugin ? editor.plugin.name + ':' : '') +
+			(editor.params ? editor.params + ':' : '') +
+			(editor.file && editor.file.get('filename') || '');
+	},
 
 	/**
 	 * Save workspace state in the URL Hash.
@@ -146,7 +160,7 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 		var hash = this.hash, files = [];
 
 		this.each(function(child) {
-			files.push(child.state());
+			files.push(this.state(child));
 		});
 
 		if (files.length===1)
@@ -154,27 +168,20 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 		else if (files.length===0)
 			files = 0;
 
-		if (hash.data.project)
-		{
-			hash.data.p = hash.data.project;
-			delete hash.data.project;
-		}
-
-		delete hash.data.file;
 		hash.set({ f: files });
+		
+		return this;
 	},
 
 	/** Returns a slot(DIV) to place a new editor */
 	slot: function()
 	{
 	var
-		el = $('<DIV>'),
-		slot = { el: el[0], $el: el }
+		el = document.createElement('DIV'),
+		slot = { el: el, $el: $(el) }
 	;
 		this.$el.append(el);
-
 		this.slots.push(slot);
-		this.do_layout();
 
 		return slot;
 	},
@@ -187,12 +194,10 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 		{
 			slot.$el.css(layout[i]);
 			slot.index = i;
-
-			if (slot.editor && slot.editor.resize)
-				slot.editor.resize();
 		});
 
-		this.save();
+		ide.plugins.trigger('workspace.resize');
+		return this.save();
 	},
 
 	/** Iterates through open editors. Return false to stop. */
@@ -200,10 +205,10 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	{
 	var
 		i = 0,
-		slots = this.slots.concat()
+		slots = this.slots
 	;
 		for (; i<slots.length; i++)
-			if (slots[i].editor && cb(slots[i].editor, i)=== false)
+			if (slots[i].editor && cb.call(this, slots[i].editor, i)=== false)
 				return;
 	},
 
@@ -217,14 +222,11 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 
 	add: function(item)
 	{
-		item.id = id++;
-		
-		ide.plugins.trigger('workspace.add_child', item);
+		item.slot.editor = item;
 		item.focus();
 
-		this.save();
-
-		return this;
+		ide.plugins.trigger('workspace.add', item);
+		return this.do_layout();
 	},
 
 	remove: function(item, force)
@@ -233,7 +235,6 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 		slot = item.slot,
 		msg = item._close(force)
 	;
-
 		if (typeof(msg)==='string')
 		{
 			if (window.confirm(msg))
@@ -244,15 +245,14 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 
 		this.slots.splice(slot.index, 1);
 
-		if (this.slots[0] && this.slots[0].editor)
+		if (this.slots[0])
 			this.slots[0].editor.focus();
 		else
 			ide.editor = null;
 
-		this.do_layout();
-		ide.plugins.trigger('workspace.remove_child', item);
+		ide.plugins.trigger('workspace.remove', item);
 
-		return this;
+		return this.do_layout();
 	},
 
 	/** Returns next editor */
@@ -343,12 +343,6 @@ ide.plugins.registerCommands({
 	
 	editorCommands: {
 		
-		// TODO See if there's a vim equivalent ex command
-		showInfo: function()
-		{
-			ide.editor.showInfo();
-		},
-		
 		ascii: function()
 		{
 		var
@@ -383,7 +377,7 @@ ide.plugins.registerCommands({
 				for (var i=0; i<arguments.length; i++)
 					ide.open(arguments[i]);
 			else
-				ide.open();
+				ide.open('');
 		},
 		
 		f: 'file',
@@ -409,7 +403,8 @@ ide.plugins.registerCommands({
 		
 		wq: function()
 		{
-			ide.cmd('w').cmd('q');
+			// TODO use one run.
+			ide.run('w').run('q');
 		},
 		
 		/// Quit Vim. This fails when changes have been made.

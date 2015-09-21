@@ -5,9 +5,10 @@
 
 (function(window, $, cxl) {
 "use strict";
-
+	
 var
 	_nots,
+	editorId = 1,
 
 	ide =
 	/** @namespace */
@@ -16,8 +17,6 @@ var
 	/** Used by commands to indicate that the command wasn't handled. */
 	Pass: {},
 		
-	version: '0.3.0',
-
 	/** Current opened project */
 	project: null,
 
@@ -33,11 +32,6 @@ var
 	/** Asset, script loader */
 	loader: null,
 		
-	/** Notification history. */
-	notifications: [],
-		
-	win: window,
-
 	/** Displays alert notification on right corner */
 	alert: function(message)
 	{
@@ -50,30 +44,15 @@ var
 		ide.notify(message, 'error');
 	},
 
-	/**
-	 * Get diff between A and B
-	 */
-	diff: function(A, B)
-	{
-		var result;
-		
-		for (var i in B)
-			if (B[i] !== A[i])
-				(result = result || {})[i] = B[i];
-		
-		return result;	
-	},
-
 	/** Displays notification on right corner */
 	notify: function(message, kls)
 	{
 		kls = kls || 'log';
 	var
-		span = $('<li><span class="notification ' + kls + '">' + message + '</span></li>')
-			.prependTo(_nots),
-		timeout = setTimeout(span.remove.bind(span), 3000)
+		span = message instanceof ide.Hint ? message : new ide.Hint(message)
 	;
-		ide.plugins.trigger('notify', message, kls, span, timeout);
+		setTimeout(span.remove.bind(span), 3000);
+		_nots.insertBefore(span.render(), _nots.firstChild);
 	},
 
 	/**
@@ -93,16 +72,25 @@ var
 	 * @param options {object|string} If string it will be treated as target
 	 * @param options.target Open file in new window.
 	 */
-	open: function(filename, options)
+	open: function(options)
 	{
-		ide.plugins.edit(filename || '', options || {});
+		if (!options || typeof(options)==='string' || options instanceof ide.File)
+			options = { file: options };
+		
+		if (typeof(options.file)==='string')
+			options.file = ide.fileManager.getFile(options.file);
+		
+		if (typeof(options.plugin)==='string')
+			options.plugin = ide.plugins.get(options.plugin);
+		
+		ide.plugins.edit(options);
 	},
 
 	/**
 	 * Try to execute action in editor or workspace. Actions must return false if
 	 * not handled.
 	 *
-	 * TODO better way of collection result? 
+	 * TODO better way of collection result? Merge with run. 
 	 */
 	action: function(name)
 	{
@@ -111,7 +99,7 @@ var
 		result, i=0
 	;
 		for (; i<actions.length; i++)
-			result = ide.cmd(actions[i]);
+			result = ide.run(actions[i]);
 			
 		return result;
 	}
@@ -198,16 +186,20 @@ ide.Editor = cxl.View.extend({
 	
 	/* Executes after template has been loaded */
 	_ready: null,
+	
+	/// Unique ID
+	id: null,
 
 	load: function()
 	{
+		this.id = editorId++;
+		
 		if (!this.slot)
 			this.slot = ide.workspace.slot();
 
 		this.setElement(this.slot.el);
 		this.listenTo(this.$el, 'click', this._on_click);
 		
-		this.slot.editor = this;
 		this.info = new ide.Info({ editor: this });
 		
 		this._setup();
@@ -219,6 +211,16 @@ ide.Editor = cxl.View.extend({
 			this._ready();
 		
 		ide.plugins.trigger('editor.load', this);
+	},
+	
+	/**
+	 * Declare what features the editor implements. See
+	 * ide.Feature namespace.
+	 */
+	features: function(obj)
+	{
+		for (var i in obj)
+			this[i] = obj[i];
 	},
 
 	/** Plugin that instantiated the editor @required */
@@ -269,13 +271,6 @@ ide.Editor = cxl.View.extend({
 	getInfo: function()
 	{
 		return (this.file ? this.file.toString() : '') + ' [' + ide.project.get('name') + ']';
-	},
-
-	/** Gets the current editor state. Used to persist workspace state in the url hash. */
-	state: function()
-	{
-		return (this.plugin ? this.plugin.name + ':' : '') + 
-			(this.file ? this.file.toString() : '');
 	},
 
 	focus: function()

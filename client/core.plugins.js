@@ -97,64 +97,46 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	{
 		for (var i in this._plugins)
 		{
-			if (fn.bind(this)(this._plugins[i], i))
-				return true;
+			var result = fn.bind(this)(this._plugins[i], i);
+			
+			if (result)
+				return result;
 		}
 	},
 	
-	findEditor: function(file, options, plugin)
+	findPlugin: function(options)
 	{
-		var me = this;
-		
-		function cb(plug)
-		{
-			return plug.edit && plug.edit(file, options);
-		}
-		
-		function find()
-		{
-			var result = me.each(cb);
-			
-			if (!result)
-				ide.defaultEdit(file, options);
-		}
-		
-		if (file.attributes.content || !file.attributes.filename)
-			find();
-		else
-			file.fetch({
-				success: plugin ?
-					cb.bind(me, plugin) :
-					find
-			});
+	var
+		plugin = options.plugin,
+		editor = plugin ?
+			(plugin.open || plugin.edit).call(plugin, options) :
+			this.each(function(plug) {
+				var r = plug.edit && plug.edit(options);
+				return r && (r.plugin = plug) && r;
+			}) || ide.defaultEdit(options)
+	;
+		ide.workspace.add(editor);
 	},
 
 	/**
 	 * Opens a file if supported by a plugin.
 	 *
-	 * @param file {string} File name or Plugin state
 	 * @param options {object} Required.
+	 * @param options.file {ide.File} File Object.
+	 * @param options.plugin {ide.Plugin} Plugin
 	 */
-	edit: function(path, options)
+	edit: function(options)
 	{
-	var
-		plugin = options.plugin && this.get(options.plugin),
-		file
-	;
-		if (plugin && plugin.open)
-			return plugin.open(path, options);
-
-		if (!path || typeof(path)==='string')
-			file = ide.fileManager.getFile(path);
-		else
-		{
-			file = ide.fileManager.getFile();
-			file.set(path);
-		}
-
+		var file = options.file;
+		
 		options.slot = ide.workspace.slot();
-
-		this.findEditor(file, options, plugin);
+		
+		if (!file || file.attributes.content || !file.attributes.filename)
+			this.findPlugin(options);
+		else
+			file.fetch({
+				success: this.findPlugin.bind(this, options)
+			});
 	},
 
 	/**
@@ -236,7 +218,7 @@ ide.plugins.register('plugins', {
 		
 		if (!all)
 		{
-			ide.notify('Could not retrieve plugins from server.', 'warn');
+			ide.alert('Could not retrieve plugins from server.');
 			all = _.extend({}, installed);
 		}
 		
@@ -250,8 +232,11 @@ ide.plugins.register('plugins', {
 		l.add(_.values(all));
 	},
 	
-	open: function()
+	edit: function(options)
 	{
+		if (options.plugin!==this)
+			return;
+		
 	var
 		me = this,
 		l = new ide.Editor.List({

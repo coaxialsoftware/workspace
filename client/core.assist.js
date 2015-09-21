@@ -4,7 +4,10 @@
 	
 ide.Hint = function ideHint(p)
 {
-	_.extend(this, p);
+	if (typeof(p)==='string')
+		this.hint = p;
+	else
+		_.extend(this, p);
 	
 	if (this.action)
 		this.key = ide.keyboard.findKey(this.action);
@@ -33,19 +36,30 @@ _.extend(ide.Hint.prototype, {
 		}
 	},
 	
+	remove: function()
+	{
+		var parent = this.el.parentNode;
+		if (parent)
+			parent.removeChild(this.el);
+		return this;
+	},
+	
 	render: function()
 	{
+		if (this.el)
+			return this.el;
+		
 	var
 		el = this.el = document.createElement('BUTTON'),
 		hint = this, key = this.key
 	;
 		el.type = 'button';
-		el.className = 'assist-hint ' + this.type;
+		el.className = 'hint ' + this.type;
 		el.addEventListener('click', this.onClick.bind(this));
 		el.innerHTML = (key ? '<kbd>' + key + '</kbd>' : '') +
 			(hint.tag ? '<code>' + hint.tag + '</code>' : '') +
 			(hint.action ? '<code>:' + hint.action + '</code> ' : '') +
-			'<span>' + hint.hint + '</span>';
+			'<span>' + _.escape(hint.hint) + '</span>';
 		
 		return el;
 	}
@@ -72,7 +86,7 @@ var Assist = cxl.View.extend({
 		this.requestHints = _.debounce(this._requestHints, this.delay);
 		this.listenTo(ide.plugins, 'token', this.onToken);
 		this.listenTo(ide.plugins, 'editor.focus', this.onToken);
-		this.listenTo(ide.plugins, 'workspace.remove_child', this.onToken);
+		this.listenTo(ide.plugins, 'workspace.remove', this.onToken);
 	},
 	
 	onToken: function()

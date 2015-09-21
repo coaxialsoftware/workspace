@@ -28,20 +28,6 @@ ide.Project = cxl.Model.extend({
 		ide.error('Error loading Project: ' + this.id);
 	},
 
-	/**
-	 * Open a file
-	 */
-	open: function(filename, callback)
-	{
-	var
-		file = new ide.File({
-			project: this.get('path'),
-			filename: filename || ''
-		})
-	;
-		return file.fetch({ success: callback });
-	},
-	
 	loadTheme: function(css)
 	{
 		if (this.themeEl)
@@ -66,19 +52,12 @@ ide.Project = cxl.Model.extend({
 	
 	onMessage: function(msg)
 	{
-		var diff;
-		
 		if (!msg) return;
 		
 		if (msg.reload===true)
 			this.reload();
 		else
-		{
-			diff = ide.diff(this.attributes, msg);
-
-			if (diff)
-				this.set(this.parse(diff));
-		}
+			this.set(this.parse(msg));
 	},
 
 	on_project: function()

@@ -21,9 +21,11 @@ index.js must define a cxl Module and export it.
 
 Plugins may include javascript to be executed in the client by using the module's "source" or "sourcePath" property.
 
-Plugins should use the editor CSS and avoid introducing new classes or styles.
+Plugins should use the editor CSS and avoid introducing new classes.
 
 Source Code
 -----------
 
 Plugins must follow the main project JSHINT rules. 100% test coverage is recommended.
+
+Plugins should not depend on other plugins.

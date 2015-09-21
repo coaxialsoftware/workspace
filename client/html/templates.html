@@ -31,14 +31,14 @@
 <script id="tpl-plugins" type="text/template">
 <div class="item">
 	<div tabindex="0" class="item-content">
-
-		<h4><%- obj.name %> <small><%- obj.version %></small></h4>
-		<% if (obj.description) { %><pre><%- obj.description %></pre><% } %>
 		<% if (obj.installed) { %>
-			<span class="icon">
+			<span class="label pull-right">
 				<%= obj.enabled ? 'ENABLED' : 'INSTALLED' %>
 			</span>
 		<% } %>
+		<h4><%- obj.name %> <small><%- obj.version %></small></h4>
+		<% if (obj.description) { %><pre><%- obj.description %></pre><% } %>
+
 	</div>
 </div>
 </script>
