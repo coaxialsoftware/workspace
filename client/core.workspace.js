@@ -214,9 +214,8 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 
 	close_all: function()
 	{
-		var me = this;
 		this.each(function(item) {
-			me.remove(item);
+			setTimeout(this.remove.bind(this, item));
 		});
 	},
 

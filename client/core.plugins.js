@@ -209,7 +209,9 @@ ide.plugins = new PluginManager();
 	
 ide.plugins.register('plugins', {
 	commands: {
-		plugins: function() { this.open(); }
+		plugins: function() { 
+			ide.workspace.add(this.open({ plugin: this }));
+		}
 	},
 	
 	addPlugins: function(l, all, installed)
@@ -232,19 +234,17 @@ ide.plugins.register('plugins', {
 		l.add(_.values(all));
 	},
 	
-	edit: function(options)
+	open: function(options)
 	{
-		if (options.plugin!==this)
-			return;
-		
 	var
-		me = this,
-		l = new ide.Editor.List({
-			title: 'plugins',
-			itemTemplate: cxl._templateId('tpl-plugins'),
-			plugin: this
-		})
+		me = this, l
 	;
+		options.title = 'plugins';
+		options.itemTemplate = cxl._templateId('tpl-plugins');
+		options.params = 'list';
+		
+		l = new ide.Editor.List(options);
+		
 		$.when(
 			$.get(ide.project.get('online.url') + '/plugins.json'),
 			$.get('/plugins')
@@ -252,7 +252,7 @@ ide.plugins.register('plugins', {
 			me.addPlugins(l, all[0], installed[0]);
 		});
 		
-		ide.workspace.add(l);
+		return l;
 	}
 });
 
