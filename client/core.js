@@ -49,10 +49,17 @@ var
 	{
 		kls = kls || 'log';
 	var
-		span = message instanceof ide.Hint ? message : new ide.Hint(message)
+		span = message instanceof ide.Hint ? message : new ide.Hint({
+			hint: message, type: kls })
 	;
 		setTimeout(span.remove.bind(span), 3000);
 		_nots.insertBefore(span.render(), _nots.firstChild);
+	},
+		
+	source: function(src)
+	{
+		/* jshint evil:true */
+		return (new Function(src)).call(window);
 	},
 
 	/**

@@ -165,18 +165,14 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		});
 	},
 	
-	loadSource: function(src)
-	{
-		/* jshint evil:true */
-		if (src)
-			(new Function(src)).call(window);
-	},
-
 	start: function()
 	{
-		this.started = true;
+		var src = ide.project.get('src');
 		
-		this.loadSource(ide.project.get('src'));
+		if (src)
+			ide.source(src);
+		
+		this.started = true;
 		this.load_plugins();
 	},
 	

@@ -7,7 +7,6 @@ module.exports = function(grunt) {
 				options: { jshintrc: 'client/.jshintrc' },
 				src: [
 					'client/core.js',
-					'client/core.loader.js',
 					'client/core.keymap.js',
 					'client/core.cmd.js',
 					'client/core.plugins.js',

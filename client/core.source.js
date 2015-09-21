@@ -1,5 +1,5 @@
 
-(function(ide, cxl, _, codeMirror) {
+(function(ide, cxl, _, codeMirror, $) {
 "use strict";
 	
 /**
@@ -218,22 +218,30 @@ ide.Editor.Source = ide.Editor.extend({
 			codeMirror.findModeByMIME(this.file.get('mime'))) ||
 			codeMirror.findModeByMIME('text/plain'),
 		mode = info.mode,
+		promises,
 		me = this
 	;
 		function getScript(mode)
 		{
-			return 'mode/' + mode + '/' + mode + '.js';
+			return $.ajax({
+				url: 'mode/' + mode + '/' + mode + '.js',
+				cache: true, success: ide.source
+			});
 		}
 
 		if (!codeMirror.modes[mode])
 		{
+			promises = [ getScript(mode) ];
+			
 			if (info.require)
-				ide.loader.script(getScript(info.require));
-
-			ide.loader.script(getScript(mode));
-			ide.loader.ready(function() {
+				promises.push(getScript(info.require));
+			
+			$.when.apply($, promises).then(function() {
 				me.editor.setOption('mode', info.mime || mode);
+			}, function() {
+				ide.error('Could not load mode.');
 			});
+			
 			return;
 		}
 		
@@ -500,4 +508,4 @@ ide.defaultEdit = function(options)
 	}
 };
 
-})(this.ide, this.cxl, this._, this.CodeMirror);
+})(this.ide, this.cxl, this._, this.CodeMirror, this.jQuery);
