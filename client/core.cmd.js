@@ -26,7 +26,7 @@ cxl.extend(CommandParser.prototype, {
 		throw new Error("Column " + state.i + ': ' + msg);
 	},
 	
-	parseUntil: function(args, state, end, fn)
+	parseUntil: function(args, state, end, fn, include)
 	{
 		end.lastIndex = state.i;
 		var pos = end.exec(args), i = state.i, result;
@@ -34,7 +34,7 @@ cxl.extend(CommandParser.prototype, {
 		if (!pos)
 			this.error(state, "Unexpected end of line.");
 		
-		state.i = pos.index + pos[0].length;
+		state.i = pos.index + (include===false ? 0 : pos[0].length);
 		
 		result = args.slice(i, state.i);
 		
@@ -59,12 +59,13 @@ cxl.extend(CommandParser.prototype, {
 	parsePath: function(args, state)
 	{
 		this.parseUntil(args, state, /[^\\] |$/g, function(a) {
-			return a.trim().replace(/\\ /g, ' '); });
+			return a.replace(/\\ /g, ' '); }, false);
 	},
 	
 	parseCmd: function(args, state)
 	{
-		this.parseUntil(args, state, /\s+|$/g);
+		this.parseUntil(args, state, /\s|$/g, null, false);
+		this.ignoreSpace(args, state);
 		return state.result[0];
 	},
 	
