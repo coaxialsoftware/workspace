@@ -115,7 +115,8 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 				return r && (r.plugin = plug) && r;
 			}) || ide.defaultEdit(options)
 	;
-		ide.workspace.add(editor);
+		if (editor)
+			ide.workspace.add(editor);
 	},
 
 	/**

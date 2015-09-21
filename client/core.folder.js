@@ -226,9 +226,29 @@ ide.Editor.FileList = ide.Editor.List.extend({
 
 ide.plugins.register('find', new ide.Plugin({
 
-	open: function(mask)
+	open: function(options)
 	{
-		ide.commands.find(mask);
+	var
+		mask = options.params || this.get_mask() || '',
+		regex = globToRegex(mask),
+		files = ide.project.files_json
+	;
+		if (!files)
+			return ide.alert('[find] No files found in project.');
+
+		files = options.items = files.filter(function(val) {
+			return regex.test(val.filename);
+		});
+
+		if (files.length===1)
+			ide.open(files[0]);
+		else if (files.length===0)
+			ide.notify('No files found that match "' + mask + '"');
+		else
+		{
+			options.title = 'find ' + mask;
+			return new ide.Editor.FileList(options);
+		}
 	},
 
 	get_mask: function()
@@ -252,32 +272,7 @@ ide.plugins.register('find', new ide.Plugin({
 		 */
 		find: function(mask)
 		{
-		var
-			regex,
-			files = ide.project.files_json
-		;
-			mask = mask || this.get_mask() || '';
-
-			regex = globToRegex(mask);
-
-			if (!files)
-				return ide.alert('[find] No files found in project.');
-
-			files = files.filter(function(val) {
-				return regex.test(val.filename);
-			});
-
-			if (files.length===1)
-				ide.open(files[0]);
-			else if (files.length===0)
-				ide.notify('No files found that match "' + mask + '"');
-			else
-				ide.workspace.add(new ide.Editor.FileList({
-					file: mask,
-					plugin: this,
-					items: files,
-					title: 'find ' + mask
-				}));
+			return this.open({ params: mask, plugin: this });
 		}
 
 	}
