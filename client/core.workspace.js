@@ -393,7 +393,7 @@ ide.plugins.registerCommands({
 		
 		tabe: function(name)
 		{
-			ide.open_tab(name, '_blank');
+			ide.open({ file: name, target: '_blank' });
 		},
 		
 		close: function()

@@ -39,6 +39,11 @@ module.exports = function(grunt) {
 				],
 				dest: 'public/build/ide.css'
 			},
+			
+			test: {
+				src: 'node_modules/jquery-mockjax/dist/jquery.mockjax.js',
+				dest: 'public/build/test.js'
+			},
 
 			libs: {
 				src: [
@@ -55,24 +60,12 @@ module.exports = function(grunt) {
 					'node_modules/codemirror/addon/fold/foldcode.js',
 					'node_modules/codemirror/addon/fold/foldgutter.js',
 					'node_modules/codemirror/addon/fold/brace-fold.js',
-					'node_modules/codemirror/addon/lint/lint.js',
 					'node_modules/codemirror/addon/selection/active-line.js',
 					'node_modules/codemirror/addon/mode/overlay.js',
-					/*
-					'node_modules/codemirror/addon/hint/show-hint.js',
-					'node_modules/codemirror/addon/hint/javascript-hint.js',
-					'node_modules/codemirror/addon/hint/html-hint.js',
-					'node_modules/codemirror/addon/hint/css-hint.js',
-					*/
-					'node_modules/codemirror/addon/lint/javascript-lint.js',
-					'node_modules/codemirror/addon/lint/json-lint.js',
 					'node_modules/codemirror/mode/meta.js',
 					'node_modules/codemirror/mode/javascript/javascript.js',
 					'node_modules/codemirror/mode/xml/xml.js',
-					
 					'node_modules/codemirror/mode/htmlmixed/htmlmixed.js',
-					
-					'node_modules/codemirror/addon/lint/css-lint.js',
 					'node_modules/codemirror/mode/css/css.js',
 
 					'node_modules/@cxl/cxl/dist/cxl.js'
@@ -118,12 +111,12 @@ module.exports = function(grunt) {
 		watch: {
 			client: {
 				files: [ '<%= jshint.client.src %>' ],
-				tasks: [ 'jshint:client', 'concat:client', 'concat:debug', 'karma' ]
+				tasks: [ 'jshint:client', 'concat:client', 'concat:debug', 'karma:client:run' ]
 			},
 			
 			client_tests: {
 				files: [ 'test/client.js', 'test/client/*.js' ],
-				tasks: [ 'karma' ]
+				tasks: [ 'karma:client:run' ]
 			},
 			
 			libs: {
@@ -170,13 +163,13 @@ module.exports = function(grunt) {
 						'test/polyfill.js',
 						'public/build/libs.js',
 						'node_modules/jquery-mockjax/dist/jquery.mockjax.js',
-						'test/client.js',
+						'test/client/boot.js',
 						'<%= jshint.client.src %>'
 					]},
-					{ src: 'test/client/*.js' }
+					{ src: 'test/client/core*.js' }
 				],
 				preprocessors: {
-					'client/**/*.js': [ 'coverage' ]
+					'client/*.js': [ 'coverage' ]
 				}
 			}
 		},

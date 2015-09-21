@@ -7,11 +7,6 @@ ide.Feature = function Feature(p)
 	cxl.extend(this, p);
 };
 
-ide.cmd = function Command()
-{
-	
-};
-	
 ide.sandbox = function(a) {
 	/* jshint evil:true */
 	return (new Function(
@@ -22,7 +17,6 @@ ide.sandbox = function(a) {
 	
 function CommandParser()
 {
-	this.CMD_REGEX = /^([^\s]+)\s*(.*)\s*$/;
 }
 	
 cxl.extend(CommandParser.prototype, {
@@ -35,15 +29,16 @@ cxl.extend(CommandParser.prototype, {
 	parseUntil: function(args, state, end, fn)
 	{
 		end.lastIndex = state.i;
-		var pos = end.exec(args), i = state.i;
+		var pos = end.exec(args), i = state.i, result;
 		
 		if (!pos)
 			this.error(state, "Unexpected end of line.");
 		
 		state.i = pos.index + pos[0].length;
 		
-		if (fn)
-			state.result.push(fn(args.slice(i, state.i)));
+		result = args.slice(i, state.i);
+		
+		state.result.push(fn ? fn(result) : result);
 	},
 	
 	parseString: function(args, state)
@@ -67,11 +62,24 @@ cxl.extend(CommandParser.prototype, {
 			return a.trim().replace(/\\ /g, ' '); });
 	},
 	
-	parseArguments: function(args)
+	parseCmd: function(args, state)
 	{
-		var state = { i: 0, result: [], end: args.length };
-
-		do {
+		this.parseUntil(args, state, /\s+|$/g);
+		return state.result[0];
+	},
+	
+	ignoreSpace: function(args, state)
+	{
+		while (/\s/.test(args[state.i]))
+			state.i++;
+	},
+	
+	parseArguments: function(args, state)
+	{
+		state.result = [];
+		
+		while ((state.i < state.end) && args[state.i] !== ';')
+		{
 			switch(args[state.i]) {
 			case '"': this.parseString(args, state); break;
 			case '/': this.parseRegex(args, state); break;
@@ -79,25 +87,28 @@ cxl.extend(CommandParser.prototype, {
 			default: this.parsePath(args, state); break;
 			}
 			
-			while (/\s/.test(args[state.i]))
-				state.i++;
+			this.ignoreSpace(args, state);
+		}
 			
-		} while (state.i !== state.end);
-
-		return state.result;
+		return state.result.length ? state.result : null;
 	},
 	
 	parse: function(src)
 	{
 	var
-		fn = this.CMD_REGEX.exec(src),
-		args
+		state = { i: 0, result: [], end: src.length },
+		commands = [], current
 	;
-		if (fn && fn[1])
-		{
-			args = fn[2] ? this.parseArguments(fn[2]) : undefined;
-			return { fn: fn[1], args: args };
-		}
+		do {
+			current = {
+				fn: this.parseCmd(src, state),
+				args: this.parseArguments(src, state)
+			};
+			
+			commands.push(current);
+		} while(state.i !== state.end);
+		
+		return commands.length>1 ? commands : commands[0];
 	},
 	
 	/** Parses and executes command. */
@@ -149,9 +160,22 @@ function tryCmd(commands, cmd, args)
 	return ide.Pass;
 }
 	
+function runArray(cmds)
+{
+	var result;
+	
+	cmds.forEach(function(cmd) {
+		result = ide.run(cmd.fn, cmd.args);
+	});
+	
+	return result;
+}
+	
 /** Execute command. */
 ide.run = function(fn, args)
 {
+	if (Array.isArray(fn))
+		return runArray(fn);
 var
 	result = ide.Pass
 ;

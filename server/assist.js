@@ -4,7 +4,8 @@
  * 
  */
 var
-	plugin = module.exports = cxl('workspace.assist')
+	plugin = module.exports = cxl('workspace.assist'),
+	workspace = require('./workspace')
 ;
 
 plugin.extend({
@@ -25,4 +26,4 @@ plugin.extend({
 	
 	workspace.plugins.on('socket.message.assist', this.onMessage.bind(this));
 	
-})
+});

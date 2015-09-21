@@ -384,6 +384,10 @@ workspace.extend({
 	this.__data = common.load_json_sync(this.__dataFile) || {};
 	
 	process.title = 'workspace:' + this.port;
+	
+	// Enable Test path
+	if (this.configuration.debug)
+		this.use(cxl.static(basePath + '/test', { maxAge: 86400000 }));
 })
 
 .createServer()

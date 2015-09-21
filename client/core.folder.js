@@ -206,9 +206,9 @@ ide.Editor.FileList = ide.Editor.List.extend({
 			options.line = item.line;
 
 		if (ev.ctrlKey)
-			ide.open_tab(options.file);
-		else
-			ide.open(options);
+			options.target = '_blank';
+		
+		ide.open(options);
 
 		if (!ev.shiftKey)
 			ide.workspace.remove(this);

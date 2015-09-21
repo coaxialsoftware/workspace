@@ -29,9 +29,6 @@ var
 	/** Plugin Manager */
 	plugins: null,
 
-	/** Asset, script loader */
-	loader: null,
-		
 	/** Displays alert notification on right corner */
 	alert: function(message)
 	{
@@ -49,8 +46,8 @@ var
 	{
 		kls = kls || 'log';
 	var
-		span = message instanceof ide.Hint ? message : new ide.Hint({
-			hint: message, type: kls })
+		span = message instanceof ide.Hint ? message : 
+			new ide.Hint({ hint: message, type: kls })
 	;
 		setTimeout(span.remove.bind(span), 3000);
 		_nots.insertBefore(span.render(), _nots.firstChild);
@@ -63,26 +60,22 @@ var
 	},
 
 	/**
-	 * Opens file in new tab
-	 */
-	open_tab: function(filename, target)
-	{
-		window.open(
-			'#' + ide.workspace.hash.encode({ f: filename || false }),
-			target || '_blank'
-		);
-	},
-
-	/**
 	 * Opens a file.
-	 * @param filename {ide.File|string} Name of the file relative to project or a File object.
 	 * @param options {object|string} If string it will be treated as target
+	 * @param options.file {ide.File|string} Name of the file relative to project or a File object.
 	 * @param options.target Open file in new window.
+	 * @param options.plugin Specify what plugin to use.
 	 */
 	open: function(options)
 	{
 		if (!options || typeof(options)==='string' || options instanceof ide.File)
 			options = { file: options };
+		
+		if (options.target)
+			return window.open(
+				'#' + ide.workspace.hash.encode({ f: options.file || false }),
+				options.target || '_blank'
+			);
 		
 		if (typeof(options.file)==='string')
 			options.file = ide.fileManager.getFile(options.file);
@@ -277,7 +270,8 @@ ide.Editor = cxl.View.extend({
 
 	getInfo: function()
 	{
-		return (this.file ? this.file.toString() : '') + ' [' + ide.project.get('name') + ']';
+		return (this.file ? this.file.get('filename') : '') +
+			' [' + ide.project.get('name') || ide.project.id + ']';
 	},
 
 	focus: function()
