@@ -80,7 +80,14 @@ ide.Project = cxl.Model.extend({
  * Open project by path
  */
 ide.registerCommand('project', function(name) {
-	window.open('#' + ide.workspace.hash.encode({ p: name || null, f: null }));
+	var hash = '#' + ide.workspace.hash.encode({ p: name || null, f: null });
+	if (ide.project.id)
+		window.open(hash);
+	else
+	{
+		window.location = hash;
+		window.location.reload();
+	}
 });
 	
 

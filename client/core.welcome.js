@@ -16,13 +16,7 @@ var ProjectList = ide.Editor.List.extend({
 	_ready: function()
 	{
 		ide.Editor.List.prototype._ready.call(this);
-		
-		var projects = ide.project.get('projects');
-		
-		if (projects)
-			this._renderProjects(projects);
-		else
-			this._loadProjects();
+		this._loadProjects();
 	},
 	
 	_loadProjects: function()
@@ -76,11 +70,8 @@ ide.plugins.register('welcome', new ide.Plugin({
 		ide.workspace.add(new ProjectList(options));
 	},
 	
-	edit: function(options)
+	open: function(options)
 	{
-		if (options.plugin!==this)
-			return;
-			
 		if (options.params==='projects')
 			return new ProjectList(options);
 	},
@@ -111,7 +102,7 @@ ide.plugins.register('welcome', new ide.Plugin({
 	var
 		p = ide.project,
 		user = p.get('user'),
-		project = this.project = p.get('name')
+		project = this.project = p.get('name') || p.get('path')
 	;
 		if (user)
 			ide.alert('Welcome ' + user);

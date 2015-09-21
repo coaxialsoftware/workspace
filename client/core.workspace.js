@@ -244,7 +244,7 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 
 		this.slots.splice(slot.index, 1);
 
-		if (this.slots[0])
+		if (this.slots[0] && this.slots[0].editor)
 			this.slots[0].editor.focus();
 		else
 			ide.editor = null;
