@@ -26,7 +26,7 @@ cxl.extend(CommandParser.prototype, {
 		throw new Error("Column " + state.i + ': ' + msg);
 	},
 	
-	parseUntil: function(args, state, end, fn, include)
+	parseUntil: function(args, state, end, fn)
 	{
 		end.lastIndex = state.i;
 		var pos = end.exec(args), i = state.i, result;
@@ -34,37 +34,37 @@ cxl.extend(CommandParser.prototype, {
 		if (!pos)
 			this.error(state, "Unexpected end of line.");
 		
-		state.i = pos.index + (include===false ? 0 : pos[0].length);
+		state.i = pos.index + (pos[1] ? pos[1].length : 0);
 		
-		result = args.slice(i, state.i);
+		result = args.slice(i, state.i++);
 		
 		state.result.push(fn ? fn(result) : result);
 	},
 	
 	parseString: function(args, state)
 	{
-		this.parseUntil(args, state, /[^\\]"/g, JSON.parse);
+		this.parseUntil(args, state, /([^\\]")/g, JSON.parse);
 	},
 	
 	parseRegex: function(args, state)
 	{
-		this.parseUntil(args, state, /[^\\]\/\w*/g, ide.sandbox);
+		this.parseUntil(args, state, /([^\\]\/\w*)/g, ide.sandbox);
 	},
 	
 	parseJS: function(args, state)
 	{
-		this.parseUntil(args, state, /[^\\]`/g, ide.sandbox);
+		this.parseUntil(args, state, /([^\\]`)/g, ide.sandbox);
 	},
 	
 	parsePath: function(args, state)
 	{
-		this.parseUntil(args, state, /[^\\] |$/g, function(a) {
-			return a.replace(/\\ /g, ' '); }, false);
+		this.parseUntil(args, state, /[^\\](\s)|$/g, function(a) {
+			return a.replace(/\\ /g, ' '); });
 	},
 	
 	parseCmd: function(args, state)
 	{
-		this.parseUntil(args, state, /\s|$/g, null, false);
+		this.parseUntil(args, state, /\s|$/g, null);
 		this.ignoreSpace(args, state);
 		return state.result[0];
 	},
@@ -107,7 +107,7 @@ cxl.extend(CommandParser.prototype, {
 			};
 			
 			commands.push(current);
-		} while(state.i !== state.end);
+		} while(state.i < state.end);
 		
 		return commands.length>1 ? commands : commands[0];
 	},
