@@ -77,7 +77,15 @@ pre {
 	list-style: none; text-align: right;
 }
 
-.hint { display: inline-block; padding: 8px; margin-bottom: 4px; }
+#notification .hint { display: inline-block; }
+
+.hint { 
+	border: 0; padding: 8px; display: block; margin-bottom: 4px;
+	width: 100%; text-align: left; cursor: pointer;
+}
+.hint:hover {
+	filter: brightness(130%); -webkit-filter: brightness(130%); -moz-filter: brightness(130%);
+}
 
 .log { background-color: rgba(52, 152, 219, 0.8); color: #eee;}
 .error { background-color: rgba(231, 76, 60, 0.8); color: #eee;}
@@ -288,14 +296,6 @@ div.CodeMirror-cursors { visibility: visible; }
 
 #assist .link { color: #eee; opacity: 0.7; text-decoration: none; }
 #assist .link:hover { opacity: 1; }
-#assist .hint {
-	border: 0; padding: 8px; display: block; margin-bottom: 4px;
-	width: 100%; text-align: left; cursor: pointer;
-}
-#assist .hint:hover {
-	filter: brightness(130%); -webkit-filter: brightness(130%); -moz-filter: brightness(130%);
-}
-#assist .hint > span { }
 
 #assist code { margin-right: 10px; padding: 4px; display: inline-block; }
 #assist kbd { float: right; }

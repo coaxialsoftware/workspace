@@ -4,8 +4,8 @@
  */
 
 window.document.write(
-	'<div id="ide-notification"></div>' +
-	'<script id="tpl-assist"></script>'
+	'<div style="display:none"><div id="notification"></div>' +
+	'<script id="tpl-assist"></script></div>'
 );
 
 $.mockjaxSettings.logging = false;
