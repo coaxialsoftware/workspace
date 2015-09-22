@@ -248,10 +248,10 @@ ide.Editor = cxl.View.extend({
 	 */
 	cmd: function(name, args)
 	{
-		var fn = this[name];
+		var fn = this.commands[name];
 		
 		if (typeof(fn)==='string')
-			fn = this[fn];
+			fn = this.commands[fn];
 		
 		// Make sure info window doesnt interfere with commands.
 		// TODO see if we can move this out of here?
@@ -309,16 +309,17 @@ ide.Editor = cxl.View.extend({
 	
 	extend: function(def, st)
 	{
+		var result = cxl.View.extend.call(this, def, st);
+		
 		if (def.commands)
 		{
 			for (var i in def.commands)
-				this.prototype[i] = def.commands[i];
+				result.prototype[i] = def.commands[i];
 			
 			if (this.prototype.commands)
-				def.commands = _.create(this.prototype.commands, def.commands);
+				result.prototype.commands = _.create(this.prototype.commands, def.commands);
 		}
 		
-		var result = cxl.View.extend.call(this, def, st);
 		result.extend = ide.Editor.extend;
 		return result;
 	}

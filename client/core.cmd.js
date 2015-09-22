@@ -207,7 +207,10 @@ var
 		result = tryCmd(ide.commands, fn, args);
 	
 	if (result instanceof ide.Editor)
+	{
 		ide.workspace.add(result);
+		result.focus();
+	}
 
 	return result;
 };

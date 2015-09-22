@@ -34,9 +34,15 @@ ide.Bar = Backbone.View.extend({
 		9: function() {
 		var
 			el = this.el,
-			i = el.value.lastIndexOf(' ', el.selectionStart)+1,
-			text = ''
-		;
+			text = '',
+			i = el.selectionStart
+		;	
+			do {
+				i = el.value.lastIndexOf(' ', i-1);
+			} while (el.value[i-1]==='\\');
+			
+			i++;
+				
 			text = el.value.substr(i, el.selectionStart-i);
 
 			if (this.on_complete)
@@ -208,7 +214,7 @@ ide.Bar.Command = ide.Bar.extend({
 			);
 			this._lastSearchStart = start;
 			this._lastSearchIndex = 0;
-		} else if (this._lastSearchIndex===this._lastSearch.length)
+		} else if (this._lastSearch && this._lastSearchIndex===this._lastSearch.length)
 			this._lastSearchIndex = 0;
 
 		if (!this._lastSearch)
