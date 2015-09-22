@@ -55,15 +55,8 @@ ide.Bar = Backbone.View.extend({
 		this.$el.on('keyup keypress', this.on_keypress.bind(this));
 		this.$el.on('blur', this.on_blur.bind(this));
 
-		$(this.onReady.bind(this));
-
 		if (this.start)
 			this.start();
-	},
-
-	onReady: function()
-	{
-		document.body.appendChild(this.el);
 	},
 
 	on_blur: function()
@@ -140,7 +133,7 @@ ide.Bar = Backbone.View.extend({
 
 ide.Bar.Command = ide.Bar.extend({
 
-	el: $('<input id="command" />'),
+	el: '#command',
 
 	history: [],
 	history_max: 50,
@@ -229,7 +222,7 @@ ide.Bar.Command = ide.Bar.extend({
 
 ide.Bar.Search = ide.Bar.extend({
 
-	el: $('<input id="search" />'),
+	el: '#search',
 
 	reverse: false,
 

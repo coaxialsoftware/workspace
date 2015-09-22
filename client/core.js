@@ -108,8 +108,10 @@ var
 	_start= function()
 	{
 		ide.workspace = new ide.Workspace();
+		ide.searchBar = new ide.Bar.Search();
+		ide.commandBar = new ide.Bar.Command();
 
-		ide.$notifications = _nots = cxl.id('ide-notification');
+		ide.$notifications = _nots = cxl.id('notification');
 	}
 
 ;
