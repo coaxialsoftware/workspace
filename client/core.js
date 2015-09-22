@@ -3,7 +3,7 @@
  *
  */
 
-(function(window, $, cxl) {
+(function(window, $, cxl, _) {
 "use strict";
 	
 var
@@ -248,20 +248,17 @@ ide.Editor = cxl.View.extend({
 	 */
 	cmd: function(name, args)
 	{
-		var fn;
+		var fn = this[name];
 		
-		name = this.alias && this.alias[name] || name;
-
-		// TODO see if this makes sense or not.
-		if (name[0]!=='_')
-			fn = this[name];
+		if (typeof(fn)==='string')
+			fn = this[fn];
 		
 		// Make sure info window doesnt interfere with commands.
 		// TODO see if we can move this out of here?
 		if (this.info.visible)
 			this.info.forceHide();
 
-		return typeof(fn)==='function' ? fn.apply(this, args) : ide.Pass;
+		return fn ? fn.apply(this, args) : ide.Pass;
 	},
 
 	_on_click: function()
@@ -308,6 +305,24 @@ ide.Editor = cxl.View.extend({
 		this.remove();
 	}
 
+}, {
+	
+	extend: function(def, st)
+	{
+		if (def.commands)
+		{
+			for (var i in def.commands)
+				this.prototype[i] = def.commands[i];
+			
+			if (this.prototype.commands)
+				def.commands = _.create(this.prototype.commands, def.commands);
+		}
+		
+		var result = cxl.View.extend.call(this, def, st);
+		result.extend = ide.Editor.extend;
+		return result;
+	}
+	
 });
 
 	if (document.readyState!=='loading')
@@ -315,4 +330,4 @@ ide.Editor = cxl.View.extend({
 	else
 		window.addEventListener('DOMContentLoaded', _start);
 
-})(this, this.jQuery, this.cxl);
+})(this, this.jQuery, this.cxl, this._);

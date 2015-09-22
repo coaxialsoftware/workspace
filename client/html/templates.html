@@ -6,6 +6,9 @@
 <script id="tpl-editor-item" type="text/template">
 <div class="item <%= obj.className %>">
 	<button data-id="<%= obj.id %>" class="item-content" title="<%= obj.title %>">
+		<% _.each(obj.tags, function(t) { %>
+		<span class="pull-right label"><%=t%></span>
+		<% }) %>
 		<h4><%- obj.title %></h4>
 	</button>
 </div>

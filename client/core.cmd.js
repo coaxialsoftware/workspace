@@ -1,10 +1,20 @@
 
-(function(ide, cxl) {
+(function(ide, cxl, _) {
 "use strict";
 	
 ide.Feature = function Feature(p)
 {
 	cxl.extend(this, p);
+};
+	
+ide.cmd = function(def)
+{
+	var type = typeof(def);
+	var result = type==='function' || type==='string' ? def : def.fn;
+	
+	result.isCommand = true;
+	
+	return result;
 };
 
 ide.sandbox = function(a) {
@@ -205,5 +215,52 @@ var
 /** @namespace */
 ide.commands = {};
 ide.editorCommands = {};
+	
+ide.plugins.register('cmd', {
+	
+	commands: {
+		commands: function()
+		{
+			return this.open({ plugin: this, params: 'commands' });
+		}
+	},
+	
+	loadCommands: function(e)
+	{
+		e.reset();
+		
+		var result = [];
+		
+		function getCommands(cmds, tag)
+		{
+			var tags;
+			
+			for (var i in cmds)
+			{
+				tags = tag ? [ tag ] : [];
+				
+				if (typeof(cmds[i])==='string')
+					tags.push('alias:' + cmds[i]);
+					
+				result.push({ title: i, className: 'cmd', tags: tags });
+			}
+		}
+		
+		getCommands(ide.commands);
+		getCommands(ide.editorCommands, 'editor');
+		getCommands(ide.editor.commands, 'editor');
+		
+		e.add(_.sortBy(result, 'title'));
+	},
+	
+	open: function(options)
+	{
+		options.title = 'commands';
+		var editor = new ide.Editor.List(options);
+		editor.listenTo(ide.plugins, 'editor.focus', this.loadCommands.bind(this, editor));
+		return editor;
+	}
+	
+});
 
-})(this.ide, this.cxl);
+})(this.ide, this.cxl, this._);

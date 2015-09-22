@@ -90,87 +90,142 @@ ide.Editor.Source = ide.Editor.extend({
 
 	// Stores previous token. Used by tokenchange event.
 	_old_token: null,
-
-	deleteSelection: function()
-	{
-		this.editor.replaceSelection('');	
-	},
-
-	replaceSelection: function(text)
-	{
-		var e = this.editor, c;
-		
-		if (!this.somethingSelected())
-		{
-			c = e.getCursor();
-			e.setSelection({ line: c.line, ch: c.ch+1 }, c);
-		}
-		
-		e.replaceSelection(text, 'start');
-	},
-		
-	enableInput: function()
-	{	
-		if (this.editor.getOption('disableInput'))
-		{
-			this.toggleFatCursor(false);
-			this.editor.setOption('disableInput', false);
-		}
-	},
-
-	disableInput: function()
-	{
-		if (this.editor.getOption('disableInput')===false)
-		{
-			// Go back one char if coming back from insert mode.
-			if (this.editor.getCursor().ch>0)
-				this.editor.execCommand('goCharLeft');
-
-			this.toggleFatCursor(true);
-			this.editor.setOption('disableInput', true);
-			
-		}
-	},
 	
-	startSelect: function()
-	{
-		this.editor.display.shift = true;
-	},
+	commands: {
 	
-	endSelect: function()
-	{
-		this.editor.display.shift = false;
-	},
+		deleteSelection: function()
+		{
+			this.editor.replaceSelection('');	
+		},
 
-	newline: function()
-	{
-		this.editor.execCommand('newlineAndIndent');	
-	},
+		replaceSelection: function(text)
+		{
+			var e = this.editor, c;
 
-	clearSelection: function()
-	{
-		this.editor.setSelection(this.editor.getCursor('anchor'));
-	},
+			if (!this.somethingSelected())
+			{
+				c = e.getCursor();
+				e.setSelection({ line: c.line, ch: c.ch+1 }, c);
+			}
 
-	showCursorWhenSelecting: function()
-	{
-		this.editor.setOption('showCursorWhenSelecting', true);
-	},
+			e.replaceSelection(text, 'start');
+		},
 
-	selectLine: function()
-	{
-	var
-		e = this.editor,
-		anchor = e.getCursor('anchor'),
-		head = e.getCursor(),
-		anchorEnd = head.line>anchor.line ? 0 : e.getLine(anchor.line).length,
-		headEnd = head.line>anchor.line ? e.getLine(head.line).length : 0	
-	;
-		e.setSelection(
-			{ line: anchor.line, ch: anchorEnd },
-			{ line: head.line, ch: headEnd },
-			{ extending: true }
-		);
+		enableInput: function()
+		{	
+			if (this.editor.getOption('disableInput'))
+			{
+				this.toggleFatCursor(false);
+				this.editor.setOption('disableInput', false);
+			}
+		},
+
+		disableInput: function()
+		{
+			if (this.editor.getOption('disableInput')===false)
+			{
+				// Go back one char if coming back from insert mode.
+				if (this.editor.getCursor().ch>0)
+					this.editor.execCommand('goCharLeft');
+
+				this.toggleFatCursor(true);
+				this.editor.setOption('disableInput', true);
+
+			}
+		},
+	
+		startSelect: function()
+		{
+			this.editor.display.shift = true;
+		},
+
+		endSelect: function()
+		{
+			this.editor.display.shift = false;
+		},
+
+		newline: function()
+		{
+			this.editor.execCommand('newlineAndIndent');	
+		},
+
+		clearSelection: function()
+		{
+			this.editor.setSelection(this.editor.getCursor('anchor'));
+		},
+
+		showCursorWhenSelecting: function()
+		{
+			this.editor.setOption('showCursorWhenSelecting', true);
+		},
+
+		selectLine: function()
+		{
+		var
+			e = this.editor,
+			anchor = e.getCursor('anchor'),
+			head = e.getCursor(),
+			anchorEnd = head.line>anchor.line ? 0 : e.getLine(anchor.line).length,
+			headEnd = head.line>anchor.line ? e.getLine(head.line).length : 0	
+		;
+			e.setSelection(
+				{ line: anchor.line, ch: anchorEnd },
+				{ line: head.line, ch: headEnd },
+				{ extending: true }
+			);
+		},
+		
+		go: function(n)
+		{
+			this.editor.setCursor(n-1);
+		},
+		
+		search: function(n, options)
+		{
+			if (n)
+				this.editor.find(n, options);
+		},
+
+		replace: function(pattern, str, options)
+		{
+			this.editor.replace(pattern, str, options);
+		},
+
+		replaceRange: function(pattern, str, from, to)
+		{
+			from = from || { line: 0, ch: 0 };
+			to = to || { line: this.editor.lastLine() };
+			this.editor.replace(pattern, str, {
+				from: from, to: to, separator: this.line_separator
+			});
+		},
+		
+		write: function(filename)
+		{
+			if (filename)
+				this.file.set('filename', filename);
+			else if (this.file_content !== this.file.get('content'))
+				return ide.error('File contents have changed.');
+
+			if (!this.file.get('filename'))
+				return ide.error('No file name.');
+
+			this.file.set('content', (this.file_content=this.getValue()));
+			this.file.save();
+
+			ide.plugins.trigger('editor.write', this);
+		},
+
+		insert: function(text)
+		{
+			this.editor.replaceSelection(text);
+		},
+		
+		toggleFatCursor: function(state)
+		{
+			this.$el.toggleClass('cm-fat-cursor', state);
+			this.editor.restartBlink();
+		}
 	},
 
 	cmd: function(fn, args)
@@ -182,11 +237,6 @@ ide.Editor.Source = ide.Editor.extend({
 			return codeMirror.commands[fn].call(codeMirror, this.editor);
 		
 		return ide.Editor.prototype.cmd.call(this, fn, args);
-	},
-
-	go: function(n)
-	{
-		this.editor.setCursor(n-1);
 	},
 	
 	getLastChange: function()
@@ -327,11 +377,9 @@ ide.Editor.Source = ide.Editor.extend({
 		editor = this.editor = codeMirror(this.el, options)
 	;
 		this.file_content = options.value;
-		
-		this.features({
-			keymap: new ide.KeyMap(),
-			hints: new HintManager(this)
-		});
+		this.keymap = new ide.KeyMap();
+		this.hints = new HintManager(this);
+
 		this.keymap.handle = this._keymapHandle.bind(this);
 		
 		this.listenTo(this.file, 'change:content', this._on_file_change);
@@ -343,26 +391,6 @@ ide.Editor.Source = ide.Editor.extend({
 	resize: function()
 	{
 		setTimeout(this.editor.refresh.bind(this.editor), 200);
-	},
-	
-	search: function(n, options)
-	{
-		if (n)
-			this.editor.find(n, options);
-	},
-	
-	replace: function(pattern, str, options)
-	{
-		this.editor.replace(pattern, str, options);
-	},
-
-	replaceRange: function(pattern, str, from, to)
-	{
-		from = from || { line: 0, ch: 0 };
-		to = to || { line: this.editor.lastLine() };
-		this.editor.replace(pattern, str, {
-			from: from, to: to, separator: this.line_separator
-		});
 	},
 
 	/**
@@ -447,27 +475,6 @@ ide.Editor.Source = ide.Editor.extend({
 			this.editor.focus();
 	},
 
-	write: function(filename)
-	{
-		if (filename)
-			this.file.set('filename', filename);
-		else if (this.file_content !== this.file.get('content'))
-			return ide.error('File contents have changed.');
-		
-		if (!this.file.get('filename'))
-			return ide.error('No file name.');
-
-		this.file.set('content', (this.file_content=this.getValue()));
-		this.file.save();
-		
-		ide.plugins.trigger('editor.write', this);
-	},
-
-	insert: function(text)
-	{
-		this.editor.replaceSelection(text);
-	},
-
 	changed: function()
 	{
 		return this.file_content !== this.getValue();
@@ -478,12 +485,6 @@ ide.Editor.Source = ide.Editor.extend({
 		return (this.changed() ? '+ ' : '') +
 			(this.file.get('filename') || '[No Name]') +
 			' [' + ide.project.get('name') + ']';
-	},
-
-	toggleFatCursor: function(state)
-	{
-		this.$el.toggleClass('cm-fat-cursor', state);
-		this.editor.restartBlink();
 	}
 
 });

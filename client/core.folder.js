@@ -85,11 +85,6 @@ ide.Editor.List = ide.Editor.extend({
 	// content DOM element
 	$list: null,
 	
-	quit: function()
-	{
-		ide.workspace.remove(this);
-	},
-	
 	_setup: function()
 	{
 		this.$el.addClass('panel');
@@ -105,7 +100,8 @@ ide.Editor.List = ide.Editor.extend({
 	{
 		this.$list = $(this.$list)
 			.on('click', '.item-content', this._onClick.bind(this));
-		this.$el.on('click', this.focus.bind(this));
+		
+		this.listenTo(this.$el, 'click', this.focus);
 		
 		if (this.items)
 			this._addElements(this.items, 0);
@@ -126,6 +122,12 @@ ide.Editor.List = ide.Editor.extend({
 		this._findFocus().focus();
 	},
 	
+	reset: function()
+	{
+		this.items = [];
+		this.$list.empty();
+	},
+	
 	add: function(items)
 	{
 		this._addElements(items);
@@ -143,18 +145,6 @@ ide.Editor.List = ide.Editor.extend({
 		return regex.test(file.title);
 	},
 
-	search: function(regex)
-	{
-	var
-		i=0, files = this.items,
-		children = this.$list[0].children, clear=!regex
-	;
-		for (; i<files.length; i++)
-			children[i].style.display =
-				(clear || this._findTest(regex, files[i])) ?
-					'block' : 'none';
-	},
-	
 	_findFocus: function()
 	{
 		var focused = this.$list.find(':focus');
@@ -165,25 +155,46 @@ ide.Editor.List = ide.Editor.extend({
 		return focused;
 	},
 	
-	goDocStart: function()
-	{
-		this.$list.find('.item-content:visible:eq(0)').focus();
-	},
+	commands: {
 	
-	goDocEnd: function()
-	{
-		this.$list.find('.item-content:visible:last-child').focus();
-	},
-	
-	goLineDown: function(dir)
-	{
-		dir = dir || 'next';
-		this._findFocus().parent()[dir]().find('.item-content:visible').focus();
-	},
-	
-	goLineUp: function()
-	{
-		this.goLineDown('prev');
+		quit: function()
+		{
+			ide.workspace.remove(this);
+		},
+
+		search: function(regex)
+		{
+		var
+			i=0, files = this.items,
+			children = this.$list[0].children, clear=!regex
+		;
+			for (; i<files.length; i++)
+				children[i].style.display =
+					(clear || this._findTest(regex, files[i])) ?
+						'block' : 'none';
+		},
+
+		goDocStart: function()
+		{
+			this.$list.find('.item-content:visible:eq(0)').focus();
+		},
+
+		goDocEnd: function()
+		{
+			this.$list.find('.item-content:visible:last-child').focus();
+		},
+
+		goLineDown: function(dir)
+		{
+			dir = dir || 'next';
+			this._findFocus().parent()[dir]().find('.item-content:visible').focus();
+		},
+
+		goLineUp: function()
+		{
+			this.goLineDown('prev');
+		}
+		
 	}
 	
 });

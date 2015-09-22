@@ -8,8 +8,8 @@ module.exports = function(grunt) {
 				src: [
 					'client/core.js',
 					'client/core.keymap.js',
-					'client/core.cmd.js',
 					'client/core.plugins.js',
+					'client/core.cmd.js',
 					'client/core.workspace.js',
 					'client/core.socket.js',
 					'client/core.file.js',
