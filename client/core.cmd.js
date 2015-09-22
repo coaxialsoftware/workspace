@@ -7,16 +7,6 @@ ide.Feature = function Feature(p)
 	cxl.extend(this, p);
 };
 	
-ide.cmd = function(def)
-{
-	var type = typeof(def);
-	var result = type==='function' || type==='string' ? def : def.fn;
-	
-	result.isCommand = true;
-	
-	return result;
-};
-
 ide.sandbox = function(a) {
 	/* jshint evil:true */
 	return (new Function(
@@ -48,7 +38,12 @@ cxl.extend(CommandParser.prototype, {
 		
 		result = args.slice(i, state.i);
 		
-		state.result.push(fn ? fn(result) : result);
+		try {
+			state.result.push(fn ? fn(result) : result);
+		} catch (e)
+		{
+			this.error(state, e.message);
+		}
 	},
 	
 	parseString: function(args, state)

@@ -111,12 +111,12 @@ module.exports = function(grunt) {
 		watch: {
 			client: {
 				files: [ '<%= jshint.client.src %>' ],
-				tasks: [ 'jshint:client', 'concat:client', 'concat:debug', 'karma:client:run' ]
+				tasks: [ 'jshint:client', 'concat:client', 'concat:debug', 'karma:client' ]
 			},
 			
 			client_tests: {
 				files: [ 'test/client.js', 'test/client/*.js' ],
-				tasks: [ 'karma:client:run' ]
+				tasks: [ 'karma:client' ]
 			},
 			
 			libs: {
@@ -147,8 +147,8 @@ module.exports = function(grunt) {
 				frameworks: [ 'qunit' ],
 				browsers: [ 'PhantomJS' ],
 				reporters: [ 'progress', 'coverage' ],
-				background: true,
-				singleRun: false,
+				background: false,
+				singleRun: true,
 				coverageReporter: {
 					subdir: 'report'
 				}
