@@ -45,3 +45,24 @@ var
 	a.equal(cmd.args[0].source, '\\w+\\w');
 	a.equal(cmd.args[1].source, '\\d\\d');
 });
+
+QUnit.test('Should parse Javascript parameters', function(a) {
+var
+	cmd = ide.commandParser.parse('hello.world `10+10``"No Spaces"` `"hell\\`o"`')
+;
+	a.equal(cmd.fn, 'hello.world');
+	a.equal(cmd.args[0], 20);
+	a.equal(cmd.args[1], 'No Spaces');
+	a.equal(cmd.args[2], 'hell`o');
+});
+
+QUnit.test('Should parse mixed parameters', function(a) {
+var
+	cmd = ide.commandParser.parse('hello.world "10+10""No Spaces"/abc/g `"hell\\`o"`')
+;
+	a.equal(cmd.fn, 'hello.world');
+	a.equal(cmd.args[0], '10+10');
+	a.equal(cmd.args[1], 'No Spaces');
+	a.equal(cmd.args[2].source, 'abc');
+	a.equal(cmd.args[3], 'hell`o');
+});

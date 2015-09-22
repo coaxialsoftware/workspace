@@ -36,7 +36,7 @@ cxl.extend(CommandParser.prototype, {
 		
 		state.i = pos.index + (pos[1] ? pos[1].length : 0);
 		
-		result = args.slice(i, state.i++);
+		result = args.slice(i, state.i);
 		
 		state.result.push(fn ? fn(result) : result);
 	},
@@ -48,12 +48,14 @@ cxl.extend(CommandParser.prototype, {
 	
 	parseRegex: function(args, state)
 	{
-		this.parseUntil(args, state, /([^\\]\/\w*)/g, ide.sandbox);
+		this.parseUntil(args, state, /([^\\]\/[gimy]*)/g, ide.sandbox);
 	},
 	
 	parseJS: function(args, state)
 	{
-		this.parseUntil(args, state, /([^\\]`)/g, ide.sandbox);
+		state.i++;
+		this.parseUntil(args, state, /([^\\])`/g, ide.sandbox);
+		state.i++;
 	},
 	
 	parsePath: function(args, state)
