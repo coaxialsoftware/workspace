@@ -66,3 +66,23 @@ var
 	a.equal(cmd.args[2].source, 'abc');
 	a.equal(cmd.args[3], 'hell`o');
 });
+
+QUnit.test('Should parse multiple commands with mixed parameters', function(a) {
+var
+	cmd = ide.commandParser.parse(
+		'hello "10+10""No Spaces"/abc/g `"hell\\`o"`; ' +
+		'world "10+10""No Spaces"/abc/g `"hell\\`o"`;'
+	)
+;
+	a.equal(cmd[0].fn, 'hello');
+	a.equal(cmd[0].args[0], '10+10');
+	a.equal(cmd[0].args[1], 'No Spaces');
+	a.equal(cmd[0].args[2].source, 'abc');
+	a.equal(cmd[0].args[3], 'hell`o');
+	
+	a.equal(cmd[1].fn, 'world');
+	a.equal(cmd[1].args[0], '10+10');
+	a.equal(cmd[1].args[1], 'No Spaces');
+	a.equal(cmd[1].args[2].source, 'abc');
+	a.equal(cmd[1].args[3], 'hell`o');
+});

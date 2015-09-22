@@ -108,6 +108,9 @@ cxl.extend(CommandParser.prototype, {
 				args: this.parseArguments(src, state)
 			};
 			
+			state.i++;
+			state.result = [];
+			this.ignoreSpace(src, state);
 			commands.push(current);
 		} while(state.i < state.end);
 		
