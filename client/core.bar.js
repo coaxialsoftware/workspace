@@ -260,7 +260,4 @@ ide.registerCommand('searchbarReverse', function() {
 	ide.searchBar.show();
 });
 
-ide.searchBar = new ide.Bar.Search();
-ide.commandBar = new ide.Bar.Command();
-
 })(this.ide, this.Backbone, this.jQuery);

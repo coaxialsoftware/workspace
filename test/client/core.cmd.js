@@ -36,3 +36,12 @@ var
 	a.equal(cmd.args[1], 'multiple word');
 	a.equal(cmd.args[2], 'quote" middle');
 });
+
+QUnit.test('Should parse Regex parameters', function(a) {
+var
+	cmd = ide.commandParser.parse('hello.world /\\w+\\w/gi /\\d\\d/m')
+;
+	a.equal(cmd.fn, 'hello.world');
+	a.equal(cmd.args[0].source, '\\w+\\w');
+	a.equal(cmd.args[1].source, '\\d\\d');
+});
