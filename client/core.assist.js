@@ -13,8 +13,11 @@ ide.Hint = ide.Item.extend({
 	
 	initialize: function()
 	{
-		if (!this.key && this.code)
-			this.key = ide.keyboard.findKey(this.code);
+		if (!this.key && this.action)
+		{
+			this.code = ':' + this.action;
+			this.key = ide.keyboard.findKey(this.action);
+		}
 	}
 
 });
@@ -170,19 +173,19 @@ ide.plugins.register('assist', {
 		
 		if (!ide.workspace.slots.length)
 		{
-			hints.push({ hint: 'Documentation', action: 'help' });
+			hints.push({ title: 'Documentation', action: 'help' });
 		
 			if (ide.project.id)
 			{
 				hints.push([
-					{ hint: 'Open new file.', action: 'edit ', type: 'ex' },
-					{ hint: 'List project files', action: 'find'}
+					{ title: 'Open new file.', action: 'edit ', type: 'ex' },
+					{ title: 'List project files', action: 'find'}
 				]);
 			} else
 			{
 				hints.push([
-					{ hint: 'Open Project', action: 'project ' },
-					{ hint: 'List Projects', action: 'projects' }
+					{ title: 'Open Project', action: 'project ' },
+					{ title: 'List Projects', action: 'projects' }
 				]);
 			}
 		}

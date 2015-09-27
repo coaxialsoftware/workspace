@@ -67,8 +67,8 @@ _.extend(HintManager.prototype, {
 		
 		hints.push(hint);
 		
-		el.setAttribute('class', 'editor-hint ' + (hint.type || 'info'));
-		el.setAttribute('title', hint.hint);
+		el.setAttribute('class', 'editor-hint ' + (hint.className || 'info'));
+		el.setAttribute('title', hint.title);
 		
 		marker.appendChild(el);
 	}

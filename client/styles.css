@@ -174,7 +174,7 @@ pre {
  *
  */
 .editor-hint-gutter { width: 100%; position: absolute; left: 0; }
-.editor-hint { position: absolute; width: 100%; height: 100%; opacity: 0.4; }
+.editor-hint { position: absolute; width: 100%; height: 100%; opacity: 0.5; }
 
 .CodeMirror {
 	text-rendering: optimizeLegibility;

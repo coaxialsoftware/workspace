@@ -71,7 +71,7 @@ ide.Layout = {
 		i=0,
 		child = el.children,
 		l = child.length,
-		result, w
+		result, w, ws
 	;
 		switch (l)
 		{
@@ -83,19 +83,20 @@ ide.Layout = {
 			];
 		}
 
-		w = Math.floor(100 / (Math.ceil(l/2)));
+		w = (100 / Math.ceil(l/2));
+		ws = w.toFixed(2);
 		result = [];
 
 		if (l % 2)
 		{
 			i = w;
-			result.push({ left: 0, top: 0, height: '100%', width: w + '%'});
+			result.push({ left: 0, top: 0, height: '100%', width: ws + '%'});
 		}
 
 		for (; i<100; i+=w)
 			result.push(
-				{ left: i+'%', top: 0, width: w + '%', height: '50%' },
-				{ left: i+'%', top: '50%', width: w + '%', height: '50%' }
+				{ left: i+'%', top: 0, width: ws + '%', height: '50%' },
+				{ left: i+'%', top: '50%', width: ws + '%', height: '50%' }
 			);
 
 		return result;
