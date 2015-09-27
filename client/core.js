@@ -307,6 +307,16 @@ ide.Editor = cxl.View.extend({
 			return "File has changed. Are you sure?";
 		// Remove first so do_layout of workspace works.
 		this.remove();
+	},
+	
+	setKeymapState: function(state)
+	{
+		if (typeof(this.keymap)==='object')
+			this.keymap.state = state;
+		else
+			this.keymap = state;
+		
+		ide.plugins.trigger('editor.keymap', this, state);
 	}
 
 }, {

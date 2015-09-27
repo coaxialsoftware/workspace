@@ -483,7 +483,7 @@ ide.plugins.registerCommands({
 		{
 			if (ide.editor)
 				ide.workspace.remove(ide.editor, true);
-		},
+		}
 		
 	}
 

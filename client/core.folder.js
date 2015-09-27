@@ -130,8 +130,6 @@ ide.Editor.List = ide.Editor.extend({
 			item = this.createItem(f);
 			this.$list.append(item.el);
 		}, this);
-		
-		this._findFocus().focus();
 	},
 	
 	reset: function()
@@ -162,7 +160,7 @@ ide.Editor.List = ide.Editor.extend({
 		var focused = this.$list.find(':focus');
 		
 		if (!focused.is(':visible'))
-			focused = this.$list.find('.item-content:visible:eq(0)');
+			focused = this.$list.find('.item:visible:eq(0)');
 		
 		return focused;
 	},
@@ -188,18 +186,18 @@ ide.Editor.List = ide.Editor.extend({
 
 		goDocStart: function()
 		{
-			this.$list.find('.item-content:visible:eq(0)').focus();
+			this.$list.find('.item:visible:eq(0)').focus();
 		},
 
 		goDocEnd: function()
 		{
-			this.$list.find('.item-content:visible:last-child').focus();
+			this.$list.find('.item:visible:last-child').focus();
 		},
 
 		goLineDown: function(dir)
 		{
 			dir = dir || 'next';
-			this._findFocus().parent()[dir]().find('.item-content:visible').focus();
+			this._findFocus()[dir](':visible').focus();
 		},
 
 		goLineUp: function()

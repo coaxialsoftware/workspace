@@ -174,7 +174,7 @@ pre {
  *
  */
 .editor-hint-gutter { width: 100%; position: absolute; left: 0; }
-.editor-hint { position: absolute; width: 100%; height: 100%; }
+.editor-hint { position: absolute; width: 100%; height: 100%; opacity: 0.4; }
 
 .CodeMirror {
 	text-rendering: optimizeLegibility;
@@ -250,15 +250,11 @@ div.CodeMirror-cursors { visibility: visible; }
  * core.welcome.js
  *
  */
-.project > .item-content:focus, .file > .content:focus {
-	background-color: rgba(22, 160, 133, 0.7);
-}
-.project > .item-content:hover {
-	background-color: rgba(71, 158, 215, 0.9);
-}
-.project > .item-content {
-	background-color: rgb(41, 128, 185);
+.project {
 	background-color: rgba(41, 128, 185, 0.8);
+}
+.project:hover {
+	background-color: rgba(71, 158, 215, 0.9);
 }
 
 #welcome { 

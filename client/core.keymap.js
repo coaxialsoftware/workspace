@@ -243,12 +243,19 @@ cxl.extend(KeyMap.prototype, {
 	{
 	var
 		fn = map[key],
-		handler = typeof(fn)==='function' ?
-			fn :
-			ide.action.bind(ide, fn)
+		handler
 	;
+		if (typeof(fn)==='function')
+		{
+			handler = fn.bind(ide);
+			handler.action = fn.action || fn.name;
+		} else
+		{
+			handler = ide.action.bind(ide, fn);
+			handler.action = fn;
+		}
+		
 		handler.key = key;
-		handler.action = fn;
 		
 		return handler;
 	},

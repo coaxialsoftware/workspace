@@ -141,7 +141,7 @@ ide.plugins.on('assist', function(done, editor, token) {
 		var hints = [];
 		
 		if (editor.file instanceof ide.File)
-			hints.push({ title: editor.file.get('filename'), tags: [ 'file' ] });
+			hints.push({ title: editor.file.get('filename'), code: 'file' });
 		
 		if (token && (token.type===null || token.type==='string' ||
 			token.type==='string property') && token.string)

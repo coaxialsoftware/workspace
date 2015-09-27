@@ -220,6 +220,11 @@ ide.plugins.register('cmd', {
 		commands: function()
 		{
 			return this.open({ plugin: this, params: 'commands' });
+		},
+		
+		keymap: function()
+		{
+			return this.open({ plugin: this, params: 'keymap' });
 		}
 	},
 	
@@ -238,9 +243,6 @@ ide.plugins.register('cmd', {
 				tags = tag ? [ tag ] : [];
 				key = ide.keyboard.findKey(i);
 				
-				if (key)
-					tags.push('keymap: ' + key);
-				
 				if (typeof(cmds[i])==='string')
 					tags.push('alias:' + cmds[i]);
 					
@@ -255,12 +257,57 @@ ide.plugins.register('cmd', {
 		e.add(_.sortBy(result, 'title'));
 	},
 	
-	open: function(options)
+	openCommands: function(options)
 	{
 		options.title = 'commands';
 		var editor = new ide.Editor.List(options);
 		editor.listenTo(ide.plugins, 'editor.focus', this.loadCommands.bind(this, editor));
 		return editor;
+	},
+	
+	getKeys: function(state)
+	{
+		var key, result = [];
+		
+		for (key in state)
+			result.push({ key: state[key].key, title: state[key].action });
+		
+		return result;
+	},
+	
+	loadKeymap: function(keymap, editor)
+	{
+		var state;
+		
+		keymap.reset();
+
+		if (editor.keymap && typeof(editor.keymap)!=='string')
+		{
+			state = editor.keymap.state;
+			keymap.add(this.getKeys(editor.keymap.states[state]));
+		} else
+			state = editor.keymap;
+					   
+		keymap.add(this.getKeys(ide.keymap.getState(state)));
+	},
+	
+	openKeymap: function(options)
+	{
+		options.title = 'keymap';
+		var editor = new ide.Editor.List(options);
+		
+		editor.listenTo(ide.plugins, 'editor.focus', this.loadKeymap.bind(this, editor));
+		editor.listenTo(ide.plugins, 'editor.keymap', this.loadKeymap.bind(this, editor));
+		
+		return editor;
+	},
+	
+	open: function(options)
+	{
+		if (options.params==='commands')
+			return this.openCommands(options);
+		else if (options.params==='keymap')
+			return this.openKeymap(options);	
 	}
 	
 });
