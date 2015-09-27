@@ -236,7 +236,6 @@ div.CodeMirror-cursors { visibility: visible; }
 	float: left; margin-right: 14px;
 	width: 32px; height: 32px;
 }
-
 .item:hover {
 	background-color: rgba(170, 170, 170, 0.5);
 }

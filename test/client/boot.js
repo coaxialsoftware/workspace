@@ -4,8 +4,10 @@
  */
 
 window.document.write(
-	'<div style="display:none"><div id="notification"></div>' +
-	'<script id="tpl-assist"></script></div>'
+	'<div style="display:none"><div id="notification"></div></div>' +
+	'<script id="tpl-assist" type="text/template"></script>' + 
+	'<script id="tpl-item" type="text/template"><div></div></script>' + 
+	'<script id="tpl-editor-list" type="text/template"></script>'
 );
 
 $.mockjaxSettings.logging = false;
