@@ -1,6 +1,7 @@
 {
 	"name": "Test Module",
 	"version": "0.0.1",
+    "keymap": "vim",
 	"editor": {
 		"indentWithTabs": false
 	},

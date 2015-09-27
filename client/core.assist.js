@@ -2,67 +2,21 @@
 (function(window, ide, cxl, _) {
 "use strict";
 	
-ide.Hint = function ideHint(p)
-{
-	if (typeof(p)==='string')
-		this.hint = p;
-	else
-		_.extend(this, p);
-	
-	if (this.action)
-		this.key = ide.keyboard.findKey(this.action);
-};
-
-_.extend(ide.Hint.prototype, {
-	
-	/** Hint element */
-	el: null,
+ide.Hint = ide.Item.extend({
 	
 	priority: 10,
 	
 	/** Shortcut */
 	key: null,
 	
-	type: 'log',
+	className: 'log',
 	
-	onClick: function()
+	initialize: function()
 	{
-		if (this.action)
-		{
-			if (this.type==='ex')
-				ide.commandBar.show(this.action);
-			else
-				ide.commandParser.run(this.action);
-		}
-	},
-	
-	remove: function()
-	{
-		var parent = this.el.parentNode;
-		if (parent)
-			parent.removeChild(this.el);
-		return this;
-	},
-	
-	render: function()
-	{
-		if (this.el)
-			return this.el;
-		
-	var
-		el = this.el = document.createElement('BUTTON'),
-		hint = this, key = this.key
-	;
-		el.type = 'button';
-		el.className = 'hint ' + this.type;
-		el.addEventListener('click', this.onClick.bind(this));
-		el.innerHTML = (key ? '<kbd>' + key + '</kbd>' : '') +
-			(hint.tag ? '<code>' + hint.tag + '</code>' : '') +
-			(hint.action ? '<code>:' + hint.action + '</code> ' : '') +
-			'<span>' + _.escape(hint.hint) + '</span>';
-		
-		return el;
+		if (!this.key && this.code)
+			this.key = ide.keyboard.findKey(this.code);
 	}
+
 });
 
 var Assist = cxl.View.extend({
@@ -87,6 +41,17 @@ var Assist = cxl.View.extend({
 		this.listenTo(ide.plugins, 'token', this.onToken);
 		this.listenTo(ide.plugins, 'editor.focus', this.onToken);
 		this.listenTo(ide.plugins, 'workspace.remove', this.onToken);
+	},
+	
+	onItemClick: function()
+	{
+		if (this.action)
+		{
+			if (this.type==='ex')
+				ide.commandBar.show(this.action);
+			else
+				ide.commandParser.run(this.action);
+		}
 	},
 	
 	onToken: function()
@@ -165,7 +130,7 @@ var Assist = cxl.View.extend({
 	{
 	var
 		i = _.sortedIndex(this.hints, hint, 'priority'),
-		el = hint.render(),
+		el = hint.el,
 		ref = this.hints[i].el
 	;
 		this.hints.splice(i, 0, hint);
@@ -174,7 +139,7 @@ var Assist = cxl.View.extend({
 	
 	renderHint: function(hint)
 	{
-		this.$hints.appendChild(hint.render());
+		this.$hints.appendChild(hint.el);
 	},
 	
 	render: function()

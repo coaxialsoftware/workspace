@@ -3,23 +3,25 @@
 <div &="$$list" class="list-content"></div>
 </script>
 
-<script id="tpl-editor-item" type="text/template">
-<div class="item <%= obj.className %>">
-	<button data-id="<%= obj.id %>" class="item-content" title="<%= obj.title %>">
-		<% _.each(obj.tags, function(t) { %>
-		<span class="pull-right label"><%=t%></span>
-		<% }) %>
-		<h4><%- obj.title %></h4>
-	</button>
-</div>
+<script id="tpl-item" type="text/template">
+<button data-id="<%= obj.id %>" class="item <%= obj.className %>">
+	<% if (obj.key) { %>
+	<kbd><%= obj.key %></kbd>
+	<% } %>
+	<% _.each(obj.tags, function(t) { %>
+	<span class="pull-right label"><%=t%></span>
+	<% }) %>
+	<% if (obj.code) { %>
+		<code><%= obj.code %></code>
+	<% } %>
+	<h4><%- title %></h4>
+</button>
 </script>
 
 <script id="tpl-file" type="text/template">
-<div class="item <%= obj.directory ? 'directory' : 'file' %>">
-	<button class="item-content" title="<%= obj.filename %>" data-id="<%= obj.id %>">
-		<h4><%- obj.filename %></h4>
-	</button>
-</div>
+<button class="item <%= obj.directory ? 'directory' : 'file' %>" title="<%= obj.filename %>" data-id="<%= obj.id %>">
+	<h4><%- obj.filename %></h4>
+</button>
 </script>
 
 <script id="tpl-debug" type="text/template">
@@ -31,39 +33,34 @@
 </div>
 </script>
 
-<script id="tpl-plugins" type="text/template">
-<div class="item">
-	<div tabindex="0" class="item-content">
-		<% if (obj.installed) { %>
-			<span class="label pull-right">
-				<%= obj.enabled ? 'ENABLED' : 'INSTALLED' %>
-			</span>
-		<% } %>
-		<h4><%- obj.name %> <small><%- obj.version %></small></h4>
-		<% if (obj.description) { %><pre><%- obj.description %></pre><% } %>
-
-	</div>
+<script id="tpl-plugin" type="text/template">
+<div tabindex="0" class="item">
+	<% if (obj.installed) { %>
+		<span class="label pull-right">
+			<%= obj.enabled ? 'ENABLED' : 'INSTALLED' %>
+		</span>
+	<% } %>
+	<h4><%- obj.name %> <small><%- obj.version %></small></h4>
+	<% if (obj.description) { %><pre><%- obj.description %></pre><% } %>
 </div>
 </script>
 	
 <script id="tpl-project" type="text/template">
-<div class="item project">
-	<button class="item-content" data-id="<%=obj.id%>">
-		<% _.each(obj.tags, function(v, t) { if (v) { %>
-		<span class="pull-right label"><%=t%></span>
-		<% } }) %>
-		<h4><%= obj.path %> &nbsp;<small><%=obj.version%></small></h4>
-		<% if (obj.description) { %>
-		<pre><%= obj.description %></pre>
-		<% } %>
-		<div>
-		<span class="pull-right icon"><%=obj.license%></span>
-		<% _.each(obj.links, function(l) { %>
-		<a title="<%=l.title%>" target="_blank" class="icon" href="<%=l.href%>"><i class="fa fa-<%=l.class%>"></i></a>
-		<% }) %>
-		</div>
-	</button>
-</div>
+<button class="item project" data-id="<%=obj.id%>">
+	<% _.each(obj.tags, function(v, t) { if (v) { %>
+	<span class="pull-right label"><%=t%></span>
+	<% } }) %>
+	<h4><%= obj.path %> &nbsp;<small><%=obj.version%></small></h4>
+	<% if (obj.description) { %>
+	<pre><%= obj.description %></pre>
+	<% } %>
+	<div>
+	<span class="pull-right icon"><%=obj.license%></span>
+	<% _.each(obj.links, function(l) { %>
+	<a title="<%=l.title%>" target="_blank" class="icon" href="<%=l.href%>"><i class="fa fa-<%=l.class%>"></i></a>
+	<% }) %>
+	</div>
+</button>
 </script>	
 
 <script id="tpl-login" type="text/template">
@@ -86,5 +83,5 @@
 </script>
 
 <script id="tpl-assist" type="text/template">
-	<div &="$$hints" class="assist-hints"></div>
+	<div &="$$hints click(onItemClick)" class="assist-hints"></div>
 </script>

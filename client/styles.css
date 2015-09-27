@@ -79,17 +79,9 @@ pre {
 
 #notification .hint { display: inline-block; }
 
-.hint { 
-	border: 0; padding: 8px; display: block; margin-bottom: 4px;
-	width: 100%; text-align: left; cursor: pointer;
-}
-.hint:hover {
-	filter: brightness(130%); -webkit-filter: brightness(130%); -moz-filter: brightness(130%);
-}
-
-.log { background-color: rgba(52, 152, 219, 0.8); color: #eee;}
-.error { background-color: rgba(231, 76, 60, 0.8); color: #eee;}
-.warn{ background-color: rgba(241, 196, 15, 0.8); color: #333; }
+.item.log { background-color: rgba(52, 152, 219, 0.8); }
+.item.error, .error { background-color: rgba(231, 76, 60, 0.8); }
+.item.warn, .warn { background-color: rgba(241, 196, 15, 0.8); color: #333; }
 
 .label {
 	font-size: 10px; border-radius: 2px; 
@@ -222,37 +214,30 @@ div.CodeMirror-cursors { visibility: visible; }
 .item {
 	box-sizing: border-box;
 	font-size: 12px;
-	border-style: solid;
-	border-color: transparent;
-	border-width: 0 8px 8px 0;
-	transition: width 0.2s, opacity 0.2s;
+	transition: width 0.2s, opacity 0.2s, background-color 0.2s;
+	padding: 6px;
+	margin-bottom: 8px;
 	width: 100%;
 	border-right: 0;
-}
-
-.item pre { white-space: pre-wrap; }
-
-.item-content {
-	padding: 6px;
-	width: 100%;
-	min-height: 0;
-	box-sizing: border-box;
 	display: block;
 	text-decoration: none;
-	transition: background-color 0.2s;
 	color: #eee;
-	cursor: pointer;
 	text-align: left;
 	background-color: rgba(117, 117, 117, 0.5);
 	border: 1px solid #424242;
+	cursor: pointer;
 }
 
-.item-content > img.primary { 
+.item pre { white-space: pre-wrap; }
+.item kbd { float: right; }
+.item code { margin-right: 10px; padding: 4px; display: inline-block; }
+
+.item > img.primary { 
 	float: left; margin-right: 14px;
 	width: 32px; height: 32px;
 }
 
-.item-content:hover {
+.item:hover {
 	background-color: rgba(170, 170, 170, 0.5);
 }
 
@@ -294,10 +279,5 @@ div.CodeMirror-cursors { visibility: visible; }
 #assist.assist-show { display: block; width: 300px; }
 #workspace.assist-show { right: 300px; }
 
-#assist .link { color: #eee; opacity: 0.7; text-decoration: none; }
-#assist .link:hover { opacity: 1; }
-
-#assist code { margin-right: 10px; padding: 4px; display: inline-block; }
-#assist kbd { float: right; }
 #assist > ul { position: static; padding: 0; margin: 0; }
 

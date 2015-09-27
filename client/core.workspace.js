@@ -352,6 +352,79 @@ ide.plugins.registerCommands({
 			code = char.charCodeAt(0)
 		;
 			ide.notify(char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8));
+		},
+		
+		f: 'file',
+		
+		file: function()
+		{
+			ide.notify(ide.editor.file ?
+				ide.editor.file.id || '[No Name]' :
+				'No files open.');
+		},
+		
+		read: function(file)
+		{
+			if (ide.editor.insert)
+			{
+				file = file || ide.editor.file.get('filename');
+
+				$.get('/file?p=' + ide.project.id + '&n=' + file)
+					.then(function(content) {
+						if (content.new)
+							ide.notify('File does not exist.');
+						else
+							ide.editor.insert(content.content.toString());
+					}, function(err) {
+						ide.error(err);
+					});
+			} else
+				ide.error('Current editor does not support command.');
+		},
+		
+		r: 'read',
+		
+		w: 'write',
+		
+		wq: function()
+		{
+			// TODO use one run.
+			ide.run('w').run('q');
+		},
+		
+		editorNext: function()
+		{
+			ide.workspace.next().focus();
+		},
+
+		editorPrevious: function()
+		{
+			ide.workspace.previous().focus();
+		},
+
+		editorMoveNext: function()
+		{
+		var
+			l = ide.workspace.slots.length, i
+		;
+			if (l>1)
+			{
+				i = ide.workspace.slots.indexOf(ide.editor.slot);
+				ide.workspace.swap(i, (i === l-1) ? 0 : i+1);
+			}
+		},
+
+		editorMovePrevious: function()
+		{
+		var
+			l = ide.workspace.slots.length, i
+		;
+			if (l>1)
+			{
+				i = ide.workspace.slots.indexOf(ide.editor.slot);
+				ide.workspace.swap(i, (i === 0) ? l-1 : i-1);
+			}
+
 		}
 		
 	},
@@ -362,13 +435,8 @@ ide.plugins.registerCommands({
 		{
 			window.open('/docs/index.html#' + (topic || ''));
 		},
-
-		/// Quit always, without writing.
-		"q!": function()
-		{
-			if (ide.editor)
-				ide.workspace.remove(ide.editor, true);
-		},
+		
+		e: 'edit',
 		
 		/**
 		 * Edits file with registered plugins.
@@ -382,15 +450,6 @@ ide.plugins.registerCommands({
 				ide.open('');
 		},
 		
-		f: 'file',
-		
-		file: function()
-		{
-			ide.notify((ide.editor && ide.editor.file) ?
-				ide.editor.file.id || '[No Name]' :
-				'No files open.');
-		},
-		
 		tabe: function(name)
 		{
 			ide.open({ file: name, target: '_blank' });
@@ -401,13 +460,9 @@ ide.plugins.registerCommands({
 			window.close();
 		},
 		
-		w: 'write',
-		
-		wq: function()
-		{
-			// TODO use one run.
-			ide.run('w').run('q');
-		},
+		quit: 'q',
+		'quitAll': 'qa',
+		'quitForce': 'q!',
 		
 		/// Quit Vim. This fails when changes have been made.
 		q: function()
@@ -422,41 +477,13 @@ ide.plugins.registerCommands({
 		{
 			ide.workspace.close_all();
 		},
-		
-		nextEditor: function()
+
+		/// Quit always, without writing.
+		"q!": function()
 		{
-			ide.workspace.next().focus();
+			if (ide.editor)
+				ide.workspace.remove(ide.editor, true);
 		},
-
-		prevEditor: function()
-		{
-			ide.workspace.previous().focus();
-		},
-
-		moveNext: function()
-		{
-		var
-			l = ide.workspace.slots.length, i
-		;
-			if (l>1)
-			{
-				i = ide.workspace.slots.indexOf(ide.editor.slot);
-				ide.workspace.swap(i, (i === l-1) ? 0 : i+1);
-			}
-		},
-
-		movePrev: function()
-		{
-		var
-			l = ide.workspace.slots.length, i
-		;
-			if (l>1)
-			{
-				i = ide.workspace.slots.indexOf(ide.editor.slot);
-				ide.workspace.swap(i, (i === 0) ? l-1 : i-1);
-			}
-
-		}
 		
 	}
 

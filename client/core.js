@@ -46,11 +46,11 @@ var
 	{
 		kls = kls || 'log';
 	var
-		span = message instanceof ide.Hint ? message : 
-			new ide.Hint({ hint: message, type: kls })
+		span = message instanceof ide.Item ? message : 
+			new ide.Item({ title: message, className: kls })
 	;
 		setTimeout(span.remove.bind(span), 3000);
-		_nots.insertBefore(span.render(), _nots.firstChild);
+		_nots.insertBefore(span.el, _nots.firstChild);
 	},
 		
 	source: function(src)
@@ -107,6 +107,10 @@ var
 },
 	_start= function()
 	{
+		// Load Templates
+		ide.Item.prototype.template = cxl._templateId('tpl-item');
+		ide.Editor.List.prototype.template = cxl.templateId('tpl-editor-list');
+		
 		ide.workspace = new ide.Workspace();
 		ide.searchBar = new ide.Bar.Search();
 		ide.commandBar = new ide.Bar.Command();
@@ -251,7 +255,7 @@ ide.Editor = cxl.View.extend({
 		var fn = this.commands[name];
 		
 		if (typeof(fn)==='string')
-			fn = this.commands[fn];
+			return this.cmd(fn, args);
 		
 		// Make sure info window doesnt interfere with commands.
 		// TODO see if we can move this out of here?

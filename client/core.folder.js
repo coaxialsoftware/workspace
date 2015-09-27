@@ -58,11 +58,16 @@ var
 	return new RegExp(reStr);
 }
 	
+ide.Item = cxl.View.extend({
+	priority: 0
+});
+	
 ide.Editor.List = ide.Editor.extend({
 	
 	title: '',
 	template: null,
 	itemTemplate: null,
+	itemClass: ide.Item,
 	items: null,
 	
 	onItemClick: null,
@@ -88,18 +93,12 @@ ide.Editor.List = ide.Editor.extend({
 	_setup: function()
 	{
 		this.$el.addClass('panel');
-		
-		if (!this.template)
-			this.template = cxl.templateId('tpl-editor-list');
-		// Use lodash template as default for faster rendering
-		if (!this.itemTemplate)
-			this.itemTemplate = cxl._templateId('tpl-editor-item');
 	},
 	
 	_ready: function()
 	{
 		this.$list = $(this.$list)
-			.on('click', '.item-content', this._onClick.bind(this));
+			.on('click', '.item', this._onClick.bind(this));
 		
 		this.listenTo(this.$el, 'click', this.focus);
 		
@@ -109,14 +108,27 @@ ide.Editor.List = ide.Editor.extend({
 			this.items = [];
 	},
 	
+	createItem: function(item)
+	{
+		if (!(item instanceof this.itemClass))
+		{
+			if (this.itemTemplate)
+				item.template = this.itemTemplate;
+			item = new this.itemClass(item);
+		}
+		
+		return item;
+	},
+	
 	// TODO support remove?
 	_addElements: function(items, i)
 	{
-		var l = i===undefined ? this.items.length : i;
+		var l = i===undefined ? this.items.length : i, item;
 		
 		items.forEach(function(f, i) {
 			f.id = l + i;
-			this.$list.append(this.itemTemplate(f));
+			item = this.createItem(f);
+			this.$list.append(item.el);
 		}, this);
 		
 		this._findFocus().focus();

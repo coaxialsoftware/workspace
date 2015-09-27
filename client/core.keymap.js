@@ -333,21 +333,21 @@ ide.keymap.registerKeys({
 		'mod+up': 'goLineUp',
 		
 		// WORKSPACE
-		"alt+left": 'prevEditor',
-		"alt+right": 'nextEditor',
-		'alt+.': 'moveNext',
-		'alt+,': 'movePrev',
+		"alt+left": 'editorPrevious',
+		"alt+right": 'editorNext',
+		'alt+.': 'editorMoveNext',
+		'alt+,': 'editorMovePrev',
 		'alt+enter': 'ex',
 		
 		// SELECTION
-		'shift+left': 'startSelect goCharLeft endSelect',
-		'shift+right': 'startSelect goCharRight endSelect',
-		'shift+up': 'startSelect goLineUp endSelect',
-		'shift+down': 'startSelect goLineDown endSelect',
-		'shift+home': 'startSelect goLineStart endSelect',
-		'shift+end': 'startSelect goLineEnd endSelect',
-		'shift+pagedown': 'startSelect goPageDown endSelect',
-		'shift+pageup': 'startSelect goPageUp endSelect',
+		'shift+left': 'selectStart goCharLeft selectEnd',
+		'shift+right': 'selectStart goCharRight selectEnd',
+		'shift+up': 'selectStart goLineUp selectEnd',
+		'shift+down': 'selectStart goLineDown selectEnd',
+		'shift+home': 'selectStart goLineStart selectEnd',
+		'shift+end': 'selectStart goLineEnd selectEnd',
+		'shift+pagedown': 'selectStart goPageDown selectEnd',
+		'shift+pageup': 'selectStart goPageUp selectEnd',
 		
 		'alt+u': 'redoSelection',
 		'mod+a': 'selectAll',
@@ -359,7 +359,7 @@ ide.keymap.registerKeys({
 		// EDITING
 		backspace: 'delCharBefore',
 		del: 'delCharAfter',
-		enter: 'newline',
+		enter: 'insertLine',
 		insert: 'toggleOverwrite',
 		'shift+backspace': 'delCharBefore',
 		'mod+s': 'write',
@@ -375,7 +375,7 @@ ide.keymap.registerKeys({
 		'shift+mod+r': 'replaceAll',
 		'shift+mod+u': 'redoSelection',
 		'shift+mod+z': 'redo',
-		'tab': 'defaultTab',
+		'tab': 'insertTab',
 		'shift+tab': 'indentAuto'
 	}
 });

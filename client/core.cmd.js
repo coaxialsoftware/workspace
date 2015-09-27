@@ -7,17 +7,17 @@ ide.Feature = function Feature(p)
 	cxl.extend(this, p);
 };
 	
-ide.sandbox = function(a) {
+function sandbox(a) {
 	/* jshint evil:true */
 	return (new Function(
-		'var window, document;' +
-		'return (' + a + ');'
+		'var window, document, editor=ide.editor,' +
+		'token=editor && editor.token,' +
+		'selection = editor && editor.selection' +
+		';return (' + a + ');'
 	)).call(undefined);
-};
-	
-function CommandParser()
-{
 }
+	
+function CommandParser() {}
 	
 cxl.extend(CommandParser.prototype, {
 	
@@ -53,13 +53,13 @@ cxl.extend(CommandParser.prototype, {
 	
 	parseRegex: function(args, state)
 	{
-		this.parseUntil(args, state, /([^\\]\/[gimy]*)/g, ide.sandbox);
+		this.parseUntil(args, state, /([^\\]\/[gimy]*)/g, sandbox);
 	},
 	
 	parseJS: function(args, state)
 	{
 		state.i++;
-		this.parseUntil(args, state, /([^\\])`/g, ide.sandbox);
+		this.parseUntil(args, state, /([^\\])`/g, sandbox);
 		state.i++;
 	},
 	
@@ -231,16 +231,20 @@ ide.plugins.register('cmd', {
 		
 		function getCommands(cmds, tag)
 		{
-			var tags;
+			var tags, key;
 			
 			for (var i in cmds)
 			{
 				tags = tag ? [ tag ] : [];
+				key = ide.keyboard.findKey(i);
+				
+				if (key)
+					tags.push('keymap: ' + key);
 				
 				if (typeof(cmds[i])==='string')
 					tags.push('alias:' + cmds[i]);
 					
-				result.push({ title: i, className: 'cmd', tags: tags });
+				result.push({ key: key, title: i, className: 'cmd', tags: tags });
 			}
 		}
 		

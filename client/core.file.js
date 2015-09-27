@@ -2,7 +2,7 @@
  * workspace.file
  */
 
-(function(cxl, ide, $) {
+(function(cxl, ide) {
 "use strict";
 
 ide.File = cxl.Model.extend({
@@ -141,11 +141,11 @@ ide.plugins.on('assist', function(done, editor, token) {
 		var hints = [];
 		
 		if (editor.file instanceof ide.File)
-			hints.push({ hint: editor.file.get('filename'), tag: 'file' });
+			hints.push({ title: editor.file.get('filename'), tags: [ 'file' ] });
 		
 		if (token && (token.type===null || token.type==='string' ||
 			token.type==='string property') && token.string)
-			hints.push({ hint: 'Find file ' + token.string, action: 'find'
+			hints.push({ title: 'Find file ' + token.string, code: 'find'
 			});
 		
 		done(hints);
@@ -154,23 +154,5 @@ ide.plugins.on('assist', function(done, editor, token) {
 });
 	
 ide.fileManager = new FileManager();
-ide.registerEditorCommand('read', function(file) {
-	if (ide.editor.insert)
-	{
-		file = file || ide.editor.file.get('filename');
 
-		$.get('/file?p=' + ide.project.id + '&n=' + file)
-			.then(function(content) {
-				if (content.new)
-					ide.notify('File does not exist.');
-				else
-					ide.editor.insert(content.content.toString());
-			}, function(err) {
-				ide.error(err);
-			});
-	} else
-		ide.error('Current editor does not support command.');
-});
-	
-
-})(this.cxl, this.ide, this.jQuery);
+})(this.cxl, this.ide);

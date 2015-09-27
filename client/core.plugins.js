@@ -237,7 +237,7 @@ ide.plugins.register('plugins', {
 		me = this, l
 	;
 		options.title = 'plugins';
-		options.itemTemplate = cxl._templateId('tpl-plugins');
+		options.itemTemplate = cxl._templateId('tpl-plugin');
 		options.params = 'list';
 		
 		l = new ide.Editor.List(options);

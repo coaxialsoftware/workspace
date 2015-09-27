@@ -93,10 +93,12 @@ ide.Editor.Source = ide.Editor.extend({
 	
 	commands: {
 	
-		deleteSelection: function()
+		delSelection: function()
 		{
 			this.editor.replaceSelection('');	
 		},
+		
+		delLine: 'deleteLine',
 
 		replaceSelection: function(text)
 		{
@@ -111,7 +113,7 @@ ide.Editor.Source = ide.Editor.extend({
 			e.replaceSelection(text, 'start');
 		},
 
-		enableInput: function()
+		inputEnable: function()
 		{	
 			if (this.editor.getOption('disableInput'))
 			{
@@ -120,7 +122,7 @@ ide.Editor.Source = ide.Editor.extend({
 			}
 		},
 
-		disableInput: function()
+		inputDisable: function()
 		{
 			if (this.editor.getOption('disableInput')===false)
 			{
@@ -130,26 +132,30 @@ ide.Editor.Source = ide.Editor.extend({
 
 				this.toggleFatCursor(true);
 				this.editor.setOption('disableInput', true);
-
 			}
 		},
 	
-		startSelect: function()
+		selectStart: function()
 		{
 			this.editor.display.shift = true;
 		},
 
-		endSelect: function()
+		selectEnd: function()
 		{
 			this.editor.display.shift = false;
 		},
+		
+		insertTab: function()
+		{
+			this.editor.execCommand('defaultTab');	
+		},
 
-		newline: function()
+		insertLine: function()
 		{
 			this.editor.execCommand('newlineAndIndent');	
 		},
 
-		clearSelection: function()
+		selectClear: function()
 		{
 			this.editor.setSelection(this.editor.getCursor('anchor'));
 		},
@@ -219,13 +225,14 @@ ide.Editor.Source = ide.Editor.extend({
 		insert: function(text)
 		{
 			this.editor.replaceSelection(text);
-		},
-		
-		toggleFatCursor: function(state)
-		{
-			this.$el.toggleClass('cm-fat-cursor', state);
-			this.editor.restartBlink();
 		}
+
+	},
+	
+	toggleFatCursor: function(state)
+	{
+		this.$el.toggleClass('cm-fat-cursor', state);
+		this.editor.restartBlink();
 	},
 
 	cmd: function(fn, args)
