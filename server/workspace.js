@@ -336,6 +336,26 @@ workspace.extend({
 		this.__saveData();
 	},
 	
+	shell: function(command, params, cwd)
+	{
+		var me = this;
+		
+		this.log(command + (params ? ' ' + params.join(' ') : ''));
+
+		var process = require('child_process').spawn(
+			command, params,
+			{ cwd: cwd, detached: true, stdio: [ 'ignore' ] }
+		);
+		process.on('error', this.error.bind(this.log));
+		process.on('close', function(code) {
+			me.log(command + ' returned with status ' + code);
+		});
+		
+		process.unref();
+		
+		return process;
+	},
+	
 	__saveData: function()
 	{
 		var me = this;
