@@ -30,7 +30,7 @@ var
 	plugins: null,
 
 	/** Displays alert notification on right corner */
-	alert: function(message)
+	warn: function(message)
 	{
 		ide.notify(message, 'warn');
 	},
@@ -77,11 +77,12 @@ var
 				options.target || '_blank'
 			);
 		
-		if (typeof(options.file)==='string')
-			options.file = ide.fileManager.getFile(options.file);
-		
 		if (typeof(options.plugin)==='string')
 			options.plugin = ide.plugins.get(options.plugin);
+		
+		if (!(options.plugin && options.plugin.open &&
+			!options.plugin.edit) && typeof(options.file)==='string')
+			options.file = ide.fileManager.getFile(options.file);
 		
 		ide.plugins.edit(options);
 	},
@@ -204,14 +205,14 @@ ide.Editor = cxl.View.extend({
 			this.slot = ide.workspace.slot();
 
 		this.setElement(this.slot.el);
-		this.listenTo(this.$el, 'click', this._on_click);
-		
-		this.info = new ide.Info({ editor: this });
+		this.listenTo(this.$el, 'click', this.onClick);
 		
 		this._setup();
 		
 		if (this.template)
 			this.loadTemplate(this.template);
+		
+		this.info = new ide.Info({ editor: this });
 		
 		if (this._ready)
 			this._ready();
@@ -219,16 +220,6 @@ ide.Editor = cxl.View.extend({
 		ide.plugins.trigger('editor.load', this);
 	},
 	
-	/**
-	 * Declare what features the editor implements. See
-	 * ide.Feature namespace.
-	 */
-	features: function(obj)
-	{
-		for (var i in obj)
-			this[i] = obj[i];
-	},
-
 	/** Plugin that instantiated the editor @required */
 	plugin: null,
 
@@ -238,11 +229,6 @@ ide.Editor = cxl.View.extend({
 	 */
 	file: null,
 	
-	/**
-	 * Command Aliases
-	 */
-	alias: null,
-
 	/**
 	 * Handles a single command. Returns false if command wasn't handled. Commands are
 	 * editor instance functions. It will ignore methods that start with '_'
@@ -265,7 +251,7 @@ ide.Editor = cxl.View.extend({
 		return fn ? fn.apply(this, args) : ide.Pass;
 	},
 
-	_on_click: function()
+	onClick: function()
 	{
 		if (ide.editor!==this)
 			this.focus();
@@ -273,8 +259,9 @@ ide.Editor = cxl.View.extend({
 
 	getInfo: function()
 	{
-		return (this.file ? this.file.get('filename') : '') +
-			' [' + ide.project.get('name') || ide.project.id + ']';
+		return (this.changed && this.changed() ? '+ ' : '') +
+			((this.file instanceof ide.File ? this.file.get('filename') : this.file) || 'No Name') +
+			' [' + (ide.project.get('name') || ide.project.id) + ']';
 	},
 
 	focus: function()

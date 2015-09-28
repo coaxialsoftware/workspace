@@ -72,7 +72,7 @@ ide.Editor.List = ide.Editor.extend({
 	
 	onItemClick: null,
 	
-	_onClick: function(ev)
+	onListClick: function(ev)
 	{
 	var
 		id = ev.currentTarget.dataset.id
@@ -98,9 +98,7 @@ ide.Editor.List = ide.Editor.extend({
 	_ready: function()
 	{
 		this.$list = $(this.$list)
-			.on('click', '.item', this._onClick.bind(this));
-		
-		this.listenTo(this.$el, 'click', this.focus);
+			.on('click', '.item', this.onListClick.bind(this));
 		
 		if (this.items)
 			this._addElements(this.items, 0);
@@ -250,12 +248,12 @@ ide.plugins.register('find', new ide.Plugin({
 	open: function(options)
 	{
 	var
-		mask = options.params || this.get_mask() || '',
+		mask = options.file || this.get_mask() || '',
 		regex = globToRegex(mask),
 		files = ide.project.files_json
 	;
 		if (!files)
-			return ide.alert('[find] No files found in project.');
+			return ide.warn('[find] No files found in project.');
 
 		files = options.items = files.filter(function(val) {
 			return regex.test(val.filename);
@@ -293,7 +291,7 @@ ide.plugins.register('find', new ide.Plugin({
 		 */
 		find: function(mask)
 		{
-			return this.open({ params: mask, plugin: this });
+			return this.open({ file: mask, plugin: this });
 		}
 
 	}

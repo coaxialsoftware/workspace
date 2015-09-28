@@ -195,7 +195,7 @@ ide.Bar.Command = ide.Bar.extend({
 		result = cmd ? ide.run(cmd.fn, cmd.args) : ide.Pass;
 
 		if (result===ide.Pass)
-			ide.alert('Unknown Command: ' + val);
+			ide.warn('Unknown Command: ' + val);
 		else if (typeof(result)==='string' || result instanceof ide.Hint)
 			ide.notify(result);
 	},

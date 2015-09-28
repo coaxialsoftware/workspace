@@ -61,7 +61,7 @@ ide.plugins.register('welcome', new ide.Plugin({
 		
 		projects: function()
 		{
-			this.openProjects({ plugin: this, params: 'projects' });
+			this.openProjects({ plugin: this, file: 'projects' });
 		}
 	},
 	
@@ -72,7 +72,7 @@ ide.plugins.register('welcome', new ide.Plugin({
 	
 	open: function(options)
 	{
-		if (options.params==='projects')
+		if (options.file==='projects')
 			return new ProjectList(options);
 	},
 	
@@ -105,7 +105,7 @@ ide.plugins.register('welcome', new ide.Plugin({
 		project = this.project = p.get('name') || p.get('path')
 	;
 		if (user)
-			ide.alert('Welcome ' + user);
+			ide.warn('Welcome ' + user);
 		
 		if (project)
 			window.document.title = project;

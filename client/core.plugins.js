@@ -123,7 +123,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	 * Opens a file if supported by a plugin.
 	 *
 	 * @param options {object} Required.
-	 * @param options.file {ide.File} File Object.
+	 * @param options.file {ide.File} File Object. Required.
 	 * @param options.plugin {ide.Plugin} Plugin
 	 */
 	edit: function(options)
@@ -132,7 +132,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		
 		options.slot = ide.workspace.slot();
 		
-		if (!file || file.attributes.content || !file.attributes.filename)
+		if (!file.attributes || file.attributes.content || !file.attributes.filename)
 			this.findPlugin(options);
 		else
 			file.fetch({
@@ -217,7 +217,7 @@ ide.plugins.register('plugins', {
 		
 		if (!all)
 		{
-			ide.alert('Could not retrieve plugins from server.');
+			ide.warn('Could not retrieve plugins from server.');
 			all = _.extend({}, installed);
 		}
 		
@@ -238,7 +238,7 @@ ide.plugins.register('plugins', {
 	;
 		options.title = 'plugins';
 		options.itemTemplate = cxl._templateId('tpl-plugin');
-		options.params = 'list';
+		options.file = 'list';
 		
 		l = new ide.Editor.List(options);
 		

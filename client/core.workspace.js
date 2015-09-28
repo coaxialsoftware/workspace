@@ -3,7 +3,7 @@
 "use strict";
 
 var
-	FILE_REGEX = /^(?:([\w\.\-]+):)?(?:([^:]+):)?([^:]*)$/
+	FILE_REGEX = /^(?:([\w\.\-]+):)?(.+)$/
 ;
 
 function Hash()
@@ -118,9 +118,8 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	var
 		m = FILE_REGEX.exec(file),
 		op = {
-			file: m[2] ? m[3] || null : m[3],
-			plugin: m[1],
-			params: m[2] && decodeURIComponent(m[2])
+			file: m[2],
+			plugin: m[1]
 		}
 	;
 		if (op.file)
@@ -151,9 +150,12 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	
 	state: function(editor)
 	{
+		var file = editor.file instanceof ide.File ?
+			editor.file.get('filename') :
+			editor.file || '';
+		
 		return (editor.plugin ? editor.plugin.name + ':' : '') +
-			(editor.params ? encodeURIComponent(editor.params) + ':' : '') +
-			(editor.file && encodeURIComponent(editor.file.get('filename')) || '');
+			encodeURIComponent(file);
 	},
 
 	/**

@@ -219,12 +219,12 @@ ide.plugins.register('cmd', {
 	commands: {
 		commands: function()
 		{
-			return this.open({ plugin: this, params: 'commands' });
+			return this.open({ plugin: this, file: 'commands' });
 		},
 		
 		keymap: function()
 		{
-			return this.open({ plugin: this, params: 'keymap' });
+			return this.open({ plugin: this, file: 'keymap' });
 		}
 	},
 	
@@ -277,18 +277,26 @@ ide.plugins.register('cmd', {
 	
 	loadKeymap: function(keymap, editor)
 	{
-		var state;
+		var state, items = [];
 		
 		keymap.reset();
 
 		if (editor.keymap && typeof(editor.keymap)!=='string')
 		{
 			state = editor.keymap.state;
-			keymap.add(this.getKeys(editor.keymap.states[state]));
+			
+			items = items.concat(this.getKeys(editor.keymap.states[state]));
 		} else
-			state = editor.keymap;
+			state = editor.keymap || ide.keymap.state;
 					   
-		keymap.add(this.getKeys(ide.keymap.getState(state)));
+		items = items.concat(this.getKeys(ide.keymap.getState(state)));
+		
+		items = _.sortBy(items, 'title');
+		items.unshift({
+			code: 'state', title: state, className: 'state'
+		});
+		
+		keymap.add(items);
 	},
 	
 	openKeymap: function(options)
@@ -304,9 +312,9 @@ ide.plugins.register('cmd', {
 	
 	open: function(options)
 	{
-		if (options.params==='commands')
+		if (options.file==='commands')
 			return this.openCommands(options);
-		else if (options.params==='keymap')
+		else if (options.file==='keymap')
 			return this.openKeymap(options);	
 	}
 	

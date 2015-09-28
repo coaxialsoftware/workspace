@@ -485,13 +485,6 @@ ide.Editor.Source = ide.Editor.extend({
 	changed: function()
 	{
 		return this.file_content !== this.getValue();
-	},
-
-	getInfo: function()
-	{
-		return (this.changed() ? '+ ' : '') +
-			(this.file.get('filename') || '[No Name]') +
-			' [' + ide.project.get('name') + ']';
 	}
 
 });
