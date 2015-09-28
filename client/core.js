@@ -53,6 +53,25 @@ var
 		_nots.insertBefore(span.el, _nots.firstChild);
 	},
 		
+	post: function(url, payload, onprogress)
+	{
+		return $.ajax({
+			url: url,
+			data: JSON.stringify(payload),
+			contentType: 'application/json',
+			type: 'POST',
+			xhr: function()
+			{
+				var xhr = $.ajaxSettings.xhr();
+				if (onprogress)
+					xhr.addEventListener('progress', onprogress);
+				return xhr;
+			}
+		}).fail(function(xhr) {
+			ide.error(xhr.responseText);
+		});
+	},
+		
 	source: function(src)
 	{
 		/* jshint evil:true */
@@ -69,7 +88,7 @@ var
 	open: function(options)
 	{
 		if (!options || typeof(options)==='string' || options instanceof ide.File)
-			options = { file: options };
+			options = { file: options || '' };
 		
 		if (options.target)
 			return window.open(

@@ -150,9 +150,9 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	
 	state: function(editor)
 	{
-		var file = editor.file instanceof ide.File ?
+		var file = (editor.file instanceof ide.File ?
 			editor.file.get('filename') :
-			editor.file || '';
+			editor.file) || '';
 		
 		return (editor.plugin ? editor.plugin.name + ':' : '') +
 			encodeURIComponent(file);
@@ -168,11 +168,6 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 		this.each(function(child) {
 			files.push(this.state(child));
 		});
-
-		if (files.length===1)
-			files = files[0];
-		else if (files.length===0)
-			files = 0;
 
 		hash.set({ f: files });
 		
@@ -450,7 +445,7 @@ ide.plugins.registerCommands({
 				for (var i=0; i<arguments.length; i++)
 					ide.open(arguments[i]);
 			else
-				ide.open('');
+				ide.open();
 		},
 		
 		tabe: function(name)

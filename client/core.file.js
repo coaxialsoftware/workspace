@@ -44,11 +44,6 @@ ide.File = cxl.Model.extend({
 		});
 	},
 
-	isNew: function()
-	{
-		return this.attributes.new;
-	},
-
 	url: function()
 	{
 	var

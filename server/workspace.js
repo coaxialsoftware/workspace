@@ -336,7 +336,7 @@ workspace.extend({
 		this.__saveData();
 	},
 	
-	shell: function(command, params, cwd)
+	shell: function(command, params, cwd, res)
 	{
 		var me = this;
 		
@@ -350,6 +350,21 @@ workspace.extend({
 		process.on('close', function(code) {
 			me.log(command + ' returned with status ' + code);
 		});
+		
+		if (res)
+		{
+			process.stdout.on('data', function(data) {
+				if (!res.headersSent)
+					res.writeHead(200);
+				res.write(data);
+			});
+			process.stderr.on('data', function(data) {
+				if (!res.headersSent)
+					res.writeHead(500);
+				res.write(data);
+			});
+			process.on('close', res.end.bind(res));
+		}
 		
 		process.unref();
 		
