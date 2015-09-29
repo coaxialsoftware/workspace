@@ -368,7 +368,7 @@ ide.Editor.Source = ide.Editor.extend({
 	
 	onCursorActivity: function()
 	{
-		var token = this._getToken();
+		var token = this.getToken();
 		
 		if (this.token !== token)
 		{
@@ -404,7 +404,7 @@ ide.Editor.Source = ide.Editor.extend({
 	 * Gets token at pos. If pos is ommited it will return the token
 	 * under the cursor
 	 */
-	_getToken: function(pos)
+	getToken: function(pos)
 	{
 		pos = pos || this.editor.getCursor();
 		var token = this.editor.getTokenAt(pos, true);
