@@ -218,14 +218,14 @@ ide.plugins.register('plugins', {
 		if (!all)
 		{
 			ide.warn('Could not retrieve plugins from server.');
-			all = _.extend({}, installed);
 		}
 		
-		_.each(all, function(p, k) {
+		all = _.merge(all || {}, installed);
+		_.each(all, function(a, k) {
 			if (k in installed)
-				all[k].installed = true;
+				a.installed = true;
 			if (enabled && enabled.indexOf(k)!==-1)
-				all[k].enabled = true;
+				a.enabled = true;
 		});
 
 		l.add(_.values(all));
