@@ -2,6 +2,11 @@
 (function(ide, cxl, _, codeMirror, $) {
 "use strict";
 	
+codeMirror.defineOption('fatCursor', false, function(cm, val) {
+	cm.display.wrapper.classList.toggle('cm-fat-cursor', val);
+	cm.restartBlink();
+});
+	
 /**
  * Use to provide Hints capabilities.
  */
@@ -117,7 +122,7 @@ ide.Editor.Source = ide.Editor.extend({
 		{	
 			if (this.editor.getOption('disableInput'))
 			{
-				this.toggleFatCursor(false);
+				this.editor.setOption('fatCursor', false);
 				this.editor.setOption('disableInput', false);
 			}
 		},
@@ -130,7 +135,7 @@ ide.Editor.Source = ide.Editor.extend({
 				if (this.editor.getCursor().ch>0)
 					this.editor.execCommand('goCharLeft');
 
-				this.toggleFatCursor(true);
+				this.editor.setOption('fatCursor', true);
 				this.editor.setOption('disableInput', true);
 			}
 		},
@@ -159,10 +164,13 @@ ide.Editor.Source = ide.Editor.extend({
 		{
 			this.editor.setSelection(this.editor.getCursor('anchor'));
 		},
-
-		showCursorWhenSelecting: function()
+		
+		set: function(option, value)
 		{
-			this.editor.setOption('showCursorWhenSelecting', true);
+			if (value===undefined)
+				return this.editor.getOption(option);
+			else
+				this.editor.setOption(option, value);
 		},
 
 		selectLine: function()
@@ -192,12 +200,12 @@ ide.Editor.Source = ide.Editor.extend({
 				this.editor.find(n, options);
 		},
 
-		replace: function(pattern, str, options)
+		searchReplace: function(pattern, str, options)
 		{
 			this.editor.replace(pattern, str, options);
 		},
 
-		replaceRange: function(pattern, str, from, to)
+		searchReplaceRange: function(pattern, str, from, to)
 		{
 			from = from || { line: 0, ch: 0 };
 			to = to || { line: this.editor.lastLine() };
@@ -227,12 +235,6 @@ ide.Editor.Source = ide.Editor.extend({
 			this.editor.replaceSelection(text);
 		}
 
-	},
-	
-	toggleFatCursor: function(state)
-	{
-		this.$el.toggleClass('cm-fat-cursor', state);
-		this.editor.restartBlink();
 	},
 
 	cmd: function(fn, args)
@@ -325,8 +327,7 @@ ide.Editor.Source = ide.Editor.extend({
 				matchBrackets: true,
 				foldGutter: true,
 				indentUnit: s.indentWithTabs ? 1 : (s.tabSize || 4), 
-				lineSeparator: "\n",
-				keyMap: 'default'
+				lineSeparator: "\n"
 			}, s,
 			{
 				value: this.file.get('content') || '',

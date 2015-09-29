@@ -319,15 +319,6 @@ ide.keymap = new KeyMap();
 	
 ide.keymap.registerKeys({
 	
-	basic: {
-		
-		'alt+enter': 'ex',
-		'alt+.': 'moveNext',
-		'alt+,': 'movePrev',
-		'mod+f': 'searchbar'
-		
-	},
-	
 	/**
 	 * Default Keymap
 	 */
@@ -391,8 +382,8 @@ ide.keymap.registerKeys({
 		'mod+u': 'undoSelection',
 		'mod+[': 'indentLess',
 		'mod+]': 'indentMore',
-		'shift+mod+f': 'replace',
-		'shift+mod+r': 'replaceAll',
+		'shift+mod+f': 'searchReplace',
+		'shift+mod+r': 'searchReplaceRange',
 		'shift+mod+u': 'redoSelection',
 		'shift+mod+z': 'redo',
 		'tab': 'insertTab',

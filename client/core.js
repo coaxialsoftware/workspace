@@ -8,6 +8,8 @@
 	
 var
 	_nots,
+	// We store the last 100 notifications.
+	log = [],
 	editorId = 1,
 
 	ide =
@@ -51,6 +53,10 @@ var
 	;
 		setTimeout(span.remove.bind(span), 3000);
 		_nots.insertBefore(span.el, _nots.firstChild);
+		
+		log.unshift(span);
+		if (log.length>100)
+			log = log.slice(0, 100);
 		
 		return span;
 	},
@@ -241,7 +247,7 @@ ide.Editor = cxl.View.extend({
 	 */
 	cmd: function(name, args)
 	{
-		var fn = this.commands[name];
+		var fn = this.commands && this.commands[name];
 		
 		if (typeof(fn)==='string')
 			return this.cmd(fn, args);
