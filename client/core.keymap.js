@@ -4,6 +4,19 @@
 
 (function (ide, cxl) {
 "use strict";
+	
+/**
+ * Try to execute action in editor or workspace.
+ */
+ide.action = function action(name)
+{
+var
+	actions = name.split(' '),
+	i = 0
+;
+	for (; i<actions.length;i++)
+		ide.run(actions[i]);
+};
 
 function KeyboardManager()
 {

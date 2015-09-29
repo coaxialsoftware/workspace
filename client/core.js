@@ -32,13 +32,13 @@ var
 	/** Displays alert notification on right corner */
 	warn: function(message)
 	{
-		ide.notify(message, 'warn');
+		return ide.notify(message, 'warn');
 	},
 
 	/** Displays error notification on right corner */
 	error: function(message)
 	{
-		ide.notify(message, 'error');
+		return ide.notify(message, 'error');
 	},
 
 	/** Displays notification on right corner */
@@ -51,6 +51,8 @@ var
 	;
 		setTimeout(span.remove.bind(span), 3000);
 		_nots.insertBefore(span.el, _nots.firstChild);
+		
+		return span;
 	},
 		
 	post: function(url, payload, onprogress)
@@ -104,24 +106,6 @@ var
 			options.file = ide.fileManager.getFile(options.file);
 		
 		ide.plugins.edit(options);
-	},
-
-	/**
-	 * Try to execute action in editor or workspace. Actions must return false if
-	 * not handled.
-	 *
-	 * TODO better way of collection result? Merge with run. 
-	 */
-	action: function(name)
-	{
-	var
-		actions = name.split(' '),
-		result, i=0
-	;
-		for (; i<actions.length; i++)
-			result = ide.run(actions[i]);
-			
-		return result;
 	}
 
 },

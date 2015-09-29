@@ -17,6 +17,17 @@ function sandbox(a) {
 	)).call(undefined);
 }
 	
+function runArray(cmds)
+{
+	var result;
+	
+	cmds.forEach(function(cmd) {
+		result = ide.run(cmd.fn, cmd.args);
+	});
+	
+	return result;
+}
+	
 function CommandParser() {}
 	
 cxl.extend(CommandParser.prototype, {
@@ -126,7 +137,9 @@ cxl.extend(CommandParser.prototype, {
 	run: function(src)
 	{
 		var cmd = this.parse(src);
-		return ide.run(cmd.fn, cmd.args);
+		
+		return Array.isArray(cmd) ? runArray(cmd) : 
+			ide.run(cmd.fn, cmd.args);
 	}
 	
 });
@@ -171,22 +184,9 @@ function tryCmd(commands, cmd, args)
 	return ide.Pass;
 }
 	
-function runArray(cmds)
-{
-	var result;
-	
-	cmds.forEach(function(cmd) {
-		result = ide.run(cmd.fn, cmd.args);
-	});
-	
-	return result;
-}
-	
 /** Execute command. */
 ide.run = function(fn, args)
 {
-	if (Array.isArray(fn))
-		return runArray(fn);
 var
 	result = ide.Pass
 ;
