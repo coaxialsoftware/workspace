@@ -260,7 +260,7 @@ ide.plugins.register('find', new ide.Plugin({
 		});
 
 		if (files.length===1)
-			ide.open(files[0]);
+			ide.open(files[0].filename);
 		else if (files.length===0)
 			ide.notify('No files found that match "' + mask + '"');
 		else
