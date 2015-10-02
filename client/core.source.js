@@ -377,6 +377,11 @@ ide.Editor.Source = ide.Editor.extend({
 			ide.plugins.trigger('token', this, token);
 		}
 	},
+	
+	onChange: function()
+	{
+		ide.plugins.trigger('editor.change', this);	
+	},
 
 	_setup: function()
 	{
@@ -393,6 +398,7 @@ ide.Editor.Source = ide.Editor.extend({
 		this.listenTo(this.file, 'change:content', this._on_file_change);
 		this.listenTo(editor, 'focus', this._on_focus);
 		this.listenTo(editor, 'cursorActivity', this.onCursorActivity);
+		this.listenTo(editor, 'change', _.debounce(this.onChange.bind(this), 500));
 		this.listenTo(ide.plugins, 'workspace.resize', this.resize);
 	},
 
