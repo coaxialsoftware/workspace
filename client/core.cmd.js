@@ -225,6 +225,11 @@ ide.plugins.register('cmd', {
 		keymap: function()
 		{
 			return this.open({ plugin: this, file: 'keymap' });
+		},
+		
+		log: function()
+		{
+			return this.openLog({ plugin: this });
 		}
 	},
 	
@@ -310,12 +315,24 @@ ide.plugins.register('cmd', {
 		return editor;
 	},
 	
+	openLog: function(options)
+	{
+		options.title = 'log';
+		options.items = ide.log;
+		options.file = 'log';
+		return new ide.Editor.List(options);
+	},
+	
 	open: function(options)
 	{
-		if (options.file==='commands')
+		switch (options.file) {
+		case 'commands': 
 			return this.openCommands(options);
-		else if (options.file==='keymap')
+		case 'keymap':
 			return this.openKeymap(options);	
+		case 'log':
+			return this.openLog(options);
+		}
 	}
 	
 });

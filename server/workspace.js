@@ -81,7 +81,12 @@ cxl.define(Configuration, {
 	 *
 	 * @type {object}
 	 */
-	secure: null
+	secure: null,
+	
+	/**
+	 * User scripts. Will be added to all projects.
+	 */
+	scripts: null
 
 });
 
@@ -240,12 +245,41 @@ class PluginManager extends EventEmitter {
 				workspace.error(`Plugin "${n}" not found.`);
 			
 			return result;
-		}, '');
+		}, '') + (this.scripts ? this.scripts : '');
+	}
+	
+	loadScripts(scripts)
+	{
+		if (!scripts)
+			return;
+		
+		if (typeof(scripts)==='string')
+			scripts = [];
+		
+		this.scripts = '';
+		
+		scripts.forEach(function(s) {
+			try {
+				workspace.dbg('Loading script "${e}"');
+				this.scripts += fs.readFileSync(s, 'utf8');
+				workspace.watch(s, this.onScriptsWatch.bind(this));
+			} catch(e) {
+				workspace.error('Could not load script "${s}".', e);
+			}
+		}, this);
+		
+	}
+	
+	onScriptsWatch()
+	{
+		this.loadScripts(workspace.configuration.scripts);
 	}
 	
 	start()
 	{
 		this.loadLocalPlugins();
+		this.loadScripts(workspace.configuration.scripts);
+		
 		return this.loadGlobalPlugins().all().bind(this).then(function() {
 
 			for (var i in this.plugins)

@@ -8,8 +8,7 @@
 	
 var
 	_nots,
-	// We store the last 100 notifications.
-	log = [],
+
 	editorId = 1,
 
 	ide =
@@ -30,6 +29,9 @@ var
 
 	/** Plugin Manager */
 	plugins: null,
+		
+	// We store the last 100 notifications.
+	log: [],
 
 	/** Displays alert notification on right corner */
 	warn: function(message)
@@ -48,6 +50,7 @@ var
 	{
 		kls = kls || 'log';
 	var
+		log = ide.log,
 		span = message instanceof ide.Item ? message : 
 			new ide.Item({ title: message, className: kls })
 	;
@@ -268,9 +271,11 @@ ide.Editor = cxl.View.extend({
 
 	getInfo: function()
 	{
+		var project = ide.project.get('name') || ide.project.id;
+		
 		return (this.changed && this.changed() ? '+ ' : '') +
 			((this.file instanceof ide.File ? this.file.get('filename') : this.file) || 'No Name') +
-			' [' + (ide.project.get('name') || ide.project.id) + ']';
+			(project ? ' [' + project + ']' : '');
 	},
 
 	focus: function()
