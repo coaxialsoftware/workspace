@@ -213,22 +213,6 @@ ide.Editor.Source = ide.Editor.extend({
 				from: from, to: to, separator: this.line_separator
 			});
 		},
-		
-		write: function(filename)
-		{
-			if (filename)
-				this.file.set('filename', filename);
-			else if (this.file_content !== this.file.get('content'))
-				return ide.error('File contents have changed.');
-
-			if (!this.file.get('filename'))
-				return ide.error('No file name.');
-
-			this.file.set('content', (this.file_content=this.getValue()));
-			this.file.save();
-
-			ide.plugins.trigger('editor.write', this);
-		},
 
 		insert: function(text)
 		{
@@ -487,6 +471,11 @@ ide.Editor.Source = ide.Editor.extend({
 
 		if (!ignore)
 			this.editor.focus();
+	},
+	
+	getOriginalValue: function()
+	{
+		return this.file_content;
 	},
 
 	changed: function()
