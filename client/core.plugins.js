@@ -136,6 +136,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 			this.findPlugin(options);
 		else
 			file.fetch({
+				silent: true,
 				success: this.findPlugin.bind(this, options)
 			});
 	},

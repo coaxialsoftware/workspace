@@ -108,7 +108,7 @@ class Project {
 		if (ev==='change')
 		{
 			this.broadcast({
-				stat: { p: full, t: s.mtime.getTime() }
+				stat: { f: filepath, p: full, t: s.mtime.getTime() }
 			}, 'file');
 			
 			// TODO see if we need to include full path instead

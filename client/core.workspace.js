@@ -383,11 +383,40 @@ ide.plugins.registerCommands({
 		r: 'read',
 		
 		w: 'write',
+		save: 'write',
 		
 		wq: function()
 		{
 			// TODO use one run.
 			ide.run('w').run('q');
+		},
+
+		write: function(filename, force)
+		{
+			var editor = ide.editor, file=editor.file;
+			
+			if (!(file instanceof ide.File))
+				return;
+
+			if (filename)
+			{
+				if (file.get('filename'))
+				{
+					file = ide.fileManager.getFile(filename);
+					editor.setFile(file);
+				} else
+					file.set('filename', filename);
+			}
+
+			if (!file.get('filename'))
+				return ide.error('No file name.');
+
+			editor.save(file, force);
+		},
+		
+		'w!': function(filename)
+		{
+			this.write(filename, true);
 		},
 		
 		editorNext: function()
@@ -481,36 +510,8 @@ ide.plugins.registerCommands({
 		{
 			if (ide.editor)
 				ide.workspace.remove(ide.editor, true);
-		},
-		
-		write: function(filename, force)
-		{
-			var editor = ide.editor, file=editor.file;
-			
-			if (!file)
-				return;
-			
-			if (filename)
-				file.set('filename', filename);
-			else if (!force && editor.getOriginalValue() !== file.get('content'))
-				return ide.error('File contents have changed.');
-
-			if (!file.get('filename'))
-				return ide.error('No file name.');
-
-			file.set('content', editor.getValue());
-			file.save();
-
-			ide.plugins.trigger('editor.write', editor);
-		},
-		
-		'w!': function(filename)
-		{
-			this.write(filename, true);
-		},
-		
-		w: 'write'
-		
+		}
+	
 	}
 
 });

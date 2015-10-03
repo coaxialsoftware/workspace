@@ -8,13 +8,16 @@
 	<% if (obj.key) { %>
 	<kbd><%= obj.key %></kbd>
 	<% } %>
-	<% _.each(obj.tags, function(t) { %>
-	<span class="pull-right label"><%=t%></span>
-	<% }) %>
 	<% if (obj.code) { %>
 		<code><%= obj.code %></code>
 	<% } %>
 	<h4><%- title %></h4>
+	<% _.each(obj.links, function(l) { %>
+		<a title="<%=l.title%>" target="_blank" class="icon" href="<%=l.href%>"><i class="fa fa-<%=l.class%>"></i></a>
+	<% }) %>
+	<% _.each(obj.tags, function(t) { %>
+	<span class="pull-right label"><%=t%></span>
+	<% }) %>
 </button>
 </script>
 

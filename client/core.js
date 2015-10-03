@@ -209,6 +209,10 @@ ide.Editor = cxl.View.extend({
 	/// Unique ID
 	id: null,
 
+	setValue: null,
+	// Used to prevent file content overwriting when it ahs changed.
+	previousFileContent: null,
+
 	load: function()
 	{
 		this.id = editorId++;
@@ -218,7 +222,8 @@ ide.Editor = cxl.View.extend({
 
 		this.setElement(this.slot.el);
 		this.listenTo(this.$el, 'click', this.onClick);
-		
+		this.setFile(this.file);
+
 		this._setup();
 		
 		if (this.template)
@@ -230,6 +235,53 @@ ide.Editor = cxl.View.extend({
 			this._ready();
 		
 		ide.plugins.trigger('editor.load', this);
+	},
+
+	setFile: function(file)
+	{
+		this.file = file;
+
+		if (file instanceof ide.File)
+		{
+			this.previousFileContent = file.get('content');
+			this.stopListening(this.file);
+			this.listenTo(file, 'change:content', this.onFileChanged);
+		}
+	},
+
+	onFileChanged: function()
+	{
+		var content = this.file.get('content');
+
+		if (!this.changed())
+		{
+			if (this.previousFileContent !== content)
+			{
+				this.previousFileContent = content;
+				this.setValue(content);
+			}
+		} else
+			ide.warn('File "' + this.file.id + '" contents could not be updated.');
+	},
+
+	save: function(file, force)
+	{
+		if (!force && this.previousFileContent !== file.get('content'))
+			return ide.error('File contents have changed.');
+
+		var value = this.getValue();
+
+		if (this.file !== file)
+			this.setFile(file);
+		
+		this.previousFileContent = value;
+		file.set('content', value);
+		file.save();
+	},
+
+	changed: function()
+	{
+		return this.previousFileContent !== this.getValue();
 	},
 	
 	/** Plugin that instantiated the editor @required */

@@ -93,9 +93,6 @@ ide.Editor.Source = ide.Editor.extend({
 	mode: null,
 	hints: null,
 
-	// Stores previous token. Used by tokenchange event.
-	_old_token: null,
-	
 	commands: {
 	
 		delSelection: function()
@@ -373,13 +370,11 @@ ide.Editor.Source = ide.Editor.extend({
 		options = this._getOptions(),
 		editor = this.editor = codeMirror(this.el, options)
 	;
-		this.file_content = options.value;
 		this.keymap = new ide.KeyMap();
 		this.hints = new HintManager(this);
 
 		this.keymap.handle = this._keymapHandle.bind(this);
 		
-		this.listenTo(this.file, 'change:content', this._on_file_change);
 		this.listenTo(editor, 'focus', this._on_focus);
 		this.listenTo(editor, 'cursorActivity', this.onCursorActivity);
 		this.listenTo(editor, 'change', _.debounce(this.onChange.bind(this), 500));
@@ -444,43 +439,26 @@ ide.Editor.Source = ide.Editor.extend({
 	_on_focus: function()
 	{
 		this.focus(true);
-		//this.sync_registers();
-	},
-	
-	_on_file_change: function()
-	{
-		var content = this.file.get('content');
-		
-		if (!this.changed() && content!==this.file_content)
-		{
-		var
-			editor = this.editor,
-			cursor = editor.getCursor()
-		;
-			this.file_content = content;
-			this.editor.operation(function() {
-				editor.setValue(content);
-				editor.setCursor(cursor);
-			});
-		}
 	},
 
+	setValue: function(content)
+	{
+	var
+		editor = this.editor,
+		cursor = editor.getCursor()
+	;
+		editor.operation(function() {
+			editor.setValue(content);
+			editor.setCursor(cursor);
+		});
+	},
+	
 	focus: function(ignore)
 	{
 		ide.Editor.prototype.focus.apply(this);
 
 		if (!ignore)
 			this.editor.focus();
-	},
-	
-	getOriginalValue: function()
-	{
-		return this.file_content;
-	},
-
-	changed: function()
-	{
-		return this.file_content !== this.getValue();
 	}
 
 });
@@ -489,20 +467,17 @@ ide.defaultEdit = function(options)
 {
 	var file = options.file;
 	
-	if (!file.get('directory'))
-	{
-		if (!file.attributes.content)
-			file.attributes.content = '';
+	if (!file.attributes.content)
+		file.attributes.content = '';
 
-		var editor = new ide.Editor.Source(options);
+	var editor = new ide.Editor.Source(options);
 
-		if (options && options.line)
-			setTimeout(function() {
-				editor.go(options.line);
-			});
+	if (options && options.line)
+		setTimeout(function() {
+			editor.go(options.line);
+		});
 
-		return editor;
-	}
+	return editor;
 };
 
 })(this.ide, this.cxl, this._, this.CodeMirror, this.jQuery);

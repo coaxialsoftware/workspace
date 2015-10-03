@@ -11,7 +11,7 @@ ide.File = cxl.Model.extend({
 
 	initialize: function()
 	{
-		this.set('project', ide.project.get('path'));
+		this.attributes.project = ide.project.get('path');
 		this.on('error', this._onError);
 	},
 
@@ -20,7 +20,6 @@ ide.File = cxl.Model.extend({
 		this.trigger('write');
 		ide.plugins.trigger('file.write', this);
 		ide.notify('File ' + this.id + ' saved.');
-		this.saving = false;
 	},
 
 	_onError: function(file, res)
@@ -31,13 +30,11 @@ ide.File = cxl.Model.extend({
 			res.responseText) || 
 			(this.saving ? 'Error saving file: ' : 'Error opening file: ') + id
 	;
-		this.saving = false;
 		ide.error(msg);
 	},
 
 	save: function()
 	{
-		this.saving = true;
 		ide.plugins.trigger('file.beforewrite', this);
 		cxl.Model.prototype.save.call(this, null, {
 			success: this._onSync.bind(this)
@@ -57,42 +54,23 @@ ide.File = cxl.Model.extend({
 	
 function FileManager()
 {
+	this.files = {};
 	ide.plugins.on('socket.message.file', this.onMessage, this);
 }
 	
 FileManager.prototype = {
 	
-	each: function(callback)
-	{
-		var result;
-		
-		ide.workspace.each(function(editor) {
-			if (editor && editor.file)
-			{
-				result = callback(editor.file);
-				if (result) return false;
-			}
-		});
-		
-		return result;
-	},
-	
-	getPath: function(filename)
-	{
-		return ide.project.id + cxl.path(filename);
-	},
+	// TODO garbage collect files...
+	files: null,
 	
 	findFile: function(path)
 	{
-		return this.each(function(file) {
-			if (file.id===path)
-				return file;
-		});
+		return this.files[path];
 	},
 	
 	onMessageStat: function(data)
 	{
-		var file = this.findFile(data.p);
+		var file = this.findFile(data.f);
 		
 		if (file && file.get('mtime')!==data.t)
 		{
@@ -114,14 +92,16 @@ FileManager.prototype = {
 	getFile: function(filename)
 	{
 		var file;
-		
+
 		if (filename)
-		{
+		{	
 			if (typeof(filename)==='string')
 				filename = { filename: filename };
 			
-			file = this.findFile(this.getPath(filename)) ||
-				new ide.File(filename);
+			file = this.findFile(filename.filename);
+
+			if (!file)
+				file = this.files[filename.filename] = new ide.File(filename);
 		} 
 		
 		return file || new ide.File();

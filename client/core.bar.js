@@ -20,6 +20,24 @@ ide.Bar = Backbone.View.extend({
 
 	/** @abstract */
 	cancel: function() { },
+	
+	findWord: function(cb)
+	{
+	var
+		el = this.el,
+		text,
+		i = el.selectionStart
+	;	
+		do {
+			i = el.value.lastIndexOf(' ', i-1);
+		} while (el.value[i-1]==='\\');
+
+		i++;
+
+		text = el.value.substr(i, el.selectionStart-i);
+		
+		cb.call(this, text, i, el.selectionStart);
+	},
 
 	initialize: function Bar()
 	{
@@ -32,21 +50,8 @@ ide.Bar = Backbone.View.extend({
 				this.hide();
 			},
 		9: function() {
-		var
-			el = this.el,
-			text = '',
-			i = el.selectionStart
-		;	
-			do {
-				i = el.value.lastIndexOf(' ', i-1);
-			} while (el.value[i-1]==='\\');
-			
-			i++;
-				
-			text = el.value.substr(i, el.selectionStart-i);
-
 			if (this.on_complete)
-				this.on_complete(text, i, el.selectionStart);
+				this.findWord(this.on_complete);
 		},
 		219: function(ev) {
 			if (ev.ctrlKey)
