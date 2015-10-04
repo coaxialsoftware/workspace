@@ -104,7 +104,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		}
 	},
 	
-	findPlugin: function(options)
+	findPlugin: function(options, deferred)
 	{
 	var
 		plugin = options.plugin,
@@ -117,6 +117,8 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	;
 		if (editor)
 			ide.workspace.add(editor);
+		
+		deferred.resolve(editor);
 	},
 
 	/**
@@ -126,19 +128,26 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	 * @param options.file {ide.File} File Object. Required.
 	 * @param options.plugin {ide.Plugin} Plugin
 	 */
-	edit: function(options)
+	edit: function(options, result)
 	{
-		var file = options.file;
-		
+	var
+		me = this,
+		file = options.file
+	;
 		options.slot = ide.workspace.slot();
 		
 		if (!file.attributes || file.attributes.content || !file.attributes.filename)
-			this.findPlugin(options);
+			this.findPlugin(options, result);
 		else
 			file.fetch({
 				silent: true,
-				success: this.findPlugin.bind(this, options)
+				success: function() {
+					delete file.changed;
+					me.findPlugin(options, result);
+				}
 			});
+		
+		return result;
 	},
 
 	/**

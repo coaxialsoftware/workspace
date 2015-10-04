@@ -59,7 +59,7 @@ var
 		
 		log.unshift(span);
 		if (log.length>100)
-			log = log.slice(0, 100);
+			ide.log = log.slice(0, 100);
 		
 		return span;
 	},
@@ -98,14 +98,16 @@ var
 	 */
 	open: function(options)
 	{
+		var result = $.Deferred();
+		
 		if (!options || typeof(options)==='string' || options instanceof ide.File)
 			options = { file: options || '' };
 		
 		if (options.target)
-			return window.open(
+			return result.resolve(window.open(
 				'#' + ide.workspace.hash.encode({ f: options.file || false }),
-				options.target || '_blank'
-			);
+				options.target
+			));
 		
 		if (typeof(options.plugin)==='string')
 			options.plugin = ide.plugins.get(options.plugin);
@@ -114,7 +116,7 @@ var
 			!options.plugin.edit) && typeof(options.file)==='string')
 			options.file = ide.fileManager.getFile(options.file);
 		
-		ide.plugins.edit(options);
+		return ide.plugins.edit(options, result);
 	}
 
 },
@@ -132,74 +134,6 @@ var
 	}
 
 ;
-	
-ide.Info = cxl.View.extend({ /** @lends ide.Info# */
-
-	/** @type {ide.Editor} */
-	editor: null,
-	
-	visible: false,
-	
-	_delay: 1500,
-
-	_timeout: null,
-
-	el: '<div class="info"></div>',
-	
-	initialize: function()
-	{
-		this.editor.el.appendChild(this.el);
-	},
-	
-	forceHide: function()
-	{
-		this.$el.hide();
-		this.visible = this._timeout = false;
-	},
-
-	hide: function()
-	{
-		var me = this;
-		
-		if (this._timeout)
-			return;
-
-		me._timeout = window.setTimeout(function() {
-			me.$el.css('opacity', 0);
-			window.setTimeout(me.forceHide.bind(me), 250);
-		}, me._delay);
-	},
-
-	do_show: function(msg)
-	{
-	var
-		s = this.el.style,
-		el = this.editor.el,
-		s2 = el.style,
-		cursor = this.editor.get_cursor && this.editor.get_cursor()
-	;
-		this.visible = true;
-		
-		if (cursor && cursor.offsetTop > 20)
-		{
-			s.top = s2.top;
-			s.bottom = '';
-		} else
-		{
-			s.top = '';
-			s.bottom = 0;
-		}
-
-		this.$el.html(msg).css('opacity', 1).css('display', 'block');
-		return this.hide();
-	},
-
-	show: function(msg)
-	{
-		if (msg)
-			window.setTimeout(this.do_show.bind(this, msg));
-	}
-});
 
 ide.Editor = cxl.View.extend({
 	
@@ -208,10 +142,6 @@ ide.Editor = cxl.View.extend({
 	
 	/// Unique ID
 	id: null,
-
-	setValue: null,
-	// Used to prevent file content overwriting when it ahs changed.
-	previousFileContent: null,
 
 	load: function()
 	{
@@ -222,14 +152,12 @@ ide.Editor = cxl.View.extend({
 
 		this.setElement(this.slot.el);
 		this.listenTo(this.$el, 'click', this.onClick);
-		this.setFile(this.file);
 
-		this._setup();
+		if (this._setup)
+			this._setup();
 		
 		if (this.template)
 			this.loadTemplate(this.template);
-		
-		this.info = new ide.Info({ editor: this });
 		
 		if (this._ready)
 			this._ready();
@@ -237,53 +165,6 @@ ide.Editor = cxl.View.extend({
 		ide.plugins.trigger('editor.load', this);
 	},
 
-	setFile: function(file)
-	{
-		this.file = file;
-
-		if (file instanceof ide.File)
-		{
-			this.previousFileContent = file.get('content');
-			this.stopListening(this.file);
-			this.listenTo(file, 'change:content', this.onFileChanged);
-		}
-	},
-
-	onFileChanged: function()
-	{
-		var content = this.file.get('content');
-
-		if (!this.changed())
-		{
-			if (this.previousFileContent !== content)
-			{
-				this.previousFileContent = content;
-				this.setValue(content);
-			}
-		} else
-			ide.warn('File "' + this.file.id + '" contents could not be updated.');
-	},
-
-	save: function(file, force)
-	{
-		if (!force && this.previousFileContent !== file.get('content'))
-			return ide.error('File contents have changed.');
-
-		var value = this.getValue();
-
-		if (this.file !== file)
-			this.setFile(file);
-		
-		this.previousFileContent = value;
-		file.set('content', value);
-		file.save();
-	},
-
-	changed: function()
-	{
-		return this.previousFileContent !== this.getValue();
-	},
-	
 	/** Plugin that instantiated the editor @required */
 	plugin: null,
 
@@ -292,6 +173,12 @@ ide.Editor = cxl.View.extend({
 	 * @required
 	 */
 	file: null,
+	
+	/** @type {Function} */
+	changed: null,
+	
+	/** @type {Function} */
+	save: null,
 	
 	/**
 	 * Handles a single command. Returns false if command wasn't handled. Commands are
@@ -307,11 +194,6 @@ ide.Editor = cxl.View.extend({
 		if (typeof(fn)==='string')
 			return this.cmd(fn, args);
 		
-		// Make sure info window doesnt interfere with commands.
-		// TODO see if we can move this out of here?
-		if (this.info.visible)
-			this.info.forceHide();
-
 		return fn ? fn.apply(this, args) : ide.Pass;
 	},
 
@@ -349,9 +231,6 @@ ide.Editor = cxl.View.extend({
 		var info = this.getInfo();
 		
 		window.document.title = info || 'workspace';
-		
-		if (info)
-			this.info.show(info);
 	},	
 
 	_close: function(force)
@@ -389,6 +268,61 @@ ide.Editor = cxl.View.extend({
 		
 		result.extend = ide.Editor.extend;
 		return result;
+	}
+	
+});
+	
+/** Editor with ide.File support */
+ide.Editor.File = ide.Editor.extend({
+	
+	/** @type {ide.File} */
+	file: null,
+	
+	changed: function()
+	{
+		return this.file.hasChanged('content');
+	},
+	
+	setValue: function(value)
+	{
+		this.file.set('content', value);
+	},
+	
+	getValue: function()
+	{
+		return this.file.get('content');	
+	},
+	
+	write: function(file)
+	{
+		var value = this.getValue();
+
+		if (this.file !== file)
+			this.setFile(file);
+		
+		file.set('content', value);
+		file.save();
+	},
+	
+	onFileChanged: function()
+	{
+		var content = this.file.get('content');
+
+		if (this.getValue() !== content)
+			this.setValue(content);
+	},
+	
+	load: function()
+	{
+		this.setFile(this.file);
+		ide.Editor.prototype.load.apply(this, arguments);
+	},
+	
+	setFile: function(file)
+	{
+		this.file = file;
+		this.stopListening(this.file);
+		this.listenTo(file, 'change:content', this.onFileChanged);
 	}
 	
 });

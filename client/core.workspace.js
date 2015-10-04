@@ -224,7 +224,6 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	{
 		item.slot.editor = item;
 		item.focus();
-
 		ide.plugins.trigger('workspace.add', item);
 		return this.do_layout();
 	},
@@ -325,6 +324,7 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 		})
 	;
 		this.slots = [];
+		this.editors = [];
 
 		project.fetch({ success: cb });
 	},
@@ -396,7 +396,7 @@ ide.plugins.registerCommands({
 			var editor = ide.editor, file=editor.file;
 			
 			if (!(file instanceof ide.File))
-				return;
+				return ide.Pass;
 
 			if (filename)
 			{
@@ -410,8 +410,11 @@ ide.plugins.registerCommands({
 
 			if (!file.get('filename'))
 				return ide.error('No file name.');
+			
+			if (!force && file.old)
+				return ide.error('File contents have changed.');
 
-			editor.save(file, force);
+			editor.write(file, force);
 		},
 		
 		'w!': function(filename)

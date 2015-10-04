@@ -383,6 +383,9 @@ workspace.extend({
 		process.on('error', this.error.bind(this.log));
 		process.on('close', function(code) {
 			me.log(command + ' returned with status ' + code);
+			
+			if (res)
+				res.end();
 		});
 		
 		if (res)
@@ -397,7 +400,6 @@ workspace.extend({
 					res.writeHead(500);
 				res.write(data);
 			});
-			process.on('close', res.end.bind(res));
 		}
 		
 		process.unref();

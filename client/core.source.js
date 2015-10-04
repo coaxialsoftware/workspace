@@ -87,7 +87,7 @@ _.extend(HintManager.prototype, {
  * tokenchange
  * cursorchange
  */
-ide.Editor.Source = ide.Editor.extend({
+ide.Editor.Source = ide.Editor.File.extend({
 
 	editor: null,
 	mode: null,
@@ -207,7 +207,7 @@ ide.Editor.Source = ide.Editor.extend({
 			from = from || { line: 0, ch: 0 };
 			to = to || { line: this.editor.lastLine() };
 			this.editor.replace(pattern, str, {
-				from: from, to: to, separator: this.line_separator
+				from: from, to: to, separator: this.options.lineSeparator
 			});
 		},
 
@@ -361,6 +361,8 @@ ide.Editor.Source = ide.Editor.extend({
 	
 	onChange: function()
 	{
+		this.value = this.editor.getValue();
+		this.file.set('content', this.value);
 		ide.plugins.trigger('editor.change', this);	
 	},
 
@@ -426,7 +428,7 @@ ide.Editor.Source = ide.Editor.extend({
 
 	getSelection: function()
 	{
-		return this.editor.getSelection(this.line_separator);
+		return this.editor.getSelection(this.options.lineSeparator);
 	},
 	
 	getLine: function(n)

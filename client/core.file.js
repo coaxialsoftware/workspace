@@ -2,7 +2,7 @@
  * workspace.file
  */
 
-(function(cxl, ide) {
+(function(cxl, ide, _) {
 "use strict";
 
 ide.File = cxl.Model.extend({
@@ -18,6 +18,7 @@ ide.File = cxl.Model.extend({
 	_onSync: function()
 	{
 		this.trigger('write');
+		this.old = false;
 		ide.plugins.trigger('file.write', this);
 		ide.notify('File ' + this.id + ' saved.');
 	},
@@ -54,29 +55,36 @@ ide.File = cxl.Model.extend({
 	
 function FileManager()
 {
-	this.files = {};
 	ide.plugins.on('socket.message.file', this.onMessage, this);
 }
 	
 FileManager.prototype = {
 	
-	// TODO garbage collect files...
-	files: null,
-	
-	findFile: function(path)
+	findFiles: function(filename)
 	{
-		return this.files[path];
+		return _.filter(ide.workspace.slots, 'editor.file.attributes.filename', filename);
 	},
 	
 	onMessageStat: function(data)
 	{
-		var file = this.findFile(data.f);
+		var files = this.findFiles(data.f);
 		
-		if (file && file.get('mtime')!==data.t)
-		{
-			ide.notify('File ' + file.get('filename') + ' was updated.');
-			file.fetch();
-		}
+		// TODO optimize this?
+		files.forEach(function(slot) {
+			
+			var file = slot.editor.file;
+			
+			if (file.hasChanged('content'))
+			{
+				file.old = true;
+				ide.warn('File "' + this.file.id + '" contents could not be updated.');
+			}
+			else if (file.get('mtime')!==data.t)
+				file.fetch();
+		});
+		
+		if (files.length)
+			ide.notify('File "' + data.f + '" was updated.');
 	},
 	
 	onMessage: function(data)
@@ -91,20 +99,10 @@ FileManager.prototype = {
 	 */
 	getFile: function(filename)
 	{
-		var file;
-
-		if (filename)
-		{	
-			if (typeof(filename)==='string')
-				filename = { filename: filename };
-			
-			file = this.findFile(filename.filename);
-
-			if (!file)
-				file = this.files[filename.filename] = new ide.File(filename);
-		} 
+		if (typeof(filename)==='string')
+			filename = { filename: filename };
 		
-		return file || new ide.File();
+		return new ide.File(filename);
 	}
 	
 };
@@ -130,4 +128,4 @@ ide.plugins.on('assist', function(done, editor, token) {
 	
 ide.fileManager = new FileManager();
 
-})(this.cxl, this.ide);
+})(this.cxl, this.ide, this._);
