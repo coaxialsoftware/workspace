@@ -257,9 +257,14 @@ class ProjectManager {
 		* List of projects
 		*/
 		this.workspaceProject = new Project('');
-		this.projects = {};
 		this.files = [];
 		this.path = '.';
+		this.projects = {};
+	}
+	
+	getProjectByName(name)
+	{
+		return _.find(this.projects, 'configuration.name', name);
 	}
 	
 	getProject(path)
@@ -273,7 +278,10 @@ class ProjectManager {
 
 	loadProject(path)
 	{
-		return common.stat(path).bind(this).then(function() {
+		return common.stat(path).bind(this).error(function(e) {
+			var p = this.getProjectByName(path);
+			return p ? (path = p.path) : Q.reject(e);
+		}).then(function() {
 			return this.getProject(path).load();
 		});
 	}
