@@ -182,7 +182,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 			e.setSelection(
 				{ line: anchor.line, ch: anchorEnd },
 				{ line: head.line, ch: headEnd },
-				{ extending: true }
+				{ extend: true, origin: 'select' }
 			);
 		},
 		

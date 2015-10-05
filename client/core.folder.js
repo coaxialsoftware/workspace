@@ -93,6 +93,19 @@ ide.Editor.List = ide.Editor.extend({
 	_setup: function()
 	{
 		this.$el.addClass('panel');
+		this.listenTo(this.$el, 'wheel', this.onWheel);
+	},
+	
+	onWheel: function(ev)
+	{
+		var dY = ev.originalEvent.deltaY;
+		
+		if (dY > 0)
+			this.goLineDown();
+		else
+			this.goLineUp();
+		
+		ev.preventDefault();
 	},
 	
 	_ready: function()

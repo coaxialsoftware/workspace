@@ -67,7 +67,7 @@ FileManager.prototype = {
 	
 	onMessageStat: function(data)
 	{
-		var files = this.findFiles(data.f);
+		var files = this.findFiles(data.f), updated=0;
 		
 		// TODO optimize this?
 		files.forEach(function(slot) {
@@ -80,10 +80,13 @@ FileManager.prototype = {
 				ide.warn('File "' + this.file.id + '" contents could not be updated.');
 			}
 			else if (file.get('mtime')!==data.t)
+			{
+				updated++;
 				file.fetch();
+			}
 		});
 		
-		if (files.length)
+		if (updated)
 			ide.notify('File "' + data.f + '" was updated.');
 	},
 	
@@ -114,7 +117,7 @@ ide.plugins.on('assist', function(done, editor, token) {
 		var hints = [];
 		
 		if (editor.file instanceof ide.File)
-			hints.push({ title: editor.file.get('filename'), code: 'file' });
+			hints.push({ title: editor.getInfo(), code: 'file' });
 		
 		if (token && (token.type===null || token.type==='string' ||
 			token.type==='string property') && token.string)
