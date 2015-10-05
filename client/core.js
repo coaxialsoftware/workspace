@@ -214,6 +214,9 @@ ide.Editor = cxl.View.extend({
 
 	focus: function()
 	{
+		if (ide.editor === this)
+			return;
+		
 		if (ide.editor)
 			ide.editor.$el.removeClass('focus');
 		
@@ -231,6 +234,9 @@ ide.Editor = cxl.View.extend({
 		var info = this.getInfo();
 		
 		window.document.title = info || 'workspace';
+		
+		if (!ide.assist.visible)
+			ide.notify(info);
 	},	
 
 	_close: function(force)

@@ -97,8 +97,7 @@ FileManager.prototype = {
 	},
 	
 	/**
-	 * Creates a new file object if it is already open returns 
-	 * that instance instead.
+	 * Creates a new file object.
 	 */
 	getFile: function(filename)
 	{
