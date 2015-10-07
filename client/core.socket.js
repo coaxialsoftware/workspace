@@ -70,8 +70,11 @@ SocketManager.prototype = {
 
 		this.ws.addEventListener('message', function(ev) {
 			var msg = JSON.parse(ev.data);
-
-			ide.plugins.trigger('socket.message.' + msg.plugin, msg.data);
+			
+			if (msg.error)
+				ide.error({ code: msg.plugin, title: "ERROR: " + msg.error });
+			else
+				ide.plugins.trigger('socket.message.' + msg.plugin, msg.data);
 		});
 	},
 

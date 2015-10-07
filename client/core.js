@@ -51,9 +51,17 @@ var
 		kls = kls || 'log';
 	var
 		log = ide.log,
-		span = message instanceof ide.Item ? message : 
-			new ide.Item({ title: message, className: kls })
+		span
 	;
+		if (typeof(message)==='string')
+			message = { title: message };
+		
+		if (kls)
+			message.className = kls;
+		
+		span = message instanceof ide.Item ? message :
+			message = new ide.Item(message);
+		
 		setTimeout(span.remove.bind(span), 3000);
 		_nots.insertBefore(span.el, _nots.firstChild);
 		

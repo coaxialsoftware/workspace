@@ -23,7 +23,12 @@ plugin.extend({
 	
 	payload: function(plugin, data)
 	{
-		return JSON.stringify({ plugin: plugin, data: data });
+		try {
+			return JSON.stringify({ plugin: plugin, data: data });
+		} catch (e) {
+			this.error(e);
+			return JSON.stringify({ plugin: plugin, error: e.message });
+		}
 	},
 
 	/**
@@ -91,7 +96,12 @@ var
 		me.log(`Listening to ${a.address}:${a.port}`);
 	});
 
-	this.ws = new WebSocketServer({ httpServer: server });
+	this.ws = new WebSocketServer({
+		httpServer: server,
+		// TODO safe?
+		maxReceivedFrameSize: Infinity,
+		maxReceivedMessageSize: Infinity
+	});
 
 	this.ws.on('request', function(request) {
 

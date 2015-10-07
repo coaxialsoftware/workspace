@@ -63,6 +63,7 @@ class Project {
 	{
 		this.path = path;
 		this.clients = [];
+		this.$ = 0;
 		this.create();		
 	}
 	
@@ -70,6 +71,8 @@ class Project {
 	{
 		this.configuration = new ProjectConfiguration(this.path);
 		this.promises = [];
+		this.$++;
+		this.configuration.$ = this.$;
 		
 		workspace.plugins.emit('project.create', this, this.configuration);
 		
@@ -99,7 +102,8 @@ class Project {
 			this.log(`Registering client ${client.id}.`);
 			this.clients.push(client);
 			
-			workspace.socket.respond(client, 'project', common.diff(data, this.configuration));
+			if (data.$ !== this.$)
+				workspace.socket.respond(client, 'project', { reload: true });
 		}
 	}
 	
@@ -192,6 +196,13 @@ class Project {
 			this.log.dbg('Building plugin sources: ' + this.configuration.plugins);
 			this.configuration.src = workspace.plugins.getSources(this.configuration.plugins);
 		}
+	}
+	
+	hasPlugin(name)
+	{
+		var p = this.configuration.plugins;
+		
+		return p && p.indexOf(name)!==-1;
 	}
 	
 	buildIgnore()

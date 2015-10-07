@@ -13,13 +13,13 @@ plugin.extend({
 	onMessage: function(client, data)
 	{
 		function done(hints) {
-			client.send({
-				version: data.version,
+			workspace.socket.respond(client, 'assist', {
+				$: data.version,
 				hints: hints
 			});
 		}
 		
-		workspace.plugins.emit('assist', done, data.file, data.token);
+		workspace.plugins.emit('assist', done, data.file, data.token, data.project);
 	}
 	
 }).run(function() {
