@@ -63,7 +63,7 @@ var Assist = cxl.View.extend({
 		var e = this.editor = ide.editor;
 		
 		this.token = e && e.token;
-		this.file = e && e.file && e.file.attributes.filename;
+		this.file = e && (e.file instanceof ide.File) && e.file.attributes.filename;
 		
 		this.requestHints();
 	},

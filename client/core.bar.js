@@ -257,6 +257,10 @@ ide.Bar.Search = ide.Bar.extend({
 	}
 
 });
+	
+ide.plugins.on('assist', function() {
+	// TODO
+});
 
 ide.registerCommand('ex', function() {
 	ide.commandBar.show();
