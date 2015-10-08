@@ -49,6 +49,15 @@ ide.File = cxl.Model.extend({
 	;
 		return '/file?p=' + this.get('project') +
 			'&n=' + this.get('filename') + '&t=' + mtime;
+	},
+	
+	diff: function()
+	{
+	var
+		cur = this.attributes.content,
+		old = this._previousAttributes && this._previousAttributes.content || cur
+	;
+		return ide.diff(old, cur);
 	}
 	
 });

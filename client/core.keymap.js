@@ -240,11 +240,12 @@ cxl.extend(KeyboardManager.prototype, {
 function KeyMap()
 {
 	this.states = {};
-	this.state = ide.project && ide.project.get('keymap') || 'default';
+	this.defaultState = this.state = ide.project && ide.project.get('keymap') || 'default';
 }
 	
 cxl.extend(KeyMap.prototype, {
 	
+	defaultState: null,
 	state: null,
 	
 	/**

@@ -12,6 +12,7 @@ module.exports = function(grunt) {
 					'client/core.cmd.js',
 					'client/core.workspace.js',
 					'client/core.socket.js',
+					'client/core.diff.js',
 					'client/core.file.js',
 					'client/core.project.js',
 					'client/core.bar.js',
