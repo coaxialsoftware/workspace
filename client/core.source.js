@@ -175,9 +175,13 @@ ide.Editor.Source = ide.Editor.File.extend({
 		var
 			e = this.editor,
 			anchor = e.getCursor('anchor'),
-			head = e.getCursor(),
-			anchorEnd = head.line>anchor.line ? 0 : e.getLine(anchor.line).length,
-			headEnd = head.line>anchor.line ? e.getLine(head.line).length : 0	
+			head = e.getCursor('head'),
+			// True is "down"
+			bias = (head.line === anchor.line) ?
+				(head.ch < anchor.ch) :
+				(head.line > anchor.line),
+			anchorEnd = bias ? 0 : e.getLine(anchor.line).length,
+			headEnd = bias ? e.getLine(head.line).length : 0	
 		;
 			e.setSelection(
 				{ line: anchor.line, ch: anchorEnd },

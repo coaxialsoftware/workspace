@@ -56,8 +56,7 @@ var
 		if (typeof(message)==='string')
 			message = { title: message };
 		
-		if (kls)
-			message.className = kls;
+		message.className = message.className || kls;
 		
 		span = message instanceof ide.Item ? message :
 			message = new ide.Item(message);
@@ -79,7 +78,7 @@ var
 			data: JSON.stringify(payload),
 			contentType: 'application/json',
 			type: 'POST',
-			xhr: function()
+			xhr: /* istanbul ignore next */ function()
 			{
 				var xhr = $.ajaxSettings.xhr();
 				if (onprogress)

@@ -16,7 +16,7 @@ QUnit.test('ide.warn', function(a) {
 
 QUnit.test('ide.notify limit', function(a) {
 	for (var i=0; i<105; i++)
-		ide.notify(i);
+		ide.notify(i+'');
 	
 	a.equal(ide.log.length, 100);
 });
@@ -112,4 +112,15 @@ var
 	e = new ide.Editor()
 ;
 	a.ok(e);
+});
+
+QUnit.test('ide.Editor#cmd', function(a) {
+	var e = new ide.Editor();
+	
+	a.equal(e.cmd('hello'), ide.Pass);
+	
+	e.commands = { hello: 'world', world: function(p) { return p; } };
+	
+	a.equal(e.cmd('hello', [1]), 1);
+	a.equal(e.cmd('world', [2]), 2);
 });
