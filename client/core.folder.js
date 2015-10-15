@@ -263,7 +263,7 @@ ide.plugins.register('find', new ide.Plugin({
 	var
 		mask = options.file || this.get_mask() || '',
 		regex = globToRegex(mask),
-		files = ide.project.files_json
+		files = ide.project.get('files')
 	;
 		if (!files)
 			return ide.warn('[find] No files found in project.');
