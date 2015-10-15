@@ -209,7 +209,7 @@ common = module.exports = {
 			if (Array.isArray(c))
 			{
 				if (Array.isArray(val))
-					obj[i] = c.concat(val);
+					obj[i] = _.union(c, val);
 				else
 					c.push(val);
 			} else if (typeof(c)==='object' && typeof(val)==='object')

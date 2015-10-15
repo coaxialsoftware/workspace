@@ -50,9 +50,7 @@ class Configuration {
 	// TODO add checks in debug module
 	set(key, value)
 	{
-		var t = typeof(key);
-		
-		if (t==='object')
+		if (typeof(key)==='object')
 			cxl.extend(this, key);
 		else
 			this[key] = value;
@@ -61,12 +59,21 @@ class Configuration {
 	}
 	
 	/**
-	 * Loads a JSON configuration file.
+	 * Will extend configuration, it will not override array or objects.
+	 */
+	extend(obj)
+	{
+		common.extend(this, obj);
+		return this.update();
+	}
+	
+	/**
+	 * Loads a JSON configuration file. Uses extend method to set properties.
 	 */
 	loadFile(fn)
 	{
 		var obj = common.load_json_sync(fn);
-		this.set(obj);
+		this.extend(obj);
 		return obj;
 	}
 }
