@@ -21,29 +21,37 @@ var
  * 
  * Avoid using mutable objects as values to speed up diff algorithm.
  */
-function ProjectConfiguration(path)
+class ProjectConfiguration extends workspace.Configuration
 {
-var
-	project = common.load_json_sync(path+'/project.json')
-;
-	common.extend(this, workspace.configuration.project);
-	common.extend(this, project);
 	
-	_.defaults(this, _.pick(workspace.configuration,
-		['keymap', 'theme']));
+	constructor(p)
+	{
+		super(_.pick(workspace.configuration,
+			['keymap', 'theme']));
 		
-	this.path = path;
-	this.tags = {
-		workspace: !!project
-	};
+		this.set(workspace.configuration.project);
+		this.set(p);
+
+		this.tags = {
+			workspace: !!this.loadFile(
+				this.path + '/project.json')
+		};
+	}
+	
 }
 
-cxl.extend(ProjectConfiguration.prototype, {
+cxl.define(ProjectConfiguration, {
 	
 	/**
 	 * Project name
 	 */
 	name: null,
+	
+	/**
+	 * project path and id
+	 */
+	path: null,
+
 
 	/**
 	 * Project version.
@@ -63,16 +71,18 @@ class Project {
 	{
 		this.path = path;
 		this.clients = [];
-		this.$ = 0;
 		this.create();		
 	}
 	
 	create()
 	{
-		this.configuration = new ProjectConfiguration(this.path);
+		this.configuration = new ProjectConfiguration({ 
+			path: this.path,
+			onUpdate: (function() {
+				this.broadcast({ reload: true });
+			}).bind(this)
+		});
 		this.promises = [];
-		this.$++;
-		this.configuration.$ = this.$;
 		
 		workspace.plugins.emit('project.create', this, this.configuration);
 		
@@ -102,7 +112,7 @@ class Project {
 			this.log(`Registering client ${client.id}.`);
 			this.clients.push(client);
 			
-			if (data.$ !== this.$)
+			if (data.$ !== this.configuration.$)
 				workspace.socket.respond(client, 'project', { reload: true });
 		}
 	}
@@ -142,7 +152,7 @@ class Project {
 	
 	onThemeReload(theme)
 	{
-		this.broadcast({ 'theme.css': theme.source });
+		this.configuration.set('theme.css', theme.source);
 	}
 	
 	loadTheme(theme)
@@ -152,8 +162,6 @@ class Project {
 		
 		this.log(`Loading Theme "${theme.name}"(${theme.path})`);
 		this.theme = theme;
-		this.configuration['theme.css'] = theme;
-		
 		this.listenTo(workspace.plugins, 'themes.reload:' + this.theme.name,
 			this.onThemeReload);
 		
@@ -174,18 +182,15 @@ class Project {
 	reload()
 	{
 		this.log('Reloading project.');
-		this.create().doLoad().then(function() {
-			this.broadcast({ reload: true });
-		});
+		this.create().doLoad();
 	}
 	
 	buildFiles()
 	{
 		this.files.ignore = this.ignore.matcher.bind(this.ignore);
 		this.files.build().bind(this).then(function(result) {
-			this.configuration.files = JSON.stringify(
+			this.configuration.set('files', 
 				_.sortBy(result, 'filename'));
-			this.broadcast({ reload: true });
 		});
 	}
 	
@@ -194,7 +199,7 @@ class Project {
 		if (this.configuration.plugins)
 		{
 			this.log.dbg('Building plugin sources: ' + this.configuration.plugins);
-			this.configuration.src = workspace.plugins.getSources(this.configuration.plugins);
+			this.configuration.set('src', workspace.plugins.getSources(this.configuration.plugins));
 		}
 	}
 	
@@ -209,7 +214,7 @@ class Project {
 	{
 		this.ignore.push(
 			this.configuration.ignore || [ '**/.*', 'node_modules', 'bower_components' ]);
-		this.configuration['ignore.regex'] = this.ignore;
+		this.configuration.set('ignore.regex', this.ignore);
 	}
 	
 	doLoad()

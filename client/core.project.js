@@ -56,8 +56,6 @@ ide.Project = cxl.Model.extend({
 		
 		if (msg.reload===true)
 			this.reload();
-		else
-			this.set(this.parse(msg));
 	},
 
 	on_project: function()
@@ -69,8 +67,7 @@ ide.Project = cxl.Model.extend({
 	set_files: function(files)
 	{
 		this.attributes.files = files;
-		this.files_json = files && JSON.parse(files);
-		this.files_text = files ? _.pluck(this.files_json,
+		this.files_text = files ? _.pluck(files,
 			'filename').join("\n").replace(/ /g, '\\ ') : '';
 	}
 

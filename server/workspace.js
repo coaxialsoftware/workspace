@@ -24,14 +24,63 @@ var
 	workspace = global.workspace = module.exports = cxl('workspace')
 ;
 
+/**
+ * Options
+ * 
+ * onUpdate   Callback function.
+ */
 class Configuration {
 
+	constructor(defaults)
+	{
+		var me = this;
+		
+		me.$ = 0;
+		me.update = _.debounce(function() {
+			me.$++;
+			if (me.onUpdate)
+				me.onUpdate();
+			return me;
+		}, 500);
+		
+		if (defaults)
+			me.set(defaults);
+	}
+	
+	// TODO add checks in debug module
+	set(key, value)
+	{
+		var t = typeof(key);
+		
+		if (t==='object')
+			cxl.extend(this, key);
+		else
+			this[key] = value;
+		
+		return this.update(); 
+	}
+	
+	/**
+	 * Loads a JSON configuration file.
+	 */
+	loadFile(fn)
+	{
+		var obj = common.load_json_sync(fn);
+		this.set(obj);
+		return obj;
+	}
+}
+
+class WorkspaceConfiguration extends Configuration {
+	
 	constructor()
 	{
+		super();
+		
 		this.loadFile('~/.workspace.json');
 		this.loadFile('workspace.json');
 
-		cxl.extend(this, {
+		this.set({
 			version: '0.3.0',
 			user: process.env.USER || process.env.USERNAME
 		});
@@ -42,28 +91,16 @@ class Configuration {
 		var secure = this.secure;
 
 		if (secure)
-		{
-			this.https = {
+			this.set('https', {
 				key: fs.readFileSync(secure.key),
 				cert: fs.readFileSync(secure.cert)
-			};
-		}
+			});
 	}
 	
-	/**
-	 * Loads a JSON configuration file.
-	 */
-	loadFile(fn)
-	{
-		workspace.log('Loading settings from ' + fn);
-		common.extend(this, common.load_json_sync(fn));
-
-		return this;
-	}
 }
 
-cxl.define(Configuration, {
-
+cxl.define(WorkspaceConfiguration, {
+	
 	/**
 	 * Enable Debug Mode.
 	 */
@@ -82,7 +119,7 @@ cxl.define(Configuration, {
 	 * @type {object}
 	 */
 	secure: null,
-	
+
 	/**
 	 * User scripts. Will be added to all projects.
 	 */
@@ -345,8 +382,11 @@ class ThemeManager
 }
 
 workspace.extend({
+	
+	Configuration: Configuration,
 
-	configuration: new Configuration(),
+	configuration: new WorkspaceConfiguration(),
+	
 	plugins: new PluginManager(),
 	themes: new ThemeManager(),
 	basePath: basePath,
@@ -434,7 +474,7 @@ workspace.extend({
 	{
 		if (file==='workspace.json')
 		{
-			this.configuration= new Configuration();
+			this.configuration = new WorkspaceConfiguration();
 			workspace.plugins.emit('workspace.reload');
 		}
 		
