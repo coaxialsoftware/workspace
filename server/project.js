@@ -83,6 +83,7 @@ class Project {
 			}).bind(this)
 		});
 		this.promises = [];
+		this.loaded = false;
 		
 		workspace.plugins.emit('project.create', this, this.configuration);
 		
@@ -187,6 +188,7 @@ class Project {
 	
 	buildFiles()
 	{
+		this.log.dbg('Generating Project Files');
 		this.files.ignore = this.ignore.matcher.bind(this.ignore);
 		this.files.build().bind(this).then(function(result) {
 			this.configuration.set('files', 
@@ -212,6 +214,7 @@ class Project {
 	
 	buildIgnore()
 	{
+		this.log.dbg('Generating Ignore Regex');
 		this.ignore.push(
 			this.configuration.ignore || [ '**/.*', 'node_modules', 'bower_components' ]);
 		this.configuration.set('ignore.regex', this.ignore);
@@ -219,6 +222,7 @@ class Project {
 	
 	doLoad()
 	{
+		this.ignore = new common.FileMatcher();
 		this.buildSources();
 		
 		workspace.plugins.emit('project.load', this);
@@ -245,7 +249,6 @@ class Project {
 		this.log = new cxl.Logger(
 			colors.green('workspace.project') + 
 			` ${colors.yellow(this.path)}`);
-		this.ignore = new common.FileMatcher();
 		
 		this.log.operation('Loading File Manager', this.loadFiles, this);
 		
