@@ -94,7 +94,7 @@ _.extend(Watcher.prototype, {
 	watchFile: function(f)
 	{
 	var
-		id = this.getId(f),
+		id = this.getId(path.normalize(f)),
 		dir = path.dirname(id)
 	;
 		return this._doWatch(id, dir);

@@ -170,6 +170,7 @@ class Plugin {
 	
 	onWatch(ev, file)
 	{
+		workspace.dbg(`Plugin ${this.name} source updated.`);
 		common.read(file).bind(this).then(function(d) {
 			this.source = d;
 			workspace.plugins.emit('plugins.source', this.id, this.source);
@@ -470,11 +471,11 @@ workspace.extend({
 	
 	watch: function(path, cb)
 	{
+		var id = this.watcher.watchFile(path);
 		this.dbg(`Watching File ${path}`);
-		this.watcher.watchFile(path);
 
 		if (cb)
-			this.plugins.on('workspace.watch:' + path, cb);
+			this.plugins.on('workspace.watch:' + id, cb);
 	},
 	
 	onWatch: function(ev, file)

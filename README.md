@@ -3,12 +3,12 @@ workspace
 =========
 
 A new IDE concept based on web technologies with a focus on
-extendibility and user experience.
+extensibility and user experience.
 
 The editor main features are:
 
 - Easy to install and configure. Runs locally or remotely.
-- Client/Server based. Client handles rendering, while server handles most heavy tasks.
+- Client/Server based. Client handles rendering, while server handles the heavy tasks.
 - A Plugin API. Plugins can be enabled by project or by workspace.
 - A simplistic yet powerful UI.
 
@@ -64,3 +64,5 @@ or by using the project.json file:
 	{
 		"plugins": [ "plugin name", "plugin2" ]
 	}
+
+- 
