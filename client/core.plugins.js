@@ -177,7 +177,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	
 	start: function()
 	{
-		var src = ide.project.get('src');
+		var src = ide.project.get('plugins.src');
 		
 		if (src)
 			ide.source(src);

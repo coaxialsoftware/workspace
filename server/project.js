@@ -201,7 +201,8 @@ class Project {
 		if (this.configuration.plugins)
 		{
 			this.log.dbg('Building plugin sources: ' + this.configuration.plugins);
-			this.configuration.set('src', workspace.plugins.getSources(this.configuration.plugins));
+			this.configuration.set('plugins.src',
+				workspace.plugins.getSources(this.configuration.plugins));
 		}
 	}
 	

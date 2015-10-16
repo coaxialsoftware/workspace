@@ -63,7 +63,8 @@ _.extend(HintManager.prototype, {
 	{
 	var
 		el = document.createElement('DIV'),
-		marker = this.__getMarker(hint.line-1),
+		// Sometimes line will be 0...
+		marker = this.__getMarker(hint.line>0 ? hint.line-1 : 0),
 		hints = this.get(id)
 	;
 		hint.line--;

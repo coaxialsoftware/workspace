@@ -51,11 +51,17 @@ ide.File = cxl.Model.extend({
 			'&n=' + this.get('filename') + '&t=' + mtime;
 	},
 	
+	parse: function(data)
+	{
+		this.originalValue = data.content || '';	
+		return data;
+	},
+	
 	diff: function()
 	{
 	var
 		cur = this.attributes.content,
-		old = this._previousAttributes && this._previousAttributes.content || cur
+		old = this.originalValue
 	;
 		return ide.diff(old, cur);
 	}

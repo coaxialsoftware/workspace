@@ -361,7 +361,23 @@ common = module.exports = {
 				resolve(data);
 			});
 		});
-	}
+	},
 	
+	patch: function(A, diff)
+	{
+	var
+		i, cursor=0, result=''
+	;
+		for (i=0; i<diff.length; i+=3)
+		{
+			result += A.substr(cursor, diff[i+1]) + diff[i];
+			cursor += diff[i+1] + diff[i+2];
+		}
+
+		if (cursor < A.length)
+			result += A.substr(cursor);
+
+		return result;
+	}
 };
 
