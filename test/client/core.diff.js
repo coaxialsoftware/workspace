@@ -79,7 +79,7 @@ QUnit.test('diff - multiple changes', function(a) {
 	a.equal(C, B);
 });
 
-QUnit.test('diffLine - multiple lines', function(a) {
+QUnit.test('diff - minl', function(a) {
 	var A = "Lorem ipsum dolor sit amet\n" +
 		"ex meis noluisse quaestio pro\n" +
 		"possit aeterno no duo\n" +
@@ -98,7 +98,7 @@ QUnit.test('diffLine - multiple lines', function(a) {
 		"fugit option quo id\n" +
 		"vix volumus abhorreant accommodare cu.";
 	
-	var diff = ide.diff(A, B);
+	var diff = ide.diff(A, B, 5);
 	
 	var C = ide.patch(A, diff);
 	a.equal(C, B);

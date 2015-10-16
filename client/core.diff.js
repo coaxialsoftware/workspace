@@ -38,8 +38,6 @@
 var DIFF_DELETE = -1;
 var DIFF_INSERT = 1;
 var DIFF_EQUAL = 0;
-var SEPARATOR = /\n|\r\n/;
-
 
 /**
  * Find the differences between two texts.  Simplifies the problem by stripping
@@ -566,59 +564,45 @@ function diff_cleanupMerge(diffs) {
   }
 }
 
-var diff = diff_main;
+ide.diff = function(A, B, minl)
+{
+var
+	result=[],
+	d = diff_main(A, B),
+	i, l=0, ch=''
+;
+	minl = minl===undefined ? 5 : minl;
 	
-ide.diff = function(A, B) {
-	
-	var result, d, i, l=0;
-	
-	result = [];
-	d = diff(A, B);
+	function push(a, b, c)
+	{
+		if (result.length && (b < minl))
+		{
+			result[result.length-3] += ch + a;
+			result[result.length-1] += b + c;
+		} else
+			result.push(a, b, c);
+	}
 	
 	for (i=0; i<d.length; i++)
 	{
 		if (d[i][0]===DIFF_EQUAL)
+		{
 			l = d[i][1].length;
+			ch = d[i][1];
+		}
 		else 
 		{
 			if (d[i][0]===DIFF_DELETE)
-				result.push('', l, d[i][1].length);
-			else if (!l && result.length)
-				result[result.length-3]=d[i][1];
+				push('', l, d[i][1].length);
 			else
-				result.push(d[i][1], l, 0);
+				push(d[i][1], l, 0);
 			
 			l = 0;
+			ch = '';
 		}
 	}
 
 	return result;
-};
-	
-function LineArray(lines)
-{
-	Array.prototype.push.apply(this, lines);
-}
-	
-LineArray.prototype.indexOf = Array.prototype.indexOf;
-LineArray.prototype.join = Array.prototype.join;
-LineArray.prototype.slice = function(start, end)
-{
-	var r = Array.prototype.slice(this, start, end);
-	
-	return new LineArray(r);
-};
-	
-LineArray.prototype.valueOf = function()
-{
-	return this.join("\n");
-};
-	
-ide.diffLine = function(A, B)
-{
-	var a = new LineArray(A.split(SEPARATOR)), b = new LineArray(B.split(SEPARATOR));
-	
-	return ide.diff(a, b);
 };
 	
 ide.patch = function(A, diff)
