@@ -222,6 +222,7 @@ class PluginManager extends EventEmitter {
 			return plugin;
 		} catch(e) {
 			workspace.error(`Could not load plugin: ${file}`);
+			workspace.dbg(e);
 		}
 	}
 	
@@ -309,7 +310,8 @@ class PluginManager extends EventEmitter {
 				this.scripts += fs.readFileSync(s, 'utf8');
 				workspace.watch(s, this.onScriptsWatch.bind(this));
 			} catch(e) {
-				workspace.error('Could not load script "${s}".', e);
+				workspace.error('Could not load script "${s}".');
+				workspace.dbg(e);
 			}
 		}, this);
 		
