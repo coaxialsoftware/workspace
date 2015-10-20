@@ -5,6 +5,7 @@ var
 	fs = require('fs'),
 	Q = require('bluebird'),
 	_ = require('lodash'),
+	mime = require('mime'),
 	path = require('path'),
 	micromatch = require('micromatch'),
 	
@@ -84,8 +85,12 @@ class FileManager {
 		
 		if (err)
 			return reject(err);
+		
+		// TODO see if we can make it in one pass.
+		this.files = _.each(data, function(f) {
+			f.mime = mime.lookup(f.filename);
+		});
 
-		this.files = data;
 		this.watchFiles();
 		
 		resolve(data);

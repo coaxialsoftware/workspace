@@ -6,13 +6,14 @@
 	
 	"project": {
         "ignore": [ ".*"],
-		"plugins": [ "vim", "jshint", "karma" ]
+		"plugins": [ "vim", "jshint", "karma", "angular" ]
 	},
 	
 	"plugins": [
 		"file:../../workspace.base/workspace.jshint",
         "file:../../workspace.js.infer",
-		"file:../../workspace.karma"
+		"file:../../workspace.karma",
+		"file:../../workspace.angular"
 	],
 
 	"socket.port": 9005,
