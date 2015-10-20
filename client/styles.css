@@ -35,13 +35,6 @@ h3 {
 	margin: 4px 0px 8px 0px;
 }
 
-h4 {
-	font-size: 14px;
-	color: #ddd;
-	margin: 4px;
-	overflow: hidden;
-}
-
 kbd { background-color: #666; border-radius: 4px; color: #eee; padding: 4px 8px; }
 a, button {
 	transition: background-color 0.2s, color 0.2s, opacity 0.2s,
@@ -211,7 +204,7 @@ div.CodeMirror-cursors { visibility: visible; }
 	box-sizing: border-box;
 	font-size: 12px;
 	transition: width 0.2s, opacity 0.2s, background-color 0.2s;
-	padding: 6px;
+	padding: 4px;
 	margin-bottom: 8px;
 	width: 100%;
 	border-right: 0;
@@ -226,9 +219,14 @@ div.CodeMirror-cursors { visibility: visible; }
 
 .item pre { white-space: pre-wrap; }
 .item kbd { float: right; }
-.item code { margin-right: 10px; padding: 4px; display: inline-block; }
+.item code { margin-right: 10px; display: inline-block; }
+.item h4 {
+	font-size: 14px;
+	margin: 0;
+	padding: 8px 4px 4px 4px;
+}
 
-.item.log { background-color: rgba(52, 152, 219, 0.8); }
+.item.log { background-color: rgba(52, 152, 219, 0.5); }
 .item.error, .error { background-color: rgba(231, 76, 60, 0.8); }
 .item.warn, .warn { background-color: rgba(241, 196, 15, 0.8); color: #333; }
 
