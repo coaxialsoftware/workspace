@@ -67,15 +67,17 @@
 </script>	
 
 <script id="tpl-login" type="text/template">
-<form &="submit(submit)">
-	<label>Username</label>
-	<input &="stop(keydown)" name="username" />
-	
-	<label>Password</label>
-	<input &="stop(keydown)" name="password" type="password" />
-	
-	<button type="submit">Submit</button>
-</form>
+<div class="panel">
+	<form &="submit(submit)">
+		<label>Username</label>
+		<input &="stop(keydown)" name="username" />
+
+		<label>Password</label>
+		<input &="stop(keydown)" name="password" type="password" />
+
+		<button type="submit">Submit</button>
+	</form>
+</div>
 </script>
 
 <script id="tpl-welcome" type="text/template">

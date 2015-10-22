@@ -224,6 +224,7 @@ div.CodeMirror-cursors { visibility: visible; }
 	font-size: 14px;
 	margin: 0;
 	padding: 8px 4px 4px 4px;
+	word-wrap: break-word;
 }
 
 .item.log { background-color: rgba(52, 152, 219, 0.5); }
