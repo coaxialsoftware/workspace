@@ -41,9 +41,10 @@ var Assist = cxl.View.extend({
 	{
 		this.template = cxl.id('tpl-assist').innerHTML;
 		this.requestHints = _.debounce(this._requestHints, this.delay);
-		this.listenTo(ide.plugins, 'file.write', this.onToken);
+		//this.listenTo(ide.plugins, 'file.write', this.onToken);
 		this.listenTo(ide.plugins, 'token', this.onToken);
 		this.listenTo(ide.plugins, 'editor.focus', this.onToken);
+		this.listenTo(ide.plugins, 'editor.change', this.onToken);
 		this.listenTo(ide.plugins, 'workspace.remove', this.onToken);
 	},
 	
@@ -60,11 +61,6 @@ var Assist = cxl.View.extend({
 	
 	onToken: function()
 	{
-		var e = this.editor = ide.editor;
-		
-		this.token = e && e.token;
-		this.file = e && (e.file instanceof ide.File) && e.file.attributes.filename;
-		
 		this.requestHints();
 	},
 	
@@ -89,19 +85,31 @@ var Assist = cxl.View.extend({
 	
 	_requestHints: function()
 	{
-		if (!this.visible)
-			return;
-		
+	var
+		editor = ide.editor,
+		token = editor && editor.token,
+		file = editor && (editor.file instanceof ide.File) && editor.file,
+		diff = file && file.diff()
+	;
 		this.version++;
 		this.$hints.innerHTML = '';
 		this.rendered = false;
 		this.hints = [];
 		
 		ide.plugins.trigger('assist',
-			this.addHint.bind(this, this.version), this.editor, this.token);
+			this.addHint.bind(this, this.version), editor, token);
 		
-		ide.socket.send('assist',
-			{ $: this.version, file: this.file, token: this.token, project: ide.project.id });
+		ide.socket.send('assist', {
+			$: this.version,
+			file: file && file.id,
+			mime: file && file.attributes.mime,
+			token: token,
+			project: ide.project.id,
+			fileChanged: file && file.diffChanged,
+			editor: editor && editor.id,
+			diff: diff
+		});
+		
 		this.render();
 	},
 	
@@ -196,7 +204,6 @@ ide.plugins.register('assist', {
 	
 	onSocket: function(data)
 	{
-		window.console.log(data);
 		ide.assist.addHint(data.$, data.hints);
 	},
 	

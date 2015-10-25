@@ -1,5 +1,5 @@
  
-e {
+{
     "name": "Test Module",
     "version": "0.0.1",
     "keymap": "default",
@@ -8,7 +8,7 @@ e {
 	},
     "description": "A test project for workspace.",
     
-    "plugins": [ "js-infer" ],
+    "plugins": [ "inference" ],
     "links": [
         { "href": "hello", "class": "home", "title": "Homepage" }
     ],

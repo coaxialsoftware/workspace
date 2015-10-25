@@ -4,8 +4,11 @@
  * 
  */
 var
+	fs = require('fs'),
+	
 	plugin = module.exports = cxl('workspace.assist'),
-	workspace = require('./workspace')
+	workspace = require('./workspace'),
+	common = workspace.common
 ;
 
 plugin.extend({
@@ -14,12 +17,24 @@ plugin.extend({
 	{
 		function done(hints) {
 			workspace.socket.respond(client, 'assist', {
-				$: data.version,
+				$: data.$,
 				hints: hints
 			});
 		}
 		
-		workspace.plugins.emit('assist', done, data.file, data.token, data.project);
+		data.client = client;
+		
+		if (data.file)
+			fs.readFile(data.file, 'utf8', function(err, file) {
+				if (err)
+					file = '';
+
+				data.content = data.diff ? common.patch(file, data.diff) : file;
+
+				workspace.plugins.emit('assist', done, data);
+			});
+		else
+			workspace.plugins.emit('assist', done, data);
 	}
 	
 }).run(function() {

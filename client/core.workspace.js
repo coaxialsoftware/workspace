@@ -219,6 +219,22 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 			setTimeout(this.remove.bind(this, item));
 		});
 	},
+	
+	/** Find editor by id. */
+	find: function(id)
+	{
+	var
+		slots = this.slots,
+		l = slots.length,
+		editor
+	;
+		while (l--)
+		{
+			editor = slots[l].editor;
+			if (editor && editor.id===id)
+				return editor;
+		}
+	},
 
 	add: function(item)
 	{
