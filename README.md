@@ -11,6 +11,7 @@ The editor main features are:
 - Client/Server based. Client handles rendering, while server handles the heavy tasks.
 - A Plugin API. Plugins can be enabled by project or by workspace.
 - A simplistic yet powerful UI.
+- A VIM mode plugin.
 
 Dependencies
 ------------

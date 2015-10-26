@@ -45,6 +45,7 @@ var Assist = cxl.View.extend({
 		this.listenTo(ide.plugins, 'token', this.onToken);
 		this.listenTo(ide.plugins, 'editor.focus', this.onToken);
 		this.listenTo(ide.plugins, 'editor.change', this.onToken);
+		this.listenTo(ide.plugins, 'editor.write', this.onToken);
 		this.listenTo(ide.plugins, 'workspace.remove', this.onToken);
 	},
 	
