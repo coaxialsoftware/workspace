@@ -8,6 +8,7 @@
 ide.File = cxl.Model.extend({
 
 	idAttribute: 'path',
+	version: 0,
 
 	initialize: function()
 	{
@@ -61,9 +62,15 @@ ide.File = cxl.Model.extend({
 	{
 	var
 		cur = this.attributes.content,
-		old = this.originalValue
+		old = this.originalValue,
+		changed = this.diffChanged = this.diffValue !== cur
 	;
-		return ide.diff(old, cur);
+		if (changed)
+		{
+			this.diffValue = cur;
+			return (this.lastDiff = ide.diff(old, cur));
+		} else
+			return this.lastDiff;
 	}
 	
 });

@@ -198,6 +198,8 @@ ide.Editor.Source = ide.Editor.File.extend({
 		
 		search: function(n, options)
 		{
+			n = n || this.token && this.token.string;
+			
 			if (n)
 				this.editor.find(n, options);
 		},

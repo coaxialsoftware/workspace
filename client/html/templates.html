@@ -11,7 +11,7 @@
 	<% if (obj.code) { %>
 		<code><%= obj.code %></code>
 	<% } %>
-	<h4><%- title %></h4>
+	<h4><%- obj.title %></h4>
 	<% _.each(obj.links, function(l) { %>
 		<a title="<%=l.title%>" target="_blank" class="icon" href="<%=l.href%>"><i class="fa fa-<%=l.class%>"></i></a>
 	<% }) %>

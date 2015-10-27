@@ -11,7 +11,7 @@
 	
 	"plugins": [
 		"file:../../workspace.base/workspace.jshint",
-        "file:../../workspace.js.infer",
+        "file:../../workspace.inference",
 		"file:../../workspace.karma",
 		"file:../../workspace.angular"
 	],
