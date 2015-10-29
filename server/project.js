@@ -82,6 +82,8 @@ class Project {
 				this.broadcast({ reload: true });
 			}).bind(this)
 		});
+		// Object used by plugins to store data.
+		this.data = {};
 		this.promises = [];
 		this.loaded = false;
 		

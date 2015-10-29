@@ -217,7 +217,7 @@ ide.plugins = new PluginManager();
 ide.plugins.register('plugins', {
 	commands: {
 		plugins: function() { 
-			ide.workspace.add(this.open({ plugin: this }));
+			return ide.workspace.add(this.open({ plugin: this }));
 		}
 	},
 	
@@ -247,10 +247,15 @@ ide.plugins.register('plugins', {
 		me = this, l
 	;
 		options.title = 'plugins';
-		options.itemTemplate = cxl._templateId('tpl-plugin');
+		options.itemTemplate = cxl.templateId('tpl-plugin');
 		options.file = 'list';
 		
 		l = new ide.Editor.List(options);
+		
+		l.install = function()
+		{
+			window.console.log(this, arguments);
+		};
 		
 		$.when(
 			$.get(ide.project.get('online.url') + '/plugins.json'),

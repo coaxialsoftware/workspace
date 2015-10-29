@@ -86,6 +86,9 @@ class WorkspaceConfiguration extends Configuration {
 		
 		this.loadFile('~/.workspace.json');
 		this.loadFile('workspace.json');
+		
+		if (this['plugins.global']===undefined && !this['plugins.path'])
+			this['plugins.global'] = true;
 
 		this.set({
 			version: '0.3.0',
@@ -197,6 +200,55 @@ class PluginManager extends EventEmitter {
 		
 		this.plugins = {};
 	}
+	
+	/** Calls npm and returns a promise with the result */
+	npm(cmd, a, b, fn)
+	{
+	var
+		pluginsPath = workspace.configuration['plugins.path'],
+		global = workspace.configuration['plugins.global'],
+		cwd = process.cwd()
+	;
+		return new Q(function(resolve, reject) {
+			npm.load(function(er, npm) {
+				if (pluginsPath)
+					process.chdir(pluginsPath);
+				
+				npm.config.set('global', global);
+				npm.config.set('json', true);
+				npm.config.set('depth', 0);
+				
+				try {
+					npm.commands[cmd](a, b, function(er, data) {
+						if (er)
+							reject(er);
+						
+						resolve(fn(data));
+					});
+				}
+				catch(e) { reject(e); }
+				finally
+				{
+					if (pluginsPath)
+						process.chdir(cwd);
+				}
+			});
+		});
+		
+	}
+	
+	/**
+	 * Install plugins locally using npm
+	 */
+	install(name)
+	{
+		// Make sure we only include plugins from cxl workspace.
+		name = '@cxl/workspace.' + name;
+		
+		this.npm('install', name, function(data) {
+			console.log(data);
+		});
+	}
 
 	/**
 	 * Registers a plugin
@@ -249,33 +301,24 @@ class PluginManager extends EventEmitter {
 	
 	loadGlobalPlugins()
 	{
-		var me = this, regex = /^\@cxl\/workspace\./;
-		
-		return new Q(function(resolve, reject) {
-			npm.load(function(er, npm) {
-				npm.config.set("global", true);
-				npm.config.set('json', true);
-				npm.config.set('depth', 0);
-				npm.commands.list(null, true, function(e, data) {
-					if (e)
-						reject(e);
-					
-					_.each(data.dependencies, function(d) {
-						if (regex.test(d.name))
-							me.requireFile(d.realPath);
-					});
+	var
+		me = this,
+		regex = /^\@cxl\/workspace\./
+	;
+		return this.npm('list', null, true, function(data) {
 
-					resolve(_.pluck(me.plugins, 'ready'));
-				});
-
+			_.each(data.dependencies, function(d) {
+				if (regex.test(d.name))
+					me.requireFile(d.realPath);
 			});
+
+			return _.pluck(me.plugins, 'ready');
 		});
 	}
 	
 	loadLocalPlugins()
 	{
-		var plugins = workspace.configuration.plugins;
-		this.requirePlugins(plugins);
+		this.requirePlugins(workspace.configuration.plugins);
 	}
 	
 	getSources(plugins)
@@ -325,12 +368,13 @@ class PluginManager extends EventEmitter {
 	start()
 	{
 		this.loadLocalPlugins();
-		this.loadScripts(workspace.configuration.scripts);
 		
 		return this.loadGlobalPlugins().all().bind(this).then(function() {
-
+			
 			for (var i in this.plugins)
 				this.plugins[i].start();
+
+			this.loadScripts(workspace.configuration.scripts);
 
 			setImmediate(
 				this.emit.bind(this, 'workspace.load', workspace));
@@ -474,7 +518,7 @@ workspace.extend({
 	watch: function(path, cb)
 	{
 		var id = this.watcher.watchFile(path);
-		this.dbg(`Watching File ${path}`);
+		this.dbg(`Watching File ${id}`);
 
 		if (cb)
 			this.plugins.on('workspace.watch:' + id, cb);

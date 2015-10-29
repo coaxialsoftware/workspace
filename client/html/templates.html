@@ -38,13 +38,11 @@
 
 <script id="tpl-plugin" type="text/template">
 <div tabindex="0" class="item">
-	<% if (obj.installed) { %>
-		<span class="label pull-right">
-			<%= obj.enabled ? 'ENABLED' : 'INSTALLED' %>
-		</span>
-	<% } %>
-	<h4><%- obj.name %> <small><%- obj.version %></small></h4>
-	<% if (obj.description) { %><pre><%- obj.description %></pre><% } %>
+	<span &="if(enabled)" class="label pull-right">
+		ENABLED
+	</span>
+	<h4><span &="html::const(name)"></span> <small &="html::const(version)"></small></h4>
+	<pre &="if::const(description) html::const(description)"></pre>
 </div>
 </script>
 	
