@@ -207,6 +207,29 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	}
 
 });
+	
+ide.Plugin.Item = cxl.View.extend({
+	
+	install: function()
+	{
+	},
+	
+	uninstall: function()
+	{
+		
+	},
+	
+	enable: function()
+	{
+		
+	},
+	
+	disable: function()
+	{
+		
+	}
+	
+});
 
 /**
  * Plugin Manager
@@ -246,16 +269,14 @@ ide.plugins.register('plugins', {
 	var
 		me = this, l
 	;
-		options.title = 'plugins';
-		options.itemTemplate = cxl.templateId('tpl-plugin');
-		options.file = 'list';
+		_.extend(options, {
+			title: 'plugins',
+			itemTemplate: cxl.templateId('tpl-plugin'),
+			itemClass: ide.Plugin.Item,
+			file: 'list'
+		});
 		
 		l = new ide.Editor.List(options);
-		
-		l.install = function()
-		{
-			window.console.log(this, arguments);
-		};
 		
 		$.when(
 			$.get(ide.project.get('online.url') + '/plugins.json'),

@@ -215,7 +215,9 @@ ide.Editor = cxl.View.extend({
 		var project = ide.project.get('name') || ide.project.id;
 		
 		return (this.changed && this.changed() ? '+ ' : '') +
-			((this.file instanceof ide.File ? this.file.get('filename') : this.file) || 'No Name') +
+			((this.file instanceof ide.File ?
+			  this.file.get('filename') :
+			  this.plugin.name + ':' + this.file) || 'No Name') +
 			(project ? ' [' + project + ']' : '');
 	},
 

@@ -227,6 +227,8 @@ div.CodeMirror-cursors { visibility: visible; }
 	word-wrap: break-word;
 }
 
+.item-collapsed .item-detail { display: none; }
+
 .item.log { background-color: rgba(52, 152, 219, 0.5); }
 .item.error, .error { background-color: rgba(231, 76, 60, 0.8); }
 .item.warn, .warn { background-color: rgba(241, 196, 15, 0.8); color: #333; }
