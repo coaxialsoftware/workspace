@@ -52,6 +52,9 @@ SocketManager.prototype = {
 
 		this.ws.addEventListener('open', function() {
 			retry = false;
+			ide.socket.send('project', {
+				path: config.path, $: config.$
+			});
 			ide.plugins.trigger('socket.ready', this);
 		});
 

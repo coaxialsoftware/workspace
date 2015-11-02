@@ -193,8 +193,9 @@ div.CodeMirror-cursors { visibility: visible; }
  * 
  */
 .icon {
-	display: inline-block; margin: 0 2px; padding-top: 4px; color: #ccc;
-	text-decoration: none;
+	display: inline-block; margin: 4px 4px 0 0;
+	padding-top: 4px; color: #eee;
+	text-decoration: none; font-size: 14px;
 }
 
 .icon:hover { color: #fff; }

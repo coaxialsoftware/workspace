@@ -71,6 +71,7 @@ class Project {
 	{
 		this.path = path;
 		this.clients = [];
+		this.data = {};
 		this.create();		
 	}
 	
@@ -86,6 +87,7 @@ class Project {
 		this.data = {};
 		this.promises = [];
 		this.loaded = false;
+		this.ready = false;
 		
 		workspace.plugins.emit('project.create', this, this.configuration);
 		
@@ -115,7 +117,7 @@ class Project {
 			this.log(`Registering client ${client.id}.`);
 			this.clients.push(client);
 			
-			if (data.$ !== this.configuration.$)
+			if (this.ready && data.$ !== this.configuration.$)
 				workspace.socket.respond(client, 'project', { reload: true });
 		}
 	}
@@ -141,16 +143,21 @@ class Project {
 	
 	onTimeout()
 	{
-		var onReady = workspace.plugins.emit.bind(workspace.plugins, 'project.ready', this);
+	var
+		onReady = function() {
+			workspace.plugins.emit('project.ready', this);
+			this.ready = true;
+		},
+		promises = [ ]
+	;
 		this.buildIgnore();
-		this.buildFiles();
+		promises.push(this.buildFiles());
 		
 		if (this.configuration.theme)
-			workspace.themes.load(this.configuration.theme).bind(this)
-				.then(this.loadTheme)
-				.then(onReady);
-		else
-			onReady();
+			promises.push(workspace.themes.load(this.configuration.theme).bind(this)
+				.then(this.loadTheme));
+		
+		Q.all(promises).bind(this).then(onReady);
 	}
 	
 	onThemeReload(theme)
@@ -192,7 +199,7 @@ class Project {
 	{
 		this.log.dbg('Generating Project Files');
 		this.files.ignore = this.ignore.matcher.bind(this.ignore);
-		this.files.build().bind(this).then(function(result) {
+		return this.files.build().bind(this).then(function(result) {
 			this.configuration.set('files', 
 				_.sortBy(result, 'filename'));
 		});
@@ -352,7 +359,7 @@ plugin.extend({
 })
 .config(function() {
 	this.server = workspace.server;
-	this.projectManager = new ProjectManager();
+	workspace.projectManager = this.projectManager = new ProjectManager();
 })
 .run(function() {
 

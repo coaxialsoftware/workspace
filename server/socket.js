@@ -123,9 +123,9 @@ var
 
 			if (json.plugin==='socket')
 				me.onMessage(client, json.data);
-
-			workspace.plugins.emit('socket.message.' + json.plugin,
-				client, json.data);
+			else
+				workspace.plugins.emit('socket.message.' + json.plugin,
+					client, json.data);
 		});
 	});
 

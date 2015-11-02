@@ -61,7 +61,6 @@ ide.Project = cxl.Model.extend({
 	on_project: function()
 	{
 		ide.plugins.trigger('project.load', this);
-		ide.socket.send('project', { path: this.id, $: this.attributes.$ });
 	},
 	
 	set_files: function(files)
