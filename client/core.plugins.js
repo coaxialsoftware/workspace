@@ -210,13 +210,26 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	
 ide.Plugin.Item = cxl.View.extend({
 	
+	render: function(msg)
+	{
+		if (msg)
+			ide.notify(msg);
+		
+		this.loadTemplate();
+	},
+	
 	install: function()
 	{
+		ide.post('/plugins/install', {
+			name: this.name, version: this.version
+		}).then(this.render.bind(this));
 	},
 	
 	uninstall: function()
 	{
-		
+		ide.post('/plugins/uninstall', {
+			name: this.name, version: this.version
+		});
 	},
 	
 	enable: function()

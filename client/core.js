@@ -86,7 +86,7 @@ var
 				return xhr;
 			}
 		}).fail(function(xhr) {
-			ide.error(xhr.responseText);
+			ide.error(xhr.responseText || 'Unknown server error.');
 		});
 	},
 		

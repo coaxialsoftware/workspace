@@ -207,8 +207,14 @@ class PluginManager extends EventEmitter {
 	var
 		pluginsPath = workspace.configuration['plugins.path'],
 		global = workspace.configuration['plugins.global'],
-		cwd = process.cwd()
+		cwd = process.cwd(),
+		args = [ a ]
 	;
+		if (arguments.length===4)
+			args.push(b);
+		else if (arguments.length===3)
+			fn = b;
+		
 		return new Q(function(resolve, reject) {
 			npm.load(function(er, npm) {
 				if (pluginsPath)
@@ -219,12 +225,14 @@ class PluginManager extends EventEmitter {
 				npm.config.set('depth', 0);
 				
 				try {
-					npm.commands[cmd](a, b, function(er, data) {
+					args.push(function(er, data) {
 						if (er)
-							reject(er);
+							return reject(er);
 						
 						resolve(fn(data));
 					});
+					
+					npm.commands[cmd].apply(npm.commands, args);
 				}
 				catch(e) { reject(e); }
 				finally
@@ -240,13 +248,27 @@ class PluginManager extends EventEmitter {
 	/**
 	 * Install plugins locally using npm
 	 */
-	install(name)
+	install(name, version)
 	{
 		// Make sure we only include plugins from cxl workspace.
-		name = '@cxl/workspace.' + name;
+		if (name.indexOf('@cxl/workspace')!==0)
+			return Q.reject("Invalid plugin name");
 		
-		this.npm('install', name, function(data) {
-			console.log(data);
+		workspace.dbg(`Installing plugin ${name} ${version}`);
+		return this.npm('install', '.', [ name ], function() {
+			return `Successfully installed plugin ${name}`;
+		});
+	}
+	
+	uninstall(name, version)
+	{
+		// Make sure we only include plugins from cxl workspace.
+		if (name.indexOf('@cxl/workspace')!==0)
+			return Q.reject("Invalid plugin name");
+		
+		workspace.dbg(`Uninstalling plugin ${name} ${version}`);
+		return this.npm('uninstall', [ name ], function() {
+			return `Successfully uninstalled plugin ${name}`;
 		});
 	}
 
@@ -565,6 +587,14 @@ workspace.extend({
 
 .route('GET', '/plugins', function(req, res) {
 	res.send(this.plugins.getPackages());
+})
+
+.route('POST', '/plugins/install', function(req, res) {
+	common.respond(workspace, res, workspace.plugins.install(req.body.name, req.body.version));
+})
+
+.route('POST', '/plugins/uninstall', function(req, res) {
+	common.respond(workspace, res, workspace.plugins.uninstall(req.body.name, req.body.version));
 })
 
 .run(function() {

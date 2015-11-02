@@ -15,8 +15,8 @@
 		"file:../../workspace.karma",
 		"file:../../workspace.angular"
 	],
-
+	
+	"plugins.path": ".",
 	"socket.port": 9005,
-    
     "online.url": "https://cxl-test.firebaseio.com/workspace"
 }
