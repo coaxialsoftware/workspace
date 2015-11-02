@@ -35,7 +35,6 @@ h3 {
 	margin: 4px 0px 8px 0px;
 }
 
-kbd { background-color: #666; border-radius: 4px; color: #eee; padding: 4px 8px; }
 a, button {
 	transition: background-color 0.2s, color 0.2s, opacity 0.2s,
 		-webkit-filter 0.2s, filter 0.2s;
@@ -72,12 +71,15 @@ pre {
 
 #notification .hint { display: inline-block; }
 
-.label {
-	font-size: 10px; border-radius: 2px; 
+
+.label, kbd {
+	font-size: 12px; border-radius: 2px; 
 	background-color: #666; color: #eee;
-	padding: 4px; margin: 0 2px;
+	padding: 1px 5px; margin: 0 2px;
 	font-weight: bold;
 }
+
+kbd { font-family: monospace; background-color: #333; }
 
 .label-success {
 	background-color: #5cb85c;
@@ -220,7 +222,7 @@ div.CodeMirror-cursors { visibility: visible; }
 
 .item pre { white-space: pre-wrap; }
 .item kbd { float: right; }
-.item code { margin-right: 10px; display: inline-block; }
+.item code { padding: 1px 0; margin-right: 10px; display: inline-block; }
 .item h4 {
 	font-size: 14px;
 	margin: 0;
