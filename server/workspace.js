@@ -252,7 +252,7 @@ class PluginManager extends EventEmitter {
 	{
 		// Make sure we only include plugins from cxl workspace.
 		if (name.indexOf('@cxl/workspace')!==0)
-			return Q.reject("Invalid plugin name");
+			return Q.reject(`Invalid plugin name "${name}"`);
 		
 		workspace.dbg(`Installing plugin ${name} ${version}`);
 		return this.npm('install', '.', [ name ], function() {
