@@ -133,7 +133,12 @@ cxl.define(WorkspaceConfiguration, {
 	/**
 	 * User scripts. Will be added to all projects.
 	 */
-	scripts: null
+	scripts: null,
+	
+	/**
+	 * Default help URL. Defaults to /docs/index.html
+	 */
+	'help.url': null
 
 });
 
@@ -331,7 +336,9 @@ class PluginManager extends EventEmitter {
 
 			_.each(data.dependencies, function(d) {
 				if (regex.test(d.name))
-					me.requireFile(d.realPath);
+				{
+					me.requireFile(d.realPath || d.path);
+				}
 			});
 
 			return _.pluck(me.plugins, 'ready');

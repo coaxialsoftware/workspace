@@ -479,7 +479,10 @@ ide.plugins.registerCommands({
 		
 		help: function(topic)
 		{
-			window.open('/docs/index.html#' + (topic || ''));
+			var url = (ide.project.get('help.url') ||
+				'/docs/index.html') + (topic ? '#' + topic : '');
+			
+			window.open(url);
 		},
 		
 		e: 'edit',

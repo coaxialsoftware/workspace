@@ -6,6 +6,9 @@
 <script id="tpl-item" type="text/template">
 <button data-id="<%= obj.id %>" class="item <%= obj.className %>">
 	<% if (obj.key) { %><kbd><%= obj.key %></kbd><% } %>
+	<% _.each(obj.tags, function(t) { %>
+	<span class="label pull-right"><%=t%></span>
+	<% }) %>
 	<% if (obj.code) { %><code><%= obj.code %></code><% } %>
 	<div>
 	<% _.each(obj.icons, function(l) { %>
@@ -13,9 +16,6 @@
 	<% }) %>
 	<h4><%- obj.title %></h4>
 	</div>
-	<% _.each(obj.tags, function(t) { %>
-	<span class="label"><%=t%></span>
-	<% }) %>
 </button>
 </script>
 
