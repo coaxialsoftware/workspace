@@ -86,6 +86,7 @@ kbd { font-family: monospace; background-color: #333; }
 }
 
 .pull-right { float: right; }
+.text-right { text-align: right; }
 
 /*
  * core.workspace
@@ -229,7 +230,13 @@ div.CodeMirror-cursors { visibility: visible; }
 	padding: 8px 4px 4px 4px;
 	word-wrap: break-word;
 }
-
+.item footer { margin-top: 4px; }
+.item button {
+	background-color: rgba(52, 152, 219, 0.5);
+	border: 1px solid #424242; border-radius: 2px;
+	color: #eee; padding: 4px 8px;
+}
+.item button:hover { background-color: rgba(52, 152, 219, 0.8); }
 .item-collapsed .item-detail { display: none; }
 
 .item.log { background-color: rgba(52, 152, 219, 0.5); }

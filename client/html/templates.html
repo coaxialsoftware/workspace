@@ -41,10 +41,12 @@
 	
 	<h4><span &="html::const(name)"></span> <small &="html::const(version)"></small></h4>
 	<pre &="if::const(description) html::const(description)"></pre>
-	<button &="if:=installed click(uninstall)" class="item-detail" type="button">Uninstall</button>
-	<button &="if:{enabled && installed} click(disable)" class="item-detail" type="button">Disable</button>
-	<button &="unless:=installed click(install)" class="item-detail" type="button">Install</button>
-	<button &="unless:=enabled if:=installed click(enable)" class="item-detail" type="button">Enable</button>
+	<footer class="item-detail text-right">
+	<button &="if:=installed click(uninstall)" type="button">Uninstall</button>
+	<button &="if:expr(installed && enabled) click(disable)" type="button">Disable</button>
+	<button &="unless:=installed click(install)" type="button">Install</button>
+	<button &="if:expr(installed && !enabled) click(enable)" type="button">Enable</button>
+	</footer>
 </div>
 </script>
 	

@@ -218,28 +218,29 @@ ide.Plugin.Item = cxl.View.extend({
 		this.loadTemplate();
 	},
 	
+	post: function(url)
+	{
+		ide.post(url, this).then(this.render.bind(this));
+	},
+	
 	install: function()
 	{
-		ide.post('/plugins/install', {
-			name: this.name, version: this.version
-		}).then(this.render.bind(this));
+		this.post('/plugins/install');
 	},
 	
 	uninstall: function()
 	{
-		ide.post('/plugins/uninstall', {
-			name: this.name, version: this.version
-		});
+		this.post('/plugins/uninstall');
 	},
 	
 	enable: function()
 	{
-		
+		this.post('/plugins/enable');
 	},
 	
 	disable: function()
 	{
-		
+		this.post('/plugins/disable');
 	}
 	
 });
@@ -268,10 +269,8 @@ ide.plugins.register('plugins', {
 		
 		all = _.merge(all || {}, installed);
 		_.each(all, function(a, k) {
-			if (k in installed)
-				a.installed = true;
-			if (enabled && enabled.indexOf(k)!==-1)
-				a.enabled = true;
+			a.installed = k in installed;
+			a.enabled = (enabled && enabled.indexOf(k)!==-1);
 		});
 
 		l.add(_.values(all));

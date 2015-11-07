@@ -99,12 +99,7 @@ ide.Editor.List = ide.Editor.extend({
 	onWheel: function(ev)
 	{
 		var dY = ev.deltaY;
-		
-		if (dY > 0)
-			this.goLineDown();
-		else
-			this.goLineUp();
-		
+		this.el.scrollTop += dY;
 		ev.preventDefault();
 	},
 	
