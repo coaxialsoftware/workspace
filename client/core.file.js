@@ -8,6 +8,7 @@
 ide.File = cxl.Model.extend({
 
 	idAttribute: 'path',
+	originalValue: '',
 	version: 0,
 
 	initialize: function()

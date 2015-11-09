@@ -15,8 +15,8 @@ ide.Hint = ide.Item.extend({
 	{
 		if (!this.key && this.action)
 		{
-			this.code = ':' + this.action;
-			this.key = ide.keyboard.findKey(this.action);
+			var key = ide.keyboard.findKey(this.action);
+			this.key = key ? key : ':' + this.action;
 		}
 	}
 

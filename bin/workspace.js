@@ -8,8 +8,6 @@ var
 	startTime, timeout=1000
 ;
 
-console.log(process.cwd());
-
 function onExit(code)
 {
 	if (code !== 0 && startTime-Date.now() > timeout)

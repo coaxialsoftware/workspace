@@ -102,6 +102,7 @@ var
 	 * @param options.file {ide.File|string} Name of the file relative to project or a File object.
 	 * @param options.target Open file in new window.
 	 * @param options.plugin Specify what plugin to use.
+	 * @return Returns a Jquery Deferred.
 	 */
 	open: function(options)
 	{
@@ -346,5 +347,9 @@ ide.Editor.File = ide.Editor.extend({
 		window.setTimeout(_start);
 	else
 		window.addEventListener('DOMContentLoaded', _start);
+	
+	window.addEventListener('error', function(msg) {
+		ide.error(msg.message);
+	});
 
 })(this, this.jQuery, this.cxl, this._);

@@ -12,7 +12,8 @@
 	<% if (obj.code) { %><code><%= obj.code %></code><% } %>
 	<div>
 	<% _.each(obj.icons, function(l) { %>
-	<span class="icon pull-right" title="<%=l.title%>"><i class="fa fa-<%=l.class%>"></i> <%-l.text%></span>
+	<<%= l.href ? 'a href="' + l.href + '"' : 'span' %> class="icon pull-right" title="<%=l.title%>"><i class="fa fa-<%=l.class%>"></i> <%-l.text%>
+	</<%= l.href ? 'a' : 'span' %>>
 	<% }) %>
 	<h4><%- obj.title %></h4>
 	</div>
@@ -69,16 +70,23 @@
 </script>	
 
 <script id="tpl-login" type="text/template">
-<div class="panel">
-	<form &="submit(submit)">
-		<label>Username</label>
+<div class="col-offset-3 col-4 layout-middle">
+<form &="submit(submit)">
+	<fieldset>
+	<legend>Log In</legend>
+		<p>
+		<label for="name">Username</label>
 		<input &="stop(keydown)" name="username" />
-
-		<label>Password</label>
+		</p>
+		<p>
+		<label for="password">Password</label>
 		<input &="stop(keydown)" name="password" type="password" />
-
+		</p>
+		<p class="text-right">
 		<button type="submit">Submit</button>
-	</form>
+		</p>
+	</fieldset>
+</form>
 </div>
 </script>
 

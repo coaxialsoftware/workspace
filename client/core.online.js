@@ -58,9 +58,30 @@ ide.plugins.register('online', {
 		}
 	},
 	
+	onAssist: function(done)
+	{
+		if (this.hint)
+			done(this.hint);
+	},
+	
+	onProject: function()
+	{
+		var user = ide.project.get('user');
+		
+		this.hint = user ? {
+			code: 'online',
+			title: ide.project.get('user'),
+			icons: [ { title: 'user', class: 'user' } ]
+		} : null;
+	},
+	
 	ready: function()
 	{
 		ide.plugins.on('socket.message.online', this.onMessage, this);
+		ide.plugins.on('assist', this.onAssist, this);
+		ide.plugins.on('project.load', this.onProject, this);
+		
+		this.onProject();
 	}
 
 });

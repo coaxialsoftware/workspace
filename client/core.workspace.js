@@ -370,6 +370,34 @@ ide.plugins.registerCommands({
 		
 		f: 'file',
 		
+		/**
+		 * File diff
+		 */
+		diff: function()
+		{
+		var
+			file = ide.editor && ide.editor.file,
+			diff = file && file.diff && file.diff(),
+			newfile
+		;
+			if (!diff)
+				return;
+			
+			newfile = new ide.File({
+				filename: '',
+				new: true,
+				content: JSON.stringify(diff, null, 2)
+			});
+		
+			ide.open({ file: newfile }).then(function(editor) {
+				editor.listenTo(file, 'change:content', function() {
+					newfile.set('content', JSON.stringify(file.diff(), null, 2));
+				});
+				editor.cmd('inputDisable');
+			});
+		},
+		
+		
 		file: function()
 		{
 			ide.notify(ide.editor.file ?
