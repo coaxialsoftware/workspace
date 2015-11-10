@@ -293,32 +293,43 @@ label { display: block; font-size: 12px; }
 input { 
 	border: 0; background-color: transparent;
 	border-bottom: 1px solid #ddd;
-	width: 100%;
+	width: 100%; color: #eee;
 	padding: 8px 0 8px 0;
 	margin-bottom: 8px; font-size: 14px;
 	line-height: 16px;
+	transition: box-shadow 0.2s, border-color 0.2s;
 }
 
 input:focus {
-	box-shadow: 0 1px 0 0 #ccc;
+	box-shadow: 0 1px 0 0 #fff;
+	border-bottom: 1px solid #eee;
 	outline: none;
 }
 
 button {
 	background-color: rgba(52, 152, 219, 0.5);
 	border: 1px solid #424242; border-radius: 2px;
-	color: #eee; padding: 4px 8px;
-	cursor: pointer;
+	color: #eee; padding: 8px 16px; line-height: 18px;
+	cursor: pointer; font-size: 14px;
+	margin: 8px;
 }
 button:hover { background-color: rgba(52, 152, 219, 0.8); }
+button:first-child { margin-left: 0; }
+button:last-child { margin-right: 0; }
 
 /*
  * Layout
  */
-.layout-middle {
+.layout-vertical-middle {
 	top: 50%; transform: translate(0, -50%);
 	position: absolute;
 }
+
 .col-offset-3 { margin-left: 30%; }
-.col-4 { width: 40%; }
+.col-offset-2 { margin-left: 20%; }
+.col-offset-1 { margin-left: 10%; }
+
 .col-3 { width: 30%; }
+.col-4 { width: 40%; }
+.col-5 { width: 50%; }
+.col-6 { width: 60%; }
