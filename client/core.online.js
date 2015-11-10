@@ -55,7 +55,8 @@ ide.plugins.register('online', {
 				ide.notify('Logged in as ' + data.auth.uid);
 			
 			ide.plugins.trigger('online.auth', data.auth);
-		}
+		} else if (data.login===false)
+			ide.error('Could not log in.');
 	},
 	
 	onAssist: function(done)

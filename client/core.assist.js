@@ -21,6 +21,73 @@ ide.Hint = ide.Item.extend({
 	}
 
 });
+	
+var InlineAssist = function() {
+	this.hints = [];
+	this.el = document.createElement('DIV');
+	this.el.setAttribute('id', 'assist-inline');
+};
+	
+_.extend(InlineAssist.prototype, {
+	
+	hints: null,
+	visible: false,
+	
+	add: function(hint)
+	{
+		if (this.visible)
+			this.renderHint(hint);
+		else
+		{
+			this.hints.push(hint);
+		}
+	},
+	
+	clear: function()
+	{
+		this.hints = [];
+		this.el.innerHTML = '';
+	},
+	
+	show: function(editor)
+	{
+		editor = editor || ide.editor;
+		
+		if (editor && !this.visible)
+		{
+			this.visible = true;
+			this.render();
+		}
+	},
+	
+	renderHint: function(hint, order)
+	{
+		order = order===undefined ?
+			_.sortedIndex(this.hints, hint, 'priority') :
+			order
+		;
+		
+		var ref = this.hints[order];
+		
+		if (ref !== hint)
+		{
+			this.hints.splice(order, 0, hint);
+			this.el.insertBefore(hint.el, ref.el);
+		}
+		else
+			this.el.appendChild(hint.el);
+	},
+	
+	render: function()
+	{
+	var
+		i=0, hints = this.hints, l=hints.length
+	;
+		for (; i<l; i++)
+			this.renderHint(hints[i], i);
+	}
+	
+});
 
 var Assist = cxl.View.extend({
 	el: '#assist',
@@ -33,6 +100,8 @@ var Assist = cxl.View.extend({
 	editor: null,
 	/** Current Token */
 	token: null,
+	
+	inline: null,
 	
 	$hints: null,
 	hints: null,
@@ -47,6 +116,8 @@ var Assist = cxl.View.extend({
 		this.listenTo(ide.plugins, 'editor.change', this.onToken);
 		this.listenTo(ide.plugins, 'file.write', this.onToken);
 		this.listenTo(ide.plugins, 'workspace.remove', this.onToken);
+		
+		this.inline = new InlineAssist();
 	},
 	
 	onItemClick: function()
@@ -139,20 +210,21 @@ var Assist = cxl.View.extend({
 		}
 	},
 	
-	renderHintOrder: function(hint)
+	renderHint: function(hint, i)
 	{
-	var
-		i = _.sortedIndex(this.hints, hint, 'priority'),
-		el = hint.el,
-		ref = this.hints[i].el
-	;
-		this.hints.splice(i, 0, hint);
-		this.$hints.insertBefore(el, ref);
-	},
-	
-	renderHint: function(hint)
-	{
-		this.$hints.appendChild(hint.el);
+		i = i===undefined ? 
+			_.sortedIndex(this.hints, hint, 'priority') :
+			i
+		;
+		
+		var ref = this.hints[i];
+		
+		if (ref !== hint)
+		{
+			this.hints.splice(i, 0, hint);
+			this.$hints.insertBefore(hint.el, ref.el);
+		} else
+			this.$hints.appendChild(hint.el);
 	},
 	
 	render: function()
