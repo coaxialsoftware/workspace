@@ -252,9 +252,15 @@ ide.Editor.Source = ide.Editor.File.extend({
 		return this.editor.getValue(this.options.lineSeparator);
 	},
 
-	getPosition: function()
+	getCursor: function()
 	{
 		return this.editor.getCursor();
+	},
+	
+	getCursorCoordinates: function(cursor)
+	{
+		cursor = cursor || true;
+		return this.editor.cursorCoords(cursor, 'window');	
 	},
 	
 	_findMode: function()

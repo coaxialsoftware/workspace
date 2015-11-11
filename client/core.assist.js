@@ -9,6 +9,9 @@ ide.Hint = ide.Item.extend({
 	/** Shortcut */
 	key: null,
 	
+	/** "assist" or "inline" */
+	type: 'assist',
+	
 	className: 'log',
 	
 	initialize: function()
@@ -26,6 +29,10 @@ var InlineAssist = function() {
 	this.hints = [];
 	this.el = document.createElement('DIV');
 	this.el.setAttribute('id', 'assist-inline');
+	this.debouncedShow = _.debounce(this.show.bind(this));
+	this.cursor = { line: 0, ch: 0 };
+	
+	window.document.body.appendChild(this.el);
 };
 	
 _.extend(InlineAssist.prototype, {
@@ -38,25 +45,39 @@ _.extend(InlineAssist.prototype, {
 		if (this.visible)
 			this.renderHint(hint);
 		else
-		{
 			this.hints.push(hint);
-		}
+		
+		this.debouncedShow();
 	},
 	
 	clear: function()
 	{
-		this.hints = [];
-		this.el.innerHTML = '';
+		if (this.hints.length)
+			this.hints = [];
 	},
 	
 	show: function(editor)
 	{
 		editor = editor || ide.editor;
-		
-		if (editor && !this.visible)
+		this.cursor.line = editor.token.line;
+		this.cursor.ch = editor.token.start;
+	var
+		pos = editor && editor.getCursorCoordinates &&
+			editor.getCursorCoordinates(this.cursor),
+		style = this.el.style
+	;
+		if (pos)
 		{
-			this.visible = true;
-			this.render();
+			this.el.innerHTML = '';
+			style.top = Math.round(pos.bottom) + 'px';
+			style.left = Math.round(pos.left) + 'px';
+			
+			if (!this.visible)
+			{
+				style.display='block';
+				this.visible = true;
+				this.render();
+			}
 		}
 	},
 	
@@ -69,7 +90,7 @@ _.extend(InlineAssist.prototype, {
 		
 		var ref = this.hints[order];
 		
-		if (ref !== hint)
+		if (ref && ref !== hint)
 		{
 			this.hints.splice(order, 0, hint);
 			this.el.insertBefore(hint.el, ref.el);
@@ -78,13 +99,22 @@ _.extend(InlineAssist.prototype, {
 			this.el.appendChild(hint.el);
 	},
 	
+	hide: function()
+	{
+		this.el.style.display='none';	
+		this.visible = false;
+	},
+	
 	render: function()
 	{
 	var
 		i=0, hints = this.hints, l=hints.length
 	;
-		for (; i<l; i++)
-			this.renderHint(hints[i], i);
+		if (l===0)
+			this.hide();
+		else
+			for (; i<l; i++)
+				this.renderHint(hints[i], i);
 	}
 	
 });
@@ -167,6 +197,7 @@ var Assist = cxl.View.extend({
 		this.$hints.innerHTML = '';
 		this.rendered = false;
 		this.hints = [];
+		this.inline.clear();
 		
 		ide.plugins.trigger('assist',
 			this.addHint.bind(this, this.version), editor, token);
@@ -203,8 +234,11 @@ var Assist = cxl.View.extend({
 		else
 		{
 			var h = hints instanceof ide.Hint ? hints : new ide.Hint(hints);
-			if (this.rendered)
-				this.renderHintOrder(h);
+			
+			if (h.type==='inline')
+				this.inline.add(h);
+			else if (this.rendered)
+				this.renderHint(h);
 			else
 				this.hints.push(h);
 		}

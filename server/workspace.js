@@ -230,14 +230,18 @@ class PluginManager extends EventEmitter {
 				npm.config.set('depth', 0);
 				
 				try {
-					args.push(function(er, data) {
-						if (er)
-							return reject(er);
+					if (typeof(cmd)!=='function')
+					{
+						args.push(function(er, data) {
+							if (er)
+								return reject(er);
+							
+							resolve(fn(data));
+						});
 						
-						resolve(fn(data));
-					});
-					
-					npm.commands[cmd].apply(npm.commands, args);
+						npm.commands[cmd].apply(npm.commands, args);
+					} else
+						resolve(cmd(npm));
 				}
 				catch(e) { reject(e); }
 				finally
@@ -330,14 +334,19 @@ class PluginManager extends EventEmitter {
 	{
 	var
 		me = this,
-		regex = /^\@cxl\/workspace\./
+		regex = /^workspace\./,
+		data, dir
 	;
-		return this.npm('list', null, true, function(data) {
+		return this.npm(function(npm) {
+			dir = path.join(npm.dir, '@cxl');
+			workspace.dbg(`Loading global plugins from ${dir}`);
 
-			_.each(data.dependencies, function(d) {
-				if (regex.test(d.name))
+			data = fs.readdirSync(dir);
+
+			_.each(data, function(d) {
+				if (regex.test(d))
 				{
-					me.requireFile(d.realPath || d.path);
+					me.requireFile(path.join(dir, d));
 				}
 			});
 
