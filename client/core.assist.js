@@ -55,14 +55,8 @@ _.extend(InlineAssist.prototype, {
 		style.left = Math.round(pos.left) + 'px';
 	},
 	
-	add: function(hint, version)
+	add: function(hint)
 	{
-		if (version !== this.version)
-		{
-			this.version=version;
-			this.clear();
-		}
-		
 		if (this.visible)
 			this.renderHint(hint);
 		else
@@ -211,6 +205,7 @@ var Assist = cxl.View.extend({
 		this.$hints.innerHTML = '';
 		this.rendered = false;
 		this.hints = [];
+		this.inline.clear();
 		
 		ide.plugins.trigger('assist',
 			this.addHint.bind(this, this.version), editor, token);
