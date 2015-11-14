@@ -5,18 +5,19 @@
 
 <script id="tpl-item" type="text/template">
 <div data-id="<%= obj.id %>" class="item <%= obj.className %>">
-	<% if (obj.key) { %><kbd><%= obj.key %></kbd><% } %>
 	<% _.each(obj.tags, function(t) { %>
 	<span class="label pull-right"><%=t%></span>
 	<% }) %>
 	<% if (obj.code) { %><code><%= obj.code %></code><% } %>
 	<div>
+	<% if (obj.key) { %><kbd><%= obj.key %></kbd><% } %>
 	<% _.each(obj.icons, function(l) { %>
 	<<%= l.href ? 'a href="' + l.href + '"' : 'span' %> class="icon pull-right" title="<%=l.title%>"><i class="fa fa-<%=l.class%>"></i> <%-l.text%>
 	</<%= l.href ? 'a' : 'span' %>>
 	<% }) %>
 	<h4><%- obj.title %></h4>
 	</div>
+
 </div>
 </script>
 

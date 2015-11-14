@@ -163,7 +163,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 			this.editor.setSelection(this.editor.getCursor('anchor'));
 		},
 		
-		set: function(option, value)
+		option: function(option, value)
 		{
 			if (value===undefined)
 				return this.editor.getOption(option);
@@ -392,7 +392,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 		
 		this.listenTo(editor, 'focus', this._on_focus);
 		this.listenTo(editor, 'cursorActivity', this.onCursorActivity);
-		this.listenTo(editor, 'change', _.debounce(this.onChange.bind(this), 500));
+		this.listenTo(editor, 'change', _.debounce(this.onChange.bind(this), 100));
 		this.listenTo(ide.plugins, 'workspace.resize', this.resize);
 	},
 

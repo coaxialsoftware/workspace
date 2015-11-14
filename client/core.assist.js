@@ -33,15 +33,36 @@ var InlineAssist = function() {
 	this.cursor = { line: 0, ch: 0 };
 	
 	window.document.body.appendChild(this.el);
+	ide.plugins.on('token', this.onToken.bind(this));
 };
 	
 _.extend(InlineAssist.prototype, {
 	
 	hints: null,
 	visible: false,
+	version: 0,
 	
-	add: function(hint)
+	onToken: function(editor, token)
 	{
+		this.cursor.line = token.line;
+		this.cursor.ch = token.start;
+	var
+		pos = editor.getCursorCoordinates &&
+			editor.getCursorCoordinates(this.cursor),
+		style = this.el.style
+	;
+		style.top = Math.round(pos.bottom) + 'px';
+		style.left = Math.round(pos.left) + 'px';
+	},
+	
+	add: function(hint, version)
+	{
+		if (version !== this.version)
+		{
+			this.version=version;
+			this.clear();
+		}
+		
 		if (this.visible)
 			this.renderHint(hint);
 		else
@@ -54,30 +75,23 @@ _.extend(InlineAssist.prototype, {
 	{
 		if (this.hints.length)
 			this.hints = [];
+		
+		if (this.visible)
+			this.el.innerHTML = '';
 	},
 	
 	show: function(editor)
 	{
 		editor = editor || ide.editor;
-		this.cursor.line = editor.token.line;
-		this.cursor.ch = editor.token.start;
-	var
-		pos = editor && editor.getCursorCoordinates &&
-			editor.getCursorCoordinates(this.cursor),
-		style = this.el.style
-	;
-		if (pos)
+		
+		if (editor.option && editor.option('disableInput'))
+			return;
+
+		if (!this.visible)
 		{
-			this.el.innerHTML = '';
-			style.top = Math.round(pos.bottom) + 'px';
-			style.left = Math.round(pos.left) + 'px';
-			
-			if (!this.visible)
-			{
-				style.display='block';
-				this.visible = true;
-				this.render();
-			}
+			this.el.style.display='block';
+			this.visible = true;
+			this.render();
 		}
 	},
 	
@@ -122,7 +136,7 @@ _.extend(InlineAssist.prototype, {
 var Assist = cxl.View.extend({
 	el: '#assist',
 	visible: false,
-	delay: 500,
+	delay: 200,
 	
 	/** Current requrest for hints version. */
 	version: 0,
@@ -197,7 +211,6 @@ var Assist = cxl.View.extend({
 		this.$hints.innerHTML = '';
 		this.rendered = false;
 		this.hints = [];
-		this.inline.clear();
 		
 		ide.plugins.trigger('assist',
 			this.addHint.bind(this, this.version), editor, token);
@@ -226,17 +239,20 @@ var Assist = cxl.View.extend({
 	 */
 	addHint: function(version, hints)
 	{
-		if (!this.visible || version!==this.version)
+		if (version!==this.version)
 			return;
 		
 		if (Array.isArray(hints))
 			hints.forEach(this.addHint.bind(this, version));
 		else
 		{
+			if (!this.visible && hints.type!=='inline')
+				return;
+			
 			var h = hints instanceof ide.Hint ? hints : new ide.Hint(hints);
 			
 			if (h.type==='inline')
-				this.inline.add(h);
+				this.inline.add(h, version);
 			else if (this.rendered)
 				this.renderHint(h);
 			else

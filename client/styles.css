@@ -45,24 +45,6 @@ pre {
 	background-color: rgba(0,0,0,0.5); margin: 6px 0 0 0;
 }
 
-.info { 
-	position: absolute; 
-	left: 0; right: 0;
-	display: none;
-	background-color: rgb(44, 62, 80);
-	color: #fff;
-	font-size: 16px;
-	font-weight: 200;
-	z-index: 30;
-	padding: 6px;
-	transition: opacity 0.3s;
-}
-
-.info:hover {
-	display: block !important; opacity: 1 !important;
-	font-size: 16px;
-}
-
 #notification { 
 	position: fixed; top: 10px; right: 10px; z-index: 9000;
 	list-style: none; text-align: right;
@@ -72,13 +54,25 @@ pre {
 
 
 .label, kbd {
-	font-size: 10px; border-radius: 2px; 
-	background-color: #666; color: #eee;
-	padding: 1px 5px; margin: 0 2px;
-	font-weight: bold;
+	border-radius: 2px; 
+	color: #eee; 
+	font-weight: normal; 
+	font-family: Monaco, Menlo, 'Ubuntu Mono', Consolas, source-code-pro, monospace;
 }
 
-kbd { font-family: monospace; background-color: #333; }
+.label {
+	font-size: 10px; 
+	padding: 1px 4px; margin: 0 2px 0 0;
+	line-height: 10px;
+	text-transform: uppercase;
+	background-color: rgba(255,255,255,0.3);
+}
+
+kbd {
+	background-color: #333;
+	border-radius: 4px;
+	padding: 2px 4px;
+}
 
 .label-success {
 	background-color: #5cb85c;
@@ -152,7 +146,6 @@ kbd { font-family: monospace; background-color: #333; }
 	width: 100%; height: 24px; border: 0; 
 	z-index: 10; outline: none; font-family: monospace;
 	border-radius: 0;
-	font-size: 16px;
 	padding: 1px 0;
 }
 
@@ -208,35 +201,43 @@ div.CodeMirror-cursors { visibility: visible; }
 .item {
 	box-sizing: border-box;
 	transition: width 0.2s, opacity 0.2s, background-color 0.2s;
-	padding: 2px;
-	margin-bottom: 2px;
+	padding: 2px 4px;
+	margin-bottom: 4px;
 	display: block;
 	text-decoration: none;
-	color: #eee;
+	color: rgba(255, 255, 255, 0.9); width: 100%;
 	text-align: left;
-	background-color: rgb(117, 117, 117);
-	border: 1px solid #424242;
+	border: 1px solid rgba(0, 100, 159, 1);
 	cursor: pointer;
+	border-radius: 2px;
+	box-shadow: 0px 0px 2px 2px rgba(0, 100, 159, 0.5);
 }
 
 .item pre { white-space: pre-wrap; }
-.item kbd { float: right; font-size: 10px; }
+.item kbd {
+	float: right; font-size: 12px;
+}
 .item code {
-	padding: 1px 0; margin-right: 10px; display: inline-block;
-	font-size: 10px;
+	margin-right: 10px; display: block;
+	font-size: 10px; text-transform: uppercase;
 }
 .item h4 {
-	font-size: 12px;
-	margin: 0;
-	padding: 2px;
+	font-size: 12px; font-weight: normal;
+	margin: 0; padding: 2px 0;
 	word-wrap: break-word;
 }
 .item footer { margin-top: 4px; }
 .item-collapsed .item-detail { display: none; }
 
-.item.log {	background-color: rgb(0, 100, 159); }
-.item.error, .error { background-color: rgb(231, 76, 60); }
-.item.warn, .warn { background-color: rgb(241, 196, 15); color: #333; }
+.item.log {	background-color: rgba(0, 100, 159, 0.5); }
+.item.error, .error {
+	border-color: rgb(231, 76, 60);
+	background-color: rgba(231, 76, 60, 0.7);
+}
+.item.warn, .warn {
+	border-color: rgb(241, 196, 15);
+	background-color: rgba(241, 196, 15, 0.6);
+}
 
 .item > img.primary { 
 	float: left; margin-right: 14px;
@@ -282,8 +283,12 @@ div.CodeMirror-cursors { visibility: visible; }
 #assist-inline {
 	position: absolute; z-index: 10;
 	font-family: Monaco, Menlo, 'Ubuntu Mono', Consolas, source-code-pro, monospace;
+	max-height: 130px; overflow-y: hidden; margin-left: -4px;
 }
-#assist-inline .item { border: 0; margin-left: -4px; }
+#assist-inline .item {
+	border: 0;
+	background-color: rgba(0, 100, 159, 0.8);
+}
 #assist-inline .item code { display: none; }
 #assist-inline .item h4 { overflow-y: hidden; }
 
@@ -298,7 +303,7 @@ form input {
 	border-bottom: 1px solid #ddd;
 	width: 100%; color: #eee;
 	padding: 8px 0 8px 0;
-	margin-bottom: 8px; font-size: 14px;
+	margin-bottom: 8px; font-size: 12px;
 	line-height: 16px;
 	transition: box-shadow 0.2s, border-color 0.2s;
 }
