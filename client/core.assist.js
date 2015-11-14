@@ -32,6 +32,8 @@ var InlineAssist = function() {
 	this.debouncedShow = _.debounce(this.show.bind(this));
 	this.cursor = { line: 0, ch: 0 };
 	
+	ide.plugins.on('editor.scroll', this.onScroll, this);
+	
 	window.document.body.appendChild(this.el);
 	ide.plugins.on('token', this.onToken.bind(this));
 };
@@ -41,6 +43,12 @@ _.extend(InlineAssist.prototype, {
 	hints: null,
 	visible: false,
 	version: 0,
+	
+	onScroll: function()
+	{
+		if (this.visible)
+			this.hide();
+	},
 	
 	onToken: function(editor, token)
 	{

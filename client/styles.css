@@ -219,7 +219,7 @@ div.CodeMirror-cursors { visibility: visible; }
 	float: right; font-size: 12px;
 }
 .item code {
-	margin-right: 10px; display: block;
+	margin-bottom: 2px; display: block;
 	font-size: 10px; text-transform: uppercase;
 }
 .item h4 {
@@ -293,6 +293,9 @@ div.CodeMirror-cursors { visibility: visible; }
 #assist-inline .item {
 	border: 0;
 	background-color: rgba(0, 100, 159, 0.8);
+}
+#assist-inline .item:hover {
+	background-color: rgb(30, 130, 189);
 }
 #assist-inline .item code { display: none; }
 #assist-inline .item h4 { overflow-y: hidden; }
