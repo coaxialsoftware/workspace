@@ -73,7 +73,7 @@
 <script id="tpl-login" type="text/template">
 <div class="col-offset-3 col-4 layout-vertical-middle">
 <form &="submit(submit)">
-	<fieldset>
+	<fieldset &="unless:=username">
 	<legend>Log In</legend>
 		<p>
 		<label for="name">Username</label>
@@ -85,6 +85,16 @@
 		</p>
 		<p class="text-right">
 		<button type="submit">Submit</button>
+		</p>
+	</fieldset>
+</form>
+<form &="submit(logOut)">
+	<fieldset &="if:=username">
+		<p>
+			Logged in as <span &="html:=username">.
+		</p>
+		<p>
+			<button type="submit">Log Out</button>
 		</p>
 	</fieldset>
 </form>

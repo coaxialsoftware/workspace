@@ -42,9 +42,6 @@ online.extend({
 
 			this.log(`Logged In as ${this.username}!`);
 			
-			workspace.configuration.user = this.username;
-			workspace.configuration.gravatar = this.gravatar;
-			
 			workspace.data('online', {
 				username: this.username,
 				gravatar: this.gravatar,
@@ -52,7 +49,10 @@ online.extend({
 				url: this.fb.toString()
 			});
 			
-			response = { auth: { uid: this.uid, gravatar: this.gravatar } };
+			response = { auth: {
+				uid: this.uid, gravatar: this.gravatar,
+				username: this.username
+			}};
 		}
 
 		workspace.socket.broadcast('online', response);
@@ -81,6 +81,12 @@ online.extend({
 		}, this.onComplete.bind(this, client));
 	},
 	
+	logout: function()
+	{
+		this.log('Logging out');
+		this.fb.unauth();
+	},
+	
 	loginToken: function(token)
 	{
 		this.fb.authWithCustomToken(token, this.onComplete.bind(this, null));
@@ -90,6 +96,8 @@ online.extend({
 	{
 		if (msg.login)
 			this.login(client, msg.login);
+		else if (msg.logout)
+			this.logout(client);
 	},
 	
 	isConnected: function()
@@ -140,7 +148,11 @@ online.extend({
 	
 	onProject: function(project)
 	{
-		project.configuration['online.url'] = this.url;
+		project.configuration.set({
+			'online.url': this.url,
+			'user.name': this.username,
+			'user.gravatar': this.gravatar
+		});
 	}
 	
 })

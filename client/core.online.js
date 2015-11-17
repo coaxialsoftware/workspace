@@ -10,13 +10,20 @@ var LoginDialog = ide.Editor.extend({
 	
 	onAuth: function(auth)
 	{
-		this.auth = auth;
+		this.username = auth && (auth.username || auth.uid);
+		this.digest();
 	},
 	
 	_setup: function()
 	{
 		this.template = cxl.id(this.templateUrl).innerHTML;
 		this.listenTo(ide.plugins, 'online.auth', this.onAuth);
+		this.username = ide.project.get('user.name');
+	},
+	
+	logOut: function()
+	{
+		ide.socket.send('online', { logout: true });
 	},
 	
 	submit: function()
@@ -52,7 +59,7 @@ ide.plugins.register('online', {
 		if ('auth' in data)
 		{
 			if (data.auth)
-				ide.notify('Logged in as ' + data.auth.uid);
+				ide.notify('Logged in as ' + data.auth.username);
 			
 			ide.plugins.trigger('online.auth', data.auth);
 		} else if (data.login===false)
