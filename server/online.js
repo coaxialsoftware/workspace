@@ -73,6 +73,7 @@ online.extend({
 				workspace.socket.respond(client, 'online', {
 					login: false
 				});
+			this.dbg(err);
 			return this.error('Authentication failed.');
 		}
 	},
@@ -117,6 +118,7 @@ online.extend({
 		url = this.url = workspace.configuration['online.url'] ||
 			'https://cxl.firebaseio.com/workspace'
 	;
+		this.dbg(`Connecting to ${url}`);
 		this.fb = new Firebase(url);
 		this.__info = new Firebase(this.fb.root() + '/.info');
 	},
