@@ -107,6 +107,11 @@ class WorkspaceConfiguration extends Configuration {
 			});
 	}
 	
+	onUpdate()
+	{
+		workspace.plugins.emit('workspace.reload');
+	}
+	
 }
 
 cxl.define(WorkspaceConfiguration, {
@@ -567,7 +572,6 @@ workspace.extend({
 		if (file==='workspace.json')
 		{
 			this.configuration = new WorkspaceConfiguration();
-			workspace.plugins.emit('workspace.reload');
 		}
 		
 		workspace.plugins.emit('workspace.watch:' + file, ev, file);

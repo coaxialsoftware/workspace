@@ -22,12 +22,13 @@ online.extend({
 
 	onAuth: function(auth)
 	{
-		var response;
+		var response, data;
 		
 		if (!auth)
 		{
 			response = { auth: null };
-			workspace.data('online', null);
+			data = this.username = this.gravatar = null;
+			
 			this.log('Not Authenticated');
 		} else
 		{
@@ -42,18 +43,24 @@ online.extend({
 
 			this.log(`Logged In as ${this.username}!`);
 			
-			workspace.data('online', {
+			data = {
 				username: this.username,
 				gravatar: this.gravatar,
 				token: this.token,
 				url: this.fb.toString()
-			});
+			};
 			
 			response = { auth: {
 				uid: this.uid, gravatar: this.gravatar,
 				username: this.username
 			}};
 		}
+		
+		workspace.data('online', data);
+		workspace.configuration.set({
+			'user.name': this.username,
+			'user.gravatar': this.gravatar
+		});
 
 		workspace.socket.broadcast('online', response);
 	},
@@ -142,15 +149,6 @@ online.extend({
 		fb.on('value', function(data) {
 			cb.call(scope, data.val());
 		});
-	},
-	
-	onProject: function(project)
-	{
-		project.configuration.set({
-			'online.url': this.url,
-			'user.name': this.username,
-			'user.gravatar': this.gravatar
-		});
 	}
 	
 })
@@ -184,6 +182,5 @@ var
 		this.log(status ? 'Connected' : 'Disconnected');
 	}, this);
 	
-	workspace.plugins.on('project.load', this.onProject.bind(this));
 	workspace.plugins.on('socket.message.online', this.onMessage.bind(this));
 });
