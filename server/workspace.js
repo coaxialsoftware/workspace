@@ -26,7 +26,7 @@ var
 
 /**
  * Options
- * 
+ *
  * onUpdate   Callback function.
  */
 class Configuration {
@@ -34,7 +34,7 @@ class Configuration {
 	constructor(defaults)
 	{
 		var me = this;
-		
+
 		me.$ = 0;
 		me.update = _.debounce(function() {
 			me.$++;
@@ -42,11 +42,11 @@ class Configuration {
 				me.onUpdate();
 			return me;
 		}, 500);
-		
+
 		if (defaults)
 			me.set(defaults);
 	}
-	
+
 	// TODO add checks in debug module
 	set(key, value)
 	{
@@ -54,10 +54,10 @@ class Configuration {
 			cxl.extend(this, key);
 		else
 			this[key] = value;
-		
-		return this.update(); 
+
+		return this.update();
 	}
-	
+
 	/**
 	 * Will extend configuration, it will not override array or objects.
 	 */
@@ -66,7 +66,7 @@ class Configuration {
 		common.extend(this, obj);
 		return this.update();
 	}
-	
+
 	/**
 	 * Loads a JSON configuration file. Uses extend method to set properties.
 	 */
@@ -79,14 +79,14 @@ class Configuration {
 }
 
 class WorkspaceConfiguration extends Configuration {
-	
+
 	constructor()
 	{
 		super();
-		
+
 		this.loadFile('~/.workspace.json');
 		this.loadFile('workspace.json');
-		
+
 		if (this['plugins.global']===undefined && !this['plugins.path'])
 			this['plugins.global'] = true;
 
@@ -106,16 +106,16 @@ class WorkspaceConfiguration extends Configuration {
 				cert: fs.readFileSync(secure.cert)
 			});
 	}
-	
+
 	onUpdate()
 	{
 		workspace.plugins.emit('workspace.reload');
 	}
-	
+
 }
 
 cxl.define(WorkspaceConfiguration, {
-	
+
 	/**
 	 * Enable Debug Mode.
 	 */
@@ -139,7 +139,7 @@ cxl.define(WorkspaceConfiguration, {
 	 * User scripts. Will be added to all projects.
 	 */
 	scripts: null,
-	
+
 	/**
 	 * Default help URL. Defaults to /docs/index.html
 	 */
@@ -148,7 +148,7 @@ cxl.define(WorkspaceConfiguration, {
 });
 
 class Plugin {
-	
+
 	constructor(path)
 	{
 		var mod = this.mod = require(path);
@@ -157,7 +157,7 @@ class Plugin {
 			.replace(/\./g, '-');
 		this.path = path;
 		this.name = mod.name;
-		
+
 		this.ready = Q.props({
 			source: mod.source ? _.result(mod, 'source') :
 				(mod.sourcePath ? common.read(mod.sourcePath) : ''),
@@ -169,18 +169,18 @@ class Plugin {
 			this.mod.error(`Failed to load plugin ${this.name}`);
 			this.mod.error(e);
 		});
-		
+
 		if (mod.sourcePath)
 			workspace.watch(mod.sourcePath, this.onWatch.bind(this));
-		
+
 		workspace.online.watch('/plugins/'+this.id, this.onValue, this);
 	}
-	
+
 	start()
 	{
 		this.mod.start();
 	}
-	
+
 	onWatch(ev, file)
 	{
 		workspace.dbg(`Plugin ${this.name} source updated.`);
@@ -189,7 +189,7 @@ class Plugin {
 			workspace.plugins.emit('plugins.source', this.id, this.source);
 		}, function() { this.source = ''; });
 	}
-	
+
 	onValue(data)
 	{
 		if (!data)
@@ -207,12 +207,12 @@ class PluginManager extends EventEmitter {
 	constructor()
 	{
 		super();
-		
+
 		this.plugins = {};
 	}
-	
+
 	/** Calls npm and returns a promise with the result */
-	npm(cmd, a, b, fn)
+	doNpm(cmd, a, b, fn)
 	{
 	var
 		pluginsPath = workspace.configuration['plugins.path'],
@@ -224,26 +224,26 @@ class PluginManager extends EventEmitter {
 			args.push(b);
 		else if (arguments.length===3)
 			fn = b;
-		
+
 		return new Q(function(resolve, reject) {
 			npm.load(function(er, npm) {
 				if (pluginsPath)
 					process.chdir(pluginsPath);
-				
+
 				npm.config.set('global', global);
 				npm.config.set('json', true);
 				npm.config.set('depth', 0);
-				
+
 				try {
 					if (typeof(cmd)!=='function')
 					{
 						args.push(function(er, data) {
 							if (er)
 								return reject(er);
-							
+
 							resolve(fn(data));
 						});
-						
+
 						npm.commands[cmd].apply(npm.commands, args);
 					} else
 						resolve(cmd(npm));
@@ -256,9 +256,9 @@ class PluginManager extends EventEmitter {
 				}
 			});
 		});
-		
+
 	}
-	
+
 	/**
 	 * Install plugins locally using npm
 	 */
@@ -267,21 +267,21 @@ class PluginManager extends EventEmitter {
 		// Make sure we only include plugins from cxl workspace.
 		if (name.indexOf('@cxl/workspace')!==0)
 			return Q.reject(`Invalid plugin name "${name}"`);
-		
+
 		workspace.dbg(`Installing plugin ${name} ${version}`);
-		return this.npm('install', '.', [ name ], function() {
+		return this.doNpm('install', '.', [ name ], function() {
 			return `Successfully installed plugin ${name}`;
 		});
 	}
-	
+
 	uninstall(name, version)
 	{
 		// Make sure we only include plugins from cxl workspace.
 		if (name.indexOf('@cxl/workspace')!==0)
 			return Q.reject("Invalid plugin name");
-		
+
 		workspace.dbg(`Uninstalling plugin ${name} ${version}`);
-		return this.npm('uninstall', [ name ], function() {
+		return this.doNpm('uninstall', [ name ], function() {
 			return `Successfully uninstalled plugin ${name}`;
 		});
 	}
@@ -295,12 +295,12 @@ class PluginManager extends EventEmitter {
 	{
 		if (plugin.id in this.plugins)
 			workspace.log(`WARNING Plugin ${plugin.name} already registered.`);
-						  
+
 		this.plugins[plugin.id] = plugin;
-		
+
 		return this;
 	}
-	
+
 	requireFile(file)
 	{
 		try {
@@ -313,12 +313,12 @@ class PluginManager extends EventEmitter {
 			workspace.dbg(e);
 		}
 	}
-	
+
 	requirePlugins(plugins)
 	{
 		_.each(plugins, this.requirePlugin, this);
 	}
-	
+
 	requirePlugin(name)
 	{
 	var
@@ -326,15 +326,15 @@ class PluginManager extends EventEmitter {
 	;
 		if (parsed[1]==='file')
 			return this.requireFile(path.resolve(parsed[2]));
-		
+
 		return this.requireFile(name);
 	}
-	
+
 	getPackages()
 	{
 		return _.mapValues(this.plugins, 'package');
 	}
-	
+
 	loadGlobalPlugins()
 	{
 	var
@@ -342,7 +342,7 @@ class PluginManager extends EventEmitter {
 		regex = /^workspace\./,
 		data, dir
 	;
-		return this.npm(function(npm) {
+		return this.doNpm(function(npm) {
 			dir = path.join(npm.dir, '@cxl');
 			workspace.dbg(`Loading global plugins from ${dir}`);
 
@@ -358,38 +358,38 @@ class PluginManager extends EventEmitter {
 			return _.pluck(me.plugins, 'ready');
 		});
 	}
-	
+
 	loadLocalPlugins()
 	{
 		this.requirePlugins(workspace.configuration.plugins);
 	}
-	
+
 	getSources(plugins)
 	{
 		var me = this;
 		plugins = plugins || _.keys(this.plugins);
-		
+
 		return _.reduce(plugins, function(result, n) {
-			
+
 			if (n in me.plugins)
 				result += me.plugins[n].source;
 			else
 				workspace.error(`Plugin "${n}" not found.`);
-			
+
 			return result;
 		}, '') + (this.scripts ? this.scripts : '');
 	}
-	
+
 	loadScripts(scripts)
 	{
 		if (!scripts)
 			return;
-		
+
 		if (typeof(scripts)==='string')
 			scripts = [];
-		
+
 		this.scripts = '';
-		
+
 		scripts.forEach(function(s) {
 			try {
 				workspace.dbg('Loading script "${e}"');
@@ -400,20 +400,20 @@ class PluginManager extends EventEmitter {
 				workspace.dbg(e);
 			}
 		}, this);
-		
+
 	}
-	
+
 	onScriptsWatch()
 	{
 		this.loadScripts(workspace.configuration.scripts);
 	}
-	
+
 	start()
 	{
 		this.loadLocalPlugins();
-		
+
 		return this.loadGlobalPlugins().all().bind(this).then(function() {
-			
+
 			for (var i in this.plugins)
 				this.plugins[i].start();
 
@@ -434,33 +434,33 @@ class Theme
 		this.path = path.isAbsolute(p) ? p :
 			basePath + '/public/theme/' + p + '.css';
 		this.loaded = false;
-		
+
 		workspace.watch(this.path, this.onWatch.bind(this));
 	}
-	
+
 	onWatch()
 	{
 		this.load().then(function() {
 			workspace.plugins.emit('themes.reload:' + this.name, this);
 		});
 	}
-	
+
 	toJSON()
 	{
 		return this.source;
 	}
-	
+
 	load()
 	{
 		return common.read(this.path).bind(this).then(function(src)
 		{
 			this.loaded = true;
 			this.source = src.replace(/\n/g,'');
-			
+
 			return this;
 		});
 	}
-	
+
 }
 
 class ThemeManager
@@ -469,21 +469,21 @@ class ThemeManager
 	{
 		this.themes = {};
 	}
-	
+
 	load(path)
 	{
 		var theme = this.themes[path] || (this.themes[path]=new Theme(path));
 		return theme.loaded ? Q.resolve(theme) : theme.load();
 	}
-	
+
 }
 
 workspace.extend({
-	
+
 	Configuration: Configuration,
 
 	configuration: new WorkspaceConfiguration(),
-	
+
 	plugins: new PluginManager(),
 	themes: new ThemeManager(),
 	basePath: basePath,
@@ -491,10 +491,10 @@ workspace.extend({
 
 	_: _,
 	Q: Q,
-	
+
 	__data: null,
 	__dataFile: basePath + '/data.json',
-	
+
 	/**
 	 * Persist data for plugins.
 	 */
@@ -502,15 +502,15 @@ workspace.extend({
 	{
 		if (arguments.length===1)
 			return this.__data[plugin];
-		
+
 		this.__data[plugin] = data;
 		this.__saveData();
 	},
-	
+
 	shell: function(command, params, cwd, res)
 	{
 		var me = this;
-		
+
 		this.log(command + (params ? ' ' + params.join(' ') : ''));
 
 		var process = require('child_process').spawn(
@@ -520,11 +520,11 @@ workspace.extend({
 		process.on('error', this.error.bind(this.log));
 		process.on('close', function(code) {
 			me.log(command + ' returned with status ' + code);
-			
+
 			if (res)
 				res.end();
 		});
-		
+
 		if (res)
 		{
 			process.stdout.on('data', function(data) {
@@ -538,26 +538,26 @@ workspace.extend({
 				res.write(data);
 			});
 		}
-		
+
 		process.unref();
-		
+
 		return process;
 	},
-	
+
 	__saveData: function()
 	{
 		var me = this;
-		
+
 		if (this.__dataTimeout)
 			clearTimeout(this.__dataTimeout);
-		
+
 		this.__dataTimeout = setTimeout(function() {
 			me.dbg(`Writing data file. ${me.__dataFile} (${Buffer.byteLength(me.__data)} bytes)`);
-			
+
 			common.writeFile(me.__dataFile, JSON.stringify(me.__data));
 		});
 	},
-	
+
 	watch: function(path, cb)
 	{
 		var id = this.watcher.watchFile(path);
@@ -566,14 +566,14 @@ workspace.extend({
 		if (cb)
 			this.plugins.on('workspace.watch:' + id, cb);
 	},
-	
+
 	onWatch: function(ev, file)
 	{
 		if (file==='workspace.json')
 		{
 			this.configuration = new WorkspaceConfiguration();
 		}
-		
+
 		workspace.plugins.emit('workspace.watch:' + file, ev, file);
 	}
 
@@ -587,11 +587,11 @@ workspace.extend({
 	common.stat('workspace.json')
 		.then(this.watcher.watchFile.bind(this.watcher, 'workspace.json'),
 			this.log.bind(this, 'No workspace.json found.'));
-	
+
 	this.__data = common.load_json_sync(this.__dataFile) || {};
-	
+
 	process.title = 'workspace:' + this.port;
-	
+
 	// Enable Test path
 	if (this.configuration.debug)
 		this.use(cxl.static(basePath + '/test', { maxAge: 86400000 }));
@@ -623,7 +623,7 @@ workspace.extend({
 	require('./project').start();
 	require('./file').start();
 	require('./assist').start();
-	
+
 	this.operation('Loading plugins', this.plugins.start.bind(this.plugins));
 });
 

@@ -13,8 +13,13 @@
 		"file:../../workspace.base/workspace.jshint",
         "file:../../workspace.inference",
 		"file:../../workspace.karma",
-		"file:../../workspace.angular"
+		"file:../../workspace.angular",
+		"file:../../workspace.base/workspace.trailing"
 	],
+	
+	
+	
+	
 	
 	"plugins.path": ".",
 	"socket.port": 9005,

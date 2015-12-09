@@ -79,6 +79,7 @@ class File {
 
 		function WriteFile()
 		{
+			workspace.plugins.emit('file.beforewrite', this);
 			return common.writeFile(this.path, this.content);
 		}
 

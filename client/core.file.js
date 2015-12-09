@@ -30,7 +30,7 @@ ide.File = cxl.Model.extend({
 	var
 		id = this.id || (this.get('project') + '/' + this.get('filename')),
 		msg = (res && (res.responseJSON && res.responseJSON.error) ||
-			res.responseText) || 
+			res.responseText) ||
 			(this.saving ? 'Error saving file: ' : 'Error opening file: ') + id
 	;
 		ide.error(msg);
@@ -52,13 +52,13 @@ ide.File = cxl.Model.extend({
 		return '/file?p=' + this.get('project') +
 			'&n=' + this.get('filename') + '&t=' + mtime;
 	},
-	
+
 	parse: function(data)
 	{
-		this.originalValue = data.content || '';	
+		this.originalValue = data.content || '';
 		return data;
 	},
-	
+
 	diff: function()
 	{
 	var
@@ -73,52 +73,56 @@ ide.File = cxl.Model.extend({
 		} else
 			return this.lastDiff;
 	}
-	
+
 });
-	
+
 function FileManager()
 {
 	ide.plugins.on('socket.message.file', this.onMessage, this);
 }
-	
+
 FileManager.prototype = {
-	
+
 	findFiles: function(filename)
 	{
 		return _.filter(ide.workspace.slots, 'editor.file.attributes.filename', filename);
 	},
-	
+
 	onMessageStat: function(data)
 	{
 		var files = this.findFiles(data.f), updated=0;
-		
+
 		// TODO optimize this?
 		files.forEach(function(slot) {
-			
+
 			var file = slot.editor.file;
-			
-			if (file.hasChanged('content'))
+
+			if (file.get('mtime')!==data.t)
 			{
-				file.old = true;
-				ide.warn('File "' + this.file.id + '" contents could not be updated.');
-			}
-			else if (file.get('mtime')!==data.t)
-			{
-				updated++;
-				file.fetch();
+				if (file.hasChanged('content'))
+				{
+					file.old = true;
+					ide.warn('File "' + this.file.id + '" contents could not be updated.');
+				}
+				else
+				{
+
+					updated++;
+					file.fetch();
+				}
 			}
 		});
-		
+
 		if (updated)
 			ide.notify('File "' + data.f + '" was updated.');
 	},
-	
+
 	onMessage: function(data)
 	{
 		if (data.stat)
 			this.onMessageStat(data.stat);
 	},
-	
+
 	/**
 	 * Creates a new file object.
 	 */
@@ -126,31 +130,31 @@ FileManager.prototype = {
 	{
 		if (typeof(filename)==='string')
 			filename = { filename: filename };
-		
+
 		return new ide.File(filename);
 	}
-	
+
 };
-	
+
 ide.plugins.on('assist', function(done, editor, token) {
-	
+
 	if (editor && editor.file)
 	{
 		var hints = [];
-		
+
 		if (editor.file instanceof ide.File)
 			hints.push({ title: editor.getInfo(), code: 'file' });
-		
+
 		if (token && (token.type===null || token.type==='string' ||
 			token.type==='string property') && token.string)
 			hints.push({ title: 'Find file ' + token.string, action: 'find'
 			});
-		
+
 		done(hints);
 	}
-	
+
 });
-	
+
 ide.fileManager = new FileManager();
 
 })(this.cxl, this.ide, this._);
