@@ -1,7 +1,7 @@
 
 (function(ide, $, _, cxl) {
 "use strict";
-	
+
 function globToRegex(glob) {
 var
 	// The regexp we are building, as a string.
@@ -13,7 +13,7 @@ var
 
 	c, len = glob.length, i=0
 ;
-	
+
 	for (;i < len; i++) {
 		c = glob[i];
 
@@ -57,63 +57,63 @@ var
 
 	return new RegExp(reStr);
 }
-	
+
 ide.Item = cxl.View.extend({
 	priority: 0
 });
-	
+
 ide.Editor.List = ide.Editor.extend({
-	
+
 	title: '',
 	template: null,
 	itemTemplate: null,
 	itemClass: ide.Item,
 	items: null,
-	
+
 	onItemClick: null,
-	
+
 	onListClick: function(ev)
 	{
 	var
 		id = ev.currentTarget.dataset.id
-	;		
+	;
 		if (id && this.onItemClick)
 		{
 			if (this.onItemClick)
 				this.onItemClick(ev, this.items[id]);
 		}
-	
+
 		ev.stopPropagation();
 		ev.preventDefault();
 	},
-	
+
 	// content DOM element
 	$list: null,
-	
+
 	_setup: function()
 	{
 		this.$el.addClass('panel');
 		this.listenTo(this.el, 'wheel', this.onWheel);
 	},
-	
+
 	onWheel: function(ev)
 	{
 		var dY = ev.deltaY;
 		this.el.scrollTop += dY;
 		ev.preventDefault();
 	},
-	
+
 	_ready: function()
 	{
 		this.$list = $(this.$list)
 			.on('click', '.item', this.onListClick.bind(this));
-		
+
 		if (this.items)
 			this._addElements(this.items, 0);
 		else
 			this.items = [];
 	},
-	
+
 	createItem: function(item)
 	{
 		if (!(item instanceof this.itemClass))
@@ -122,34 +122,34 @@ ide.Editor.List = ide.Editor.extend({
 				item.template = this.itemTemplate;
 			item = new this.itemClass(item);
 		}
-		
+
 		return item;
 	},
-	
+
 	// TODO support remove?
 	_addElements: function(items, i)
 	{
 		var l = i===undefined ? this.items.length : i, item;
-		
+
 		items.forEach(function(f, i) {
 			f.id = l + i;
 			item = this.createItem(f);
 			this.$list.append(item.el);
 		}, this);
 	},
-	
+
 	reset: function()
 	{
 		this.items = [];
 		this.$list.empty();
 	},
-	
+
 	add: function(items)
 	{
 		this._addElements(items);
 		this.items = this.items.concat(items);
 	},
-	
+
 	focus: function()
 	{
 		this._findFocus().focus();
@@ -164,15 +164,15 @@ ide.Editor.List = ide.Editor.extend({
 	_findFocus: function()
 	{
 		var focused = this.$list.find(':focus');
-		
+
 		if (!focused.is(':visible'))
 			focused = this.$list.find('.item:visible:eq(0)');
-		
+
 		return focused;
 	},
-	
+
 	commands: {
-	
+
 		quit: function()
 		{
 			ide.workspace.remove(this);
@@ -210,18 +210,18 @@ ide.Editor.List = ide.Editor.extend({
 		{
 			this.goLineDown('prev');
 		}
-		
+
 	}
-	
+
 });
-	
+
 ide.Editor.FileList = ide.Editor.List.extend({
 
 	_findTest: function(regex, file)
 	{
 		return regex.test(file.filename);
 	},
-	
+
 	onItemClick: function(ev, item)
 	{
 	var
@@ -234,7 +234,7 @@ ide.Editor.FileList = ide.Editor.List.extend({
 
 		if (ev.ctrlKey)
 			options.target = '_blank';
-		
+
 		ide.open(options);
 
 		if (!ev.shiftKey)
@@ -245,10 +245,10 @@ ide.Editor.FileList = ide.Editor.List.extend({
 	{
 		if (!this.itemTemplate)
 			this.itemTemplate = cxl._templateId('tpl-file');
-		
+
 		ide.Editor.List.prototype._setup.call(this);
 	}
-	
+
 });
 
 ide.plugins.register('find', new ide.Plugin({
@@ -268,7 +268,10 @@ ide.plugins.register('find', new ide.Plugin({
 		});
 
 		if (files.length===1)
-			ide.open(files[0].filename);
+			ide.open({
+				file: files[0].filename,
+				slot: options.slot
+			});
 		else if (files.length===0)
 			ide.notify('No files found that match "' + mask + '"');
 		else
@@ -291,7 +294,7 @@ ide.plugins.register('find', new ide.Plugin({
 	},
 
 	commands: { /** @lends ide.commands */
-		
+
 		/**
 		 * Finds file by mask and displays all matches, if only one found
 		 * it will automatically open it. If not mask is specified it will use
@@ -307,14 +310,14 @@ ide.plugins.register('find', new ide.Plugin({
 }));
 
 ide.plugins.register('folder', new ide.Plugin({
-	
+
 	commands: {
-		
+
 		browse: function()
 		{
 			ide.open('.');
 		}
-		
+
 	},
 
 	edit: function(options)
@@ -327,7 +330,7 @@ ide.plugins.register('folder', new ide.Plugin({
 			files.unshift({ filename: '..' });
 
 			path = file.get('filename');
-			
+
 			options.prefix = path==='.' ? '' : (path + '/');
 			options.title = path;
 

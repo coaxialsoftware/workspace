@@ -1,5 +1,11 @@
 /*
  * workspace.file Module
+ *
+ * Events:
+ *
+ * - file.write
+ * - file.beforewrite
+ *
  */
 "use strict";
 
@@ -74,6 +80,8 @@ class File {
 		{
 			this.mtime = stat.mtime.getTime();
 			this.new = false;
+
+			workspace.plugins.emit('file.write', this);
 			return this;
 		}
 
@@ -95,7 +103,7 @@ plugin.config(function() {
 	workspace.plugins.on('socket.message.file', this.onMessage.bind(this));
 
 }).extend({
-	
+
 	/**
 	 * data.p    File path.
 	 * data.t    File mtime.
@@ -106,7 +114,7 @@ plugin.config(function() {
 			if (stat && stat.mtime.getTime()!==data.t)
 			{
 				this.dbg(`[onMessageStat] File changed: ${data.p}`);
-				
+
 				common.read(data.p).then(function(content) {
 					workspace.socket.respond(client, 'file', {
 						path: data.p,
@@ -117,7 +125,7 @@ plugin.config(function() {
 			}
 		});
 	},
-	
+
 	onMessage(client, data)
 	{
 		/* See if file has changed, and get contents if updated. */

@@ -1,14 +1,14 @@
 
 (function(ide, cxl, $, _) {
 "use strict";
-	
+
 /** @class */
 ide.Plugin = function Plugin(p)
 {
 	cxl.extend(this, p);
 	this.__listeners = [];
 };
-	
+
 cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 
 	/** @type {string} Plugin Name */
@@ -56,24 +56,24 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 		ide.socket.send(this.name, data);
 		return this;
 	},
-	
+
 	listenTo: function(name, fn)
 	{
 		this.__listeners.push({ name: name, fn: fn });
 		ide.plugins.on(name, fn, this);
-		
+
 		return this;
 	},
-	
+
 	destroy: function()
 	{
 		this.__listeners.forEach(function(l) {
 			ide.plugins.off(l.name, l.fn, this);
 		}, this);
 	}
-	
+
 });
-	
+
 function PluginManager()
 {
 	this._plugins = {};
@@ -82,7 +82,7 @@ function PluginManager()
 cxl.extend(PluginManager.prototype, cxl.Events, {
 
 	started: false,
-	
+
 	_plugins: null,
 
 	get: function(name)
@@ -98,12 +98,12 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		for (var i in this._plugins)
 		{
 			var result = fn.bind(this)(this._plugins[i], i);
-			
+
 			if (result)
 				return result;
 		}
 	},
-	
+
 	findPlugin: function(options, deferred)
 	{
 	var
@@ -117,7 +117,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	;
 		if (editor)
 			ide.workspace.add(editor);
-		
+
 		deferred.resolve(editor);
 	},
 
@@ -134,8 +134,8 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		me = this,
 		file = options.file
 	;
-		options.slot = ide.workspace.slot();
-		
+		options.slot = options.slot || ide.workspace.slot();
+
 		if (!file.attributes || file.attributes.content || !file.attributes.filename)
 			this.findPlugin(options, result);
 		else
@@ -146,7 +146,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 					me.findPlugin(options, result);
 				}
 			});
-		
+
 		return result;
 	},
 
@@ -162,9 +162,9 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 
 			if (plug.start)
 				plug.start(ide.project[name]);
-			
+
 			this.registerCommands(plug);
-			
+
 			if (plug.shortcuts)
 				this.registerShortcuts(plug);
 		});
@@ -174,23 +174,23 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 				plug.ready();
 		});
 	},
-	
+
 	start: function()
 	{
 		var src = ide.project.get('plugins.src');
-		
+
 		if (src)
 			ide.source(src);
-		
+
 		this.started = true;
 		this.load_plugins();
 	},
-	
+
 	registerCommands: function(plugin)
 	{
 		for (var i in plugin.commands)
 			ide.registerCommand(i, plugin.commands[i], plugin);
-		
+
 		for (i in plugin.editorCommands)
 			ide.registerEditorCommand(i, plugin.editorCommands[i], plugin);
 	},
@@ -207,42 +207,42 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	}
 
 });
-	
+
 ide.Plugin.Item = cxl.View.extend({
-	
+
 	render: function(msg)
 	{
 		if (msg)
 			ide.notify(msg);
-		
+
 		this.loadTemplate();
 	},
-	
+
 	post: function(url)
 	{
 		ide.post(url, this).then(this.render.bind(this));
 	},
-	
+
 	install: function()
 	{
 		this.post('/plugins/install');
 	},
-	
+
 	uninstall: function()
 	{
 		this.post('/plugins/uninstall');
 	},
-	
+
 	enable: function()
 	{
 		this.post('/plugins/enable');
 	},
-	
+
 	disable: function()
 	{
 		this.post('/plugins/disable');
 	}
-	
+
 });
 
 /**
@@ -250,23 +250,23 @@ ide.Plugin.Item = cxl.View.extend({
  * @type {ide.PluginManager}
  */
 ide.plugins = new PluginManager();
-	
+
 ide.plugins.register('plugins', {
 	commands: {
-		plugins: function() { 
+		plugins: function() {
 			return ide.workspace.add(this.open({ plugin: this }));
 		}
 	},
-	
+
 	addPlugins: function(l, all, installed)
 	{
 		var enabled = ide.project.get('plugins');
-		
+
 		if (!all)
 		{
 			ide.warn('Could not retrieve plugins from server.');
 		}
-		
+
 		all = _.merge(all || {}, installed);
 		_.each(all, function(a, k) {
 			a.installed = k in installed;
@@ -275,7 +275,7 @@ ide.plugins.register('plugins', {
 
 		l.add(_.values(all));
 	},
-	
+
 	open: function(options)
 	{
 	var
@@ -287,16 +287,16 @@ ide.plugins.register('plugins', {
 			itemClass: ide.Plugin.Item,
 			file: 'list'
 		});
-		
+
 		l = new ide.Editor.List(options);
-		
+
 		$.when(
 			$.get(ide.project.get('online.url') + '/plugins.json'),
 			$.get('/plugins')
 		).then(function(all, installed) {
 			me.addPlugins(l, all[0], installed[0]);
 		});
-		
+
 		return l;
 	}
 });
