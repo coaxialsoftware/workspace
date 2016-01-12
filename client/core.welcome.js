@@ -10,7 +10,7 @@ var ProjectList = ide.Editor.List.extend({
 	{
 		ide.Editor.List.prototype._setup.call(this);
 		
-		this.itemTemplate = cxl._templateId('tpl-project');
+		this.itemTemplate = _.template(cxl.html('tpl-project'));
 	},
 	
 	_ready: function()

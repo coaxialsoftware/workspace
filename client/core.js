@@ -131,8 +131,8 @@ var
 	_start= function()
 	{
 		// Load Templates
-		ide.Item.prototype.template = cxl._templateId('tpl-item');
-		ide.Editor.List.prototype.template = cxl.templateId('tpl-editor-list');
+		ide.Item.prototype.template = _.template(cxl.html('tpl-item'));
+		ide.Editor.List.prototype.template = cxl.html('tpl-editor-list');
 		
 		ide.workspace = new ide.Workspace();
 		ide.searchBar = new ide.Bar.Search();
@@ -255,6 +255,12 @@ ide.Editor = cxl.View.extend({
 			return "File has changed. Are you sure?";
 		// Remove first so do_layout of workspace works.
 		this.remove();
+	},
+
+	remove: function()
+	{
+		this.$el.remove();
+		this.unbind();
 	},
 	
 	setKeymapState: function(state)

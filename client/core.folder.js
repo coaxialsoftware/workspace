@@ -59,7 +59,13 @@ var
 }
 
 ide.Item = cxl.View.extend({
-	priority: 0
+	priority: 0,
+
+	remove: function()
+	{
+		this.$el.remove();
+		this.unbind();
+	}
 });
 
 ide.Editor.List = ide.Editor.extend({
@@ -244,7 +250,7 @@ ide.Editor.FileList = ide.Editor.List.extend({
 	_setup: function()
 	{
 		if (!this.itemTemplate)
-			this.itemTemplate = cxl._templateId('tpl-file');
+			this.itemTemplate = _.template(cxl.id('tpl-file').innerHTML);
 
 		ide.Editor.List.prototype._setup.call(this);
 	}
