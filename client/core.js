@@ -162,6 +162,9 @@ ide.Editor = cxl.View.extend({
 
 		if (this._setup)
 			this._setup();
+
+		if (this.templateId)
+			this.template = cxl.html(this.templateId);
 		
 		if (this.template)
 			this.loadTemplate(this.template);
@@ -170,6 +173,12 @@ ide.Editor = cxl.View.extend({
 			this._ready();
 		
 		ide.plugins.trigger('editor.load', this);
+	},
+
+	remove: function()
+	{
+		this.$el.remove();
+		this.unbind();
 	},
 
 	/** Plugin that instantiated the editor @required */

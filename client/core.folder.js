@@ -99,6 +99,7 @@ ide.Editor.List = ide.Editor.extend({
 	{
 		this.$el.addClass('panel');
 		this.listenTo(this.el, 'wheel', this.onWheel);
+		this.itemTemplate = _.template(cxl.html('tpl-file'));
 	},
 
 	onWheel: function(ev)
@@ -248,9 +249,6 @@ ide.Editor.FileList = ide.Editor.List.extend({
 
 	_setup: function()
 	{
-		if (!this.itemTemplate)
-			this.itemTemplate = cxl._templateId('tpl-file');
-
 		ide.Editor.List.prototype._setup.call(this);
 	}
 

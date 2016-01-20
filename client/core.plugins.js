@@ -283,7 +283,7 @@ ide.plugins.register('plugins', {
 	;
 		_.extend(options, {
 			title: 'plugins',
-			itemTemplate: cxl.templateId('tpl-plugin'),
+			itemTemplate: 'tpl-plugin',
 			itemClass: ide.Plugin.Item,
 			file: 'list'
 		});

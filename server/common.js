@@ -8,43 +8,43 @@ var
 	mime = require('mime'),
 	path = require('path'),
 	micromatch = require('micromatch'),
-	
+
 	Watcher = require('./watcher'),
 
 	common
 ;
 
 class FileMatcher {
-	
+
 	constructor(files)
 	{
 		this.files = [];
-		
+
 		if (files)
 			this.push(files);
 	}
-	
+
 	push(files)
 	{
 		if (Array.isArray(files))
 			this.files = this.files.concat(files);
 		else
 			this.files.push(files);
-		
+
 		this.files = _.uniq(this.files);
 		this.dirty = true;
 	}
-	
+
 	matcher(path)
 	{
 		return micromatch.any(path, this.files);
 	}
-	
+
 	build()
 	{
 		if (this.dirty)
 		{
-			this.source = '^' + 
+			this.source = '^' +
 				_.map(this.files, function(glob) {
 				try {
 					var regex = micromatch.makeRe(glob).source;
@@ -55,15 +55,15 @@ class FileMatcher {
 			}, this).join('|') + '$';
 			this.dirty = false;
 		}
-		
+
 		return this.source;
 	}
-	
+
 	toJSON()
 	{
 		return this.build();
 	}
-	
+
 	toRegex()
 	{
 		return new RegExp(this.build());
@@ -71,31 +71,31 @@ class FileMatcher {
 }
 
 class FileManager {
-	
+
 	constructor(p)
 	{
 		this.path = p.path;
 		this.ignore = p.ignore;
 		this.onEvent = p.onEvent;
 	}
-	
+
 	onWalk(resolve, reject, err, data)
 	{
 		this.building = false;
-		
+
 		if (err)
 			return reject(err);
-		
+
 		// TODO see if we can make it in one pass.
 		this.files = _.each(data, function(f) {
 			f.mime = mime.lookup(f.filename);
 		});
 
 		this.watchFiles();
-		
+
 		resolve(data);
 	}
-	
+
 	build()
 	{
 		this.building = true;
@@ -104,7 +104,7 @@ class FileManager {
 				this.onWalk.bind(this, resolve, reject));
 		}).bind(this));
 	}
-	
+
 	onWatch(ev, filepath, fullpath, stat)
 	{
 		if (ev!=='change' && !this.building)
@@ -112,17 +112,17 @@ class FileManager {
 
 		this.onEvent(ev, filepath, fullpath, stat);
 	}
-	
+
 	watchFiles()
 	{
 		var files = _(this.files).filter('directory', true)
-			.pluck('filename')
+			.map('filename')
 			.value()
 		;
-		
+
 		if (this.watcher)
 			this.watcher.close();
-		
+
 		this.watcher = new Watcher({
 			base: this.path,
 			ignore: this.ignore,
@@ -134,7 +134,7 @@ class FileManager {
 
 
 common = module.exports = {
-	
+
 	FileMatcher: FileMatcher,
 	FileManager: FileManager,
 
@@ -142,7 +142,7 @@ common = module.exports = {
 	readDirectory: Q.promisify(fs.readdir),
 	writeFile: Q.promisify(fs.writeFile),
 	stat: Q.promisify(fs.stat),
-	
+
 	/**
 	 * Returns relative path from cwd and an optional project path.
 	 */
@@ -150,24 +150,24 @@ common = module.exports = {
 	{
 		return path.relative(process.cwd() + (project ? '/' + project : ''), filepath);
 	},
-	
+
 	read: function(filename)
 	{
 		return common.readFile(filename, 'utf8');
 	},
-	
+
 	/**
 	 * Get diff between A and B
 	 */
 	diff: function(A, B)
 	{
 		var result;
-		
+
 		for (var i in B)
 			if (B[i] !== A[i])
 				(result = result || {})[i] = B[i];
-		
-		return result;	
+
+		return result;
 	},
 
 	respond: function(module, res, promise)
@@ -243,7 +243,7 @@ common = module.exports = {
 
 	sortFiles: function(files)
 	{
-		return _.sortByOrder(files,
+		return _.orderBy(files,
 			['directory','filename'], [false, true]);
 	},
 
@@ -330,7 +330,7 @@ common = module.exports = {
 			return null;
 		}
 	},
-	
+
 	/**
 	 * Returns a promise that resolves when the object property is set
 	 * to something other than undefined|null, optional timeout (default 5000)
@@ -339,14 +339,14 @@ common = module.exports = {
 	{
 		var start = Date.now();
 		timeout = timeout || 2000;
-		
+
 		return new Q(function(resolve, reject) {
 			var check = function() {
 				var val = obj[prop];
-				
+
 				if (val!==null || val!==undefined)
 					return resolve(val);
-				
+
 				if (timeout < start-Date.now())
 					setTimeout(check);
 				else
@@ -354,20 +354,20 @@ common = module.exports = {
 			};
 		});
 	},
-	
+
 	promiseCallback: function(fn, timeout)
 	{
 		timeout = timeout || 2000;
 		return new Q(function(resolve, reject) {
 			var timeout = setTimeout(reject, timeout);
-			
+
 			fn(function(data) {
 				clearTimeout(timeout);
 				resolve(data);
 			});
 		});
 	},
-	
+
 	patch: function(A, diff)
 	{
 	var
