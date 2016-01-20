@@ -59,13 +59,18 @@ var
 }
 
 ide.Item = cxl.View.extend({
-	priority: 0
+	priority: 0,
+	remove: function()
+	{
+		this.$el.remove();
+		this.unbind();
+	}
 });
 
 ide.Editor.List = ide.Editor.extend({
 
 	title: '',
-	template: null,
+	templateId: 'tpl-editor-list',
 	itemTemplate: null,
 	itemClass: ide.Item,
 	items: null,

@@ -131,8 +131,7 @@ var
 	_start= function()
 	{
 		// Load Templates
-		ide.Item.prototype.template = cxl._templateId('tpl-item');
-		ide.Editor.List.prototype.template = cxl.templateId('tpl-editor-list');
+		ide.Item.prototype.template = _.template(cxl.html('tpl-item'));
 		
 		ide.workspace = new ide.Workspace();
 		ide.searchBar = new ide.Bar.Search();

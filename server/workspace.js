@@ -8,7 +8,6 @@
 var
 	EventEmitter = require('events').EventEmitter,
 	fs = require('fs'),
-	bodyParser = require('body-parser'),
 	compression = require('compression'),
 	path = require('path'),
 	_ = require('lodash'),
@@ -316,7 +315,8 @@ class PluginManager extends EventEmitter {
 
 	requirePlugins(plugins)
 	{
-		_.each(plugins, this.requirePlugin, this);
+		if (plugins)
+			plugins.forEach(this.requirePlugin, this);
 	}
 
 	requirePlugin(name)
@@ -355,7 +355,7 @@ class PluginManager extends EventEmitter {
 				}
 			});
 
-			return _.pluck(me.plugins, 'ready');
+			return _.map(me.plugins, 'ready');
 		});
 	}
 
@@ -489,6 +489,7 @@ workspace.extend({
 	plugins: new PluginManager(),
 	themes: new ThemeManager(),
 	basePath: basePath,
+	cwd: path.resolve(process.cwd()),
 	common: common,
 
 	_: _,
@@ -605,7 +606,7 @@ workspace.extend({
 
 .use(cxl.static(basePath + '/public', { maxAge: 86400000 }))
 
-.use(bodyParser.json({ limit: Infinity }))
+.use(cxl.bodyParser.json({ limit: Infinity }))
 
 .route('GET', '/plugins', function(req, res) {
 	res.send(this.plugins.getPackages());
@@ -627,5 +628,5 @@ workspace.extend({
 	require('./assist').start();
 
 	this.operation('Loading plugins', this.plugins.start.bind(this.plugins));
-});
+}).start();
 
