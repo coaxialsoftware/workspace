@@ -71,7 +71,7 @@ ide.Item = cxl.View.extend({
 ide.Editor.List = ide.Editor.extend({
 
 	title: '',
-	template: null,
+	templateId: 'tpl-editor-list',
 	itemTemplate: null,
 	itemClass: ide.Item,
 	items: null,
@@ -100,6 +100,7 @@ ide.Editor.List = ide.Editor.extend({
 	{
 		this.$el.addClass('panel');
 		this.listenTo(this.el, 'wheel', this.onWheel);
+		this.itemTemplate = _.template(cxl.html('tpl-file'));
 	},
 
 	onWheel: function(ev)
@@ -245,14 +246,6 @@ ide.Editor.FileList = ide.Editor.List.extend({
 
 		if (!ev.shiftKey)
 			ide.workspace.remove(this);
-	},
-
-	_setup: function()
-	{
-		if (!this.itemTemplate)
-			this.itemTemplate = _.template(cxl.id('tpl-file').innerHTML);
-
-		ide.Editor.List.prototype._setup.call(this);
 	}
 
 });
