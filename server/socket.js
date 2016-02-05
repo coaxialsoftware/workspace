@@ -5,7 +5,6 @@
 
 var
 	WebSocketServer = require('websocket').server,
-	http = require('http'),
 
 	workspace = require('./workspace'),
 
@@ -64,6 +63,22 @@ plugin.extend({
 	onProjectLoad: function(project)
 	{
 		project.configuration['socket.port'] = plugin.port;
+		project.configuration['socket.secure'] = !!plugin.secure;
+	},
+
+	createWebSocketServer: function()
+	{
+	var
+		secure = this.secure = workspace.configuration.secure,
+		http = require(secure ? 'https' : 'http'),
+		onRequest = function(req, res) { res.end(); },
+		server = secure ? http.createServer(secure, onRequest) :
+			http.createServer(onRequest)
+	;
+		if (secure)
+			this.log('Creating secure socket (https)');
+
+		return server;
 	}
 
 }).config(function() {
@@ -84,10 +99,7 @@ var
 var
 	id = 0,
 	me = this,
-	server = http.createServer(function(req, res) {
-		res.writeHead(404);
-		res.end();
-	})
+	server = this.createWebSocketServer()
 ;
 	// TODO add support for https
 	server.listen(this.port, this.host, function() {

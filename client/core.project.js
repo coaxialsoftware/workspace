@@ -73,7 +73,7 @@ ide.Project = cxl.Model.extend({
 	set_files: function(files)
 	{
 		this.attributes.files = files;
-		this.files_text = files ? _.pluck(files,
+		this.files_text = files ? _.map(files,
 			'filename').join("\n").replace(/ /g, '\\ ') : '';
 	}
 

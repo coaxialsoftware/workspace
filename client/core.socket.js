@@ -35,22 +35,25 @@ SocketManager.prototype = {
 
 	connect: function()
 	{
-		if (this.ws && this.ws.readyState===WebSocket.OPEN)
+		if (this.ws && (this.ws.readyState===WebSocket.OPEN ||
+			this.ws.retry))
 			return;
 	var
 		retry,
 		doc = window.document,
-		config = ide.project.attributes
+		config = ide.project.attributes,
+		ws
 	;
 		this.config = cxl.extend({
 			host: doc.location.hostname,
 			port: config['socket.port'] 
 		});		
 
-		this.ws = new window.WebSocket(
-			'ws://' + this.config.host + ':' + this.config.port, 'workspace');
+		ws = this.ws = new window.WebSocket(
+			(config['socket.secure'] ? 'wss://' : 'ws://') +
+			this.config.host + ':' + this.config.port, 'workspace');
 
-		this.ws.addEventListener('open', function() {
+		ws.addEventListener('open', function() {
 			retry = false;
 			ide.socket.send('project', {
 				path: config.path, $: config.$
@@ -58,7 +61,7 @@ SocketManager.prototype = {
 			ide.plugins.trigger('socket.ready', this);
 		});
 
-		this.ws.addEventListener('error', function(ev) {
+		ws.addEventListener('error', function(ev) {
 			if (retry)
 			{
 				ide.error('Could not connect to socket');
@@ -66,8 +69,8 @@ SocketManager.prototype = {
 			}
 			else
 			{
+				ws.retry = true;
 				ide.project.fetch();
-				retry = true;
 			}
 		});
 
