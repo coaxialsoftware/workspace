@@ -72,7 +72,12 @@ class Configuration {
 	loadFile(fn)
 	{
 		var obj = common.load_json_sync(fn);
-		this.extend(obj);
+
+		if (obj)
+			this.extend(obj);
+		else
+			workspace.dbg(`Could not read JSON file ${fn}`);
+
 		return obj;
 	}
 }
@@ -96,14 +101,6 @@ class WorkspaceConfiguration extends Configuration {
 
 		if (this.debug)
 			cxl.enableDebug();
-
-		var secure = this.secure;
-
-		if (secure)
-			this.set('https', {
-				key: fs.readFileSync(secure.key),
-				cert: fs.readFileSync(secure.cert)
-			});
 	}
 
 	onUpdate()
@@ -598,6 +595,8 @@ workspace.extend({
 	// Enable Test path
 	if (this.configuration.debug)
 		this.use(cxl.static(basePath + '/test', { maxAge: 86400000 }));
+
+	this.secure = this.configuration.secure;
 })
 
 .createServer()

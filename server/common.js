@@ -217,7 +217,7 @@ common = module.exports = {
 					obj[i] = _.union(c, val);
 				else
 					c.push(val);
-			} else if (typeof(c)==='object' && typeof(val)==='object')
+			} else if (c && typeof(c)==='object' && val && typeof(val)==='object')
 				extend(c, val);
 			else
 				obj[i] = p[i];
