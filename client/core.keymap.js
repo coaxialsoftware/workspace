@@ -240,7 +240,6 @@ cxl.extend(KeyboardManager.prototype, {
 function KeyMap()
 {
 	this.states = {};
-	this.defaultState = this.state = ide.project && ide.project.get('keymap') || 'default';
 }
 	
 cxl.extend(KeyMap.prototype, {
@@ -252,6 +251,11 @@ cxl.extend(KeyMap.prototype, {
 	 * Object with shortcuts as keys and actions as values.
 	 */
 	states: null,
+
+	start: function()
+	{
+		this.defaultState = this.state = ide.project && ide.project.get('keymap') || 'default';
+	},
 	
 	getHandler: function(map, key)
 	{

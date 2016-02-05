@@ -155,9 +155,6 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	 */
 	load_plugins: function()
 	{
-		// TODO Find a better place for this.
-		ide.keymap.state = ide.project.get('keymap') || 'default';
-
 		this.each(function(plug, name) {
 
 			if (plug.start)

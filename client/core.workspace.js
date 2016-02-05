@@ -145,6 +145,7 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	load_workspace: function()
 	{
 		ide.plugins.start();
+		ide.keymap.start();
 		this.load_files();
 	},
 	
