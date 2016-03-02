@@ -85,7 +85,7 @@ FileManager.prototype = {
 
 	findFiles: function(filename)
 	{
-		return _.filter(ide.workspace.slots, 'editor.file.attributes.filename', filename);
+		return _.filter(ide.workspace.slots, [ 'editor.file.attributes.filename', filename ]);
 	},
 
 	onMessageStat: function(data)

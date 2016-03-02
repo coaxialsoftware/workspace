@@ -28,7 +28,7 @@ _.extend(Watcher.prototype, {
 	
 	/** @required */
 	paths: null,
-	delay: 100,
+	delay: 250,
 	ignore: null,
 	watchers: null,
 	events: null,
@@ -68,7 +68,7 @@ _.extend(Watcher.prototype, {
 	;
 		if (this.ignore && this.ignore(rel))
 			return;
-		if (timeout)
+		if (timeout !== undefined)
 			clearTimeout(timeout);
 		
 		this.events[id] = setTimeout(
@@ -82,7 +82,7 @@ _.extend(Watcher.prototype, {
 	
 	close: function()
 	{
-		_.invoke(this.watchers, 'close');
+		_.invokeMap(this.watchers, 'close');
 		this.watchers = {};
 	},
 	

@@ -21,7 +21,7 @@ _.extend(HintManager.prototype, {
 
 	clear: function(id)
 	{
-		_.invoke(this.hints[id], 'remove');
+		_.invokeMap(this.hints[id], 'remove');
 		this.hints = [];
 	},
 

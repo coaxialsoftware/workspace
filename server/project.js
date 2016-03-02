@@ -293,7 +293,7 @@ class ProjectManager {
 	
 	getProjectByName(name)
 	{
-		return _.find(this.projects, 'configuration.name', name);
+		return _.find(this.projects, ['configuration.name', name]);
 	}
 	
 	getProject(path)
