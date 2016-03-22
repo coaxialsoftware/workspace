@@ -18,17 +18,17 @@ var
 
 /**
  * Project Configuration (project.json)
- * 
+ *
  * Avoid using mutable objects as values to speed up diff algorithm.
  */
 class ProjectConfiguration extends workspace.Configuration
 {
-	
+
 	constructor(p)
 	{
 		super(_.pick(workspace.configuration,
 			['keymap', 'theme' ]));
-		
+
 		this.set(workspace.configuration.project);
 		this.set(p);
 
@@ -37,16 +37,16 @@ class ProjectConfiguration extends workspace.Configuration
 				this.path + '/project.json')
 		};
 	}
-	
+
 }
 
 cxl.define(ProjectConfiguration, {
-	
+
 	/**
 	 * Project name
 	 */
 	name: null,
-	
+
 	/**
 	 * project path and id
 	 */
@@ -62,7 +62,7 @@ cxl.define(ProjectConfiguration, {
 	 * Project description.
 	 */
 	description: null
-	
+
 });
 
 class Project {
@@ -72,12 +72,13 @@ class Project {
 		this.path = path;
 		this.clients = [];
 		this.data = {};
-		this.create();		
+		this.create();
+		this.buildFilesDebounced = _.debounce(this.buildFiles, 250);
 	}
-	
+
 	create()
 	{
-		this.configuration = new ProjectConfiguration({ 
+		this.configuration = new ProjectConfiguration({
 			path: this.path,
 			onUpdate: (function() {
 				this.broadcast({ reload: true });
@@ -88,9 +89,9 @@ class Project {
 		this.promises = [];
 		this.loaded = false;
 		this.ready = false;
-		
+
 		workspace.plugins.emit('project.create', this, this.configuration);
-		
+
 		return this;
 	}
 
@@ -109,19 +110,19 @@ class Project {
 	{
 		workspace.socket.broadcast(plugin || 'project', data, this.clients);
 	}
-	
+
 	onMessage(client, data)
 	{
 		if (this.clients.indexOf(client)===-1)
 		{
 			this.log(`Registering client ${client.id}.`);
 			this.clients.push(client);
-			
+
 			if (this.ready && data.$ !== this.configuration.$)
 				workspace.socket.respond(client, 'project', { reload: true });
 		}
 	}
-	
+
 	onFileEvent(ev, filepath, full, s)
 	{
 		if (ev==='change')
@@ -129,18 +130,21 @@ class Project {
 			this.broadcast({
 				stat: { f: filepath, p: full, t: s.mtime.getTime() }
 			}, 'file');
-			
+
 			// TODO see if we need to include full path instead
 			workspace.plugins.emit('project.filechange', this, ev, filepath, s);
 			workspace.plugins.emit('project.filechange:' + filepath, this, ev, filepath, s);
-			
+
 			if (filepath==='project.json')
 				this.reload();
+		} else if (ev!=='error')
+		{
+			this.buildFilesDebounced();
 		}
 
 		this.log.dbg(ev + ' ' + filepath);
 	}
-	
+
 	onTimeout()
 	{
 	var
@@ -152,29 +156,29 @@ class Project {
 	;
 		this.buildIgnore();
 		promises.push(this.buildFiles());
-		
+
 		if (this.configuration.theme)
 			promises.push(workspace.themes.load(this.configuration.theme).bind(this)
 				.then(this.loadTheme));
-		
+
 		Q.all(promises).bind(this).then(onReady);
 	}
-	
+
 	onThemeReload(theme)
 	{
 		this.configuration.set('theme.css', theme.source);
 	}
-	
+
 	loadTheme(theme)
 	{
 		if (this.theme)
 			this.stopListening(workspace.plugins, 'themes.reload:' + this.theme.name);
-		
+
 		this.log(`Loading Theme "${theme.name}"(${theme.path})`);
 		this.theme = theme;
 		this.listenTo(workspace.plugins, 'themes.reload:' + this.theme.name,
 			this.onThemeReload);
-		
+
 		this.onThemeReload(theme);
 	}
 
@@ -194,17 +198,17 @@ class Project {
 		this.log('Reloading project.');
 		this.create().doLoad();
 	}
-	
+
 	buildFiles()
 	{
 		this.log.dbg('Generating Project Files');
 		this.files.ignore = this.ignore.matcher.bind(this.ignore);
 		return this.files.build().bind(this).then(function(result) {
-			this.configuration.set('files', 
+			this.configuration.set('files',
 				_.sortBy(result, 'filename'));
 		});
 	}
-	
+
 	buildSources()
 	{
 		if (this.configuration.plugins)
@@ -214,14 +218,14 @@ class Project {
 				workspace.plugins.getSources(this.configuration.plugins));
 		}
 	}
-	
+
 	hasPlugin(name)
 	{
 		var p = this.configuration.plugins;
-		
+
 		return p && p.indexOf(name)!==-1;
 	}
-	
+
 	buildIgnore()
 	{
 		this.log.dbg('Generating Ignore Regex');
@@ -229,17 +233,17 @@ class Project {
 			this.configuration.ignore || [ '**/.*', 'node_modules', 'bower_components' ]);
 		this.configuration.set('ignore.regex', this.ignore);
 	}
-	
+
 	doLoad()
 	{
 		this.ignore = new common.FileMatcher();
 		this.buildSources();
-		
+
 		workspace.plugins.emit('project.load', this);
-		
+
 		return Q.all(this.promises).bind(this).then(this.onResolved);
 	}
-	
+
 	loadFiles()
 	{
 		this.files = new common.FileManager({
@@ -255,19 +259,19 @@ class Project {
 	{
 		if (this.loaded)
 			return Q.resolve(this.configuration);
-		
+
 		this.log = new cxl.Logger(
-			colors.green('workspace.project') + 
+			colors.green('workspace.project') +
 			` ${colors.yellow(this.path)}`);
-		
+
 		this.log.operation('Loading File Manager', this.loadFiles, this);
-		
+
 		this.listenTo(workspace.plugins, 'workspace.reload', this.reload);
 		this.listenTo(workspace.plugins, 'plugins.source', this.buildSources);
 
 		return this.doLoad();
 	}
-	
+
 	toJSON()
 	{
 		return this.configuration;
@@ -290,17 +294,17 @@ class ProjectManager {
 		this.path = '.';
 		this.projects = {};
 	}
-	
+
 	getProjectByName(name)
 	{
 		return _.find(this.projects, ['configuration.name', name]);
 	}
-	
+
 	getProject(path)
 	{
 		if (!path)
 			return null;
-		
+
 		return (this.projects[path] ||
 			(this.projects[path] = new Project(path)));
 	}
@@ -324,7 +328,7 @@ class ProjectManager {
 	{
 		if (!path.directory)
 			return;
-		
+
 		if (this.projects[path.filename])
 			return this.projects[path.filename];
 
@@ -348,9 +352,9 @@ plugin.extend({
 	{
 		if (!data.path)
 			return;
-		
+
 		var project = this.projectManager.getProject(data.path);
-		
+
 		project.load(data.path)
 			.then(function() {
 				project.onMessage(client, data);
@@ -368,17 +372,17 @@ plugin.extend({
 
 })
 .route('GET', '/projects', function(req, res) {
-	
+
 	this.projectManager.findProjects().then(function(p) {
 		res.send(p);
 	}, common.sendError(this, res));
-	
+
 })
 .route('GET', '/project', function(req, res) {
 
 	// TODO Make sure project exists.
 	//this.resolve(common.stat(this.path));
-	
+
 	this.projectManager.load(req.query.n).then(function(result) {
 		res.send(result);
 	}, common.sendError(this, res));
