@@ -100,7 +100,6 @@ ide.Editor.List = ide.Editor.extend({
 	{
 		this.$el.addClass('panel');
 		this.listenTo(this.el, 'wheel', this.onWheel);
-		this.itemTemplate = _.template(cxl.html('tpl-file'));
 	},
 
 	onWheel: function(ev)
@@ -309,6 +308,11 @@ ide.plugins.register('find', new ide.Plugin({
 }));
 
 ide.plugins.register('folder', new ide.Plugin({
+	
+	ready: function()
+	{
+		ide.Editor.List.prototype.itemTemplate = _.template(cxl.html('tpl-file'));
+	},
 
 	commands: {
 

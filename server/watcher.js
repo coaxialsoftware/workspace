@@ -57,7 +57,6 @@ _.extend(Watcher.prototype, {
 	{
 		if (!filename)
 			return;
-
 	var
 		full = path.join(dir, filename),
 		rel = this.base ? path.relative(this.base, full) : full,
@@ -93,9 +92,10 @@ _.extend(Watcher.prototype, {
 	{
 	var
 		full = path.normalize(f),
-		id = this.getId(full)
+		id = this.getId(full),
+		dir = path.dirname(id)
 	;
-		return this._doWatch(id, full);
+		return this._doWatch(id, dir);
 	},
 
 	unwatch: function(id)
