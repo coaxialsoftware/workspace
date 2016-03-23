@@ -107,9 +107,6 @@ class FileManager {
 
 	onWatch(ev, filepath, fullpath, stat)
 	{
-		if (ev!=='change' && !this.building)
-			this.build();
-
 		this.onEvent(ev, filepath, fullpath, stat);
 	}
 

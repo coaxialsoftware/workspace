@@ -16,6 +16,9 @@ function SocketManager()
 	
 SocketManager.prototype = {
 	
+	retries: 0,
+	maxRetries: 1,
+	
 	__doSend: function(plugin, data)
 	{
 		this.ws.send(JSON.stringify({ plugin: plugin, data: data }));
@@ -36,12 +39,12 @@ SocketManager.prototype = {
 	connect: function()
 	{
 		if (this.ws && (this.ws.readyState===WebSocket.OPEN ||
-			this.ws.retry))
+			this.ws.readyState===WebSocket.CONNECTING))
 			return;
 	var
-		retry,
 		doc = window.document,
 		config = ide.project.attributes,
+		me = this,
 		ws
 	;
 		this.config = cxl.extend({
@@ -54,7 +57,7 @@ SocketManager.prototype = {
 			this.config.host + ':' + this.config.port, 'workspace');
 
 		ws.addEventListener('open', function() {
-			retry = false;
+			me.retries = 0;
 			ide.socket.send('project', {
 				path: config.path, $: config.$
 			});
@@ -62,14 +65,16 @@ SocketManager.prototype = {
 		});
 
 		ws.addEventListener('error', function(ev) {
-			if (retry)
+			if (me.retries>=me.maxRetries)
 			{
 				ide.error('Could not connect to socket');
 				window.console.error(ev);
 			}
 			else
 			{
-				ws.retry = true;
+				me.retries++;
+				ide.warn('Could not connect to socket. Retrying (' +
+					me.retries + '/' + me.maxRetries + ')');
 				ide.project.fetch();
 			}
 		});
@@ -87,7 +92,10 @@ SocketManager.prototype = {
 	checkConnection: function()
 	{
 		if (this.ws && this.ws.readyState===3 /* closed */)
+		{
+			this.retries = 0;
 			this.connect();
+		}
 	}
 
 };

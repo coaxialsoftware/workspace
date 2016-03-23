@@ -2,9 +2,7 @@
 var
 	fs = require('fs'),
 	_ = require('lodash'),
-	path = require('path'),
-
-	workspace = require('./workspace')
+	path = require('path')
 ;
 
 function Watcher(options)
@@ -94,10 +92,10 @@ _.extend(Watcher.prototype, {
 	watchFile: function(f)
 	{
 	var
-		id = this.getId(path.normalize(f)),
-		dir = path.dirname(id)
+		full = path.normalize(f),
+		id = this.getId(full)
 	;
-		return this._doWatch(id, dir);
+		return this._doWatch(id, full);
 	},
 
 	unwatch: function(id)
@@ -123,7 +121,7 @@ _.extend(Watcher.prototype, {
 
 			return id;
 		} catch(e) {
-			workspace.error(e);
+			console.error(e);
 		}
 	},
 
