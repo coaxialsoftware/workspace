@@ -561,7 +561,7 @@ workspace.extend({
 	watch: function(path, cb)
 	{
 		var id = this.watcher.watchFile(path);
-		this.dbg(`Watching File ${id}:${path}`);
+		this.dbg(`Watching File ${id}`);
 
 		if (cb)
 			this.plugins.on('workspace.watch:' + id, cb);
@@ -573,6 +573,7 @@ workspace.extend({
 		{
 			this.configuration = new WorkspaceConfiguration();
 		}
+		console.log(file);
 
 		workspace.plugins.emit('workspace.watch:' + file, ev, file);
 	}

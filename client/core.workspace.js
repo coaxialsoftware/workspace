@@ -3,7 +3,7 @@
 "use strict";
 
 var
-	FILE_REGEX = /^(?:([\w\.\-]+):)?(.+)$/
+	FILE_REGEX = /^(?:([\w\.\-]+):)?(.*)$/
 ;
 
 function Hash()
