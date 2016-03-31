@@ -626,6 +626,8 @@ workspace.extend({
 	require('./project').start();
 	require('./file').start();
 	require('./assist').start();
+	
+	process.on('uncaughtException', this.error.bind(this));
 
 	this.operation('Loading plugins', this.plugins.start.bind(this.plugins));
 }).start();
