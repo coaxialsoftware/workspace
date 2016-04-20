@@ -89,7 +89,7 @@ ide.plugins.on('assist', function(done) {
  */
 ide.registerCommand('project', function(name) {
 	var hash = '#' + ide.workspace.hash.encode({ p: name || null, f: null });
-	if (ide.project.id)
+	if (ide.project.id || ide.workspace.slots.length)
 		window.open(hash);
 	else
 	{

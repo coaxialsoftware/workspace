@@ -33,6 +33,9 @@
 		"grunt-contrib-uglify": "*",
 		"grunt-contrib-copy": "*",
 		"grunt-karma": "*",
+		"karma":"*",
+		"phantomjs-prebuilt": "*",
+		"qunitjs": "*",
 		"karma-qunit": "*",
 		"karma-coverage": "*",
 		"karma-phantomjs-launcher": "*"
