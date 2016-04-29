@@ -33,6 +33,7 @@ var InlineAssist = function() {
 	this.cursor = { line: 0, ch: 0 };
 	
 	ide.plugins.on('editor.scroll', this.onScroll, this);
+	window.addEventListener('click', this.hide.bind(this));
 	
 	window.document.body.appendChild(this.el);
 	ide.plugins.on('token', this.onToken.bind(this));
@@ -41,6 +42,7 @@ var InlineAssist = function() {
 _.extend(InlineAssist.prototype, {
 	
 	hints: null,
+	selected: 0,
 	visible: false,
 	version: 0,
 	
@@ -64,11 +66,13 @@ _.extend(InlineAssist.prototype, {
 	},
 	
 	add: function(hint)
-	{
+	{		
+		var order = _.sortedLastIndex(this.hints, hint, 'priority');
+		
+		this.hints.splice(order, 0, hint);
+		
 		if (this.visible)
-			this.renderHint(hint);
-		else
-			this.hints.push(hint);
+			this.renderHint(hint, order);
 		
 		this.debouncedShow();
 	},
@@ -93,24 +97,19 @@ _.extend(InlineAssist.prototype, {
 		{
 			this.el.style.display='block';
 			this.visible = true;
+			this.selected = 0;
 			this.render();
 		}
 	},
 	
 	renderHint: function(hint, order)
 	{
-		order = order===undefined ?
-			_.sortedIndex(this.hints, hint, 'priority') :
-			order
-		;
-		
 		var ref = this.hints[order];
 		
+		hint.el.classList.toggle('selected', order===this.selected);
+		
 		if (ref && ref !== hint)
-		{
-			this.hints.splice(order, 0, hint);
 			this.el.insertBefore(hint.el, ref.el);
-		}
 		else
 			this.el.appendChild(hint.el);
 	},

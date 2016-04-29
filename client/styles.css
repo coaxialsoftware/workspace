@@ -212,7 +212,7 @@ div.CodeMirror-cursors { visibility: visible; }
 	box-shadow: 0px 0px 1px 1px rgba(0, 100, 159, 0.5);
 	background-color: rgba(0, 100, 159, 0.5);
 }
-.item:hover { background-color: rgba(0, 100, 159, 0.9); }
+.item:hover, .item.selected { background-color: rgba(0, 100, 159, 0.9); }
 
 .item pre { white-space: pre-wrap; }
 .item kbd {
@@ -289,13 +289,9 @@ div.CodeMirror-cursors { visibility: visible; }
 	max-height: 130px; overflow-y: hidden; margin-left: -4px;
 }
 #assist-inline .item {
-	border: 0;
-	background-color: rgba(0, 100, 159, 0.8);
+	border: 0; margin-bottom: 2px; box-shadow: none;
 }
-#assist-inline .item:hover {
-	background-color: rgb(30, 130, 189);
-}
-#assist-inline .item code { display: none; }
+#assist-inline .item code, .item .label { display: none; }
 #assist-inline .item h4 { overflow-y: hidden; }
 
 /*
