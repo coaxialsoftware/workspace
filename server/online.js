@@ -115,8 +115,7 @@ online.extend({
 	setupFirebase: function()
 	{
 	var
-		url = this.url = workspace.configuration['online.url'] ||
-			'https://cxl.firebaseio.com/workspace'
+		url = this.url = workspace.configuration['online.url']
 	;
 		this.dbg(`Connecting to ${url}`);
 		this.fb = new Firebase(url);
@@ -125,7 +124,7 @@ online.extend({
 	
 	__getRef: function(p)
 	{
-		return new Firebase(this.url + p);
+		return this.fb.child(p);
 	},
 	
 	getRest: function()
@@ -139,7 +138,9 @@ online.extend({
 		return common.promiseCallback(fb.once.bind(fb, 'value'))
 			.bind(this).then(
 				function(data) { return data.val(); },
-				function() { this.error(`Could not read "${p}"`); }
+				function() {
+					this.error(`Could not read "${fb.path}"`);
+				}
 			);
 	},
 	

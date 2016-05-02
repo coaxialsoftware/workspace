@@ -27,7 +27,7 @@ class ProjectConfiguration extends workspace.Configuration
 	constructor(p)
 	{
 		super(_.pick(workspace.configuration,
-			['keymap', 'theme' ]));
+			['keymap', 'theme', 'online.url' ]));
 
 		this.set(workspace.configuration.project);
 		this.set(p);

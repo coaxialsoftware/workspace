@@ -42,7 +42,7 @@
 	<span &="if:=installed" class="label pull-right">INSTALLED</span>
 	
 	<h4><span &="html::const(name)"></span> <small &="html::const(version)"></small></h4>
-	<pre &="if::const(description) html::const(description)"></pre>
+	<pre &="if:=description html:=description"></pre>
 	<footer class="item-detail text-right">
 	<button &="if:=installed click(uninstall)" type="button">Uninstall</button>
 	<button &="if:expr(installed && enabled) click(disable)" type="button">Disable</button>
@@ -57,7 +57,7 @@
 	<% _.each(obj.tags, function(v, t) { if (v) { %>
 	<span class="pull-right label"><%=t%></span>
 	<% } }) %>
-	<h4><%= obj.path %> &nbsp;<small><%=obj.version%></small></h4>
+	<h4><%= obj.name || obj.path %> &nbsp;<small><%=obj.version%></small></h4>
 	<% if (obj.description) { %>
 	<pre><%= obj.description %></pre>
 	<% } %>

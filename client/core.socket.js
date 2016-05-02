@@ -56,15 +56,15 @@ SocketManager.prototype = {
 			(config['socket.secure'] ? 'wss://' : 'ws://') +
 			this.config.host + ':' + this.config.port, 'workspace');
 
-		ws.addEventListener('open', function() {
+		ws.onopen = function() {
 			me.retries = 0;
 			ide.socket.send('project', {
 				path: config.path, $: config.$
 			});
 			ide.plugins.trigger('socket.ready', this);
-		});
+		};
 
-		ws.addEventListener('error', function(ev) {
+		ws.onerror = function(ev) {
 			if (me.retries>=me.maxRetries)
 			{
 				ide.error('Could not connect to socket');
@@ -77,16 +77,16 @@ SocketManager.prototype = {
 					me.retries + '/' + me.maxRetries + ')');
 				ide.project.fetch();
 			}
-		});
+		};
 
-		this.ws.addEventListener('message', function(ev) {
+		ws.onmessage = function(ev) {
 			var msg = JSON.parse(ev.data);
 			
 			if (msg.error)
 				ide.error({ code: msg.plugin, title: "ERROR: " + msg.error });
 			else
 				ide.plugins.trigger('socket.message.' + msg.plugin, msg.data);
-		});
+		};
 	},
 
 	checkConnection: function()

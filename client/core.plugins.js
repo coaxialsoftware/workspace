@@ -206,13 +206,13 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 });
 
 ide.Plugin.Item = cxl.View.extend({
+	
+	templateId: 'tpl-plugin',
 
 	render: function(msg)
 	{
 		if (msg)
 			ide.notify(msg);
-
-		this.loadTemplate();
 	},
 
 	post: function(url)
@@ -255,7 +255,7 @@ ide.plugins.register('plugins', {
 		}
 	},
 
-	addPlugins: function(l, all, installed)
+	addPlugins: function(l, all)
 	{
 		var enabled = ide.project.get('plugins');
 
@@ -263,11 +263,11 @@ ide.plugins.register('plugins', {
 		{
 			ide.warn('Could not retrieve plugins from server.');
 		}
-
-		all = _.merge(all || {}, installed);
+		
 		_.each(all, function(a, k) {
-			a.installed = k in installed;
 			a.enabled = (enabled && enabled.indexOf(k)!==-1);
+			a.installed = !!a.installed;
+			a.description = a.description || false;
 		});
 
 		l.add(_.values(all));
@@ -280,18 +280,15 @@ ide.plugins.register('plugins', {
 	;
 		_.extend(options, {
 			title: 'plugins',
-			itemTemplate: cxl.html('tpl-plugin'),
+			itemTemplate: null,
 			itemClass: ide.Plugin.Item,
 			file: 'list'
 		});
 
 		l = new ide.Editor.List(options);
 
-		$.when(
-			$.get(ide.project.get('online.url') + '/plugins.json'),
-			$.get('/plugins')
-		).then(function(all, installed) {
-			me.addPlugins(l, all[0], installed[0]);
+		$.get('/plugins').then(function(all) {
+			me.addPlugins(l, all);
 		});
 
 		return l;

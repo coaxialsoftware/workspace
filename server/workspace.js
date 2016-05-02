@@ -87,7 +87,7 @@ class WorkspaceConfiguration extends Configuration {
 	constructor()
 	{
 		super();
-
+		
 		this.loadFile('~/.workspace.json');
 		this.loadFile('workspace.json');
 
@@ -139,7 +139,9 @@ cxl.define(WorkspaceConfiguration, {
 	/**
 	 * Default help URL. Defaults to /docs/index.html
 	 */
-	'help.url': null
+	'help.url': null,
+	
+	'online.url': 'https://cxl.firebaseio.com/workspace'
 
 });
 
@@ -329,7 +331,16 @@ class PluginManager extends EventEmitter {
 
 	getPackages()
 	{
-		return _.mapValues(this.plugins, 'package');
+		return workspace.online.get('plugins').bind(this).then(function(all) {
+			var installed = _.mapValues(this.plugins, 'package');
+			
+			_.each(installed, function(a, k) {
+				all[k] = a;
+				a.installed = true;
+			});
+			
+			return all;
+		});
 	}
 
 	loadGlobalPlugins()
@@ -609,7 +620,7 @@ workspace.extend({
 .use(cxl.bodyParser.json({ limit: Infinity }))
 
 .route('GET', '/plugins', function(req, res) {
-	res.send(this.plugins.getPackages());
+	common.respond(workspace, res, this.plugins.getPackages());
 })
 
 .route('POST', '/plugins/install', function(req, res) {

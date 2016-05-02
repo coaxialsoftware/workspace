@@ -356,10 +356,10 @@ common = module.exports = {
 	{
 		timeout = timeout || 2000;
 		return new Q(function(resolve, reject) {
-			var timeout = setTimeout(reject, timeout);
+			var out = setTimeout(reject, timeout);
 
 			fn(function(data) {
-				clearTimeout(timeout);
+				clearTimeout(out);
 				resolve(data);
 			});
 		});
