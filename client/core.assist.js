@@ -33,7 +33,8 @@ var InlineAssist = function() {
 	this.cursor = { line: 0, ch: 0 };
 	
 	ide.plugins.on('editor.scroll', this.onScroll, this);
-	window.addEventListener('click', this.hide.bind(this));
+	window.addEventListener('click', this.onScroll.bind(this));
+	window.addEventListener('resize', this.onScroll.bind(this));
 	
 	window.document.body.appendChild(this.el);
 	ide.plugins.on('token', this.onToken.bind(this));
@@ -68,13 +69,17 @@ _.extend(InlineAssist.prototype, {
 	add: function(hint)
 	{		
 		var order = _.sortedLastIndex(this.hints, hint, 'priority');
+		var editor = ide.editor;
 		
 		this.hints.splice(order, 0, hint);
 		
 		if (this.visible)
 			this.renderHint(hint, order);
 		
-		this.debouncedShow();
+		if (editor.option && editor.option('disableInput'))
+			this.hide();
+		else
+			this.debouncedShow();
 	},
 	
 	clear: function()
@@ -89,9 +94,6 @@ _.extend(InlineAssist.prototype, {
 	show: function(editor)
 	{
 		editor = editor || ide.editor;
-		
-		if (editor.option && editor.option('disableInput'))
-			return;
 
 		if (!this.visible)
 		{

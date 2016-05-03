@@ -325,6 +325,7 @@ ide.Editor.File = ide.Editor.extend({
 			this.setFile(file);
 		
 		file.set('content', value);
+		file.once('write', this.showInfo, this);
 		file.save();
 	},
 	
