@@ -87,7 +87,7 @@ class WorkspaceConfiguration extends Configuration {
 	constructor()
 	{
 		super();
-		
+
 		this.loadFile('~/.workspace.json');
 		this.loadFile('workspace.json');
 
@@ -140,7 +140,7 @@ cxl.define(WorkspaceConfiguration, {
 	 * Default help URL. Defaults to /docs/index.html
 	 */
 	'help.url': null,
-	
+
 	'online.url': 'https://cxl.firebaseio.com/workspace'
 
 });
@@ -331,14 +331,20 @@ class PluginManager extends EventEmitter {
 
 	getPackages()
 	{
-		return workspace.online.get('plugins').bind(this).then(function(all) {
-			var installed = _.mapValues(this.plugins, 'package');
-			
+		var plugins = this.plugins;
+
+		return workspace.online.get('plugins').catch(function(e) {
+			workspace.dbg('Could not retrieve plugin list from server');
+			workspace.error(e);
+			return {};
+		}).then(function(all) {
+			var installed = _.mapValues(plugins, 'package');
+
 			_.each(installed, function(a, k) {
 				all[k] = a;
 				a.installed = true;
 			});
-			
+
 			return all;
 		});
 	}
@@ -637,7 +643,7 @@ workspace.extend({
 	require('./project').start();
 	require('./file').start();
 	require('./assist').start();
-	
+
 	process.on('uncaughtException', this.error.bind(this));
 
 	this.operation('Loading plugins', this.plugins.start.bind(this.plugins));
