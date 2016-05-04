@@ -22,7 +22,7 @@ _.extend(HintManager.prototype, {
 	clear: function(id)
 	{
 		_.invokeMap(this.hints[id], 'remove');
-		this.hints = [];
+		this.hints = {};
 	},
 
 	get: function(id)
@@ -33,7 +33,7 @@ _.extend(HintManager.prototype, {
 	getLine: function(id, line)
 	{
 		var hints = this.get(id);
-		return _.filter(hints, 'line', line);
+		return _.filter(hints, ['line', line]);
 	},
 
 	__createMark: function(line, lineHandle)
