@@ -52,7 +52,9 @@ ide.Project = cxl.Model.extend({
 			this.loadTheme(data['theme.css']);
 		
 		this.hint.title = data.name || data.path;
-		this.hint.tags = Object.keys(data.tags);
+		
+		if (data.tags)
+			this.hint.tags = Object.keys(data.tags);
 		
 		return data;
 	},
