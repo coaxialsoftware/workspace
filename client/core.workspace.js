@@ -124,7 +124,7 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	;
 		if (op.file)
 			op.file = decodeURIComponent(op.file);
-		
+
 		ide.open(op);
 	},
 
@@ -148,13 +148,13 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 		ide.keymap.start();
 		this.load_files();
 	},
-	
+
 	state: function(editor)
 	{
 		var file = (editor.file instanceof ide.File ?
 			editor.file.get('filename') :
 			editor.file) || '';
-		
+
 		return (editor.plugin ? editor.plugin.name + ':' : '') +
 			encodeURIComponent(file);
 	},
@@ -171,7 +171,7 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 		});
 
 		hash.set({ f: files });
-		
+
 		return this;
 	},
 
@@ -220,7 +220,7 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 			setTimeout(this.remove.bind(this, item));
 		});
 	},
-	
+
 	/** Find editor by id. */
 	find: function(id)
 	{
@@ -357,20 +357,20 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 });
 
 ide.plugins.registerCommands({
-	
+
 	editorCommands: {
-		
+
 		ascii: function()
 		{
 		var
-			char = this.getChar(),
+			char = ide.editor.getChar(),
 			code = char.charCodeAt(0)
 		;
 			ide.notify(char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8));
 		},
-		
+
 		f: 'file',
-		
+
 		/**
 		 * File diff
 		 */
@@ -383,13 +383,13 @@ ide.plugins.registerCommands({
 		;
 			if (!diff)
 				return;
-			
+
 			newfile = new ide.File({
 				filename: '',
 				new: true,
 				content: JSON.stringify(diff, null, 2)
 			});
-		
+
 			ide.open({ file: newfile }).then(function(editor) {
 				editor.listenTo(file, 'change:content', function() {
 					newfile.set('content', JSON.stringify(file.diff(), null, 2));
@@ -397,15 +397,15 @@ ide.plugins.registerCommands({
 				editor.cmd('inputDisable');
 			});
 		},
-		
-		
+
+
 		file: function()
 		{
 			ide.notify(ide.editor.file ?
 				ide.editor.file.id || '[No Name]' :
 				'No files open.');
 		},
-		
+
 		read: function(file)
 		{
 			if (ide.editor.insert)
@@ -424,12 +424,12 @@ ide.plugins.registerCommands({
 			} else
 				ide.error('Current editor does not support command.');
 		},
-		
+
 		r: 'read',
-		
+
 		w: 'write',
 		save: 'write',
-		
+
 		wq: function()
 		{
 			// TODO use one run.
@@ -439,7 +439,7 @@ ide.plugins.registerCommands({
 		write: function(filename, force)
 		{
 			var editor = ide.editor, file=editor.file;
-			
+
 			if (!(file instanceof ide.File))
 				return ide.Pass;
 
@@ -455,18 +455,18 @@ ide.plugins.registerCommands({
 
 			if (!file.get('filename'))
 				return ide.error('No file name.');
-			
+
 			if (!force && file.old)
 				return ide.error('File contents have changed.');
 
 			editor.write(file, force);
 		},
-		
+
 		'w!': function(filename)
 		{
 			this.write(filename, true);
 		},
-		
+
 		editorNext: function()
 		{
 			ide.workspace.next().focus();
@@ -501,21 +501,21 @@ ide.plugins.registerCommands({
 			}
 
 		}
-		
+
 	},
 
 	commands: {
-		
+
 		help: function(topic)
 		{
 			var url = (ide.project.get('help.url') ||
 				'/docs/index.html') + (topic ? '#' + topic : '');
-			
+
 			window.open(url);
 		},
-		
+
 		e: 'edit',
-		
+
 		/**
 		 * Edits file with registered plugins.
 		 * @param {string} ... Files to open.
@@ -527,21 +527,21 @@ ide.plugins.registerCommands({
 			else
 				ide.open();
 		},
-		
+
 		tabe: function(name)
 		{
 			ide.open({ file: name, target: '_blank' });
 		},
-		
+
 		close: function()
 		{
 			window.close();
 		},
-		
+
 		quit: 'q',
 		'quitAll': 'qa',
 		'quitForce': 'q!',
-		
+
 		/// Quit Vim. This fails when changes have been made.
 		q: function()
 		{
@@ -562,7 +562,7 @@ ide.plugins.registerCommands({
 			if (ide.editor)
 				ide.workspace.remove(ide.editor, true);
 		}
-	
+
 	}
 
 });
