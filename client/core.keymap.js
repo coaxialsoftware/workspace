@@ -184,7 +184,7 @@ cxl.extend(KeyboardManager.prototype, {
 	{
 	var
 		keymap = ide.editor && ide.editor.keymap,
-		state = keymap && (typeof(keymap)==='string' ? keymap : keymap.state),
+		state = keymap && keymap.state,
 		result = false
 	;
 		if (keymap instanceof ide.KeyMap)
