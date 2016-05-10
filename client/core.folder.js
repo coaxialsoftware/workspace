@@ -59,6 +59,7 @@ var
 }
 
 ide.Item = cxl.View.extend({
+
 	priority: 0,
 
 	remove: function()
@@ -308,7 +309,7 @@ ide.plugins.register('find', new ide.Plugin({
 }));
 
 ide.plugins.register('folder', new ide.Plugin({
-	
+
 	ready: function()
 	{
 		ide.Editor.List.prototype.itemTemplate = _.template(cxl.html('tpl-file'));

@@ -390,7 +390,6 @@ ide.Editor.Source = ide.Editor.File.extend({
 		options = this._getOptions(),
 		editor = this.editor = codeMirror(this.el, options)
 	;
-		this.keymap = new ide.KeyMap();
 		this.hints = new HintManager(this);
 
 		this.keymap.handle = this._keymapHandle.bind(this);

@@ -4,7 +4,7 @@
 
 (function (ide, cxl) {
 "use strict";
-	
+
 /**
  * Try to execute action in editor or workspace.
  */
@@ -27,7 +27,7 @@ function KeyboardManager()
 
 	for (i = 0; i <= 9; ++i)
 		_MAP[i + 96] = i+'';
-	
+
 	for (i=65; i<91; ++i)
 		_MAP[i] = String.fromCharCode(i).toLowerCase();
 
@@ -35,13 +35,13 @@ function KeyboardManager()
 
 	this.MODREPLACE = /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'meta+' : 'ctrl+';
 }
-	
+
 cxl.extend(KeyboardManager.prototype, {
 
 	delay: 250,
 	t: 0,
 	sequence: null,
-	
+
 	// What to replace "mod" with, ctrl for win, meta for osx
 	MODREPLACE: null,
 
@@ -73,7 +73,7 @@ cxl.extend(KeyboardManager.prototype, {
 		219: '{', 191: '?', 190: '>', 189: '_',
 		188: '<', 187: 'plus', 186: ':', 48: ')',
 		49: '!', 50: '@', 51: '#', 52: '$', 53: '%',
-		54: '^', 55: '&', 56: '*', 57: '(' 
+		54: '^', 55: '&', 56: '*', 57: '('
 	},
 
 	getChar: function(ev)
@@ -116,7 +116,7 @@ cxl.extend(KeyboardManager.prototype, {
 			mods.push('meta');
 
 		mods.push(ch);
-		
+
 		return mods.join('+');
 	},
 
@@ -134,9 +134,9 @@ cxl.extend(KeyboardManager.prototype, {
 			this.sequence.push(k);
 		else
 			this.sequence = [ k ];
-		
+
 		seq = this.sequence.slice(0);
-		
+
 		do {
 			if (this.handleKey(seq.join(' '))!==false)
 			{
@@ -150,16 +150,16 @@ cxl.extend(KeyboardManager.prototype, {
 
 		this.t = t;
 	},
-	
+
 	_findKey: function(keymap, state, action)
 	{
 		state = state || keymap.getState();
-		
+
 		for (var i in state)
 			if (state[i].action===action)
 				return i;
 	},
-	
+
 	findKey: function(action, state)
 	{
 	var
@@ -169,10 +169,10 @@ cxl.extend(KeyboardManager.prototype, {
 	;
 		if (type==='object')
 			result = this._findKey(keymap, state, action);
-		
+
 		if (!result)
 			result = this._findKey(ide.keymap, state, action);
-			
+
 		return result;
 	},
 
@@ -188,11 +188,11 @@ cxl.extend(KeyboardManager.prototype, {
 		result = false
 	;
 		if (keymap instanceof ide.KeyMap)
-			result = keymap.handle(key); 
-		
+			result = keymap.handle(key);
+
 		if (result===false)
 			result = ide.keymap.handle(key, state);
-		
+
 		return result;
 	},
 
@@ -222,7 +222,7 @@ cxl.extend(KeyboardManager.prototype, {
 
 		return sequence;
 	},
-	
+
 	normalize: function(key)
 	{
 	var
@@ -231,22 +231,22 @@ cxl.extend(KeyboardManager.prototype, {
 	;
 		while (i--)
 			sequence[i] = this.getKeyId(sequence[i]);
-		
+
 		return sequence.join(' ');
 	}
-	
+
 });
-	
+
 function KeyMap()
 {
 	this.states = {};
 }
-	
+
 cxl.extend(KeyMap.prototype, {
-	
+
 	defaultState: null,
 	state: null,
-	
+
 	/**
 	 * Object with shortcuts as keys and actions as values.
 	 */
@@ -256,7 +256,7 @@ cxl.extend(KeyMap.prototype, {
 	{
 		this.defaultState = this.state = ide.project && ide.project.get('keymap') || 'default';
 	},
-	
+
 	getHandler: function(map, key)
 	{
 	var
@@ -272,17 +272,17 @@ cxl.extend(KeyMap.prototype, {
 			handler = ide.action.bind(ide, fn);
 			handler.action = fn;
 		}
-		
+
 		handler.key = key;
-		
+
 		return handler;
 	},
-	
+
 	registerKey: function(state, key, handler)
 	{
 		state[key] = handler;
 	},
-	
+
 	registerState: function(state, map)
 	{
 	var
@@ -299,12 +299,18 @@ cxl.extend(KeyMap.prototype, {
 		for (var state in map)
 			this.registerState(state, map[state]);
 	},
-	
+
 	getState: function(state)
 	{
 		return this.states[state || this.state];
 	},
-	
+
+	setState: function(state)
+	{
+		this.state = state;
+		ide.plugins.trigger('editor.keymap', this, state);
+	},
+
 	/**
 	 * Handles key in current state, or optional state parameter.
 	 */
@@ -316,19 +322,29 @@ cxl.extend(KeyMap.prototype, {
 	;
 		return fn ? fn(key) : false;
 	}
-	
+
 });
 
 ide.keyboard = new KeyboardManager();
 ide.keymap = new KeyMap();
-	
+
 ide.keymap.registerKeys({
-	
+
+	inlineAssist: {
+
+		down: 'inlineAssistDown',
+		up: 'inlineAssistUp',
+		enter: 'inlineAssistAccept',
+		tab: 'inlineAssistAccept',
+		all: 'inlineAssistHide'
+
+	},
+
 	/**
 	 * Default Keymap
 	 */
 	default: {
-		
+
 		// MOTION
 		home: 'goLineStart',
 		end: 'goLineEnd',
@@ -340,21 +356,21 @@ ide.keymap.registerKeys({
 		pageup: 'goPageUp',
 		f1: 'help',
 		f10: 'assist',
-		
+
 		'mod+end': 'goDocEnd',
 		'mod+down': 'goLineDown',
 		'mod+home': 'goDocStart',
 		'mod+left': 'goGroupLeft',
 		'mod+right': 'goGroupRight',
 		'mod+up': 'goLineUp',
-		
+
 		// WORKSPACE
 		"alt+left": 'editorPrevious',
 		"alt+right": 'editorNext',
 		'alt+.': 'editorMoveNext',
 		'alt+,': 'editorMovePrev',
 		'alt+enter': 'ex',
-		
+
 		// SELECTION
 		'shift+left': 'selectStart goCharLeft selectEnd',
 		'shift+right': 'selectStart goCharRight selectEnd',
@@ -364,14 +380,14 @@ ide.keymap.registerKeys({
 		'shift+end': 'selectStart goLineEnd selectEnd',
 		'shift+pagedown': 'selectStart goPageDown selectEnd',
 		'shift+pageup': 'selectStart goPageUp selectEnd',
-		
+
 		'alt+u': 'redoSelection',
 		'mod+a': 'selectAll',
-		
+
 		// SEARCH
 		'mod+f': 'searchbar',
 		'mod+g': 'findNext',
-		
+
 		// EDITING
 		backspace: 'delCharBefore',
 		del: 'delCharAfter',
@@ -395,7 +411,7 @@ ide.keymap.registerKeys({
 		'shift+tab': 'indentAuto'
 	}
 });
-	
+
 ide.KeyMap = KeyMap;
-	
+
 })(this.ide, this.cxl);
