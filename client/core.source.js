@@ -384,7 +384,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 		ide.plugins.trigger('editor.scroll', this);
 	},
 
-	_setup: function()
+	initialize: function()
 	{
 	var
 		options = this._getOptions(),

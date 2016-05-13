@@ -144,9 +144,6 @@ var
 
 ide.Editor = cxl.View.extend({
 
-	/* Executes after template has been loaded */
-	_ready: null,
-
 	/// Unique ID
 	id: null,
 
@@ -165,25 +162,13 @@ ide.Editor = cxl.View.extend({
 
 		this.keymap = new ide.KeyMap();
 
-		if (this._setup)
-			this._setup();
-
-		if (this.templateId)
-			this.template = cxl.html(this.templateId);
-
-		if (this.template)
-			this.loadTemplate(this.template);
-
-		if (this._ready)
-			this._ready();
+		cxl.View.prototype.load.call(this, this.$el);
 
 		ide.plugins.trigger('editor.load', this);
 	},
 
 	/** @abstract */
-	option: function()
-	{
-	},
+	option: function() {},
 
 	/** Plugin that instantiated the editor @required */
 	plugin: null,

@@ -1,46 +1,46 @@
 
 (function(ide, _, $, cxl) {
 "use strict";
-	
+
 var ProjectList = ide.Editor.List.extend({
-	
+
 	title: 'projects',
-	
-	_setup: function()
+
+	initialize: function()
 	{
-		ide.Editor.List.prototype._setup.call(this);
-		
+		ide.Editor.List.prototype.initialize.call(this);
+
 		this.itemTemplate = _.template(cxl.html('tpl-project'));
 	},
-	
-	_ready: function()
+
+	render: function()
 	{
-		ide.Editor.List.prototype._ready.call(this);
+		ide.Editor.List.prototype.render.call(this);
 		this._loadProjects();
 	},
-	
+
 	_loadProjects: function()
 	{
 		var me = this;
-		
+
 		$.get('/projects', function(d) {
 			me._renderProjects(d);
 		});
 	},
-	
+
 	onItemClick: function(ev, item)
 	{
 		// TODO umm ugly
 		if (ev.target.parentNode.tagName==='A')
 			return ev.stopPropagation();
-		
+
 		if (item.path)
 		{
 			ide.commands.project(item.path);
 			ev.preventDefault();
 		}
 	},
-	
+
 	_renderProjects: function(projects)
 	{
 	var
@@ -48,7 +48,7 @@ var ProjectList = ide.Editor.List.extend({
 	;
 		this.add(all);
 	}
-	
+
 });
 
 ide.plugins.register('welcome', new ide.Plugin({
@@ -58,24 +58,24 @@ ide.plugins.register('welcome', new ide.Plugin({
 		{
 			ide.notify('Hello, ' + ide.project.get('user'));
 		},
-		
+
 		projects: function()
 		{
 			this.openProjects({ plugin: this, file: 'projects' });
 		}
 	},
-	
+
 	openProjects: function(options)
 	{
 		ide.workspace.add(new ProjectList(options));
 	},
-	
+
 	open: function(options)
 	{
 		if (options.file==='projects')
 			return new ProjectList(options);
 	},
-	
+
 	onChange: function()
 	{
 		if (ide.workspace.slots.length===0)
@@ -83,16 +83,16 @@ ide.plugins.register('welcome', new ide.Plugin({
 		else
 			this.$el.hide().css('opacity', 0);
 	},
-	
+
 	onTimeout: function()
 	{
 		this.exKey = ide.keyboard.findKey('ex');
 		this.assistKey = ide.keyboard.findKey('assist');
-		
+
 		this.template = _.template($('#tpl-welcome').html())(this);
 		this.$el = $('#welcome').html(this.template);
 		this.onChange();
-		
+
 		ide.plugins.on('workspace.add', this.onChange, this);
 		ide.plugins.on('workspace.remove', this.onChange, this);
 	},
@@ -106,10 +106,10 @@ ide.plugins.register('welcome', new ide.Plugin({
 	;
 		if (user)
 			ide.warn('Welcome ' + user);
-		
+
 		if (project)
 			window.document.title = project;
-		
+
 		window.setTimeout(this.onTimeout.bind(this));
 	}
 

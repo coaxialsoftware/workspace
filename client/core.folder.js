@@ -97,7 +97,7 @@ ide.Editor.List = ide.Editor.extend({
 	// content DOM element
 	$list: null,
 
-	_setup: function()
+	initialize: function()
 	{
 		this.$el.addClass('panel');
 		this.listenTo(this.el, 'wheel', this.onWheel);
@@ -110,7 +110,7 @@ ide.Editor.List = ide.Editor.extend({
 		ev.preventDefault();
 	},
 
-	_ready: function()
+	render: function()
 	{
 		this.$list = $(this.$list)
 			.on('click', '.item', this.onListClick.bind(this));
