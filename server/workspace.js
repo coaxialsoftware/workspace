@@ -575,13 +575,30 @@ workspace.extend({
 		});
 	},
 
+	__watches: {},
+
 	watch: function(path, cb)
 	{
-		var id = this.watcher.watchFile(path);
+	var
+		id = this.watcher.watchFile(path),
+		watches = this.__watches[id] || (this.__watches[id]=[])
+	;
 		this.dbg(`Watching File ${id}`);
 
 		if (cb)
+		{
+			watches.push(cb);
 			this.plugins.on('workspace.watch:' + id, cb);
+		}
+
+		return id;
+	},
+
+	unwatch: function(id, cb)
+	{
+		this.watcher.unwatch(id);
+		_.pull(this.__watches, cb);
+		this.plugins.off('workspace.watch:' + id, cb);
 	},
 
 	onWatch: function(ev, file)
