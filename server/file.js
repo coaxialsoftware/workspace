@@ -42,6 +42,7 @@ class File {
 	onContent(content)
 	{
 		this.content = content;
+		workspace.plugins.emit('file.read', this);
 		return this;
 	}
 
@@ -115,13 +116,12 @@ plugin.config(function() {
 			{
 				this.dbg(`[onMessageStat] File changed: ${data.p}`);
 
-				common.read(data.p).then(function(content) {
-					workspace.socket.respond(client, 'file', {
-						path: data.p,
-						mtime: stat.mtime.getTime(),
-						content: content
-					});
-				});
+				var response = {
+					path: data.p,
+					mtime: stat.mtime.getTime()
+				};
+
+				workspace.socket.respond(client, 'file', response);
 			}
 		});
 	},

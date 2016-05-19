@@ -96,6 +96,16 @@ class Project {
 	}
 
 	/**
+	 * workspace.exec in project context
+	 */
+	exec(command, options)
+	{
+		return workspace.exec(command, _.extend({
+			cwd: this.path
+		}, options));
+	}
+
+	/**
 	 * Adds promises to be resolved on Project load.
 	 */
 	resolve(promise)

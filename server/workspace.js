@@ -13,6 +13,7 @@ var
 	_ = require('lodash'),
 	Q = require('bluebird'),
 	npm = require('npm'),
+	cp = require('child_process'),
 
 	cxl = require('@cxl/cxl'),
 
@@ -525,13 +526,42 @@ workspace.extend({
 		this.__saveData();
 	},
 
+	/**
+	 * Executes shell command using child_process.exec. Returns a promise
+	 *
+	 * options:
+	 *
+	 * timeout  Default 5 seconds.
+	 */
+	exec: function(command, options)
+	{
+		return new Q(function(resolve, reject) {
+			options = _.extend({
+				timeout: 5000,
+				plugin: workspace
+			}, options);
+
+			options.plugin.dbg(`exec "${command}"`);
+
+			cp.exec(command, options, function(err, stdout) {
+				if (err && err.code!==0)
+				{
+					options.plugin.error(err);
+					reject(err);
+				}
+
+				resolve(stdout);
+			});
+		});
+	},
+
 	shell: function(command, params, cwd, res)
 	{
 		var me = this;
 
 		this.log(command + (params ? ' ' + params.join(' ') : ''));
 
-		var process = require('child_process').spawn(
+		var process = cp.spawn(
 			command, params,
 			{ cwd: cwd, detached: true, stdio: [ 'ignore' ] }
 		);
