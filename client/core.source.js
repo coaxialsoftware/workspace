@@ -36,11 +36,10 @@ _.extend(HintManager.prototype, {
 		return _.filter(hints, ['line', line]);
 	},
 
-	__createMark: function(line, lineHandle)
+	__createMark: function(line)
 	{
 		var el = document.createElement('DIV');
 
-		el.style.height=(lineHandle.height|0) + 'px';
 		this.__cm.setGutterMarker(line, 'editor-hint-gutter', el);
 
 		return el;
@@ -75,6 +74,7 @@ _.extend(HintManager.prototype, {
 
 		el.setAttribute('class', 'editor-hint ' + (hint.className || 'info'));
 		el.setAttribute('title', hint.title);
+		el.innerHTML = '&nbsp;';
 
 		marker.appendChild(el);
 	}

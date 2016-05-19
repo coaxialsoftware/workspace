@@ -6,7 +6,7 @@
 .cm-s-workspace .CodeMirror-gutters { background: #222; border-right: 1px solid #aaa; }
 .cm-s-workspace .CodeMirror-guttermarker { color: white; }
 .cm-s-workspace .CodeMirror-guttermarker-subtle { color: #aaa; }
-.cm-s-workspace .CodeMirror-linenumber { color: #aaa; z-index: 10; }
+.cm-s-workspace .CodeMirror-linenumber { color: #aaa; }
 .cm-s-workspace .CodeMirror-cursor { border-left: 1px solid white !important; }
 
 .cm-s-workspace .cm-keyword {  color: #f9ee98; } /**/

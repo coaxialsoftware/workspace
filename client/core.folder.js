@@ -312,7 +312,9 @@ ide.plugins.register('folder', new ide.Plugin({
 
 	ready: function()
 	{
-		ide.Editor.List.prototype.itemTemplate = _.template(cxl.html('tpl-file'));
+		// TODO replace with cxl templates
+		ide.Editor.List.prototype.itemTemplate = _.template(cxl.html('tpl-item'));
+		ide.Editor.FileList.prototype.itemTemplate = _.template(cxl.html('tpl-file'));
 	},
 
 	commands: {

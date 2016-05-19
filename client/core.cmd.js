@@ -233,10 +233,14 @@ ide.plugins.register('cmd', {
 		}
 	},
 
-	loadCommands: function(e)
+	onAssist: function(done, editor, token)
 	{
-		e.reset();
+		if (editor === ide.commandBar && token.string)
+			done(this.getAllCommands(new RegExp('^' + token.string), 'inline'));
+	},
 
+	getAllCommands: function(search, type)
+	{
 		var result = [];
 
 		function getCommands(cmds, tag)
@@ -245,13 +249,18 @@ ide.plugins.register('cmd', {
 
 			for (var i in cmds)
 			{
+				if (search && !search.test(i))
+					continue;
+
 				tags = tag ? [ tag ] : [];
 				key = ide.keyboard.findKey(i);
 
 				if (typeof(cmds[i])==='string')
 					tags.push('alias:' + cmds[i]);
 
-				result.push({ key: key, title: i, className: 'cmd', tags: tags });
+				result.push({
+					key: key, title: i, className: 'cmd', tags: tags, type: type
+				});
 			}
 		}
 
@@ -259,6 +268,14 @@ ide.plugins.register('cmd', {
 		getCommands(ide.editorCommands, 'editor');
 		getCommands(ide.editor.commands, 'editor');
 
+		return result;
+	},
+
+	loadCommands: function(e)
+	{
+		var result = this.getAllCommands(e);
+
+		e.reset();
 		e.add(_.sortBy(result, 'title'));
 	},
 
@@ -301,7 +318,6 @@ ide.plugins.register('cmd', {
 	openKeymap: function(options)
 	{
 		options.title = 'keymap';
-		options.itemTemplate = _.template(cxl.html('tpl-item'));
 
 		var editor = new ide.Editor.List(options);
 
@@ -329,6 +345,11 @@ ide.plugins.register('cmd', {
 		case 'log':
 			return this.openLog(options);
 		}
+	},
+
+	start: function()
+	{
+		ide.plugins.on('assist', this.onAssist.bind(this));
 	}
 
 });

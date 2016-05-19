@@ -18,16 +18,18 @@ ide.Bar = Backbone.View.extend({
 	 */
 	_value: '',
 
+	cloneEl: null,
+
 	/** @abstract */
 	cancel: function() { },
-	
+
 	findWord: function(cb)
 	{
 	var
 		el = this.el,
 		text,
 		i = el.selectionStart
-	;	
+	;
 		do {
 			i = el.value.lastIndexOf(' ', i-1);
 		} while (el.value[i-1]==='\\');
@@ -35,12 +37,18 @@ ide.Bar = Backbone.View.extend({
 		i++;
 
 		text = el.value.substr(i, el.selectionStart-i);
-		
+
 		cb.call(this, text, i, el.selectionStart);
 	},
 
 	initialize: function Bar()
 	{
+		this.cloneEl = window.document.createElement('DIV');
+		this.cloneEl.className = 'command-bar';
+		this.cloneEl.style.display = 'none';
+
+		document.body.appendChild(this.cloneEl);
+
 		this._keys = {
 		// TODO Use Key constants
 		27: function() { this.cancel(); this.hide(); },
@@ -63,7 +71,7 @@ ide.Bar = Backbone.View.extend({
 
 		this.$el.on('keydown', this.on_key.bind(this));
 		this.$el.on('keyup', this.on_keyup.bind(this));
-		this.$el.on('keyup keypress', this.on_keypress.bind(this));
+		this.$el.on('keypress', this.on_keypress.bind(this));
 		this.$el.on('blur', this.on_blur.bind(this));
 
 		if (this.start)
@@ -138,6 +146,21 @@ ide.Bar = Backbone.View.extend({
 		if (ide.editor)
 			ide.editor.focus();
 		return false;
+	},
+
+	getCursorCoordinates: function(cursor)
+	{
+	var
+		el = this.el, clone = this.cloneEl
+	;
+		clone.value = el.value.substr(0, cursor.ch);
+
+		return {
+			left: el.offsetLeft + clone.clientWidth,
+			top: el.offsetTop,
+			bottom: el.offsetTop + el.clientHeight,
+			right: 0
+		};
 	}
 
 });
@@ -205,6 +228,20 @@ ide.Bar.Command = ide.Bar.extend({
 			ide.notify(result);
 	},
 
+	option: function()
+	{
+
+	},
+
+	on_change: function()
+	{
+		this.findWord(function(s, start, end) {
+			ide.plugins.trigger('token', this, this.token = {
+				line: 0, start: start, ch: end, string: s
+			});
+		});
+	},
+
 	on_complete: function(s, start, end)
 	{
 	var
@@ -257,16 +294,12 @@ ide.Bar.Search = ide.Bar.extend({
 	}
 
 });
-	
-ide.plugins.on('assist', function() {
-	// TODO
-});
 
 ide.registerCommand('ex', function() {
 	ide.commandBar.show();
 });
 
-ide.registerCommand('searchbar', function() { 
+ide.registerCommand('searchbar', function() {
 	ide.searchBar.reverse = false;
 	ide.searchBar.show();
 });
