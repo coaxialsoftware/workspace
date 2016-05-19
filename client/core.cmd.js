@@ -266,7 +266,9 @@ ide.plugins.register('cmd', {
 
 		getCommands(ide.commands);
 		getCommands(ide.editorCommands, 'editor');
-		getCommands(ide.editor.commands, 'editor');
+
+		if (ide.editor)
+			getCommands(ide.editor.commands, 'editor');
 
 		return result;
 	},
