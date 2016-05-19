@@ -22,7 +22,7 @@ _.extend(HintManager.prototype, {
 	clear: function(id)
 	{
 		_.invokeMap(this.hints[id], 'remove');
-		this.hints = {};
+		this.hints[id] = [];
 	},
 
 	get: function(id)
