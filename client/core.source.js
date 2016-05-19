@@ -472,6 +472,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 	focus: function(ignore)
 	{
 		ide.Editor.prototype.focus.apply(this);
+		this.onCursorActivity();
 
 		if (!ignore)
 			this.editor.focus();

@@ -110,11 +110,10 @@ _.extend(InlineAssist.prototype, {
 
 		if (!this.visible)
 		{
-			style = window.getComputedStyle(editor.el);
-
 			this.el.style.display='block';
 
 			// TODO optimize?
+			style = window.getComputedStyle(editor.el);
 			this.el.style.fontFamily = style.fontFamily;
 			this.el.style.fontSize = style.fontSize;
 
