@@ -508,6 +508,7 @@ workspace.extend({
 
 	_: _,
 	Q: Q,
+	micromatch: require('micromatch'),
 
 	__data: null,
 	__dataFile: basePath + '/data.json',
@@ -590,7 +591,6 @@ workspace.extend({
 		{
 			this.configuration = new WorkspaceConfiguration();
 		}
-		console.log(file);
 
 		workspace.plugins.emit('workspace.watch:' + file, ev, file);
 	}
