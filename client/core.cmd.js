@@ -273,7 +273,7 @@ ide.plugins.register('cmd', {
 
 	loadCommands: function(e)
 	{
-		var result = this.getAllCommands(e);
+		var result = this.getAllCommands();
 
 		e.reset();
 		e.add(_.sortBy(result, 'title'));
