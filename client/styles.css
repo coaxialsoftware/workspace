@@ -225,6 +225,7 @@ div.CodeMirror-cursors { visibility: visible; }
 	background-color: rgba(0, 100, 159, 0.5);
 }
 .item:hover, .item.selected { background-color: rgba(0, 100, 159, 0.9); }
+.item .label { margin: 0 0 0 2px; }
 
 .item pre { white-space: pre-wrap; }
 .item kbd {
@@ -308,7 +309,7 @@ div.CodeMirror-cursors { visibility: visible; }
 #assist-inline .item {
 	border: 0; margin-bottom: 2px; box-shadow: none;
 }
-#assist-inline .item code, .item .label { display: none; }
+#assist-inline .item code, #assist-inline .item .label { display: none; }
 #assist-inline .item h4 { overflow-y: hidden; }
 
 /*
