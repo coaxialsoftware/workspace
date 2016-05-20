@@ -543,10 +543,12 @@ workspace.extend({
 
 			options.plugin.dbg(`exec "${command}"`);
 
-			cp.exec(command, options, function(err, stdout) {
+			cp.exec(command, options, function(err, stdout, stderr) {
 				if (err && err.code!==0)
 				{
 					options.plugin.error(err);
+					options.plugin.dbg(stderr);
+					options.plugin.dbg(stdout);
 					reject(err);
 				}
 

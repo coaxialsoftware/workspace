@@ -36,6 +36,8 @@ class ProjectConfiguration extends workspace.Configuration
 			workspace: !!this.loadFile(
 				this.path + '/project.json')
 		};
+		
+		this.icons = [];
 	}
 
 }
@@ -111,6 +113,14 @@ class Project {
 	resolve(promise)
 	{
 		this.promises.push(promise);
+	}
+	
+	/**
+	 * Calls ide.notify in all clients
+	 */
+	notify(hint)
+	{
+		this.broadcast({ notify: hint });
 	}
 
 	/**

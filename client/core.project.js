@@ -65,10 +65,14 @@ ide.Project = cxl.Model.extend({
 		
 		if (msg.reload===true)
 			this.reload();
+		
+		if (msg.notify)
+			ide.notify(msg.notify);
 	},
 
 	on_project: function()
 	{
+		this.hint.icons = this.get('icons');
 		ide.plugins.trigger('project.load', this);
 	},
 	
