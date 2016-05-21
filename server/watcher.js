@@ -4,6 +4,7 @@ var
 	_ = require('lodash'),
 	path = require('path')
 ;
+/* globals workspace */
 
 function Watcher(options)
 {
@@ -39,12 +40,14 @@ _.extend(Watcher.prototype, {
 		var me = this;
 
 		delete this.events[id];
+		
+		workspace.dbg(`Watch event ${ev} for ${file}`);
 
 		if (me.onEvent)
 			fs.stat(full, function(err, s) {
 				if (err)
 				{
-					if (ev==='change')
+					if (ev==='change' || ev==='rename')
 						me.onEvent('remove', file, full);
 					else
 						me.onEvent('error', file, full);
@@ -119,6 +122,7 @@ _.extend(Watcher.prototype, {
 
 			this.watchers[id] = w;
 
+			workspace.dbg(`Watching ${id}`);
 			return id;
 		} catch(e) {
 			console.error(e);
