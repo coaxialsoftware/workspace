@@ -2,28 +2,7 @@
 (function(window, ide, cxl, _) {
 "use strict";
 
-ide.Hint = ide.Item.extend({
-
-	priority: 10,
-
-	/** Shortcut */
-	key: null,
-
-	/** "assist" or "inline" */
-	type: 'assist',
-
-	className: 'log',
-
-	initialize: function()
-	{
-		if (!this.key && this.action)
-		{
-			var key = ide.keyboard.findKey(this.action);
-			this.key = key ? key : ':' + this.action;
-		}
-	}
-
-});
+ide.Hint = ide.Item;
 
 var InlineAssist = function() {
 	this.hints = [];

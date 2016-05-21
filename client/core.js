@@ -48,20 +48,11 @@ var
 	/** Displays notification on right corner */
 	notify: function(message, kls)
 	{
-		kls = kls || 'log';
 	var
 		log = ide.log,
-		span
-	;
-		if (typeof(message)==='string')
-			message = { title: message };
-
-		message.className = message.className || kls;
-
 		span = message instanceof ide.Item ? message :
-			message = new ide.Item(message);
-
-		setTimeout(span.remove.bind(span), 3000);
+			new ide.Notification(message, kls)
+	;
 		_nots.insertBefore(span.el, _nots.firstChild);
 
 		log.unshift(span);
@@ -141,7 +132,7 @@ var
 	}
 
 ;
-
+	
 ide.Editor = cxl.View.extend({
 
 	/// Unique ID

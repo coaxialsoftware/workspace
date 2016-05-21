@@ -38,7 +38,8 @@
 		"qunitjs": "*",
 		"karma-qunit": "*",
 		"karma-coverage": "*",
-		"karma-phantomjs-launcher": "*"
+		"karma-phantomjs-launcher": "*",
+		"@cxl/docma": "*"
 	},
 	
 	"files": [ "public", "server" ],

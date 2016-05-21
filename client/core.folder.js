@@ -61,13 +61,61 @@ var
 ide.Item = cxl.View.extend({
 
 	priority: 0,
+	
+	/** Shortcut */
+	key: null,
+
+	/** "assist" or "inline" */
+	type: 'assist',
+
+	className: 'log',
+	
+	action: null,
+
+	initialize: function()
+	{
+		if (!this.key && this.action)
+		{
+			var key = ide.keyboard.findKey(this.action);
+			this.key = key ? key : ':' + this.action;
+		}
+	},
 
 	remove: function()
 	{
 		this.$el.remove();
 		this.unbind();
 	}
+	
 });
+	
+ide.Notification = ide.Item.extend({
+	
+	/** Optional Id for progress hints */
+	id: null,
+	
+	/**
+	 * If present hint will persist until progress becomes 1.
+	 * Progress from 0.0 to 1.0. A value of -1 will show a spinner
+	 */
+	progress: null,
+	
+	/** When to remove element. Defaults to 3 seconds */
+	delay: 3000,
+	
+	constructor: function(message, kls)
+	{
+		if (typeof(message)==='string')
+			message = { title: message, className: kls };
+		
+		ide.Item.call(this, message);
+		
+		if (this.progress === null)
+			setTimeout(this.remove.bind(this), this.delay);
+	}
+	
+});
+	
 
 ide.Editor.List = ide.Editor.extend({
 
