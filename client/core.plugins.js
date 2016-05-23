@@ -2,7 +2,11 @@
 (function(ide, cxl, $, _) {
 "use strict";
 
-/** @class */
+/**
+ * 
+ * Main Plugin class for all plugins.
+ *
+ */
 ide.Plugin = function Plugin(p)
 {
 	cxl.extend(this, p);
@@ -30,11 +34,6 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 	 */
 	start: function() { },
 
-	log: function(msg, klass)
-	{
-		ide.notify('[' + this.name + '] ' + msg, klass);
-	},
-
 	/**
 	 * Saves or retrieves local storage data
 	 */
@@ -49,14 +48,8 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 	},
 
 	/**
-	 * Sends data through web socket
+	 * Adds event handler.
 	 */
-	send: function(data)
-	{
-		ide.socket.send(this.name, data);
-		return this;
-	},
-
 	listenTo: function(name, fn)
 	{
 		this.__listeners.push({ name: name, fn: fn });
@@ -65,6 +58,9 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 		return this;
 	},
 
+	/**
+	 * Unbinds all event handlers and destroys plugin
+	 */
 	destroy: function()
 	{
 		this.__listeners.forEach(function(l) {
@@ -104,7 +100,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		}
 	},
 
-	findPlugin: function(options, deferred)
+	findPlugin: function(options)
 	{
 	var
 		plugin = options.plugin,
@@ -118,36 +114,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		if (editor)
 			ide.workspace.add(editor);
 
-		deferred.resolve(editor);
-	},
-
-	/**
-	 * Opens a file if supported by a plugin.
-	 *
-	 * @param options {object} Required.
-	 * @param options.file {ide.File} File Object. Required.
-	 * @param options.plugin {ide.Plugin} Plugin
-	 */
-	edit: function(options, result)
-	{
-	var
-		me = this,
-		file = options.file
-	;
-		options.slot = options.slot || ide.workspace.slot();
-
-		if (!file.attributes || file.attributes.content || !file.attributes.filename)
-			this.findPlugin(options, result);
-		else
-			file.fetch({
-				silent: true,
-				success: function() {
-					delete file.changed;
-					me.findPlugin(options, result);
-				}
-			});
-
-		return result;
+		return editor;
 	},
 
 	/**
@@ -183,6 +150,9 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		this.load_plugins();
 	},
 
+	/**
+	 * Register commands and editor commands
+	 */
 	registerCommands: function(plugin)
 	{
 		for (var i in plugin.commands)
@@ -192,11 +162,17 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 			ide.registerEditorCommand(i, plugin.editorCommands[i], plugin);
 	},
 
+	/**
+	 * Registers new keymap shortcuts
+	 */
 	registerShortcuts: function(plugin)
 	{
 		ide.keymap.registerKeys(plugin.shortcuts, plugin);
 	},
 
+	/**
+	 * Registers a new plugin
+	 */
 	register: function(name, plugin)
 	{
 		this._plugins[name] = plugin;

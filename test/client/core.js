@@ -18,14 +18,14 @@ QUnit.test('ide.notify limit', function(a) {
 	for (var i=0; i<105; i++)
 		ide.notify(i+'');
 	
-	a.equal(ide.log.length, 100);
+	a.equal(ide.logger.items.length, 100);
 });
 
 QUnit.test('ide.notify ide.Item', function(a) {
 	var item = new ide.Item();
 	
 	ide.notify(item);
-	a.equal(ide.log[0], item);
+	a.equal(ide.logger.items[0], item);
 });
 
 QUnit.test('ide.source', function(a) {
@@ -67,14 +67,13 @@ QUnit.test('ide.open - string', function(a) {
 	
 });
 
-QUnit.test('ide.open - target', function(a) {
+QUnit.test('ide.openTab', function(a) {
 	
 	window.open = function(url) {
 		a.ok(url);
 	};
 	
-	ide.open({ filename: 'test', target: '_blank' })
-		.then(a.async());
+	ide.openTab('test').then(a.async());
 });
 	
 QUnit.test('ide.open - plugin', function(a) {
@@ -109,13 +108,13 @@ QUnit.module('core - ide.Editor');
 
 QUnit.test('ide.Editor', function(a) {
 var
-	e = new ide.Editor()
+	e = new ide.Editor({ slot: ide.workspace.slot() })
 ;
 	a.ok(e);
 });
 
 QUnit.test('ide.Editor#cmd', function(a) {
-	var e = new ide.Editor();
+	var e = new ide.Editor({ slot: ide.workspace.slot() });
 	
 	a.equal(e.cmd('hello'), ide.Pass);
 	

@@ -112,6 +112,16 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	editors: null,
 
 	layout: ide.Layout.Smart,
+	
+	showInfo: function()
+	{
+		var info = ide.editor && ide.editor.getInfo();
+
+		window.document.title = info || 'workspace';
+
+		if (!ide.assist.visible)
+			ide.notify(info);
+	},
 
 	load_editor: function(file)
 	{
@@ -351,7 +361,8 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 		this.load_project(this.load_workspace.bind(this));
 		this._on_hashchange = this.on_hashchange.bind(this);
 
-		window.addEventListener('beforeunload', this.on_beforeunload.bind(this));
+		this.listenTo(window, 'beforeunload', this.on_beforeunload);
+		ide.plugins.on('editor.focus', this.showInfo.bind(this));
 	}
 
 });
@@ -530,7 +541,7 @@ ide.plugins.registerCommands({
 
 		tabe: function(name)
 		{
-			ide.open({ file: name, target: '_blank' });
+			ide.openTab(name);
 		},
 
 		close: function()

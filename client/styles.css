@@ -159,7 +159,7 @@ kbd {
  *
  */
 .editor-hint-gutter { width: 100%; position: absolute; left: 0; }
-.editor-hint { width: 100%; opacity: 0.5; }
+.editor-hint { width: 100%; opacity: 0.5; display: inline-block; box-shadow: none !important; }
 
 .editor-hint:first-child:nth-last-child(2),
 .editor-hint:first-child:nth-last-child(2) ~ div { width: 50%; }

@@ -10,5 +10,6 @@
 	"strict": true,
 	"maxlen": 100,
 	"indent": 4,
-	"latedef": "nofunc"
+	"latedef": "nofunc",
+	"globals": { "Promise": true }
 }

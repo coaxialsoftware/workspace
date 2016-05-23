@@ -2,11 +2,6 @@
 (function(ide, cxl, _) {
 "use strict";
 
-ide.Feature = function Feature(p)
-{
-	cxl.extend(this, p);
-};
-
 function sandbox(a) {
 	/* jshint evil:true */
 	return (new Function(
@@ -219,12 +214,12 @@ ide.plugins.register('cmd', {
 	commands: {
 		commands: function()
 		{
-			return this.open({ plugin: this, file: 'commands' });
+			return this.openCommands({ plugin: this, file: 'commands' });
 		},
 
 		keymap: function()
 		{
-			return this.open({ plugin: this, file: 'keymap' });
+			return this.openKeymap({ plugin: this, file: 'keymap' });
 		},
 
 		log: function()
@@ -235,8 +230,13 @@ ide.plugins.register('cmd', {
 
 	onAssist: function(done, editor, token)
 	{
+		var regex;
+		
 		if (editor === ide.commandBar && token.string)
-			done(this.getAllCommands(new RegExp('^' + token.string), 'inline'));
+		{
+			try { regex = new RegExp('^' + token.string); } catch(e) { return; }
+			done(this.getAllCommands(regex, 'inline'));
+		}
 	},
 
 	getAllCommands: function(search, type)
@@ -332,7 +332,7 @@ ide.plugins.register('cmd', {
 	openLog: function(options)
 	{
 		options.title = 'log';
-		options.items = ide.log;
+		options.items = ide.logger.items;
 		options.file = 'log';
 		return new ide.Editor.List(options);
 	},

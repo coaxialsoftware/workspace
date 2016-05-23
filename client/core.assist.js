@@ -189,7 +189,7 @@ var Assist = cxl.View.extend({
 
 	hide: function()
 	{
-		cxl.$body.append(ide.$notifications);
+		cxl.$body.append(ide.logger.el);
 		this.$el.removeClass('assist-show');
 		this.visible = false;
 		ide.workspace.$el.removeClass('assist-show');
@@ -199,7 +199,7 @@ var Assist = cxl.View.extend({
 	show: function()
 	{
 		this.$el.addClass('assist-show');
-		this.el.insertBefore(ide.$notifications, this.$hints);
+		this.el.insertBefore(ide.logger.el, this.$hints);
 		this.visible = true;
 		ide.workspace.$el.addClass('assist-show');
 		this._requestHints();

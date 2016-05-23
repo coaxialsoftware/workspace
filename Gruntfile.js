@@ -73,6 +73,26 @@ module.exports = function(grunt) {
 				],
 				dest: 'public/build/libs.js'
 			},
+			
+			/*templates: {
+				options: {
+					banner: '',
+					stripBanners: false,
+					
+					process: function(src, path)
+					{
+						var id = path.replace(/^client\//, '');
+
+						return '<script type="text/template" ' +
+							'id="cxl/' + id + '">\n' + src +
+							'</script>\n';
+					}
+				},
+
+				files: {
+					'dist/templates.html': 'client/*.html'
+				}
+			},*/
 
 			client: {
 				src: [ '<%=concat.libs.dest %>', '<%= jshint.client.src %>' ],

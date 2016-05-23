@@ -7,8 +7,6 @@
 "use strict";
 
 var
-	_nots,
-
 	editorId = 1,
 
 	ide =
@@ -30,9 +28,6 @@ var
 	/** Plugin Manager */
 	plugins: null,
 
-	// We store the last 100 notifications.
-	log: [],
-
 	/** Displays alert notification on right corner */
 	warn: function(message)
 	{
@@ -45,23 +40,7 @@ var
 		return ide.notify(message, 'error');
 	},
 
-	/** Displays notification on right corner */
-	notify: function(message, kls)
-	{
-	var
-		log = ide.log,
-		span = message instanceof ide.Item ? message :
-			new ide.Notification(message, kls)
-	;
-		_nots.insertBefore(span.el, _nots.firstChild);
-
-		log.unshift(span);
-		if (log.length>100)
-			ide.log = log.slice(0, 100);
-
-		return span;
-	},
-
+	/** Does a POST ajax request. Supports progress events */
 	post: function(url, payload, onprogress)
 	{
 		return $.ajax({
@@ -86,27 +65,33 @@ var
 		/* jshint evil:true */
 		return (new Function(src)).call(window);
 	},
+		
+	/**
+	 * Opens file in new tab
+	 */
+	openTab: function(file, target)
+	{
+		return Promise.resolve(window.open(
+			'#' + ide.workspace.hash.encode({ f: file || false }),
+			target || '_blank'
+		));
+	},
 
 	/**
 	 * Opens a file.
-	 * @param options {object|string} If string it will be treated as target
-	 * @param options.file {ide.File|string} Name of the file relative to project or a File object.
-	 * @param options.target Open file in new window.
-	 * @param options.plugin Specify what plugin to use.
-	 * @return Returns a Jquery Deferred.
+	 * @param {object|string|ide.File} options If string it will be treated as target
+	 * 
+	 * options.file {ide.File|string} Name of the file relative to project or a File object.
+	 * options.plugin Specify what plugin to use.
+	 *
+	 * @return {Promise}
 	 */
 	open: function(options)
 	{
-		var result = $.Deferred();
-
+		var file, plugins=this.plugins;
+		
 		if (!options || typeof(options)==='string' || options instanceof ide.File)
 			options = { file: options || '' };
-
-		if (options.target)
-			return result.resolve(window.open(
-				'#' + ide.workspace.hash.encode({ f: options.file || false }),
-				options.target
-			));
 
 		if (typeof(options.plugin)==='string')
 			options.plugin = ide.plugins.get(options.plugin);
@@ -114,8 +99,33 @@ var
 		if (!(options.plugin && options.plugin.open &&
 			!options.plugin.edit) && typeof(options.file)==='string')
 			options.file = ide.fileManager.getFile(options.file);
-
-		return ide.plugins.edit(options, result);
+		
+		file = options.file;
+		
+		options.slot = options.slot || ide.workspace.slot();
+		
+		if (!file.attributes || file.attributes.content || !file.attributes.filename)
+			return Promise.resolve(plugins.findPlugin(options));
+		
+		return new Promise(function(resolve) {
+			file.fetch({
+				silent: true,
+				success: function() {
+					delete file.changed;
+					resolve(plugins.findPlugin(options));
+				}
+			});
+		});
+	},
+	
+	/** Displays notification on right corner */
+	notify: function(message, kls)
+	{
+	var
+		span = message instanceof ide.Item ? message :
+			new ide.Notification(message, kls)
+	;
+		return ide.logger.notify(span);
 	}
 
 },
@@ -124,32 +134,50 @@ var
 		// Load Templates
 		ide.Item.prototype.template = _.template(cxl.html('tpl-item'));
 
+		ide.logger = new ide.Logger();
 		ide.workspace = new ide.Workspace();
 		ide.searchBar = new ide.Bar.Search();
 		ide.commandBar = new ide.Bar.Command();
-
-		ide.$notifications = _nots = cxl.id('notification');
 	}
 
 ;
 	
-ide.Editor = cxl.View.extend({
+ide.Logger = function()
+{
+var
+	log = this.items = [],
+	el = this.el = cxl.id('notification')
+;
+	this.notify = function(span)
+	{
+		el.insertBefore(span.el, el.firstChild);
+
+		log.unshift(span);
+		if (log.length>100)
+			log.length = 100;
+
+		return span;
+	};
+};
+	
+ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 
 	/// Unique ID
 	id: null,
 
 	/// Active keymap @type ide.KeyMap
 	keymap: null,
+	
+	/// Workspace slot @required
+	slot: null,
 
+	/// @private
 	load: function()
 	{
 		this.id = editorId++;
-
-		if (!this.slot)
-			this.slot = ide.workspace.slot();
-
+		this.slot = this.slot || ide.workspace.slot();
 		this.setElement(this.slot.el);
-		this.listenTo(this.$el, 'click', this.onClick);
+		this.listenTo(this.$el, 'click', this.focus);
 
 		this.keymap = new ide.KeyMap();
 
@@ -173,12 +201,9 @@ ide.Editor = cxl.View.extend({
 	/** @type {Function} */
 	changed: null,
 
-	/** @type {Function} */
-	save: null,
-
 	/**
 	 * Handles a single command. Returns false if command wasn't handled. Commands are
-	 * editor instance functions. It will ignore methods that start with '_'
+	 * editor instance functions.
 	 *
 	 * @param name
 	 * @param args
@@ -193,12 +218,6 @@ ide.Editor = cxl.View.extend({
 		return fn ? fn.apply(this, args) : ide.Pass;
 	},
 
-	onClick: function()
-	{
-		if (ide.editor!==this)
-			this.focus();
-	},
-
 	getInfo: function()
 	{
 		var project = ide.project.get('name') || ide.project.id;
@@ -210,6 +229,9 @@ ide.Editor = cxl.View.extend({
 			(project ? ' [' + project + ']' : '');
 	},
 
+	/**
+	 * Focus editor. Sets ide.editor.
+	 */
 	focus: function()
 	{
 		if (ide.editor === this)
@@ -218,8 +240,6 @@ ide.Editor = cxl.View.extend({
 		if (ide.editor)
 			ide.editor.$el.removeClass('focus');
 
-		this.showInfo();
-
 		// TODO move this to workspace?
 		ide.editor = this;
 
@@ -227,26 +247,12 @@ ide.Editor = cxl.View.extend({
 		ide.plugins.trigger('editor.focus', this);
 	},
 
-	showInfo: function()
-	{
-		var info = this.getInfo();
-
-		window.document.title = info || 'workspace';
-
-		if (!ide.assist.visible)
-			ide.notify(info);
-	},
-
+	/** @private */
 	_close: function(force)
 	{
 		if (!force && this.changed && this.changed())
 			return "File has changed. Are you sure?";
-		// Remove first so do_layout of workspace works.
-		this.remove();
-	},
-
-	remove: function()
-	{
+		
 		this.$el.remove();
 		this.unbind();
 	}
@@ -301,7 +307,6 @@ ide.Editor.File = ide.Editor.extend({
 			this.setFile(file);
 
 		file.set('content', value);
-		file.once('write', this.showInfo, this);
 		file.save();
 	},
 

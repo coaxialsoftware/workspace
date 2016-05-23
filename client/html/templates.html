@@ -27,15 +27,6 @@
 </button>
 </script>
 
-<script id="tpl-debug" type="text/template">
-<div class="file">
-	<button class="content" style="line-height: 32px" data-id="<%= obj.id %>">
-		<img class="primary" src="<%= obj.faviconUrl %>" />
-		<%- obj.title %>
-	</button>
-</div>
-</script>
-
 <script id="tpl-plugin" type="text/template">
 <div tabindex="0" class="item item-collapsed" &="click:toggleClass(item-collapsed)">
 	<span &="if:=enabled" class="label pull-right">ENABLED</span>
