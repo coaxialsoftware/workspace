@@ -19,10 +19,6 @@ ide.Project = cxl.Model.extend({
 		this.on('sync', this.on_project);
 		this.on('error', this.on_error);
 		this.reload = _.debounce(this.fetch.bind(this), 500);
-		this.hint = {
-			priority: 0,
-			code: 'project'
-		};
 		
 		ide.plugins.on('socket.message.project', this.onMessage, this);
 	},
@@ -51,10 +47,12 @@ ide.Project = cxl.Model.extend({
 		if (data['theme.css'])
 			this.loadTheme(data['theme.css']);
 		
-		this.hint.title = data.name || data.path;
-		
-		if (data.tags)
-			this.hint.tags = Object.keys(data.tags);
+		this.hint = new ide.Item({
+			priority: 0,
+			code: 'project',
+			title: data.name || data.path,
+			tags: data.tags && Object.keys(data.tags)
+		});
 		
 		return data;
 	},
