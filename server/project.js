@@ -33,8 +33,8 @@ class ProjectConfiguration extends workspace.Configuration
 		this.set(p);
 
 		this.tags = {
-			workspace: !!this.loadFile(
-				this.path + '/project.json')
+			workspace: this.loadFile(
+				this.path + '/project.json') && 'workspace'
 		};
 		
 		this.icons = [];

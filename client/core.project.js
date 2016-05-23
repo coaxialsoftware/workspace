@@ -51,7 +51,7 @@ ide.Project = cxl.Model.extend({
 			priority: 0,
 			code: 'project',
 			title: data.name || data.path,
-			tags: data.tags && Object.keys(data.tags)
+			tags: data.tags
 		});
 		
 		return data;
