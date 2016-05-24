@@ -61,7 +61,7 @@ var
 ide.Item = cxl.View.extend({
 
 	priority: 0,
-	
+
 	/** Shortcut */
 	key: null,
 
@@ -69,7 +69,7 @@ ide.Item = cxl.View.extend({
 	type: 'assist',
 
 	className: 'log',
-	
+
 	action: null,
 
 	initialize: function()
@@ -86,36 +86,36 @@ ide.Item = cxl.View.extend({
 		this.$el.remove();
 		this.unbind();
 	}
-	
+
 });
-	
+
 ide.Notification = ide.Item.extend({
-	
+
 	/** Optional Id for progress hints */
 	id: null,
-	
+
 	/**
 	 * If present hint will persist until progress becomes 1.
 	 * Progress from 0.0 to 1.0. A value of -1 will show a spinner
 	 */
 	progress: null,
-	
+
 	/** When to remove element. Defaults to 3 seconds */
 	delay: 3000,
-	
+
 	constructor: function(message, kls)
 	{
 		if (typeof(message)==='string')
 			message = { title: message, className: kls };
-		
+
 		ide.Item.call(this, message);
-		
+
 		if (this.progress === null)
 			setTimeout(this.remove.bind(this), this.delay);
 	}
-	
+
 });
-	
+
 
 ide.Editor.List = ide.Editor.extend({
 
@@ -281,7 +281,8 @@ ide.Editor.FileList = ide.Editor.List.extend({
 	{
 	var
 		options = {
-			file: (this.prefix ? this.prefix+'/' : '') + item.filename
+			file: (this.prefix ? this.prefix+'/' : '') + item.filename,
+			focus: !ev.shiftKey
 		}
 	;
 		if (item.line)
@@ -292,7 +293,7 @@ ide.Editor.FileList = ide.Editor.List.extend({
 
 		ide.open(options);
 
-		if (!ev.shiftKey)
+		if (options.focus)
 			ide.workspace.remove(this);
 	}
 
@@ -310,7 +311,7 @@ ide.plugins.register('find', new ide.Plugin({
 		if (!files)
 			return ide.warn('[find] No files found in project.');
 
-		files = options.items = files.filter(function(val) {
+		files = files.filter(function(val) {
 			return regex.test(val.filename);
 		});
 
@@ -322,10 +323,13 @@ ide.plugins.register('find', new ide.Plugin({
 		else if (files.length===0)
 			ide.notify('No files found that match "' + mask + '"');
 		else
-		{
-			options.title = 'find ' + mask;
-			return new ide.Editor.FileList(options);
-		}
+			return new ide.Editor.FileList({
+				title: 'find ' + mask,
+				file: mask,
+				items: files,
+				plugin: this,
+				slot: options.slot
+			});
 	},
 
 	get_mask: function()
@@ -380,15 +384,17 @@ ide.plugins.register('folder', new ide.Plugin({
 
 		if (file.get('directory'))
 		{
-			files = options.items = file.get('content');
+			files = file.get('content');
 			files.unshift({ filename: '..' });
-
 			path = file.get('filename');
 
-			options.prefix = path==='.' ? '' : (path + '/');
-			options.title = path;
-
-			return new ide.Editor.FileList(options);
+			return new ide.Editor.FileList({
+				file: file,
+				items: files,
+				title: path,
+				prefix: path==='.' ? '' : (path + '/'),
+				slot: options.slot
+			});
 		}
 	}
 

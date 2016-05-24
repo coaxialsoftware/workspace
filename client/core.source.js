@@ -487,7 +487,10 @@ ide.defaultEdit = function(options)
 	if (!file.attributes.content)
 		file.attributes.content = '';
 
-	var editor = new ide.Editor.Source(options);
+	var editor = new ide.Editor.Source({
+		file: options.file,
+		slot: options.slot
+	});
 
 	if (options && options.line)
 		setTimeout(function() {

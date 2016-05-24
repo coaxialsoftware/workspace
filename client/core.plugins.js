@@ -3,7 +3,7 @@
 "use strict";
 
 /**
- * 
+ *
  * Main Plugin class for all plugins.
  *
  */
@@ -112,7 +112,11 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 			}) || ide.defaultEdit(options)
 	;
 		if (editor)
+		{
+			if (options.focus!==false)
+				editor.focus();
 			ide.workspace.add(editor);
+		}
 
 		return editor;
 	},
@@ -182,7 +186,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 });
 
 ide.Plugin.Item = cxl.View.extend({
-	
+
 	templateId: 'tpl-plugin',
 
 	render: function(msg)
@@ -239,7 +243,7 @@ ide.plugins.register('plugins', {
 		{
 			ide.warn('Could not retrieve plugins from server.');
 		}
-		
+
 		_.each(all, function(a, k) {
 			a.enabled = (enabled && enabled.indexOf(k)!==-1);
 			a.installed = !!a.installed;

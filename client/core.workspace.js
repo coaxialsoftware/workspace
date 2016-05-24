@@ -112,7 +112,7 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	editors: null,
 
 	layout: ide.Layout.Smart,
-	
+
 	showInfo: function()
 	{
 		var info = ide.editor && ide.editor.getInfo();
@@ -250,7 +250,6 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	add: function(item)
 	{
 		item.slot.editor = item;
-		item.focus();
 		ide.plugins.trigger('workspace.add', item);
 		return this.do_layout();
 	},
