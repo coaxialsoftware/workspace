@@ -246,6 +246,7 @@ ide.Bar.Command = ide.Bar.extend({
 
 		match = this._lastSearch[this._lastSearchIndex++];
 		this._value = this.el.value = val.slice(0, start) + match + val.slice(end);
+		this.on_change();
 	},
 
 	getCursorCoordinates: function(cursor)

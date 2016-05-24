@@ -230,12 +230,24 @@ ide.plugins.register('cmd', {
 
 	onAssist: function(done, editor, token)
 	{
-		var regex;
-		
+		var hints, files = ide.project.get('files'), i, total=0, f;
+
 		if (editor === ide.commandBar && token.string)
 		{
-			try { regex = new RegExp('^' + token.string); } catch(e) { return; }
-			done(this.getAllCommands(regex, 'inline'));
+			hints = this.getAllCommands(token.string, 'inline');
+
+			for (i=0; i<files.length && total<10; i++)
+			{
+				f = files[i].filename;
+
+				if (f.indexOf(token.string)===0)
+				{
+					total++;
+					hints.push({ title: f, type: 'inline' });
+				}
+			}
+
+			done(hints);
 		}
 	},
 
@@ -249,7 +261,7 @@ ide.plugins.register('cmd', {
 
 			for (var i in cmds)
 			{
-				if (search && !search.test(i))
+				if (search && i.indexOf(search)!==0)
 					continue;
 
 				tags = tag ? [ tag ] : [];

@@ -309,7 +309,7 @@ div.CodeMirror-cursors { visibility: visible; }
 #assist > ul { position: static; padding: 0; margin: 0; }
 #assist-inline {
 	position: absolute; z-index: 10;
-	max-height: 130px; overflow-y: hidden; margin-left: -4px;
+	max-height: 120px; overflow-y: auto; margin-left: -4px;
 }
 #assist-inline .item {
 	border: 0; margin-bottom: 2px; box-shadow: none;
