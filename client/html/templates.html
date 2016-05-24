@@ -5,9 +5,9 @@
 
 <script id="tpl-item" type="text/template">
 <div tabindex="0" data-id="<%= obj.id %>" class="item <%= obj.className %>">
-	<% _.each(obj.tags, function(t) { %>
+	<% _.each(obj.tags, function(t) { if (t) { %>
 	<span class="label pull-right"><%=t%></span>
-	<% }) %>
+	<% }}) %>
 	<% if (obj.code) { %><code><%= obj.code %></code><% } %>
 	<div>
 	<% if (obj.key) { %><kbd><%= obj.key %></kbd><% } %>
