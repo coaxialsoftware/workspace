@@ -40,7 +40,7 @@ _.extend(Watcher.prototype, {
 		var me = this;
 
 		delete this.events[id];
-		
+
 		workspace.dbg(`Watch event ${ev} for ${file}`);
 
 		if (me.onEvent)
@@ -113,7 +113,10 @@ _.extend(Watcher.prototype, {
 	_doWatch: function(id, dir)
 	{
 		if (this.watchers[id])
-			throw `${id} already watched.`;
+		{
+			workspace.dbg(`Warning: "${id}" already watched.`);
+			return id;
+		}
 
 		try {
 			var w = fs.watch(id);
@@ -121,8 +124,6 @@ _.extend(Watcher.prototype, {
 			w.on('error', this.onError.bind(this, dir));
 
 			this.watchers[id] = w;
-
-			workspace.dbg(`Watching ${id}`);
 			return id;
 		} catch(e) {
 			console.error(e);

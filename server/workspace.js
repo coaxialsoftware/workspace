@@ -401,17 +401,24 @@ class PluginManager extends EventEmitter {
 			return;
 
 		if (typeof(scripts)==='string')
-			scripts = [];
+			scripts = [ scripts ];
 
 		this.scripts = '';
 
-		scripts.forEach(function(s) {
+		this.scriptWatchers = scripts.map(function(s) {
+
+			var fn, id;
+
 			try {
-				workspace.dbg('Loading script "${e}"');
+				workspace.dbg(`Loading script "${s}"`);
 				this.scripts += fs.readFileSync(s, 'utf8');
-				workspace.watch(s, this.onScriptsWatch.bind(this));
+
+				fn = this.onScriptsWatch.bind(this);
+				id = workspace.watch(s, fn);
+
+				return { unbind: workspace.unwatch.bind(workspace, id, fn) };
 			} catch(e) {
-				workspace.error('Could not load script "${s}".');
+				workspace.error(`Could not load script "${s}".`);
 				workspace.dbg(e);
 			}
 		}, this);
@@ -420,6 +427,7 @@ class PluginManager extends EventEmitter {
 
 	onScriptsWatch()
 	{
+		_.invokeMap(this.scriptWatchers, 'unbind');
 		this.loadScripts(workspace.configuration.scripts);
 	}
 
@@ -616,7 +624,7 @@ workspace.extend({
 		id = this.watcher.watchFile(path),
 		watches = this.__watches[id] || (this.__watches[id]=[])
 	;
-		this.dbg(`Watching File ${id}`);
+		this.dbg(`Watching File "${id}"`);
 
 		if (cb)
 		{
@@ -629,9 +637,10 @@ workspace.extend({
 
 	unwatch: function(id, cb)
 	{
+		this.dbg(`Unwatching File "${id}"`);
 		this.watcher.unwatch(id);
 		_.pull(this.__watches, cb);
-		this.plugins.off('workspace.watch:' + id, cb);
+		this.plugins.removeListener('workspace.watch:' + id, cb);
 	},
 
 	onWatch: function(ev, file)
