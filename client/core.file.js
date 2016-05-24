@@ -136,21 +136,12 @@ FileManager.prototype = {
 
 };
 
-ide.plugins.on('assist', function(done, editor, token) {
+ide.plugins.on('assist', function(done, editor) {
 
 	if (editor && editor.file)
 	{
-		var hints = [];
-
 		if (editor.file instanceof ide.File)
-			hints.push({ title: editor.getInfo(), code: 'file' });
-
-		if (token && (token.type===null || token.type==='string' ||
-			token.type==='string property') && token.string)
-			hints.push({ title: 'Find file ' + token.string, action: 'find'
-			});
-
-		done(hints);
+			done({ title: editor.getInfo(), code: 'file' });
 	}
 
 });

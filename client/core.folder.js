@@ -301,6 +301,23 @@ ide.Editor.FileList = ide.Editor.List.extend({
 
 ide.plugins.register('find', new ide.Plugin({
 
+	start: function()
+	{
+		this.listenTo('assist', this.onAssist);
+	},
+
+	onAssist: function(done, editor, token)
+	{
+		var str = token && (token.type===null || token.type==='string' ||
+			token.type==='string property') && token.string;
+
+		if (str)
+			done({
+				title: 'Find file ' + str,
+				action: 'find'
+			});
+	},
+
 	open: function(options)
 	{
 	var
