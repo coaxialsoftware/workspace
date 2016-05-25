@@ -125,6 +125,7 @@ ide.Editor.List = ide.Editor.extend({
 	itemClass: ide.Item,
 	items: null,
 
+	/** @type {function} */
 	onItemClick: null,
 
 	onListClick: function(ev)
@@ -142,7 +143,7 @@ ide.Editor.List = ide.Editor.extend({
 		ev.preventDefault();
 	},
 
-	// content DOM element
+	/// Content DOM element
 	$list: null,
 
 	initialize: function()

@@ -44,7 +44,10 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 		if (arguments.length===1)
 			return window.localStorage[prop];
 
-		window.localStorage[prop] = value;
+		if (value!==undefined)
+			window.localStorage[prop] = value;
+		else
+			delete(window.localStorage[prop]);
 	},
 
 	/**
