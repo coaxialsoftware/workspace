@@ -12,12 +12,10 @@
 			},
 			"css": {
 				"files": "client/*.css",
-				"tasks": "grunt concat:css"
+				"tasks": "grunt concat:css concat:html concat:htmldbg"
 			},
 			"html": {
-				"files": [
-					"client/html/*.html", "public/build/ide.css"
-				],
+				"files": [ "client/html/*.html", "public/build/ide.css" ],
 				"tasks": "grunt concat:html concat:htmldbg"
 			}
 		}

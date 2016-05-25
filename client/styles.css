@@ -313,9 +313,10 @@ div.CodeMirror-cursors { visibility: visible; }
 }
 #assist-inline .item {
 	border: 0; margin-bottom: 2px; box-shadow: none;
+	padding-right: 24px;
 }
 #assist-inline .item code, #assist-inline .item .label { display: none; }
-#assist-inline .item h4 { overflow-y: hidden; }
+#assist-inline .item h4 { overflow: visible; white-space: nowrap; }
 
 /*
  * Forms
