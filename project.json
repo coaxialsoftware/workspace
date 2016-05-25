@@ -1,2 +1,25 @@
 {
+	"plugins": [ "watch" ],
+	"watch": {
+		"rules": {
+			"client": {
+				"files": "client/*.js",
+				"tasks": "grunt jshint:client concat:client concat:debug"
+			},
+			"server": {
+				"files": "server/*.js",
+				"tasks": "grunt jshint:server"
+			},
+			"css": {
+				"files": "client/*.css",
+				"tasks": "grunt concat:css"
+			},
+			"html": {
+				"files": [
+					"client/html/*.html", "public/build/ide.css"
+				],
+				"tasks": "grunt concat:html concat:htmldbg"
+			}
+		}
+	}
 }

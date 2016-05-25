@@ -100,18 +100,12 @@ ide.Notification = ide.Item.extend({
 	 */
 	progress: null,
 
-	/** When to remove element. Defaults to 3 seconds */
-	delay: 3000,
-
 	constructor: function(message, kls)
 	{
 		if (typeof(message)==='string')
 			message = { title: message, className: kls };
 
 		ide.Item.call(this, message);
-
-		if (this.progress === null)
-			setTimeout(this.remove.bind(this), this.delay);
 	}
 
 });

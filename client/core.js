@@ -65,7 +65,7 @@ var
 		/* jshint evil:true */
 		return (new Function(src)).call(window);
 	},
-		
+
 	/**
 	 * Opens file in new tab
 	 */
@@ -80,7 +80,7 @@ var
 	/**
 	 * Opens a file.
 	 * @param {object|string|ide.File} options If string it will be treated as target
-	 * 
+	 *
 	 * options.file {ide.File|string} Name of the file relative to project or a File object.
 	 * options.plugin Specify what plugin to use.
 	 *
@@ -89,7 +89,7 @@ var
 	open: function(options)
 	{
 		var file, plugins=this.plugins;
-		
+
 		if (!options || typeof(options)==='string' || options instanceof ide.File)
 			options = { file: options || '' };
 
@@ -99,14 +99,14 @@ var
 		if (!(options.plugin && options.plugin.open &&
 			!options.plugin.edit) && typeof(options.file)==='string')
 			options.file = ide.fileManager.getFile(options.file);
-		
+
 		file = options.file;
-		
+
 		options.slot = options.slot || ide.workspace.slot();
-		
+
 		if (!file.attributes || file.attributes.content || !file.attributes.filename)
 			return Promise.resolve(plugins.findPlugin(options));
-		
+
 		return new Promise(function(resolve) {
 			file.fetch({
 				silent: true,
@@ -117,7 +117,7 @@ var
 			});
 		});
 	},
-	
+
 	/** Displays notification on right corner */
 	notify: function(message, kls)
 	{
@@ -141,25 +141,48 @@ var
 	}
 
 ;
-	
+
 ide.Logger = function()
 {
 var
+	active = {},
 	log = this.items = [],
 	el = this.el = cxl.id('notification')
 ;
-	this.notify = function(span)
-	{
-		el.insertBefore(span.el, el.firstChild);
+	this.delay = 3000;
 
-		log.unshift(span);
+	this.remove = function(item)
+	{
+		if (item.id)
+			delete(active[item.id]);
+
+		item.remove();
+		log.unshift(item);
 		if (log.length>100)
 			log.length = 100;
+	};
+
+	this.notify = function(span)
+	{
+		if (span.id)
+		{
+			var old = span.id && active[span.id];
+
+			if (old)
+				this.remove(old);
+
+			active[span.id] = span;
+		}
+
+		el.insertBefore(span.el, el.firstChild);
+
+		if (span.progress === null || span.progress===1)
+			setTimeout(this.remove.bind(this, span), this.delay);
 
 		return span;
 	};
 };
-	
+
 ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 
 	/// Unique ID
@@ -167,7 +190,7 @@ ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 
 	/// Active keymap @type ide.KeyMap
 	keymap: null,
-	
+
 	/// Workspace slot @required
 	slot: null,
 
@@ -252,7 +275,7 @@ ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 	{
 		if (!force && this.changed && this.changed())
 			return "File has changed. Are you sure?";
-		
+
 		this.$el.remove();
 		this.unbind();
 	}
