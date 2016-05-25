@@ -18,8 +18,6 @@ ide.Bar = Backbone.View.extend({
 	 */
 	_value: '',
 
-	cloneEl: null,
-
 	/** @abstract */
 	cancel: function() { },
 
@@ -43,12 +41,6 @@ ide.Bar = Backbone.View.extend({
 
 	initialize: function Bar()
 	{
-		this.cloneEl = window.document.createElement('DIV');
-		this.cloneEl.className = 'command-bar';
-		this.cloneEl.style.display = 'none';
-
-		document.body.appendChild(this.cloneEl);
-
 		this._keys = {
 		// TODO Use Key constants
 		27: function() { this.cancel(); this.hide(); },
@@ -146,21 +138,6 @@ ide.Bar = Backbone.View.extend({
 		if (ide.editor)
 			ide.editor.focus();
 		return false;
-	},
-
-	getCursorCoordinates: function(cursor)
-	{
-	var
-		el = this.el, clone = this.cloneEl
-	;
-		clone.value = el.value.substr(0, cursor.ch);
-
-		return {
-			left: el.offsetLeft + clone.clientWidth,
-			top: el.offsetTop,
-			bottom: el.offsetTop + el.clientHeight,
-			right: 0
-		};
 	}
 
 });
@@ -172,6 +149,7 @@ ide.Bar.Command = ide.Bar.extend({
 	history: [],
 	history_max: 50,
 	history_index: 0,
+	cloneEl: null,
 
 	history_up: function(ev)
 	{
@@ -201,6 +179,10 @@ ide.Bar.Command = ide.Bar.extend({
 	{
 		this._keys[38] = this.history_up.bind(this);
 		this._keys[40] = this.history_down.bind(this);
+
+		this.cloneEl = window.document.createElement('SPAN');
+		this.cloneEl.className = 'command-bar-width';
+		document.body.appendChild(this.cloneEl);
 	},
 
 	run: function()
@@ -264,6 +246,22 @@ ide.Bar.Command = ide.Bar.extend({
 
 		match = this._lastSearch[this._lastSearchIndex++];
 		this._value = this.el.value = val.slice(0, start) + match + val.slice(end);
+		this.on_change();
+	},
+
+	getCursorCoordinates: function(cursor)
+	{
+	var
+		el = this.el, clone = this.cloneEl
+	;
+		clone.innerHTML = el.value.substr(0, cursor.ch).replace(/ /g, '&nbsp;');
+
+		return {
+			left: el.offsetLeft + clone.offsetWidth,
+			top: el.offsetTop,
+			bottom: el.offsetTop + el.clientHeight,
+			right: 0
+		};
 	}
 
 });
