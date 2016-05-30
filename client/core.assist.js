@@ -76,9 +76,6 @@ _.extend(InlineAssist.prototype, {
 	{
 		if (this.hints.length)
 			this.hints = [];
-
-		if (this.visible)
-			this.el.innerHTML = '';
 	},
 
 	show: function(editor)
@@ -96,6 +93,7 @@ _.extend(InlineAssist.prototype, {
 			this.el.style.fontFamily = style.fontFamily;
 			this.el.style.fontSize = style.fontSize;
 
+			this.el.innerHTML = '';
 			this.visible = true;
 			this.selected = 0;
 			this.render();
@@ -117,8 +115,11 @@ _.extend(InlineAssist.prototype, {
 
 	hide: function()
 	{
-		this.el.style.display='none';
-		this.visible = false;
+		if (this.visible)
+		{
+			this.el.style.display='none';
+			this.visible = false;
+		}
 	},
 
 	render: function()

@@ -234,7 +234,7 @@ ide.plugins = new PluginManager();
 ide.plugins.register('plugins', {
 	commands: {
 		plugins: function() {
-			return ide.workspace.add(this.open({ plugin: this }));
+			return this.open();
 		}
 	},
 
@@ -261,14 +261,14 @@ ide.plugins.register('plugins', {
 	var
 		me = this, l
 	;
-		_.extend(options, {
+		l = new ide.Editor.List({
+			slot: options && options.slot,
+			plugin: this,
 			title: 'plugins',
 			itemTemplate: null,
 			itemClass: ide.Plugin.Item,
 			file: 'list'
 		});
-
-		l = new ide.Editor.List(options);
 
 		$.get('/plugins').then(function(all) {
 			me.addPlugins(l, all);
