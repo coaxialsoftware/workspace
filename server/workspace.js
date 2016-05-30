@@ -142,6 +142,9 @@ cxl.define(WorkspaceConfiguration, {
 	 */
 	'help.url': null,
 
+	/**
+	 * Default configuration for firebase
+ 	 */
 	'online.url': 'https://cxl.firebaseio.com/workspace'
 
 });

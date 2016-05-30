@@ -15,17 +15,29 @@ QUnit.test('ide.warn', function(a) {
 });
 
 QUnit.test('ide.notify limit', function(a) {
+	ide.logger.delay = 0;
+	
 	for (var i=0; i<105; i++)
 		ide.notify(i+'');
+	var done = a.async();
 	
-	a.equal(ide.logger.items.length, 100);
+	setTimeout(function() {
+		a.equal(ide.logger.items.length, 100);
+		done();
+	});
 });
 
 QUnit.test('ide.notify ide.Item', function(a) {
-	var item = new ide.Item();
+	ide.logger.delay = 0;
+	var item = new ide.Notification();
 	
 	ide.notify(item);
-	a.equal(ide.logger.items[0], item);
+	var done = a.async();
+	
+	setTimeout(function() {
+		a.equal(ide.logger.items[0], item);
+		done();
+	});
 });
 
 QUnit.test('ide.source', function(a) {

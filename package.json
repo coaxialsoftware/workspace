@@ -2,7 +2,7 @@
 	"name": "@cxl/workspace",
 	"description": "Javascript Web Editor",
 	"author": "Giancarlo Bellido <giancarlo@coaxialhost.com>",
-	"version": "0.5.0",
+	"version": "0.5.2",
 	"bin": {
 		"workspace": "./bin/workspace.js"
 	},
@@ -16,7 +16,7 @@
 		"websocket": "*",
 		"lodash": "4",
 		"micromatch": "*",
-		"firebase": "*",
+		"firebase": "2",
 		"@cxl/cxl": "*",
 		"npm": "*"
 	},
@@ -38,11 +38,10 @@
 		"qunitjs": "*",
 		"karma-qunit": "*",
 		"karma-coverage": "*",
-		"karma-phantomjs-launcher": "*",
-		"@cxl/docma": "*"
+		"karma-phantomjs-launcher": "*"
 	},
 	
-	"files": [ "public", "server" ],
+	"files": [ "public", "server", "bin" ],
 
 	"scripts": {
 		"prepublish": "grunt publish",

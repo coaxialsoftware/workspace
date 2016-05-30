@@ -85,7 +85,7 @@ plugin.extend({
 var
 	ws = workspace.configuration
 ;
-	this.port = ws['socket.port'];
+	this.port = ws['socket.port'] || 9002;
 	this.host = ws['socket.host'] || workspace.host; 
 
 	this.clients = { length: 0 };

@@ -73,10 +73,6 @@ kbd {
 	padding: 2px 4px;
 }
 
-.label-success {
-	background-color: #5cb85c;
-}
-
 .pull-right { float: right; }
 .text-right { text-align: right; }
 
@@ -154,7 +150,6 @@ kbd {
 }
 
 #search { 
-	background-color: rgb(142, 68, 173);
 	background-color: rgba(142, 68, 173, 0.7);
 }
 
@@ -168,7 +163,6 @@ kbd {
 
 .editor-hint:first-child:nth-last-child(2),
 .editor-hint:first-child:nth-last-child(2) ~ div { width: 50%; }
-.editor-hint:first-child:nth-last-child(2) ~ div { left: 50%; }
 
 .editor-hint:first-child:nth-last-child(3),
 .editor-hint:first-child:nth-last-child(3) ~ div { width: 33.3%; }
@@ -233,9 +227,8 @@ div.CodeMirror-cursors { visibility: visible; }
 .item .label { margin: 0 0 0 2px; }
 
 .item pre { white-space: pre-wrap; }
-.item kbd {
-	float: right; font-size: 12px;
-}
+.item kbd { float: right; font-size: 12px; }
+
 .item code {
 	margin-bottom: 2px; display: block;
 	font-size: 10px; text-transform: uppercase;
@@ -272,21 +265,15 @@ div.CodeMirror-cursors { visibility: visible; }
 	width: 32px; height: 32px;
 }
 
-.directory h4::after {
-	content: '/';	
-}
+.directory h4::after { content: '/'; }
 
 /*
  *
  * core.welcome.js
  *
  */
-.project {
-	background-color: rgba(41, 128, 185, 0.8);
-}
-.project:hover {
-	background-color: rgba(71, 158, 215, 0.9);
-}
+.project { background-color: rgba(41, 128, 185, 0.8); }
+.project:hover { background-color: rgba(71, 158, 215, 0.9); }
 
 #welcome { 
 	position: fixed; top: 50px; left: 50px; color: #999;
@@ -315,7 +302,7 @@ div.CodeMirror-cursors { visibility: visible; }
 	border: 0; margin-bottom: 2px; box-shadow: none;
 	padding-right: 24px;
 }
-#assist-inline .item code, #assist-inline .item .label { display: none; }
+#assist-inline .item code, #assist-inline .item .label, #assist-inline kbd { display: none; }
 #assist-inline .item h4 { overflow: visible; white-space: nowrap; }
 
 /*

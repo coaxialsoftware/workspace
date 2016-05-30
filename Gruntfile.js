@@ -35,8 +35,8 @@ module.exports = function(grunt) {
 				src: [
 					'node_modules/codemirror/lib/codemirror.css',
 					'node_modules/codemirror/addon/fold/foldgutter.css',
-					'public/theme/twilight.css',
-					'client/styles.css'
+					'client/styles.css',
+					'public/theme/twilight.css'
 				],
 				dest: 'public/build/ide.css'
 			},
@@ -164,14 +164,14 @@ module.exports = function(grunt) {
 		karma: {
 
 			options: {
-
 				frameworks: [ 'qunit' ],
 				browsers: [ 'PhantomJS' ],
 				reporters: [ 'progress', 'coverage' ],
 				background: false,
 				singleRun: true,
 				coverageReporter: {
-					subdir: 'report'
+					subdir: 'report',
+					type: 'lcov'
 				}
 			},
 

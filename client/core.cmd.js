@@ -232,7 +232,7 @@ ide.plugins.register('cmd', {
 	{
 		var hints, files = ide.project.get('files'), i, total=0, f;
 
-		if (editor === ide.commandBar && token.string)
+		if (editor === ide.commandBar && token.string && files)
 		{
 			hints = this.getAllCommands(token.string, 'inline');
 

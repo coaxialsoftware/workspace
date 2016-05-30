@@ -64,7 +64,7 @@ _.extend(InlineAssist.prototype, {
 		this.hints.splice(order, 0, hint);
 
 		if (this.visible)
-			this.renderHint(hint, order);
+			return this.renderHint(hint, order);
 
 		if (editor.option && editor.option('disableInput'))
 			this.hide();
@@ -182,6 +182,7 @@ var Assist = cxl.View.extend({
 	 */
 	onToken: function(editor)
 	{
+		this.inline.hide();
 		this.requestHints(editor);
 	},
 
@@ -209,7 +210,6 @@ var Assist = cxl.View.extend({
 	_requestHints: function(editor)
 	{
 		editor = this.editor = editor || ide.editor;
-
 	var
 		token = editor && editor.token,
 		file = editor && (editor.file instanceof ide.File) && editor.file,
