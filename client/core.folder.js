@@ -142,21 +142,23 @@ ide.Editor.List = ide.Editor.extend({
 
 	initialize: function()
 	{
-		this.$el.addClass('panel');
-		this.listenTo(this.el, 'wheel', this.onWheel);
+		this.$el.addClass('panel list');
 	},
 
 	onWheel: function(ev)
 	{
 		var dY = ev.deltaY;
-		this.el.scrollTop += dY;
+		this.$list[0].scrollTop += dY;
 		ev.preventDefault();
 	},
 
 	render: function()
 	{
+		this.listenTo(this.$list, 'wheel', this.onWheel);
+		
 		this.$list = $(this.$list)
 			.on('click', '.item', this.onListClick.bind(this));
+		
 
 		if (this.items)
 			this._addElements(this.items, 0);
