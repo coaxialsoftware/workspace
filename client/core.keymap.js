@@ -327,18 +327,24 @@ cxl.extend(KeyMap.prototype, {
 
 ide.keyboard = new KeyboardManager();
 ide.keymap = new KeyMap();
+	
+/**
+ * Global keymap handler. Make sure to fallback to default bindings
+ */
+ide.keymap.handle = function(key, state)
+{
+var
+	result = KeyMap.prototype.handle.call(this, key, state)
+;
+	state = state || this.state;
+	
+	if (result===false && state !== 'default')
+		result = KeyMap.prototype.handle.call(this, key, 'default');
+		
+	return result;
+};
 
 ide.keymap.registerKeys({
-
-	inlineAssist: {
-
-		down: 'inlineAssistDown',
-		up: 'inlineAssistUp',
-		enter: 'inlineAssistAccept',
-		tab: 'inlineAssistAccept',
-		all: 'inlineAssistHide'
-
-	},
 
 	/**
 	 * Default Keymap
@@ -368,7 +374,7 @@ ide.keymap.registerKeys({
 		"alt+left": 'editorPrevious',
 		"alt+right": 'editorNext',
 		'alt+.': 'editorMoveNext',
-		'alt+,': 'editorMovePrev',
+		'alt+,': 'editorMovePrevious',
 		'alt+enter': 'ex',
 
 		// SELECTION

@@ -24,7 +24,7 @@ _.extend(InlineAssist.prototype, {
 	hints: null,
 	selected: 0,
 	visible: false,
-	version: 0,
+	editor: null,
 	/// Current token position
 	pos: null,
 
@@ -85,7 +85,7 @@ _.extend(InlineAssist.prototype, {
 	{
 		var style;
 
-		editor = editor || ide.editor;
+		editor = this.editor = editor || ide.editor;
 
 		if (!this.visible)
 		{
@@ -99,6 +99,8 @@ _.extend(InlineAssist.prototype, {
 			this.visible = true;
 			this.selected = 0;
 			this.render();
+			
+			ide.keymap.setState('inlineAssist');
 		}
 	},
 
@@ -358,6 +360,21 @@ ide.plugins.register('assist', {
 			window.setTimeout(ide.assist.show.bind(ide.assist), 150);
 	}
 
+});
+	
+ide.keymap.registerKeys({
+	
+	inlineAssist: {
+
+		down: 'inlineAssistNext',
+		up: 'inlineAssistPrevious',
+		enter: 'inlineAssistAccept',
+		tab: 'inlineAssistAccept',
+		all: function() {
+		}
+
+	}
+	
 });
 
 })(this, this.ide, this.cxl, this._);
