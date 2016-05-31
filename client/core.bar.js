@@ -133,10 +133,12 @@ ide.Bar = Backbone.View.extend({
 	hide: function()
 	{
 		this.$el.hide();
-
 		this.hidden = true;
+		ide.assist.cancel();
+		
 		if (ide.editor)
 			ide.editor.focus();
+		
 		return false;
 	}
 

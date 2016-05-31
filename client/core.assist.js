@@ -75,7 +75,10 @@ _.extend(InlineAssist.prototype, {
 	clear: function()
 	{
 		if (this.hints.length)
+		{
 			this.hints = [];
+			this.el.innerHTML = '';
+		}
 	},
 
 	show: function(editor)
@@ -93,7 +96,6 @@ _.extend(InlineAssist.prototype, {
 			this.el.style.fontFamily = style.fontFamily;
 			this.el.style.fontSize = style.fontSize;
 
-			this.el.innerHTML = '';
 			this.visible = true;
 			this.selected = 0;
 			this.render();
@@ -183,7 +185,6 @@ var Assist = cxl.View.extend({
 	 */
 	onToken: function(editor)
 	{
-		this.inline.hide();
 		this.requestHints(editor);
 	},
 
@@ -206,6 +207,13 @@ var Assist = cxl.View.extend({
 		ide.workspace.$el.addClass('assist-show');
 		this._requestHints();
 		ide.workspace.hash.set({ a: 1 });
+	},
+	
+	cancel: function()
+	{
+		this.version++;
+		this.requestHints.cancel();
+		this.inline.hide();
 	},
 
 	_requestHints: function(editor)

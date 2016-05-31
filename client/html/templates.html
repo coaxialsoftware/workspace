@@ -9,10 +9,10 @@
 	<span class="label pull-right"><%=t%></span>
 	<% }}) %>
 	<% if (obj.code) { %><code><%= obj.code %></code><% } %>
-	<div>
+	<div class="item-body">
 	<% if (obj.key) { %><kbd><%= obj.key %></kbd><% } %>
 		<% _.each(obj.icons, function(l) { %>
-		<<%= l.href ? 'a href="' + l.href + '"' : 'span' %> class="icon pull-right" title="<%=l.title%>"><i class="fa fa-<%=l.class%>"></i> <%-l.text%>
+		<<%= l.href ? 'a href="' + l.href + '"' : 'span' %> class="icon" title="<%=l.title || l%>"><i class="fa fa-<%=l.class || l%>"></i> <%-l.text%>
 		</<%= l.href ? 'a' : 'span' %>>
 		<% }) %>
 	<h4><%- obj.title %></h4>

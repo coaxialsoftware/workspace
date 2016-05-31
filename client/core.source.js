@@ -49,8 +49,8 @@ _.extend(HintManager.prototype, {
 	{
 		var h = this.__cm.lineInfo(line);
 
-		return h.gutterMarkers && h.gutterMarkers['editor-hint-gutter'] ||
-			this.__createMark(line, h.handle);
+		return h && (h.gutterMarkers && h.gutterMarkers['editor-hint-gutter'] ||
+			this.__createMark(line, h.handle));
 	},
 
 	__removeHint: function(el)
@@ -66,6 +66,10 @@ _.extend(HintManager.prototype, {
 		marker = this.__getMarker(hint.line>0 ? hint.line-1 : 0),
 		hints = this.get(id)
 	;
+		// Invalid line? 
+		if (!marker)
+			return;
+			
 		hint.line--;
 		hint.el = el;
 		hint.remove = this.__removeHint.bind(marker, el);

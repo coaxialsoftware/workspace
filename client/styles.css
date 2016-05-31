@@ -141,7 +141,7 @@ kbd {
 	width: 100%; height: 24px; border: 0; 
 	z-index: 10; outline: none; font-family: monospace;
 	border-radius: 0; font-size: 12px;
-	padding: 1px 0;
+	padding: 1px 0 1px 20px;
 }
 
 .command-bar-width {
@@ -228,6 +228,8 @@ div.CodeMirror-cursors { visibility: visible; }
 
 .item pre { white-space: pre-wrap; }
 .item kbd { float: right; font-size: 12px; }
+.item .item-body { clear: both; }
+.item .icon { float: right; }
 
 .item code {
 	margin-bottom: 2px; display: block;
@@ -296,14 +298,17 @@ div.CodeMirror-cursors { visibility: visible; }
 #assist > ul { position: static; padding: 0; margin: 0; }
 #assist-inline {
 	position: absolute; z-index: 10;
-	max-height: 120px; overflow-y: auto; margin-left: -4px;
+	max-height: 120px; overflow-y: auto; margin-left: -20px;
 }
 #assist-inline .item {
 	border: 0; margin-bottom: 2px; box-shadow: none;
-	padding-right: 24px;
+	padding-right: 24px; padding-left: 20px;
 }
-#assist-inline .item code, #assist-inline .item .label, #assist-inline kbd { display: none; }
+#assist-inline .item code, #assist-inline .item .label,
+#assist-inline kbd { display: none; }
+
 #assist-inline .item h4 { overflow: visible; white-space: nowrap; }
+#assist-inline .icon { float: left; margin-left: -16px; }
 
 /*
  * Forms

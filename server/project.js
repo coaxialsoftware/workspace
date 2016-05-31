@@ -400,9 +400,6 @@ plugin.extend({
 })
 .route('GET', '/project', function(req, res) {
 
-	// TODO Make sure project exists.
-	//this.resolve(common.stat(this.path));
-
 	this.projectManager.load(req.query.n).then(function(result) {
 		res.send(result);
 	}, common.sendError(this, res));

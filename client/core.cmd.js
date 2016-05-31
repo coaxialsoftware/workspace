@@ -230,7 +230,11 @@ ide.plugins.register('cmd', {
 
 	onAssist: function(done, editor, token)
 	{
-		var hints, files = ide.project.get('files'), i, total=0, f;
+	var
+		hints,
+		icons = [ 'file-o' ],
+		files = ide.project.get('files'), i, total=0, f
+	;
 
 		if (editor === ide.commandBar && token.string && files)
 		{
@@ -243,7 +247,7 @@ ide.plugins.register('cmd', {
 				if (f.indexOf(token.string)===0)
 				{
 					total++;
-					hints.push({ title: f, type: 'inline' });
+					hints.push({ title: f, type: 'inline', icons: icons });
 				}
 			}
 
@@ -253,7 +257,7 @@ ide.plugins.register('cmd', {
 
 	getAllCommands: function(search, type)
 	{
-		var result = [];
+		var result = [], icons = [ 'terminal' ];
 
 		function getCommands(cmds, tag)
 		{
@@ -271,7 +275,9 @@ ide.plugins.register('cmd', {
 					tags.push('alias:' + cmds[i]);
 
 				result.push({
-					key: key, title: i, className: 'cmd', tags: tags, type: type
+					key: key, title: i, className: 'cmd',
+					tags: tags, type: type,
+					icons: type === 'inline' ? icons : null
 				});
 			}
 		}
