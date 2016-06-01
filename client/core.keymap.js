@@ -334,14 +334,34 @@ ide.keymap = new KeyMap();
 ide.keymap.handle = function(key, state)
 {
 var
-	result = KeyMap.prototype.handle.call(this, key, state)
+	handle = KeyMap.prototype.handle,
+	result=false
 ;
+	if (this.uiState)
+	{
+		result = handle.call(this, key, this.uiState);
+		if (state===this.uiState)
+			return result;
+	}
+	
+	if (result===false)
+		result = handle.call(this, key, state);
+		
 	state = state || this.state;
 	
 	if (result===false && state !== 'default')
-		result = KeyMap.prototype.handle.call(this, key, 'default');
+		result = handle.call(this, key, 'default');
 		
 	return result;
+};
+	
+/**
+ * Sets the UI state. UI States have a higher priority than global states, but lower
+ * than editor states.
+ */
+ide.keymap.setUIState = function(state)
+{
+	this.uiState = state;
 };
 
 ide.keymap.registerKeys({

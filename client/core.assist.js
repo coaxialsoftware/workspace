@@ -17,12 +17,17 @@ var InlineAssist = function() {
 
 	window.document.body.appendChild(this.el);
 	ide.plugins.on('token', this.onToken.bind(this));
+	
+	ide.registerCommand('inlineAssistNext', this.next, this);
+	ide.registerCommand('inlineAssistPrevious', this.previous, this);
+	ide.registerCommand('inlineAssistAccept', this.accept, this);
+	ide.registerCommand('inlineAssistHide', this.hide, this);
+
 };
 
 _.extend(InlineAssist.prototype, {
 
 	hints: null,
-	selected: 0,
 	visible: false,
 	editor: null,
 	/// Current token position
@@ -100,7 +105,7 @@ _.extend(InlineAssist.prototype, {
 			this.selected = 0;
 			this.render();
 			
-			ide.keymap.setState('inlineAssist');
+			ide.keymap.setUIState('inlineAssist');
 		}
 	},
 
@@ -108,7 +113,8 @@ _.extend(InlineAssist.prototype, {
 	{
 		var ref = this.hints[order];
 
-		hint.el.classList.toggle('selected', order===this.selected);
+		hint.el.classList.toggle('selected', order===0);
+		hint.el.$hint = hint;
 
 		if (ref && ref !== hint)
 			this.el.insertBefore(hint.el, ref.el);
@@ -123,6 +129,7 @@ _.extend(InlineAssist.prototype, {
 		{
 			this.el.style.display='none';
 			this.visible = false;
+			ide.keymap.setUIState(null);
 		}
 	},
 
@@ -136,6 +143,59 @@ _.extend(InlineAssist.prototype, {
 		else
 			for (; i<l; i++)
 				this.renderHint(hints[i], i);
+	},
+	
+	_goNext: function(dir)
+	{
+	var
+		selected = this.el.querySelector('.selected'),
+		next = selected && selected[dir || 'nextSibling'],
+		el = this.el, h
+	;
+		if (next)
+		{
+			selected.classList.remove('selected');
+			next.classList.add('selected');
+			h = next.offsetTop + next.offsetHeight;
+			
+			if (h > el.scrollTop + el.clientHeight)
+				el.scrollTop = h - el.clientHeight;
+			else if (next.offsetTop < el.scrollTop)
+				el.scrollTop = next.offsetTop;
+		}
+	},
+	
+	/** Go to next suggestion */
+	next: function()
+	{
+		return this._goNext();
+	},
+	
+	previous: function()
+	{
+		return this._goNext('previousSibling');
+	},
+	
+	accept: function()
+	{
+	var
+		editor = this.editor,
+		token = editor && editor.token,
+		el, hint, text
+	;
+		if (token && editor.insert)
+		{
+			el = this.el.querySelector('.selected');
+			
+			if (el)
+			{
+				hint = el.$hint;
+				text = hint.title.substr(token.ch-token.start);
+				editor.insert(text);
+			}
+		}
+		
+		this.hide();
 	}
 
 });
@@ -370,8 +430,7 @@ ide.keymap.registerKeys({
 		up: 'inlineAssistPrevious',
 		enter: 'inlineAssistAccept',
 		tab: 'inlineAssistAccept',
-		all: function() {
-		}
+		esc: 'inlineAssistHide'
 
 	}
 	

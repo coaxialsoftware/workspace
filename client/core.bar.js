@@ -96,7 +96,8 @@ ide.Bar = Backbone.View.extend({
 	on_key: function(ev)
 	{
 	var
-		fn = this._keys[ev.keyCode]
+		fn = this._keys[ev.keyCode],
+		result=false
 	;
 		if (this.hidden)
 			return;
@@ -104,9 +105,18 @@ ide.Bar = Backbone.View.extend({
 		if (ev.keyCode===9 || ev.keyCode===13)
 			ev.preventDefault();
 
-		if (fn)
+		// Manually call uiState handler...
+		// TODO see if we can refactor this.
+		if (ide.keymap.uiState)
+		{
+			result = ide.keymap.handle(ide.keyboard.getKeyId(ev), ide.keymap.uiState);
+			if (result!==false)
+				ev.preventDefault();
+		}
+		
+		if (result===false && fn)
 			fn.call(this, ev);
-
+		
 		ev.stopPropagation();
 	},
 
@@ -128,6 +138,15 @@ ide.Bar = Backbone.View.extend({
 	focus: function()
 	{
 		this.el.focus();
+	},
+	
+	insert: function(text)
+	{
+	var
+		val = this.el.value,
+		start = this.el.selectionStart
+	;
+		return (this._value = this.el.value = val.slice(0, start) + text + val.slice(start));
 	},
 
 	hide: function()
@@ -226,6 +245,7 @@ ide.Bar.Command = ide.Bar.extend({
 		});
 	},
 
+	/*
 	on_complete: function(s, start, end)
 	{
 	var
@@ -247,9 +267,10 @@ ide.Bar.Command = ide.Bar.extend({
 			return;
 
 		match = this._lastSearch[this._lastSearchIndex++];
-		this._value = this.el.value = val.slice(0, start) + match + val.slice(end);
+		this._value = this.el.value = val.slice(0, start) + text + val.slice(start));
 		this.on_change();
 	},
+	*/
 
 	getCursorCoordinates: function(cursor)
 	{
