@@ -11,6 +11,10 @@
 	<% if (obj.code) { %><code><%= obj.code %></code><% } %>
 	<div class="item-body">
 	<% if (obj.key) { %><kbd><%= obj.key %></kbd><% } %>
+	<% if (obj.icon) { var l=obj.icon; %>
+		<<%= l.href ? 'a href="' + l.href + '"' : 'span' %> class="icon" title="<%=l.title || l%>"><i class="fa fa-<%=l.class || l%>"></i> <%-l.text%>
+		</<%= l.href ? 'a' : 'span' %>>
+	<% } %>
 		<% _.each(obj.icons, function(l) { %>
 		<<%= l.href ? 'a href="' + l.href + '"' : 'span' %> class="icon" title="<%=l.title || l%>"><i class="fa fa-<%=l.class || l%>"></i> <%-l.text%>
 		</<%= l.href ? 'a' : 'span' %>>

@@ -107,6 +107,7 @@ kbd {
 	position: absolute; top: 46px; left: 12px; right: 12px; bottom: 0;
 	padding-bottom: 12px; overflow: hidden;
 }
+.list h3 { overflow: hidden; white-space: nowrap; }
 
 .focus {
 	animation-duration: 0.5s;

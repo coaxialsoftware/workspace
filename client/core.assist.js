@@ -6,23 +6,22 @@ ide.Hint = ide.Item;
 
 var InlineAssist = function() {
 	this.hints = [];
-	this.el = document.createElement('DIV');
-	this.el.setAttribute('id', 'assist-inline');
-	this.debouncedShow = _.debounce(this.show.bind(this));
+	this.el = cxl.id('assist-inline');
+	this.requestHints = _.debounce(this._requestHints.bind(this));
 	this.cursor = { line: 0, ch: 0 };
+	this.add = this.add.bind(this);
+	this.doAccept = this.doAccept.bind(this);
 
-	ide.plugins.on('editor.scroll', this.onScroll, this);
-	window.addEventListener('click', this.onScroll.bind(this));
-	window.addEventListener('resize', this.onScroll.bind(this));
+	ide.plugins.on('editor.scroll', this.hide, this);
+	window.addEventListener('click', this.hide.bind(this));
+	window.addEventListener('resize', this.hide.bind(this));
 
-	window.document.body.appendChild(this.el);
 	ide.plugins.on('token', this.onToken.bind(this));
-	
+
 	ide.registerCommand('inlineAssistNext', this.next, this);
 	ide.registerCommand('inlineAssistPrevious', this.previous, this);
 	ide.registerCommand('inlineAssistAccept', this.accept, this);
 	ide.registerCommand('inlineAssistHide', this.hide, this);
-
 };
 
 _.extend(InlineAssist.prototype, {
@@ -33,10 +32,34 @@ _.extend(InlineAssist.prototype, {
 	/// Current token position
 	pos: null,
 
-	onScroll: function()
+	/// How often to send assist requests
+	delay: 100,
+
+	/// Request version
+	version: 0,
+
+	_requestHints: function(editor, token)
 	{
-		if (this.visible)
-			this.hide();
+		token = token || editor.token;
+	var
+		file = editor.file instanceof ide.File && editor.file
+	;
+		this.version++;
+		this.editor = editor;
+		this.token = token;
+		this.hints = [];
+		this.el.innerHTML = '';
+
+		ide.plugins.trigger('assist.inline',
+			this.addHints.bind(this, this.version), editor, token);
+
+		ide.socket.send('assist.inline', {
+			$: this.version,
+			file: file && file.id,
+			mime: file && file.attributes.mime,
+			token: token,
+			project: ide.project.id
+		});
 	},
 
 	onToken: function(editor, token)
@@ -49,6 +72,11 @@ _.extend(InlineAssist.prototype, {
 		style = this.el.style
 	;
 		style.left = Math.round(pos.left) + 'px';
+
+		if (editor.option && editor.option('disableInput'))
+			return this.hide();
+		else
+			this.requestHints(this.editor = editor || ide.editor, token);
 	},
 
 	calculateTop: function()
@@ -56,55 +84,59 @@ _.extend(InlineAssist.prototype, {
 	var
 		el = this.el, pos = this.pos,
 		bottom = pos.bottom + el.clientHeight,
-		viewHeight = window.innerHeight
+		viewHeight = window.innerHeight,
+		height = bottom <= viewHeight ? pos.bottom : pos.top - el.clientHeight
 	;
-		this.el.style.top = Math.round((bottom <= viewHeight) ?
-			pos.bottom : pos.top - el.clientHeight) + 'px';
+		this.el.style.top = height + 'px';
 	},
 
-	add: function(hint, version, editor)
+	addHints: function(version, hints)
 	{
-		var order = _.sortedLastIndex(this.hints, hint, 'priority');
+		if (version !== this.version)
+			return;
+
+		hints.forEach(this.add);
+	},
+
+	add: function(hint)
+	{
+		hint = hint instanceof ide.Hint ? hint : new ide.Hint(hint);
+
+		var order = _.sortedLastIndexBy(this.hints, hint, 'priority');
 
 		this.hints.splice(order, 0, hint);
 
 		if (this.visible)
-			return this.renderHint(hint, order);
-
-		if (editor.option && editor.option('disableInput'))
-			this.hide();
+			this.renderHint(hint, order);
 		else
-			this.debouncedShow(editor);
+			this.show(this.editor);
 	},
 
 	clear: function()
 	{
 		if (this.hints.length)
-		{
 			this.hints = [];
-			this.el.innerHTML = '';
-		}
+	},
+
+	copyFont: function(el)
+	{
+		// TODO optimize?
+		var style = window.getComputedStyle(el);
+		this.el.style.fontFamily = style.fontFamily;
+		this.el.style.fontSize = style.fontSize;
 	},
 
 	show: function(editor)
 	{
-		var style;
-
 		editor = this.editor = editor || ide.editor;
 
 		if (!this.visible)
 		{
 			this.el.style.display='block';
-
-			// TODO optimize?
-			style = window.getComputedStyle(editor.el);
-			this.el.style.fontFamily = style.fontFamily;
-			this.el.style.fontSize = style.fontSize;
-
+			this.copyFont(editor.el);
 			this.visible = true;
-			this.selected = 0;
 			this.render();
-			
+
 			ide.keymap.setUIState('inlineAssist');
 		}
 	},
@@ -125,9 +157,12 @@ _.extend(InlineAssist.prototype, {
 
 	hide: function()
 	{
+		this.requestHints.cancel();
+
 		if (this.visible)
 		{
 			this.el.style.display='none';
+			this.el.innerHTML = '';
 			this.visible = false;
 			ide.keymap.setUIState(null);
 		}
@@ -138,13 +173,13 @@ _.extend(InlineAssist.prototype, {
 	var
 		i=0, hints = this.hints, l=hints.length
 	;
-		if (l===0)
+		if (l===0 || (l===1 && hints[0].title === this.token.string))
 			this.hide();
 		else
 			for (; i<l; i++)
 				this.renderHint(hints[i], i);
 	},
-	
+
 	_goNext: function(dir)
 	{
 	var
@@ -157,36 +192,36 @@ _.extend(InlineAssist.prototype, {
 			selected.classList.remove('selected');
 			next.classList.add('selected');
 			h = next.offsetTop + next.offsetHeight;
-			
+
 			if (h > el.scrollTop + el.clientHeight)
 				el.scrollTop = h - el.clientHeight;
 			else if (next.offsetTop < el.scrollTop)
 				el.scrollTop = next.offsetTop;
 		}
 	},
-	
+
 	/** Go to next suggestion */
 	next: function()
 	{
 		return this._goNext();
 	},
-	
+
 	previous: function()
 	{
 		return this._goNext('previousSibling');
 	},
-	
-	accept: function()
+
+	doAccept: function()
 	{
 	var
 		editor = this.editor,
-		token = editor && editor.token,
+		token = this.token,
 		el, hint, text
 	;
 		if (token && editor.insert)
 		{
 			el = this.el.querySelector('.selected');
-			
+
 			if (el)
 			{
 				hint = el.$hint;
@@ -194,8 +229,17 @@ _.extend(InlineAssist.prototype, {
 				editor.insert(text);
 			}
 		}
-		
+
 		this.hide();
+	},
+
+	accept: function()
+	{
+		// make sure all suggestions are in before accepting it...
+		// TODO find a better way?
+		this.requestHints.cancel();
+		this._requestHints(this.editor, this.editor.token);
+		setTimeout(this.doAccept, this.delay);
 	}
 
 });
@@ -270,12 +314,11 @@ var Assist = cxl.View.extend({
 		this._requestHints();
 		ide.workspace.hash.set({ a: 1 });
 	},
-	
+
 	cancel: function()
 	{
 		this.version++;
 		this.requestHints.cancel();
-		this.inline.hide();
 	},
 
 	_requestHints: function(editor)
@@ -290,7 +333,6 @@ var Assist = cxl.View.extend({
 		this.$hints.innerHTML = '';
 		this.rendered = false;
 		this.hints = [];
-		this.inline.clear();
 
 		ide.plugins.trigger('assist',
 			this.addHint.bind(this, this.version), editor, token);
@@ -319,21 +361,16 @@ var Assist = cxl.View.extend({
 	 */
 	addHint: function(version, hints)
 	{
-		if (version!==this.version)
+		if (version!==this.version || !this.visible)
 			return;
 
 		if (Array.isArray(hints))
 			hints.forEach(this.addHint.bind(this, version));
 		else
 		{
-			if (!this.visible && hints.type!=='inline')
-				return;
-
 			var h = hints instanceof ide.Hint ? hints : new ide.Hint(hints);
 
-			if (h.type==='inline')
-				this.inline.add(h, version, this.editor);
-			else if (this.rendered)
+			if (this.rendered)
 				this.renderHint(h);
 			else
 				this.hints.push(h);
@@ -343,13 +380,13 @@ var Assist = cxl.View.extend({
 	renderHint: function(hint, i)
 	{
 		i = i===undefined ?
-			_.sortedIndex(this.hints, hint, 'priority') :
+			_.sortedLastIndexBy(this.hints, hint, 'priority') :
 			i
 		;
 
 		var ref = this.hints[i];
 
-		if (ref !== hint)
+		if (ref && ref !== hint)
 		{
 			this.hints.splice(i, 0, hint);
 			this.$hints.insertBefore(hint.el, ref.el);
@@ -357,16 +394,21 @@ var Assist = cxl.View.extend({
 			this.$hints.appendChild(hint.el);
 	},
 
+	appendHint: function(hint)
+	{
+		this.$hints.appendChild(hint.el);
+	},
+
 	render: function()
 	{
 		var hints = this.hints = _.sortBy(this.hints, 'priority');
-		hints.forEach(this.renderHint, this);
+		hints.forEach(this.appendHint, this);
 		this.rendered = true;
 	}
 
 });
 
-ide.plugins.register('assist', {
+ide.plugins.register('assist', new ide.Plugin({
 
 	commands: {
 		assist: function() {
@@ -410,20 +452,27 @@ ide.plugins.register('assist', {
 		ide.assist.addHint(data.$, data.hints);
 	},
 
+	onInline: function(data)
+	{
+		ide.assist.inline.addHints(data.$, data.hints);
+	},
+
 	ready: function()
 	{
 		ide.assist = new Assist();
-		ide.plugins.on('assist', this.onAssist, this);
-		ide.plugins.on('socket.message.assist', this.onSocket, this);
+
+		this.listenTo('assist', this.onAssist);
+		this.listenTo('socket.message.assist', this.onSocket);
+		this.listenTo('socket.message.assist.inline', this.onInline);
 
 		if (ide.workspace.hash.data.a)
 			window.setTimeout(ide.assist.show.bind(ide.assist), 150);
 	}
 
-});
-	
+}));
+
 ide.keymap.registerKeys({
-	
+
 	inlineAssist: {
 
 		down: 'inlineAssistNext',
@@ -433,7 +482,7 @@ ide.keymap.registerKeys({
 		esc: 'inlineAssistHide'
 
 	}
-	
+
 });
 
 })(this, this.ide, this.cxl, this._);

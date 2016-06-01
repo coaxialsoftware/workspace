@@ -4,7 +4,7 @@
 
 (function(window, ide, cxl) {
 "use strict";
-	
+
 function SocketManager()
 {
 	if (!window.WebSocket)
@@ -13,12 +13,12 @@ function SocketManager()
 	ide.plugins.on('project.load', this.connect, this);
 	window.addEventListener('focus', this.checkConnection.bind(this));
 }
-	
+
 SocketManager.prototype = {
-	
+
 	retries: 0,
 	maxRetries: 1,
-	
+
 	__doSend: function(plugin, data)
 	{
 		this.ws.send(JSON.stringify({ plugin: plugin, data: data }));
@@ -49,8 +49,8 @@ SocketManager.prototype = {
 	;
 		this.config = cxl.extend({
 			host: doc.location.hostname,
-			port: config['socket.port'] 
-		});		
+			port: config['socket.port']
+		});
 
 		ws = this.ws = new window.WebSocket(
 			(config['socket.secure'] ? 'wss://' : 'ws://') +
@@ -81,7 +81,7 @@ SocketManager.prototype = {
 
 		ws.onmessage = function(ev) {
 			var msg = JSON.parse(ev.data);
-			
+
 			if (msg.error)
 				ide.error({ code: msg.plugin, title: "ERROR: " + msg.error });
 			else
@@ -99,7 +99,7 @@ SocketManager.prototype = {
 	}
 
 };
-	
+
 ide.socket = new SocketManager();
 
 })(this, this.ide, this.cxl);

@@ -228,31 +228,43 @@ ide.plugins.register('cmd', {
 		}
 	},
 
-	onAssist: function(done, editor, token)
+	onAssistInline: function(done, editor, token)
 	{
-	var
-		hints,
-		icons = [ 'file-o' ],
-		files = ide.project.get('files'), i, total=0, f
-	;
+		var hints;
 
-		if (editor === ide.commandBar && token.string && files)
+		if (editor === ide.commandBar && token.string)
 		{
-			hints = this.getAllCommands(token.string, 'inline');
-
-			for (i=0; i<files.length && total<10; i++)
-			{
-				f = files[i].filename;
-
-				if (f.indexOf(token.string)===0)
-				{
-					total++;
-					hints.push({ title: f, type: 'inline', icons: icons });
-				}
-			}
+			hints = (token.state.fn!==token.string) ?
+				this.getFiles(token.string) :
+				this.getAllCommands(token.string, 'inline')
+			;
 
 			done(hints);
 		}
+	},
+
+	getFiles: function(str)
+	{
+	var
+		hints = [],
+		icons = [ 'file-o' ],
+		files = ide.project.get('files'), i, total=0, f
+	;
+		if (!files)
+			return;
+
+		for (i=0; i<files.length && total<10; i++)
+		{
+			f = files[i].filename;
+
+			if (f.indexOf(str)===0)
+			{
+				total++;
+				hints.push({ title: f, icons: icons });
+			}
+		}
+
+		return hints;
 	},
 
 	getAllCommands: function(search, type)
@@ -276,7 +288,7 @@ ide.plugins.register('cmd', {
 
 				result.push({
 					key: key, title: i, className: 'cmd',
-					tags: tags, type: type,
+					tags: tags,
 					icons: type === 'inline' ? icons : null
 				});
 			}
@@ -369,7 +381,7 @@ ide.plugins.register('cmd', {
 
 	start: function()
 	{
-		ide.plugins.on('assist', this.onAssist.bind(this));
+		ide.plugins.on('assist.inline', this.onAssistInline.bind(this));
 	}
 
 });

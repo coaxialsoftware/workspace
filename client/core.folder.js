@@ -65,9 +65,6 @@ ide.Item = cxl.View.extend({
 	/** Shortcut */
 	key: null,
 
-	/** "assist" or "inline" */
-	type: 'assist',
-
 	className: 'log',
 
 	action: null,
@@ -155,10 +152,10 @@ ide.Editor.List = ide.Editor.extend({
 	render: function()
 	{
 		this.listenTo(this.$list, 'wheel', this.onWheel);
-		
+
 		this.$list = $(this.$list)
 			.on('click', '.item', this.onListClick.bind(this));
-		
+
 
 		if (this.items)
 			this._addElements(this.items, 0);

@@ -1,8 +1,8 @@
 
-(function(ide, Backbone, $, undefined) {
+(function(ide, cxl, $, undefined) {
 "use strict";
 
-ide.Bar = Backbone.View.extend({
+ide.Bar = cxl.View.extend({
 
 	/**
 	 * When a key is pressed and its found here the
@@ -61,8 +61,8 @@ ide.Bar = Backbone.View.extend({
 		}
 		};
 
-		this.$el.on('keydown', this.on_key.bind(this));
-		this.$el.on('keyup', this.on_keyup.bind(this));
+		this.listenTo(this.el, 'keyup', this.on_keyup);
+		this.listenTo(this.el, 'keydown', this.on_key);
 		this.$el.on('keypress', this.on_keypress.bind(this));
 		this.$el.on('blur', this.on_blur.bind(this));
 
@@ -85,7 +85,9 @@ ide.Bar = Backbone.View.extend({
 		}
 
 		this._value = this.el.value;
-		ev.stopPropagation();
+
+		if (ev)
+			ev.stopPropagation();
 	},
 
 	on_keypress: function(ev)
@@ -102,9 +104,6 @@ ide.Bar = Backbone.View.extend({
 		if (this.hidden)
 			return;
 
-		if (ev.keyCode===9 || ev.keyCode===13)
-			ev.preventDefault();
-
 		// Manually call uiState handler...
 		// TODO see if we can refactor this.
 		if (ide.keymap.uiState)
@@ -113,10 +112,13 @@ ide.Bar = Backbone.View.extend({
 			if (result!==false)
 				ev.preventDefault();
 		}
-		
+
+		if (ev.keyCode===9 || ev.keyCode===13)
+			ev.preventDefault();
+
 		if (result===false && fn)
 			fn.call(this, ev);
-		
+
 		ev.stopPropagation();
 	},
 
@@ -139,14 +141,15 @@ ide.Bar = Backbone.View.extend({
 	{
 		this.el.focus();
 	},
-	
+
 	insert: function(text)
 	{
 	var
 		val = this.el.value,
 		start = this.el.selectionStart
 	;
-		return (this._value = this.el.value = val.slice(0, start) + text + val.slice(start));
+		this.el.value = val.slice(0, start) + text + val.slice(start);
+		this.on_keyup();
 	},
 
 	hide: function()
@@ -154,10 +157,10 @@ ide.Bar = Backbone.View.extend({
 		this.$el.hide();
 		this.hidden = true;
 		ide.assist.cancel();
-		
+
 		if (ide.editor)
 			ide.editor.focus();
-		
+
 		return false;
 	}
 
@@ -239,8 +242,11 @@ ide.Bar.Command = ide.Bar.extend({
 	on_change: function()
 	{
 		this.findWord(function(s, start, end) {
+			var cmd = ide.commandParser.parse(this.el.value);
+
 			ide.plugins.trigger('token', this, this.token = {
-				line: 0, start: start, ch: end, string: s
+				line: 0, start: start, ch: end, string: s,
+				state: cmd
 			});
 		});
 	},
@@ -329,4 +335,4 @@ ide.registerCommand('searchbarReverse', function() {
 	ide.searchBar.show();
 });
 
-})(this.ide, this.Backbone, this.jQuery);
+})(this.ide, this.cxl, this.jQuery);

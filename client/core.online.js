@@ -74,11 +74,11 @@ ide.plugins.register('online', {
 
 	onProject: function()
 	{
-		var user = ide.project.get('user');
+		var user = ide.project.get('online.user');
 
 		this.hint = user ? {
 			code: 'online',
-			title: ide.project.get('user'),
+			title: user,
 			icons: [ { title: 'user', class: 'user' } ]
 		} : null;
 	},
