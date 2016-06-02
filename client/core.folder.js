@@ -121,8 +121,12 @@ ide.Editor.List = ide.Editor.extend({
 
 	onListClick: function(ev)
 	{
+		this._onClick(ev.currentTarget, ev);
+	},
+
+	_onClick: function(target, ev) {
 	var
-		id = ev.currentTarget.dataset.id
+		id = target.dataset.id
 	;
 		if (id && this.onItemClick)
 		{
@@ -149,13 +153,20 @@ ide.Editor.List = ide.Editor.extend({
 		ev.preventDefault();
 	},
 
+	// TODO see if it makes sense to use a keymap for this...
+	onKey: function(ev)
+	{
+		if (ev.keyCode===13)
+			this._onClick(ev.target, ev);
+	},
+
 	render: function()
 	{
 		this.listenTo(this.$list, 'wheel', this.onWheel);
+		this.listenTo(this.$list, 'keydown', this.onKey);
 
 		this.$list = $(this.$list)
 			.on('click', '.item', this.onListClick.bind(this));
-
 
 		if (this.items)
 			this._addElements(this.items, 0);

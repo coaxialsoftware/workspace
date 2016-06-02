@@ -37,7 +37,7 @@ _.extend(InlineAssist.prototype, {
 
 	/// Request version
 	version: 0,
-	
+
 	/// Selected hint
 	selected: null,
 
@@ -52,6 +52,8 @@ _.extend(InlineAssist.prototype, {
 		this.token = token;
 		this.hints = [];
 		this.el.innerHTML = '';
+		this.selected = null;
+		ide.keymap.setUIState(null);
 
 		ide.plugins.trigger('assist.inline',
 			this.addHints.bind(this, this.version), editor, token);
@@ -88,20 +90,25 @@ _.extend(InlineAssist.prototype, {
 		el = this.el, pos = this.pos,
 		bottom = pos.bottom + el.clientHeight,
 		viewHeight = window.innerHeight,
-		height = bottom <= viewHeight ? pos.bottom : pos.top - el.clientHeight
+		isDown = bottom <= viewHeight,
+		height = isDown ? pos.bottom : pos.top - el.clientHeight
 	;
 		this.el.style.top = height + 'px';
 	},
 
 	addHints: function(version, hints)
 	{
-		if (version !== this.version)
+		if (version !== this.version && hints.length)
 			return;
 
+		ide.keymap.setUIState('inlineAssist');
 		hints.forEach(this.add);
-		
+
 		if (!this.visible)
 			this.show(this.editor);
+
+		if (!this.selected && this.hints.length)
+			this.select(this.hints[0]);
 	},
 
 	add: function(hint)
@@ -142,32 +149,27 @@ _.extend(InlineAssist.prototype, {
 			this.copyFont(editor.el);
 			this.visible = true;
 			this.render();
-
-			ide.keymap.setUIState('inlineAssist');
 		}
 	},
-	
+
 	select: function(hint)
 	{
 		if (this.selected)
 			this.selected.el.classList.remove('selected');
-		
+
 		hint.el.classList.add('selected');
 		this.selected = hint;
 	},
 
 	renderHint: function(hint, order, ref)
 	{
-		if (!this.selected && order===0)
-			this.select(hint);
-
 		hint.el.$hint = hint;
 
 		if (ref)
 			this.el.insertBefore(hint.el, ref.el);
 		else
 			this.el.appendChild(hint.el);
-		
+
 		this.calculateTop();
 	},
 
@@ -180,7 +182,6 @@ _.extend(InlineAssist.prototype, {
 			this.el.style.display='none';
 			this.el.innerHTML = '';
 			this.visible = false;
-			this.selected = null;
 			ide.keymap.setUIState(null);
 		}
 	},
@@ -233,11 +234,10 @@ _.extend(InlineAssist.prototype, {
 	var
 		editor = this.editor,
 		token = this.token,
-		hint, text
+		hint = this.selected, text
 	;
-		if (token && editor.insert)
+		if (hint && token && editor.insert)
 		{
-			hint = this.selected;
 			text = hint.title.substr(token.ch-token.start);
 			editor.insert(text);
 		}
@@ -249,8 +249,8 @@ _.extend(InlineAssist.prototype, {
 	{
 		// make sure all suggestions are in before accepting it...
 		// TODO find a better way?
-		this.requestHints.cancel();
-		this._requestHints(this.editor, this.editor.token);
+		//this.requestHints.cancel();
+		//this._requestHints(this.editor, this.editor.token);
 		setTimeout(this.doAccept, this.delay);
 	}
 
