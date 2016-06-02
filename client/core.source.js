@@ -66,10 +66,10 @@ _.extend(HintManager.prototype, {
 		marker = this.__getMarker(hint.line>0 ? hint.line-1 : 0),
 		hints = this.get(id)
 	;
-		// Invalid line? 
+		// Invalid line?
 		if (!marker)
 			return;
-			
+
 		hint.line--;
 		hint.el = el;
 		hint.remove = this.__removeHint.bind(marker, el);
@@ -271,8 +271,8 @@ ide.Editor.Source = ide.Editor.File.extend({
 	{
 	var
 		filename = this.file.get('filename'),
-		info = filename && (codeMirror.findModeByFileName(filename) ||
-			codeMirror.findModeByMIME(this.file.get('mime'))) ||
+		info = (filename && codeMirror.findModeByFileName(filename)) ||
+			codeMirror.findModeByMIME(this.file.get('mime')) ||
 			codeMirror.findModeByMIME('text/plain'),
 		mode = info.mode,
 		promises,

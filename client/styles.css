@@ -108,6 +108,7 @@ kbd {
 	padding-bottom: 12px; overflow: hidden;
 }
 .list h3 { overflow: hidden; white-space: nowrap; }
+.list h3 > .icon { position: absolute; right: 12px; }
 
 .focus {
 	animation-duration: 0.5s;

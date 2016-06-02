@@ -34,6 +34,11 @@ class File {
 		this.mime = mime.lookup(this.path);
 	}
 
+	static getMime(path)
+	{
+		return mime.lookup(path);
+	}
+
 	getStat()
 	{
 		return common.stat(this.path).bind(this);
@@ -97,6 +102,8 @@ class File {
 	}
 
 }
+
+workspace.File = File;
 
 plugin.config(function() {
 
