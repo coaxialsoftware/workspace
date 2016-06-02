@@ -106,7 +106,7 @@ ide.Bar = cxl.View.extend({
 
 		// Manually call uiState handler...
 		// TODO see if we can refactor this.
-		if (ide.keymap.uiState)
+		if (ev.keyCode!==13 && ide.keymap.uiState)
 		{
 			result = ide.keymap.handle(ide.keyboard.getKeyId(ev), ide.keymap.uiState);
 			if (result!==false)

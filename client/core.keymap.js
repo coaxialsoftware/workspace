@@ -12,10 +12,16 @@ ide.action = function action(name)
 {
 var
 	actions = name.split(' '),
-	i = 0
+	i = 0, result
 ;
 	for (; i<actions.length;i++)
-		ide.run(actions[i]);
+	{
+		result = ide.run(actions[i]);
+		if (result===ide.Pass)
+			break;
+	}
+	
+	return result;
 };
 
 function KeyboardManager()
@@ -193,7 +199,7 @@ cxl.extend(KeyboardManager.prototype, {
 		if (result===false)
 			result = ide.keymap.handle(key, state);
 
-		return result;
+		return result===ide.Pass ? false : result;
 	},
 
 	parseKey: function(key)

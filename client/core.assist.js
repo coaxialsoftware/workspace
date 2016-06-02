@@ -37,6 +37,9 @@ _.extend(InlineAssist.prototype, {
 
 	/// Request version
 	version: 0,
+	
+	/// Selected hint
+	selected: null,
 
 	_requestHints: function(editor, token)
 	{
@@ -96,20 +99,23 @@ _.extend(InlineAssist.prototype, {
 			return;
 
 		hints.forEach(this.add);
+		
+		if (!this.visible)
+			this.show(this.editor);
 	},
 
 	add: function(hint)
 	{
+	var
+		order = _.sortedIndexBy(this.hints, hint, 'title'),
+		ref = this.hints[order]
+	;
 		hint = hint instanceof ide.Hint ? hint : new ide.Hint(hint);
-
-		var order = _.sortedLastIndexBy(this.hints, hint, 'priority');
 
 		this.hints.splice(order, 0, hint);
 
 		if (this.visible)
-			this.renderHint(hint, order);
-		else
-			this.show(this.editor);
+			this.renderHint(hint, order, ref);
 	},
 
 	clear: function()
@@ -140,18 +146,28 @@ _.extend(InlineAssist.prototype, {
 			ide.keymap.setUIState('inlineAssist');
 		}
 	},
-
-	renderHint: function(hint, order)
+	
+	select: function(hint)
 	{
-		var ref = this.hints[order];
+		if (this.selected)
+			this.selected.el.classList.remove('selected');
+		
+		hint.el.classList.add('selected');
+		this.selected = hint;
+	},
 
-		hint.el.classList.toggle('selected', order===0);
+	renderHint: function(hint, order, ref)
+	{
+		if (!this.selected && order===0)
+			this.select(hint);
+
 		hint.el.$hint = hint;
 
-		if (ref && ref !== hint)
+		if (ref)
 			this.el.insertBefore(hint.el, ref.el);
 		else
 			this.el.appendChild(hint.el);
+		
 		this.calculateTop();
 	},
 
@@ -164,6 +180,7 @@ _.extend(InlineAssist.prototype, {
 			this.el.style.display='none';
 			this.el.innerHTML = '';
 			this.visible = false;
+			this.selected = null;
 			ide.keymap.setUIState(null);
 		}
 	},
@@ -183,14 +200,14 @@ _.extend(InlineAssist.prototype, {
 	_goNext: function(dir)
 	{
 	var
-		selected = this.el.querySelector('.selected'),
-		next = selected && selected[dir || 'nextSibling'],
+		selected = this.selected.el,
+		next = selected[dir || 'nextSibling'],
 		el = this.el, h
 	;
 		if (next)
 		{
-			selected.classList.remove('selected');
-			next.classList.add('selected');
+			this.select(next.$hint);
+
 			h = next.offsetTop + next.offsetHeight;
 
 			if (h > el.scrollTop + el.clientHeight)
@@ -216,18 +233,13 @@ _.extend(InlineAssist.prototype, {
 	var
 		editor = this.editor,
 		token = this.token,
-		el, hint, text
+		hint, text
 	;
 		if (token && editor.insert)
 		{
-			el = this.el.querySelector('.selected');
-
-			if (el)
-			{
-				hint = el.$hint;
-				text = hint.title.substr(token.ch-token.start);
-				editor.insert(text);
-			}
+			hint = this.selected;
+			text = hint.title.substr(token.ch-token.start);
+			editor.insert(text);
 		}
 
 		this.hide();
