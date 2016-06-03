@@ -25,7 +25,7 @@ plugin.extend({
 		data.client = client;
 
 		if (data.file)
-			fs.readFile(data.file, 'utf8', function(err, file) {
+			return fs.readFile(data.file, 'utf8', function(err, file) {
 				if (err)
 					file = '';
 
@@ -33,8 +33,11 @@ plugin.extend({
 
 				workspace.plugins.emit('assist', done, data);
 			});
-		else
-			workspace.plugins.emit('assist', done, data);
+		
+		if (data.diff)
+			data.content = common.patch('', data.diff);
+
+		workspace.plugins.emit('assist', done, data);
 	},
 
 	onMessageInline: function(client, data)

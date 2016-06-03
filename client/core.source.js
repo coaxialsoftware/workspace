@@ -271,8 +271,9 @@ ide.Editor.Source = ide.Editor.File.extend({
 	{
 	var
 		filename = this.file.get('filename'),
+		mime = this.file.get('mime'),
 		info = (filename && codeMirror.findModeByFileName(filename)) ||
-			codeMirror.findModeByMIME(this.file.get('mime')) ||
+			(mime && codeMirror.findModeByMIME(mime)) ||
 			codeMirror.findModeByMIME('text/plain'),
 		mode = info.mode,
 		promises,
