@@ -32,6 +32,7 @@ class ProjectConfiguration extends workspace.Configuration
 		this.set(workspace.configuration.project);
 		this.set(p);
 
+		this['workspace.version'] = workspace.configuration.version;
 		this.tags = {
 			workspace: this.loadFile(
 				this.path + '/project.json') && 'workspace'

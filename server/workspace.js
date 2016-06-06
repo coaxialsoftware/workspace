@@ -96,7 +96,7 @@ class WorkspaceConfiguration extends Configuration {
 			this['plugins.global'] = true;
 
 		this.set({
-			version: '0.3.0',
+			version: '0.5.4',
 			user: process.env.USER || process.env.USERNAME
 		});
 

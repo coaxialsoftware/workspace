@@ -43,7 +43,7 @@ plugin.extend({
 	onMessageInline: function(client, data)
 	{
 		function done(hints) {
-			workspace.socket.respond(client, 'assist', {
+			workspace.socket.respond(client, 'assist.inline', {
 				$: data.$,
 				hints: hints
 			});

@@ -571,6 +571,15 @@ ide.plugins.registerCommands({
 		{
 			if (ide.editor)
 				ide.workspace.remove(ide.editor, true);
+		},
+		
+		version: function()
+		{
+			ide.notify({
+				code: 'version',
+				tags: ['workspace:' + ide.project.get('workspace.version')],
+				title: ide.project.get('name') + ':' + ide.project.get('version')
+			});
 		}
 
 	}
