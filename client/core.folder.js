@@ -69,6 +69,9 @@ ide.Item = cxl.View.extend({
 
 	action: null,
 
+	/** Actual value of item. Used when title is different to value */
+	value: null,
+
 	initialize: function()
 	{
 		if (!this.key && this.action)
@@ -115,6 +118,12 @@ ide.Editor.List = ide.Editor.extend({
 	itemTemplate: null,
 	itemClass: ide.Item,
 	items: null,
+	html: '',
+
+	$footer: null,
+
+	/// Content DOM element
+	$list: null,
 
 	/** @type {function} */
 	onItemClick: null,
@@ -137,9 +146,6 @@ ide.Editor.List = ide.Editor.extend({
 		ev.stopPropagation();
 		ev.preventDefault();
 	},
-
-	/// Content DOM element
-	$list: null,
 
 	initialize: function()
 	{
@@ -277,16 +283,20 @@ ide.Editor.List = ide.Editor.extend({
 
 ide.Editor.FileList = ide.Editor.List.extend({
 
+	// Path prefix
+	prefix: null,
+
 	_findTest: function(regex, file)
 	{
-		return regex.test(file.filename);
+		return regex.test(file.title);
 	},
 
 	onItemClick: function(ev, item)
 	{
 	var
+		title = item.value || item.title,
 		options = {
-			file: (this.prefix ? this.prefix+'/' : '') + item.filename,
+			file: (this.prefix ? this.prefix+'/' : '') + title,
 			focus: !ev.shiftKey
 		}
 	;
@@ -335,6 +345,10 @@ ide.plugins.register('find', new ide.Plugin({
 
 		files = files.filter(function(val) {
 			return regex.test(val.filename);
+		}).map(function(val) {
+			return {
+				title: val.filename, className: val.directory ? 'directory' : 'file'
+			};
 		});
 
 		if (files.length===1)
@@ -388,7 +402,6 @@ ide.plugins.register('folder', new ide.Plugin({
 	{
 		// TODO replace with cxl templates
 		ide.Editor.List.prototype.itemTemplate = _.template(cxl.html('tpl-item'));
-		ide.Editor.FileList.prototype.itemTemplate = _.template(cxl.html('tpl-file'));
 	},
 
 	commands: {
@@ -406,8 +419,13 @@ ide.plugins.register('folder', new ide.Plugin({
 
 		if (file.get('directory'))
 		{
-			files = file.get('content');
-			files.unshift({ filename: '..' });
+			files = file.get('content').map(function(f) {
+				return {
+					title: f.filename, className: f.directory ? 'directory' : 'file'
+				};
+			});
+
+			files.unshift({ title: '..', className: 'directory' });
 			path = file.get('filename');
 
 			return new ide.Editor.FileList({

@@ -1,6 +1,7 @@
 <script id="tpl-editor-list" type="text/template">
 <h3><a href="#" &="click(quit)" class="pull-right icon">&times;</a><span &="html::const(title) @title::const(title)"></span></h3>
 <div &="$$list" class="list-content"></div>
+<div &="$$footer html:=html"></div>
 </script>
 
 <script id="tpl-item" type="text/template">
@@ -23,12 +24,6 @@
 	</div>
 	<%= obj.html %>
 </div>
-</script>
-
-<script id="tpl-file" type="text/template">
-<button class="item <%= obj.directory ? 'directory' : 'file' %>" title="<%= obj.filename %>" data-id="<%= obj.id %>">
-	<h4><%- obj.filename %></h4>
-</button>
 </script>
 
 <script id="tpl-plugin" type="text/template">
