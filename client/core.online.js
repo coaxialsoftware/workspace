@@ -1,10 +1,10 @@
 
-(function(ide, cxl) {
+(function(ide) {
 "use strict";
 
 var LoginDialog = ide.Editor.extend({
 
-	templateUrl: 'tpl-login',
+	templateId: 'tpl-login',
 
 	file: 'login',
 
@@ -16,9 +16,8 @@ var LoginDialog = ide.Editor.extend({
 
 	initialize: function()
 	{
-		this.template = cxl.id(this.templateUrl).innerHTML;
 		this.listenTo(ide.plugins, 'online.auth', this.onAuth);
-		this.username = ide.project.get('user.name');
+		this.username = ide.project.get('online.user');
 	},
 
 	logOut: function()
@@ -48,9 +47,9 @@ ide.plugins.register('online', {
 	commands: {
 		login: function()
 		{
-			ide.workspace.add(new LoginDialog({
+			return new LoginDialog({
 				plugin: this
-			}));
+			});
 		}
 	},
 

@@ -345,8 +345,12 @@ class PluginManager extends EventEmitter {
 			var installed = _.mapValues(plugins, 'package');
 
 			_.each(installed, function(a, k) {
-				all[k] = a;
-				a.installed = true;
+				if (a)
+				{
+					all[k] = a;
+					a.installed = true;
+				} else
+					workspace.error(`package.json not found for plugin "${k}"`);
 			});
 
 			return all;
@@ -552,7 +556,7 @@ workspace.extend({
 				plugin: workspace
 			}, options);
 
-			options.plugin.dbg(`exec "${command}"`);
+			options.plugin.dbg(`${options.cwd ? '[cwd:'+options.cwd+'] ' : '' }exec "${command}"`);
 
 			cp.exec(command, options, function(err, stdout, stderr) {
 				if (err && err.code!==0)

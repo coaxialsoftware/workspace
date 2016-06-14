@@ -62,8 +62,8 @@
 
 <script id="tpl-login" type="text/template">
 <div class="col-offset-3 col-4 layout-vertical-middle">
-<form &="submit(submit)">
-	<fieldset &="unless:=username">
+<form &="submit(submit) if:expr(!username)">
+	<fieldset>
 	<legend>Log In</legend>
 		<p>
 		<label for="name">Username</label>
@@ -78,8 +78,8 @@
 		</p>
 	</fieldset>
 </form>
-<form &="submit(logOut)">
-	<fieldset &="if:=username">
+<form &="submit(logOut) if:=username">
+	<fieldset>
 		<p>
 			Logged in as <span &="html:=username">.
 		</p>

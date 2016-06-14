@@ -353,7 +353,7 @@ ide.plugins.register('find', new ide.Plugin({
 
 		if (files.length===1)
 			ide.open({
-				file: files[0].filename,
+				file: files[0].title,
 				slot: options.slot
 			});
 		else if (files.length===0)

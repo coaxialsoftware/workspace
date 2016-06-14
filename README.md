@@ -9,8 +9,9 @@ The editor main features are:
 
 - Easy to install and configure. Runs locally or remotely.
 - Client/Server based. Client handles rendering, while server handles the heavy tasks.
-- A Plugin API. Plugins can be enabled by project or by workspace.
-- A simplistic yet powerful UI.
+- An open plugin API. Plugins can be enabled by project or by workspace.
+- Intelligent Text Editor (based on CodeMirror) and Code Assistant including inline completion.
+- A minimalistic yet powerful UI.
 - A VIM mode plugin.
 
 Dependencies
