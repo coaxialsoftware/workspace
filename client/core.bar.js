@@ -244,7 +244,7 @@ ide.Bar.Command = ide.Bar.extend({
 	on_change: function()
 	{
 		this.findWord(function(s, start, end) {
-			var cmd = ide.commandParser.parse(this.el.value);
+			var cmd = ide.commandParser.parse(this.el.value, true);
 
 			ide.plugins.trigger('token', this, this.token = {
 				line: 0, start: start, ch: end, string: s,

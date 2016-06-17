@@ -88,34 +88,61 @@ var
 	 */
 	open: function(options)
 	{
-		var file, plugins=this.plugins;
-
 		if (!options || typeof(options)==='string' || options instanceof ide.File)
 			options = { file: options || '' };
 
-		if (typeof(options.plugin)==='string')
-			options.plugin = ide.plugins.get(options.plugin);
+		var name, fn='edit', plugin=options.plugin, plugins=this.plugins;
 
-		if (!(options.plugin && options.plugin.open &&
-			!options.plugin.edit) && typeof(options.file)==='string')
-			options.file = ide.fileManager.getFile(options.file);
+		if (typeof(plugin)==='string')
+		{
+			// 'plugin.method'
+			name = plugin.split('.');
+			options.plugin = plugins.get(name[0]);
+			if (!options.plugin)
+				return ide.error('Plugin not found: ' + name[0]);
 
-		file = options.file;
+			options.fn = fn = name[1] || 'open';
+		}
 
 		options.slot = options.slot || ide.workspace.slot();
 
-		if (!file.attributes || file.attributes.content || !file.attributes.filename)
-			return Promise.resolve(plugins.findPlugin(options));
+		function loadEditor(file)
+		{
+			if (file)
+				options.file = file;
 
-		return new Promise(function(resolve) {
-			file.fetch({
-				silent: true,
-				success: function() {
-					delete file.changed;
-					resolve(plugins.findPlugin(options));
-				}
-			});
-		});
+			var editor = plugins.findPlugin(options);
+
+			if (editor)
+			{
+				if (options.focus!==false)
+					editor.focus();
+				ide.workspace.add(editor);
+			}
+		}
+
+		if (fn==='edit')
+			this.loadFile(options.file).then(loadEditor);
+		else
+			loadEditor();
+	},
+
+	loadFile: function(file)
+	{
+		if (typeof(file)==='string')
+			file = ide.fileManager.getFile(file);
+
+		return file.attributes.content ? Promise.resolve(file) :
+			new Promise(function(resolve) {
+				file.fetch({
+					silent: true,
+					success: function() {
+						delete file.changed;
+						resolve(file);
+					}
+				});
+			})
+		;
 	},
 
 	/** Displays notification on right corner */
@@ -243,12 +270,14 @@ ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 
 	getInfo: function()
 	{
-		var project = ide.project.get('name') || ide.project.id;
-
+	var
+		project = ide.project.get('name') || ide.project.id,
+		plugin = this.plugin && this.plugin.name || this.plugin
+	;
 		return (this.changed && this.changed() ? '+ ' : '') +
 			((this.file instanceof ide.File ?
 			  this.file.get('filename') :
-			  this.plugin.name + ':' + this.file) || 'No Name') +
+			  plugin + ':' + this.file) || 'No Name') +
 			(project ? ' [' + project + ']' : '');
 	},
 

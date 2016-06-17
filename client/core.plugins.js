@@ -20,8 +20,8 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 
 	/** If key is pressed, invoke function will be called. */
 	shortcuts: null,
-	/** Editor Actions */
-	actions: null,
+	/** Editor Commands */
+	editorCommands: null,
 	/// Object of commands to add to ide.commands
 	commands: null,
 
@@ -103,25 +103,17 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		}
 	},
 
+	/**
+	 * Finds best editor for current file. options.file must be a ide.File.
+	 */
 	findPlugin: function(options)
 	{
-	var
-		plugin = options.plugin,
-		editor = plugin ?
-			(plugin.open || plugin.edit).call(plugin, options) :
-			this.each(function(plug) {
-				var r = plug.edit && plug.edit(options);
-				return r && (r.plugin = plug) && r;
-			}) || ide.defaultEdit(options)
-	;
-		if (editor)
-		{
-			if (options.focus!==false)
-				editor.focus();
-			ide.workspace.add(editor);
-		}
+		if (options.plugin)
+			return options.plugin[options.fn](options);
 
-		return editor;
+		return this.each(function(plug) {
+			return plug.edit && plug.edit(options);
+		}) || ide.defaultEdit(options);
 	},
 
 	/**

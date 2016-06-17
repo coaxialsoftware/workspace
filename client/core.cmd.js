@@ -29,7 +29,8 @@ cxl.extend(CommandParser.prototype, {
 
 	error: function(state, msg)
 	{
-		throw new Error("Column " + state.i + ': ' + msg);
+		if (!state.silent)
+			throw new Error("Column " + state.i + ': ' + msg);
 	},
 
 	parseUntil: function(args, state, end, fn)
@@ -38,7 +39,10 @@ cxl.extend(CommandParser.prototype, {
 		var pos = end.exec(args), i = state.i, result;
 
 		if (!pos)
+		{
 			this.error(state, "Unexpected end of line.");
+			pos = { index: state.i, '1': args.substr(state.i) };
+		}
 
 		state.i = pos.index + (pos[1] ? pos[1].length : 0);
 
@@ -107,10 +111,10 @@ cxl.extend(CommandParser.prototype, {
 		return state.result.length ? state.result : null;
 	},
 
-	parse: function(src)
+	parse: function(src, silent)
 	{
 	var
-		state = { i: 0, result: [], end: src.length },
+		state = { i: 0, result: [], end: src.length, silent: silent },
 		commands = [], current
 	;
 		do {
@@ -141,42 +145,14 @@ cxl.extend(CommandParser.prototype, {
 
 ide.commandParser = new CommandParser();
 
-ide.registerCommand = function(name, def, scope)
-{
-	if (name in ide.commands)
-		window.console.warn('Overriding command "' + name + '"');
-
-	if (typeof(def)==='function' && scope)
-		def = def.bind(scope);
-
-	ide.commands[name] = def;
-};
-
-/**
- * Registers a command that only gets executed if an editor is active
- */
-ide.registerEditorCommand = function(name, def, scope)
-{
-	if (name in ide.editorCommands)
-		window.console.warn('Overriding editor command "' + name + '"');
-
-	if (typeof(def)==='function' && scope)
-		def = def.bind(scope);
-
-	ide.editorCommands[name] = def;
-};
-
 function tryCmd(commands, cmd, args)
 {
 	var fn = commands[cmd];
 
-	if (typeof(fn)==='string')
-	{
-		return ide.run(fn, args);
-	} else if (fn)
-		return fn.apply(ide, args);
+	if (!fn)
+		return ide.Pass;
 
-	return ide.Pass;
+	return typeof(fn)==='string' ? ide.run(fn, args) : fn.apply(ide, args);
 }
 
 /** Execute command. */
@@ -209,38 +185,69 @@ var
 ide.commands = {};
 ide.editorCommands = {};
 
+function addCmd(prop, name, def, scope)
+{
+	var type = typeof(def);
+
+	if (name in prop)
+		window.console.warn('Overriding command "' + name + '"');
+
+	if (type==='function')
+		def = scope ? def.bind(scope) : def;
+	else if (type!=='string')
+		def = new ide.Command(name, def, scope);
+
+	prop[name] = def;
+}
+
+ide.registerCommand = addCmd.bind(this, ide.commands);
+
+/**
+ * Registers a command that only gets executed if an editor is active
+ */
+ide.registerEditorCommand = addCmd.bind(this, ide.editorCommands);
+
 ide.plugins.register('cmd', {
 
 	commands: {
 		commands: function()
 		{
-			return this.openCommands({ plugin: this, file: 'commands' });
+			return this.openCommands({});
 		},
 
 		keymap: function()
 		{
-			return this.openKeymap({ plugin: this, file: 'keymap' });
+			return this.openKeymap({});
 		},
 
 		log: function()
 		{
-			return this.openLog({ plugin: this });
+			return this.openLog({});
 		}
 	},
 
 	onAssistInline: function(done, editor, token)
 	{
-		var hints;
+		var hints, fn;
 
 		if (editor === ide.commandBar && token.string)
 		{
-			hints = (token.state.fn!==token.string) ?
-				this.getFiles(token.string) :
-				this.getAllCommands(token.string, 'inline')
-			;
+			if (token.state.fn!==token.string)
+			{
+				fn = this.getCommand(token.state.fn);
+
+				hints = fn.getHints ? fn.getHints(editor, token) :
+					this.getFiles(token.string);
+			} else
+				hints = this.getAllCommands(token.string, 'inline');
 
 			done(hints);
 		}
+	},
+
+	getCommand: function(name)
+	{
+		return ide.commands[name];
 	},
 
 	getFiles: function(str)
@@ -314,6 +321,7 @@ ide.plugins.register('cmd', {
 	openCommands: function(options)
 	{
 		options.title = 'commands';
+		options.plugin = 'cmd.openCommands';
 		var editor = new ide.Editor.List(options);
 		editor.listenTo(ide.plugins, 'editor.focus', this.loadCommands.bind(this, editor));
 		return editor;
@@ -350,6 +358,7 @@ ide.plugins.register('cmd', {
 	openKeymap: function(options)
 	{
 		options.title = 'keymap';
+		options.plugin = 'cmd.openKeymap';
 
 		var editor = new ide.Editor.List(options);
 
@@ -361,22 +370,10 @@ ide.plugins.register('cmd', {
 
 	openLog: function(options)
 	{
-		options.title = 'log';
-		options.items = ide.logger.items;
-		options.file = 'log';
-		return new ide.Editor.List(options);
-	},
-
-	open: function(options)
-	{
-		switch (options.file) {
-		case 'commands':
-			return this.openCommands(options);
-		case 'keymap':
-			return this.openKeymap(options);
-		case 'log':
-			return this.openLog(options);
-		}
+		return new ide.Editor.List({
+			title: 'log', items: ide.logger.items, plugin: 'cmd.openLog',
+			slot: options.slot
+		});
 	},
 
 	start: function()
@@ -385,5 +382,56 @@ ide.plugins.register('cmd', {
 	}
 
 });
+
+ide.Command = function(name, def, plugin)
+{
+	// Listen to inline assist events
+	// Listen to assist events
+	// Lookup best match
+	var fn = this.run.bind(this);
+
+	this.name = name;
+	this.def = def;
+	this.plugin = plugin;
+
+	def.forEach(this.parse, this);
+
+	fn.getHints = this.getHints.bind(this);
+
+	return fn;
+};
+
+ide.Command.prototype = {
+
+	parse: function(def)
+	{
+		def.run = this.plugin[def.fn].bind(this.plugin);
+		def.cmd = def.cmd.split(' ');
+		def.hint = { icon: 'terminal' };
+	},
+
+	getHints: function(editor, token)
+	{
+		var result = [], ch = token.string;
+
+		this.def.forEach(function(def) {
+			var name = def.cmd[0];
+
+			if (name.indexOf(ch)===0)
+			{
+				def.hint.title = name;
+				result.push(def.hint);
+			}
+		});
+
+		return result;
+	},
+
+	run: function()
+	{
+		return ide.Pass;
+	}
+
+};
 
 })(this.ide, this.cxl, this._);

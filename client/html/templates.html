@@ -1,7 +1,9 @@
 <script id="tpl-editor-list" type="text/template">
 <h3><a href="#" &="click(quit)" class="pull-right icon">&times;</a><span &="html::const(title) @title::const(title)"></span></h3>
-<div &="$$list" class="list-content"></div>
-<div &="$$footer html:=html"></div>
+<div &="$$content" class="list-content">
+	<div &="$$list"></div>
+	<div &="$$footer html:=html"></div>
+</div>
 </script>
 
 <script id="tpl-item" type="text/template">
@@ -20,7 +22,9 @@
 		<<%= l.href ? 'a href="' + l.href + '"' : 'span' %> class="icon" title="<%=l.title || l%>"><i class="fa fa-<%=l.class || l%>"></i> <%-l.text%>
 		</<%= l.href ? 'a' : 'span' %>>
 		<% }) %>
-	<h4><%- obj.title %></h4>
+	<% if (obj.title) { %>
+		<h4><%- obj.title %></h4>
+	<% } %>
 	</div>
 	<%= obj.html %>
 </div>

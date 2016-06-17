@@ -155,7 +155,7 @@ ide.Editor.List = ide.Editor.extend({
 	onWheel: function(ev)
 	{
 		var dY = ev.deltaY;
-		this.$list[0].scrollTop += dY;
+		this.$content.scrollTop += dY;
 		ev.preventDefault();
 	},
 

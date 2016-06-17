@@ -117,6 +117,10 @@ _.extend(InlineAssist.prototype, {
 		order = _.sortedIndexBy(this.hints, hint, 'title'),
 		ref = this.hints[order]
 	;
+		// Make sure there are no duplicates.
+		if (ref && ref.title === hint.title)
+			return;
+
 		hint = hint instanceof ide.Hint ? hint : new ide.Hint(hint);
 
 		this.hints.splice(order, 0, hint);

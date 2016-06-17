@@ -161,12 +161,14 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 
 	state: function(editor)
 	{
-		var file = (editor.file instanceof ide.File ?
+	var
+		file = (editor.file instanceof ide.File ?
 			editor.file.get('filename') :
-			editor.file) || '';
-
-		return (editor.plugin ? editor.plugin.name + ':' : '') +
-			encodeURIComponent(file);
+			editor.file) || '',
+		plugin = editor.plugin && (typeof(editor.plugin)==='string' ?
+			editor.plugin : editor.plugin.name)
+	;
+		return (plugin ? plugin + ':' : '') + encodeURIComponent(file);
 	},
 
 	/**
@@ -572,7 +574,7 @@ ide.plugins.registerCommands({
 			if (ide.editor)
 				ide.workspace.remove(ide.editor, true);
 		},
-		
+
 		version: function()
 		{
 			ide.notify({
