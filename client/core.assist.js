@@ -71,17 +71,21 @@ _.extend(InlineAssist.prototype, {
 	{
 		this.cursor.line = token.line;
 		this.cursor.ch = token.start;
+
+		if (editor.option && editor.option('disableInput'))
+			return this.hide();
+		else
+			this.requestHints(this.editor = editor || ide.editor, token);
+	},
+
+	calculateLeft: function(editor)
+	{
 	var
 		pos = this.pos = editor.getCursorCoordinates &&
 			editor.getCursorCoordinates(this.cursor),
 		style = this.el.style
 	;
 		style.left = Math.round(pos.left) + 'px';
-
-		if (editor.option && editor.option('disableInput'))
-			return this.hide();
-		else
-			this.requestHints(this.editor = editor || ide.editor, token);
 	},
 
 	calculateTop: function()
@@ -149,9 +153,10 @@ _.extend(InlineAssist.prototype, {
 
 		if (!this.visible)
 		{
-			this.el.style.display='block';
-			this.copyFont(editor.el);
 			this.visible = true;
+			this.copyFont(editor.el);
+			this.calculateLeft(editor);
+			this.el.style.display='block';
 			this.render();
 		}
 	},
