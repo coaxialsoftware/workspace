@@ -102,7 +102,7 @@ FileManager.prototype = {
 				if (file.hasChanged('content'))
 				{
 					file.old = true;
-					ide.warn('File "' + this.file.id + '" contents could not be updated.');
+					ide.warn('File "' + file.id + '" contents could not be updated.');
 				}
 				else
 				{
