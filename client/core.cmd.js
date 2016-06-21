@@ -236,12 +236,13 @@ ide.plugins.register('cmd', {
 			{
 				fn = this.getCommand(token.state.fn);
 
-				hints = fn.getHints ? fn.getHints(editor, token) :
+				hints = (fn && fn.getHints) ? fn.getHints(editor, token) :
 					this.getFiles(token.string);
 			} else
 				hints = this.getAllCommands(token.string, 'inline');
 
-			done(hints);
+			if (hints)
+				done(hints);
 		}
 	},
 
@@ -254,7 +255,6 @@ ide.plugins.register('cmd', {
 	{
 	var
 		hints = [],
-		icons = [ 'file-o' ],
 		files = ide.project.get('files'), i, total=0, f
 	;
 		if (!files)
@@ -267,7 +267,7 @@ ide.plugins.register('cmd', {
 			if (f.indexOf(str)===0)
 			{
 				total++;
-				hints.push({ title: f, icons: icons });
+				hints.push(files[i].hint);
 			}
 		}
 

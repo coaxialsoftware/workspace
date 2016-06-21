@@ -194,6 +194,42 @@ ide.Editor.Source = ide.Editor.File.extend({
 				{ extend: true, origin: 'select' }
 			);
 		},
+		
+		scroll: function(x, y)
+		{
+			this.editor.scrollTo(x, y<0 ? 0 : y);
+		},
+		
+		scrollLineUp: function(n, dir)
+		{
+		var	
+			ed = this.editor,
+			h = ed.defaultTextHeight(),
+			scroll = ed.getScrollInfo(),
+			y = (dir||-1) * Math.round(n ? h*n : scroll.clientHeight / 2)
+		;
+			this.scroll(scroll.left, scroll.top + y);
+		},
+		
+		scrollLineDown: function(n)
+		{
+			this.scrollLineUp(n, 1);
+		},
+		
+		scrollScreenDown: function(n)
+		{
+		var
+			ed = this.editor,
+			scroll = ed.getScrollInfo()
+		;
+			n = n || 1;
+			this.scrollUp(scroll.left, scroll.top + scroll.height * n);
+		},
+		
+		scrollScreenUp: function(n)
+		{
+			this.scrollScreenDown(-(n || 1));
+		},
 
 		go: function(n)
 		{

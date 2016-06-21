@@ -66,5 +66,3 @@ or by using the project.json file:
 	{
 		"plugins": [ "plugin name", "plugin2" ]
 	}
-
-- 

@@ -77,12 +77,13 @@ class FileManager {
 		this.path = p.path;
 		this.ignore = p.ignore;
 		this.onEvent = p.onEvent;
+		this.recursive = p.recursive!==false;
 	}
 
 	onWalk(resolve, reject, err, data)
 	{
 		this.building = false;
-
+		
 		if (err)
 			return reject(err);
 
@@ -100,8 +101,11 @@ class FileManager {
 	{
 		this.building = true;
 		return new Q((function(resolve, reject) {
-			common.walk(this.path, this.ignore,
-				this.onWalk.bind(this, resolve, reject));
+			
+			var fn = this.onWalk.bind(this, resolve, reject);
+			
+			common.walk(this.path, this.ignore, fn, '', !this.recursive);
+						   
 		}).bind(this));
 	}
 
@@ -268,7 +272,7 @@ common = module.exports = {
 	 * Walks path, executes callback for each path and returns
 	 * TODO cleanup
 	 */
-	walk: function(dir, ignore, done, path)
+	walk: function(dir, ignore, done, path, flat)
 	{
 		var results = [];
 		path = path || '';
@@ -277,8 +281,6 @@ common = module.exports = {
 		{
 			if (err) return done(err);
 			var pending = list.length;
-
-			if (!pending) return done(null, results);
 
 			list.forEach(function(file) {
 
@@ -300,18 +302,22 @@ common = module.exports = {
 								directory: true
 							});
 
-							common.walk(file, ignore, function(err, res) {
-								results = results.concat(res);
-								if (!--pending) done(null, results);
-							}, relfile + '/');
-						} else {
+							if (flat !== true)
+								return common.walk(file, ignore, function(err, res) {
+									results = results.concat(res);
+									if (!--pending) done(null, results);
+								}, relfile + '/');
+						} else
 							results.push({ filename: relfile });
-							if (!--pending) done(null, results);
-						}
+						
+						if (!--pending) done(null, results);
 					});
 				}
 			});
+			
+			if (!pending) return done(null, results);
 		});
+
 	},
 
 	load_json: function(filename)

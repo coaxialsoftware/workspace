@@ -77,8 +77,11 @@ ide.Project = cxl.Model.extend({
 	set_files: function(files)
 	{
 		this.attributes.files = files;
-		this.files_text = files ? _.map(files,
-			'filename').join("\n").replace(/ /g, '\\ ') : '';
+		files.forEach(function(f) {
+			f.hint = new ide.Hint({
+				title: f.filename, icon: f.directory ? 'folder-o' : 'file-o'
+			});
+		});
 	}
 
 });

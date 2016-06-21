@@ -269,6 +269,7 @@ class Project {
 	{
 		this.files = new common.FileManager({
 			path: this.path,
+			recursive: this.path!=='.',
 			onEvent: this.onFileEvent.bind(this)
 		});
 	}
@@ -310,7 +311,8 @@ class ProjectManager {
 		/**
 		* List of projects
 		*/
-		this.workspaceProject = new Project('');
+		var p = this.workspaceProject = new Project('.');
+		p.configuration.ignore = 'workspace.json';
 		this.files = [];
 		this.path = '.';
 		this.projects = {};
