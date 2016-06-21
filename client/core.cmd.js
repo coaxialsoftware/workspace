@@ -427,9 +427,32 @@ ide.Command.prototype = {
 		return result;
 	},
 
+	match: function(args, def)
+	{
+	var
+		i=0, match={}, cmd = def.cmd, l=args.length, cur, arg
+	;
+		for (; i<l; i++)
+		{
+			arg = args[i];
+			cur = cmd[i];
+
+			// Parameter
+			if (cur[0]==='@')
+				match[cur.substr(1)] = arg;
+			// Literal
+			else if (cur !== arg)
+				return false;
+		}
+
+		return (def.match = match);
+	},
+
 	run: function()
 	{
-		return ide.Pass;
+		var fn = this.def.find(this.match.bind(this, arguments));
+
+		return fn ? fn.run(fn.match) : ide.Pass;
 	}
 
 };
