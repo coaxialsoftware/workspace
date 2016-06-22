@@ -70,9 +70,18 @@ ide.Bar = cxl.View.extend({
 			this.start();
 	},
 
-	on_blur: function()
+	on_blur: function(ev)
 	{
-		this.hide();
+		var rel = ev.relatedTarget, assist = ide.assist.inline.el;
+		// Prevent assist window from hiding
+		if (rel && (rel===assist || rel.parentNode===assist))
+		{
+			ev.preventDefault();
+			ev.stopPropagation();
+			this.el.focus();
+		}
+		else
+			this.hide();
 	},
 
 	on_keyup: function(ev)
@@ -149,6 +158,15 @@ ide.Bar = cxl.View.extend({
 		start = this.el.selectionStart
 	;
 		this.el.value = val.slice(0, start) + text + val.slice(start);
+		this.on_keyup();
+	},
+
+	replaceRange: function(text, start, end)
+	{
+	var
+		val = this.el.value
+	;
+		this.el.value = val.slice(0, start.ch) + text + val.slice(end.ch);
 		this.on_keyup();
 	},
 

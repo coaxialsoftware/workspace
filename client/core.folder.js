@@ -333,21 +333,26 @@ ide.plugins.register('find', new ide.Plugin({
 				action: 'find'
 			});
 	},
-	
+
 	onAssistInline: function(done, editor, token)
 	{
-		var files;
-		
-		if (editor === ide.commandBar && token && token.state && 
-			token.state.fn==='find')
+		var files, fn = token.state && token.state.fn, str=token.string;
+
+		if ((fn==='e' || fn==='tabe') && str.indexOf('find:')===0)
 		{
-			files = this.find(token.string);
-			
+			fn = 'find';
+			str = str.substr(5);
+		}
+
+		if (editor === ide.commandBar && fn==='find' && str)
+		{
+			files = this.find(str);
+
 			if (files.length)
 				done(files);
 		}
 	},
-	
+
 	find: function(mask)
 	{
 	var
@@ -358,10 +363,7 @@ ide.plugins.register('find', new ide.Plugin({
 			return files.filter(function(val) {
 				return regex.test(val.filename);
 			}).map(function(val) {
-				return {
-					title: val.filename,
-					className: val.directory ? 'directory' : 'file'
-				};
+				return val.hint;
 			});
 	},
 
@@ -369,7 +371,9 @@ ide.plugins.register('find', new ide.Plugin({
 	{
 	var
 		mask = options.file || this.get_mask() || '',
-		files = this.find(mask)
+		files = this.find(mask).map(function(val) {
+			return { title: val.title, icon: val.icon };
+		})
 	;
 		if (!files)
 			return ide.warn('[find] No files found in project.');

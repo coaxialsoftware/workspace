@@ -194,15 +194,15 @@ ide.Editor.Source = ide.Editor.File.extend({
 				{ extend: true, origin: 'select' }
 			);
 		},
-		
+
 		scroll: function(x, y)
 		{
 			this.editor.scrollTo(x, y<0 ? 0 : y);
 		},
-		
+
 		scrollLineUp: function(n, dir)
 		{
-		var	
+		var
 			ed = this.editor,
 			h = ed.defaultTextHeight(),
 			scroll = ed.getScrollInfo(),
@@ -210,12 +210,12 @@ ide.Editor.Source = ide.Editor.File.extend({
 		;
 			this.scroll(scroll.left, scroll.top + y);
 		},
-		
+
 		scrollLineDown: function(n)
 		{
 			this.scrollLineUp(n, 1);
 		},
-		
+
 		scrollScreenDown: function(n)
 		{
 		var
@@ -225,7 +225,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 			n = n || 1;
 			this.scroll(scroll.left, scroll.top + scroll.height * n);
 		},
-		
+
 		scrollScreenUp: function(n)
 		{
 			this.scrollScreenDown(-(n || 1));
@@ -243,7 +243,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 			if (n)
 				this.editor.find(n, options);
 		},
-		
+
 		searchReplace: function(pattern, str, options)
 		{
 			this.editor.replace(pattern, str, options);
@@ -261,6 +261,11 @@ ide.Editor.Source = ide.Editor.File.extend({
 		insert: function(text)
 		{
 			this.editor.replaceSelection(text);
+		},
+
+		replaceRange: function(text, start, end)
+		{
+			this.editor.replaceRange(text, start, end);
 		}
 
 	},

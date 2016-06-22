@@ -13,13 +13,13 @@ ide.Project = cxl.Model.extend({
 	{
 		return '/project' + (this.id ? '?n=' + this.id : '');
 	},
-	
+
 	initialize: function()
-	{		
+	{
 		this.on('sync', this.on_project);
 		this.on('error', this.on_error);
 		this.reload = _.debounce(this.fetch.bind(this), 500);
-		
+
 		ide.plugins.on('socket.message.project', this.onMessage, this);
 	},
 
@@ -32,7 +32,7 @@ ide.Project = cxl.Model.extend({
 	{
 		if (this.themeEl)
 			cxl.$body[0].removeChild(this.themeEl);
-		
+
 		this.themeEl = document.createElement('STYLE');
 		this.themeEl.innerHTML = css;
 		cxl.$body.append(this.themeEl);
@@ -46,24 +46,24 @@ ide.Project = cxl.Model.extend({
 			this.ignoreRegex = new RegExp(data['ignore.regex']);
 		if (data['theme.css'])
 			this.loadTheme(data['theme.css']);
-		
+
 		this.hint = new ide.Item({
 			priority: 0,
 			code: 'project',
 			title: data.name || data.path,
 			tags: data.tags
 		});
-		
+
 		return data;
 	},
-	
+
 	onMessage: function(msg)
 	{
 		if (!msg) return;
-		
+
 		if (msg.reload===true)
 			this.reload();
-		
+
 		if (msg.notify)
 			ide.notify(msg.notify);
 	},
@@ -73,7 +73,7 @@ ide.Project = cxl.Model.extend({
 		this.hint.icons = this.get('icons');
 		ide.plugins.trigger('project.load', this);
 	},
-	
+
 	set_files: function(files)
 	{
 		this.attributes.files = files;
@@ -85,19 +85,19 @@ ide.Project = cxl.Model.extend({
 	}
 
 });
-	
-	
+
+
 ide.plugins.on('assist', function(done) {
 	if (ide.project.id)
 		done(ide.project.hint);
 });
-	
+
 /**
  * Open project by path
  */
 ide.registerCommand('project', function(name) {
 	var hash = '#' + ide.workspace.hash.encode({ p: name || null, f: null });
-	if (ide.project.id || ide.workspace.slots.length)
+	if (ide.project.id!=='.' || ide.workspace.slots.length)
 		window.open(hash);
 	else
 	{
@@ -105,7 +105,7 @@ ide.registerCommand('project', function(name) {
 		window.location.reload();
 	}
 });
-	
+
 
 
 })(this.cxl, this.ide, this._);

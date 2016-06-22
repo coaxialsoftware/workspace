@@ -13,8 +13,9 @@ var InlineAssist = function() {
 	this.doAccept = this.doAccept.bind(this);
 
 	ide.plugins.on('editor.scroll', this.hide, this);
-	window.addEventListener('click', this.hide.bind(this));
+	this.el.addEventListener('click', this.onClick.bind(this), true);
 	window.addEventListener('resize', this.hide.bind(this));
+	window.addEventListener('click', this.hide.bind(this));
 
 	ide.plugins.on('token', this.onToken.bind(this));
 
@@ -29,6 +30,8 @@ _.extend(InlineAssist.prototype, {
 	hints: null,
 	visible: false,
 	editor: null,
+	/// Current token
+	token: null,
 	/// Current token position
 	pos: null,
 
@@ -40,6 +43,22 @@ _.extend(InlineAssist.prototype, {
 
 	/// Selected hint
 	selected: null,
+
+	onClick: function(ev)
+	{
+		var hint, el=ev.target;
+
+		do {
+			hint = el.$hint;
+			el= el.parentNode;
+		} while (!hint || !el);
+
+		if (hint)
+		{
+			this.select(hint);
+			this.doAccept();
+		}
+	},
 
 	_requestHints: function(editor, token)
 	{
@@ -243,12 +262,15 @@ _.extend(InlineAssist.prototype, {
 	var
 		editor = this.editor,
 		token = this.token,
-		hint = this.selected, text
+		hint = this.selected,
+		value = hint.value || hint.title
 	;
-		if (hint && token && editor.insert)
+		if (hint && token && editor.replaceRange)
 		{
-			text = hint.title.substr(token.ch-token.start);
-			editor.insert(text);
+			editor.replaceRange(value,
+				{ ch: token.start, line: token.line },
+				{ ch: token.ch, line: token.line }, 'assist.inline'
+			);
 		}
 
 		this.hide();
