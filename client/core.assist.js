@@ -54,6 +54,7 @@ _.extend(InlineAssist.prototype, {
 		this.el.innerHTML = '';
 		this.selected = null;
 		ide.keymap.setUIState(null);
+		this.calculateLeft(editor);
 
 		ide.plugins.trigger('assist.inline',
 			this.addHints.bind(this, this.version), editor, token);
@@ -155,7 +156,6 @@ _.extend(InlineAssist.prototype, {
 		{
 			this.visible = true;
 			this.copyFont(editor.el);
-			this.calculateLeft(editor);
 			this.el.style.display='block';
 			this.render();
 		}

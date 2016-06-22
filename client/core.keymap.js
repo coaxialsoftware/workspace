@@ -107,23 +107,21 @@ cxl.extend(KeyboardManager.prototype, {
 	getKeyId: function(ev)
 	{
 	var
-		mods = [],
-		ch = this.getChar(ev)
+		ch = this.getChar(ev),
+		result
 	;
 		if (!ch)
 			return;
 		if (ev.ctrlKey)
-			mods.push('ctrl');
+			result = 'ctrl';
 		if (ev.altKey)
-			mods.push('alt');
+			result = result ? result + '+alt' : 'alt';
 		if (ev.shiftKey && !ev.noShift)
-			mods.push('shift');
+			result = result ? result + '+shift' : 'shift';
 		if (ev.metaKey)
-			mods.push('meta');
+			result = result ? result + '+meta' : 'meta';
 
-		mods.push(ch);
-
-		return mods.join('+');
+		return result ? result+'+'+ch : ch;
 	},
 
 	onKeyDown: function(ev)
@@ -193,7 +191,7 @@ cxl.extend(KeyboardManager.prototype, {
 		state = keymap && keymap.state,
 		result = false
 	;
-		if (keymap instanceof ide.KeyMap)
+		if (keymap)
 			result = keymap.handle(key);
 
 		if (result===false)

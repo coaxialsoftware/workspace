@@ -319,6 +319,7 @@ ide.plugins.register('find', new ide.Plugin({
 	start: function()
 	{
 		this.listenTo('assist', this.onAssist);
+		this.listenTo('assist.inline', this.onAssistInline);
 	},
 
 	onAssist: function(done, editor, token)
@@ -332,24 +333,46 @@ ide.plugins.register('find', new ide.Plugin({
 				action: 'find'
 			});
 	},
+	
+	onAssistInline: function(done, editor, token)
+	{
+		var files;
+		
+		if (editor === ide.commandBar && token && token.state && 
+			token.state.fn==='find')
+		{
+			files = this.find(token.string);
+			
+			if (files.length)
+				done(files);
+		}
+	},
+	
+	find: function(mask)
+	{
+	var
+		regex = globToRegex(mask),
+		files = ide.project.get('files')
+	;
+		if (files)
+			return files.filter(function(val) {
+				return regex.test(val.filename);
+			}).map(function(val) {
+				return {
+					title: val.filename,
+					className: val.directory ? 'directory' : 'file'
+				};
+			});
+	},
 
 	open: function(options)
 	{
 	var
 		mask = options.file || this.get_mask() || '',
-		regex = globToRegex(mask),
-		files = ide.project.get('files')
+		files = this.find(mask)
 	;
 		if (!files)
 			return ide.warn('[find] No files found in project.');
-
-		files = files.filter(function(val) {
-			return regex.test(val.filename);
-		}).map(function(val) {
-			return {
-				title: val.filename, className: val.directory ? 'directory' : 'file'
-			};
-		});
 
 		if (files.length===1)
 			ide.open({

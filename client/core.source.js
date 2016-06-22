@@ -223,7 +223,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 			scroll = ed.getScrollInfo()
 		;
 			n = n || 1;
-			this.scrollUp(scroll.left, scroll.top + scroll.height * n);
+			this.scroll(scroll.left, scroll.top + scroll.height * n);
 		},
 		
 		scrollScreenUp: function(n)
@@ -243,7 +243,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 			if (n)
 				this.editor.find(n, options);
 		},
-
+		
 		searchReplace: function(pattern, str, options)
 		{
 			this.editor.replace(pattern, str, options);
