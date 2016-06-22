@@ -58,6 +58,8 @@ var
 	return new RegExp(reStr);
 }
 
+var frag = cxl.dom('DIV');
+
 ide.Item = cxl.View.extend({
 
 	priority: 0,
@@ -71,6 +73,13 @@ ide.Item = cxl.View.extend({
 
 	/** Actual value of item. Used when title is different to value */
 	value: null,
+
+	loadTemplate: function(tpl)
+	{
+		// TODO optimize and test
+		frag.innerHTML = tpl(this);
+		this.setElement(frag.children[0]);
+	},
 
 	initialize: function()
 	{

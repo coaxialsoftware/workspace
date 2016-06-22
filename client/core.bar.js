@@ -77,7 +77,6 @@ ide.Bar = cxl.View.extend({
 		if (rel && (rel===assist || rel.parentNode===assist))
 		{
 			ev.preventDefault();
-			ev.stopPropagation();
 			this.el.focus();
 		}
 		else
