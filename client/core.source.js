@@ -275,9 +275,6 @@ ide.Editor.Source = ide.Editor.File.extend({
 		if (!isNaN(fn))
 			return this.go(fn);
 
-		if (fn in codeMirror.commands)
-			return codeMirror.commands[fn].call(codeMirror, this.editor);
-
 		return ide.Editor.prototype.cmd.call(this, fn, args);
 	},
 
@@ -525,6 +522,15 @@ ide.Editor.Source = ide.Editor.File.extend({
 	}
 
 });
+	
+_.each(codeMirror.commands, function(cmd, key) {
+	
+	ide.Editor.Source.prototype.commands[key] = function() {
+		cmd.call(codeMirror, this.editor);
+	};
+	
+});
+
 
 ide.defaultEdit = function(options)
 {

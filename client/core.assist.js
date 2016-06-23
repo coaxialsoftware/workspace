@@ -263,10 +263,12 @@ _.extend(InlineAssist.prototype, {
 		editor = this.editor,
 		token = this.token,
 		hint = this.selected,
-		value = hint.value || hint.title
+		value
 	;
 		if (hint && token && editor.replaceRange)
 		{
+			value = hint.value || hint.title;
+			
 			editor.replaceRange(value,
 				{ ch: token.start, line: token.line },
 				{ ch: token.ch, line: token.line }, 'assist.inline'

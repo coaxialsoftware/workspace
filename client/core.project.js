@@ -88,7 +88,7 @@ ide.Project = cxl.Model.extend({
 
 
 ide.plugins.on('assist', function(done) {
-	if (ide.project.id)
+	if (ide.project.id!=='.')
 		done(ide.project.hint);
 });
 
