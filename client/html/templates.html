@@ -25,6 +25,9 @@
 	<% if (obj.title) { %>
 		<h4><%- obj.title %></h4>
 	<% } %>
+	<% if (obj.description) { %>
+		<span class="description"><%- obj.description %></span>
+	<% } %>
 	</div>
 	<%= obj.html %>
 </div>

@@ -38,6 +38,8 @@ class ProjectConfiguration extends workspace.Configuration
 				this.path + '/project.json') && 'workspace'
 		};
 		
+		this.loadFile(this.path + '/project.local.json');
+		
 		this.icons = [];
 	}
 

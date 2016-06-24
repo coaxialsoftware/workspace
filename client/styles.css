@@ -237,6 +237,7 @@ div.CodeMirror-cursors { visibility: visible; }
 .item kbd { float: right; font-size: 12px; }
 .item .item-body { clear: both; }
 .item .icon { float: right; }
+.item .description { font-style: italic; font-size: 10px; margin: 0; }
 
 .item code {
 	margin-bottom: 2px; display: block;
@@ -314,7 +315,7 @@ div.CodeMirror-cursors { visibility: visible; }
 #assist-inline .item code, #assist-inline .item .label,
 #assist-inline kbd { display: none; }
 
-#assist-inline .item h4 { overflow: visible; white-space: nowrap; }
+#assist-inline .item h4 { overflow: visible; white-space: nowrap; display: inline-block; }
 #assist-inline .icon { float: left; margin-left: -16px; }
 
 /*

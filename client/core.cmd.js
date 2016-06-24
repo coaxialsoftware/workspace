@@ -274,29 +274,28 @@ ide.plugins.register('cmd', {
 		return hints;
 	},
 
-	getAllCommands: function(search, type)
+	getAllCommands: function(search)
 	{
-		var result = [], icons = [ 'terminal' ];
+		var result = [];
 
 		function getCommands(cmds, tag)
 		{
-			var tags, key;
+			var tags, key, fn;
 
 			for (var i in cmds)
 			{
 				if (search && i.indexOf(search)!==0)
 					continue;
-
+				
+				fn = cmds[i];
 				tags = tag ? [ tag ] : [];
 				key = ide.keyboard.findKey(i);
-
-				if (typeof(cmds[i])==='string')
-					tags.push('alias:' + cmds[i]);
 
 				result.push({
 					key: key, title: i, className: 'cmd',
 					tags: tags,
-					icons: type === 'inline' ? icons : null
+					icon: 'terminal',
+					description: fn.help
 				});
 			}
 		}
@@ -388,7 +387,7 @@ ide.Command = function(name, def, plugin)
 	// Listen to inline assist events
 	// Listen to assist events
 	// Lookup best match
-	var fn = this.run.bind(this);
+	var fn = this.fn = this.run.bind(this);
 
 	this.name = name;
 	this.def = def;
@@ -406,18 +405,25 @@ ide.Command.prototype = {
 	parse: function(def)
 	{
 		def.run = this.plugin[def.fn].bind(this.plugin);
-		def.cmd = def.cmd.split(' ');
-		def.hint = { icon: 'terminal' };
+		def.cmd = def.cmd && def.cmd.split(' ');
+		def.hint = { icon: 'terminal', description: def.help };
+		
+		if (!def.cmd)
+			this.fn.help = def.help;
 	},
 
 	getHints: function(editor, token)
 	{
-		var result = [], ch = token.string;
+	var	
+		result = [], ch = token.string,
+		args = token.state.args, l=args.length-1,
+		matches = this.def.filter(this.match.bind(this, args, false))
+	;
+		
+		matches.forEach(function(def) {
+			var name = def.cmd && def.cmd[l];
 
-		this.def.forEach(function(def) {
-			var name = def.cmd[0];
-
-			if (name.indexOf(ch)===0)
+			if (name && name.indexOf(ch)===0)
 			{
 				def.hint.title = name;
 				result.push(def.hint);
@@ -427,30 +433,37 @@ ide.Command.prototype = {
 		return result;
 	},
 
-	match: function(args, def)
+	match: function(args, exact, def)
 	{
 	var
 		i=0, match={}, cmd = def.cmd, l=args.length, cur, arg
 	;
-		for (; i<l; i++)
-		{
-			arg = args[i];
-			cur = cmd[i];
+		if (l>0 && cmd)
+			for (; i<l; i++)
+			{
+				arg = args[i];
+				cur = cmd[i];
 
-			// Parameter
-			if (cur[0]==='@')
-				match[cur.substr(1)] = arg;
-			// Literal
-			else if (cur !== arg)
-				return false;
-		}
+				// Parameter
+				if (!cur)
+					return;
+				else if (cur[0]==='@')
+					match[cur.substr(1)] = arg;
+				// Literal
+				else if (exact && cur !== arg)
+					return false;
+				else if (cur.indexOf(arg)!==0)
+					return false;
+			}
+		else if (cmd)
+			return false;
 
 		return (def.match = match);
 	},
 
 	run: function()
 	{
-		var fn = this.def.find(this.match.bind(this, arguments));
+		var fn = this.def.find(this.match.bind(this, arguments, true));
 
 		return fn ? fn.run(fn.match) : ide.Pass;
 	}

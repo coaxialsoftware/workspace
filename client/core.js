@@ -118,7 +118,8 @@ var
 				if (options.focus!==false)
 					editor.focus();
 				ide.workspace.add(editor);
-			}
+			} else
+				options.slot.$el.remove();
 		}
 
 		if (fn==='edit')

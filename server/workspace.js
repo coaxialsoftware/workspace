@@ -540,6 +540,11 @@ workspace.extend({
 		this.__data[plugin] = data;
 		this.__saveData();
 	},
+	
+	restart: function()
+	{
+		process.exit(128);
+	},
 
 	/**
 	 * Executes shell command using child_process.exec. Returns a promise
