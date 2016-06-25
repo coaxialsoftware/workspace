@@ -278,9 +278,9 @@ ide.plugins.register('cmd', {
 	{
 		var result = [];
 
-		function getCommands(cmds, tag)
+		function getCommands(cmds)
 		{
-			var tags, key, fn;
+			var key, fn;
 
 			for (var i in cmds)
 			{
@@ -288,12 +288,10 @@ ide.plugins.register('cmd', {
 					continue;
 				
 				fn = cmds[i];
-				tags = tag ? [ tag ] : [];
 				key = ide.keyboard.findKey(i);
 
 				result.push({
 					key: key, title: i, className: 'cmd',
-					tags: tags,
 					icon: 'terminal',
 					description: fn.help
 				});
@@ -301,10 +299,10 @@ ide.plugins.register('cmd', {
 		}
 
 		getCommands(ide.commands);
-		getCommands(ide.editorCommands, 'editor');
+		getCommands(ide.editorCommands);
 
 		if (ide.editor)
-			getCommands(ide.editor.commands, 'editor');
+			getCommands(ide.editor.commands);
 
 		return result;
 	},
@@ -370,7 +368,7 @@ ide.plugins.register('cmd', {
 	openLog: function(options)
 	{
 		return new ide.Editor.List({
-			title: 'log', items: ide.logger.items, plugin: 'cmd.openLog',
+			title: 'log', children: ide.logger.items, plugin: 'cmd.openLog',
 			slot: options.slot
 		});
 	},
@@ -419,7 +417,6 @@ ide.Command.prototype = {
 		args = token.state.args, l=args.length-1,
 		matches = this.def.filter(this.match.bind(this, args, false))
 	;
-		
 		matches.forEach(function(def) {
 			var name = def.cmd && def.cmd[l];
 
@@ -436,8 +433,12 @@ ide.Command.prototype = {
 	match: function(args, exact, def)
 	{
 	var
-		i=0, match={}, cmd = def.cmd, l=args.length, cur, arg
+		i=0, match={}, cmd = def.cmd, l=args.length, cur, arg,
+		editor = ide.editor
 	;
+		if ((def.editor && !editor) || (l>0 && !cmd))
+			return false;
+		
 		if (l>0 && cmd)
 			for (; i<l; i++)
 			{
@@ -445,18 +446,11 @@ ide.Command.prototype = {
 				cur = cmd[i];
 
 				// Parameter
-				if (!cur)
+				if (!cur || (exact && cur !== arg) || (cur.indexOf(arg)!==0))
 					return;
 				else if (cur[0]==='@')
 					match[cur.substr(1)] = arg;
-				// Literal
-				else if (exact && cur !== arg)
-					return false;
-				else if (cur.indexOf(arg)!==0)
-					return false;
 			}
-		else if (cmd)
-			return false;
 
 		return (def.match = match);
 	},

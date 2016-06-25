@@ -126,7 +126,6 @@ ide.Editor.List = ide.Editor.extend({
 	templateId: 'tpl-editor-list',
 	itemTemplate: null,
 	itemClass: ide.Item,
-	items: null,
 	html: '',
 
 	$footer: null,
@@ -149,7 +148,7 @@ ide.Editor.List = ide.Editor.extend({
 		if (id && this.onItemClick)
 		{
 			if (this.onItemClick)
-				this.onItemClick(ev, this.items[id]);
+				this.onItemClick(ev, this.children[id]);
 		}
 
 		ev.stopPropagation();
@@ -183,10 +182,7 @@ ide.Editor.List = ide.Editor.extend({
 		this.$list = $(this.$list)
 			.on('click', '.item', this.onListClick.bind(this));
 
-		if (this.items)
-			this._addElements(this.items, 0);
-		else
-			this.items = [];
+		this.children = this.children ? this._addElements(this.children, 0) : [];
 	},
 
 	createItem: function(item)
@@ -204,25 +200,27 @@ ide.Editor.List = ide.Editor.extend({
 	// TODO support remove?
 	_addElements: function(items, i)
 	{
-		var l = i===undefined ? this.items.length : i, item;
+		var l = i===undefined ? this.children.length : i, item;
 
-		items.forEach(function(f, i) {
+		return items.map(function(f, i) {
 			f.id = l + i;
 			item = this.createItem(f);
 			this.$list.append(item.el);
+			return item;
 		}, this);
 	},
 
 	reset: function()
 	{
-		this.items = [];
+		_.invokeMap(this.children, 'unbind');
+		this.children = [];
 		this.$list.empty();
 	},
 
 	add: function(items)
 	{
-		this._addElements(items);
-		this.items = this.items.concat(items);
+		items = this._addElements(items);
+		this.children = this.children.concat(items);
 	},
 
 	focus: function()
@@ -256,7 +254,7 @@ ide.Editor.List = ide.Editor.extend({
 		search: function(regex)
 		{
 		var
-			i=0, files = this.items,
+			i=0, files = this.children,
 			children = this.$list[0].children, clear=!regex
 		;
 			for (; i<files.length; i++)
@@ -398,7 +396,7 @@ ide.plugins.register('find', new ide.Plugin({
 			return new ide.Editor.FileList({
 				title: 'find ' + mask,
 				file: mask,
-				items: files,
+				children: files,
 				plugin: this,
 				slot: options.slot
 			});
@@ -466,7 +464,7 @@ ide.plugins.register('folder', new ide.Plugin({
 
 			return new ide.Editor.FileList({
 				file: file,
-				items: files,
+				children: files,
 				title: path,
 				prefix: path==='.' ? '' : (path + '/'),
 				slot: options.slot

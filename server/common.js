@@ -52,7 +52,7 @@ class FileMatcher {
 				} catch(e) {
 					this.error(`Invalid ignore parameter: "${glob}"`);
 				}
-			}, this).join('|') + '$';
+			}, this).join('|');
 			this.dirty = false;
 		}
 

@@ -359,11 +359,14 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 
 	initialize: function()
 	{
+		var showInfo = this.showInfo.bind(this);
+		
 		this.load_project(this.load_workspace.bind(this));
 		this._on_hashchange = this.on_hashchange.bind(this);
 
 		this.listenTo(window, 'beforeunload', this.on_beforeunload);
-		ide.plugins.on('editor.focus', this.showInfo.bind(this));
+		ide.plugins.on('editor.focus', showInfo);
+		ide.plugins.on('file.write', showInfo);
 	}
 
 });

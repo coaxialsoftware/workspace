@@ -246,7 +246,7 @@ div.CodeMirror-cursors { visibility: visible; }
 .item h4 {
 	font-size: inherit; font-weight: normal;
 	margin: 0; padding: 2px 0;
-	word-wrap: break-word;
+	word-wrap: break-word; display: inline-block;
 }
 .item footer { margin-top: 4px; }
 .item-collapsed .item-detail { display: none; }
@@ -316,7 +316,7 @@ div.CodeMirror-cursors { visibility: visible; }
 #assist-inline kbd { display: none; }
 
 #assist-inline .item h4 { overflow: visible; white-space: nowrap; display: inline-block; }
-#assist-inline .icon { float: left; margin-left: -16px; }
+#assist-inline .icon-primary { margin-left: -16px; }
 
 /*
  * Forms
