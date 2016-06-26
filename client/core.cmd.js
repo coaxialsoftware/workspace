@@ -402,7 +402,8 @@ ide.Command.prototype = {
 
 	parse: function(def)
 	{
-		def.run = this.plugin[def.fn].bind(this.plugin);
+		def.run = (typeof(def.fn)==='string' ?
+			this.plugin[def.fn] : def.fn).bind(this.plugin);
 		def.cmd = def.cmd && def.cmd.split(' ');
 		def.hint = { icon: 'terminal', description: def.help };
 		

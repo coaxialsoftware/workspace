@@ -56,6 +56,10 @@ ide.File = cxl.Model.extend({
 	parse: function(data)
 	{
 		this.originalValue = data.content || '';
+		
+		var separator = this.originalValue.indexOf("\r\n")!==-1 ? 'CRLF' : 'LF';
+			
+		this.hint = { code: 'file', tags: [ separator ] };
 		return data;
 	},
 
@@ -135,13 +139,17 @@ FileManager.prototype = {
 	}
 
 };
-
+	
 ide.plugins.on('assist', function(done, editor) {
 
 	if (editor && editor.file)
 	{
 		if (editor.file instanceof ide.File)
-			done({ title: editor.getInfo(), code: 'file' });
+		{
+			var hint = editor.file.hint;
+			hint.title = editor.getInfo();
+			done(hint);
+		}
 	}
 
 });

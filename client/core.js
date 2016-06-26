@@ -339,7 +339,7 @@ ide.Editor.File = ide.Editor.extend({
 
 	changed: function()
 	{
-		return this.file.hasChanged('content');
+		return this.file.originalValue !== this.file.attributes.content;
 	},
 
 	setValue: function(value)
@@ -367,8 +367,7 @@ ide.Editor.File = ide.Editor.extend({
 	{
 		var content = this.file.get('content');
 
-		if (this.getValue() !== content)
-			this.setValue(content);
+		this.setValue(content);
 	},
 
 	load: function()

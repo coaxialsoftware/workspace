@@ -192,6 +192,7 @@ _.extend(InlineAssist.prototype, {
 	renderHint: function(hint, order, ref)
 	{
 		hint.el.$hint = hint;
+		hint.el.classList.remove('selected');
 
 		if (ref)
 			this.el.insertBefore(hint.el, ref.el);

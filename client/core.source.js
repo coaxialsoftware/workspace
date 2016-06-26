@@ -231,9 +231,9 @@ ide.Editor.Source = ide.Editor.File.extend({
 			this.scrollScreenDown(-(n || 1));
 		},
 
-		go: function(n)
+		go: function(line, ch)
 		{
-			this.editor.setCursor(n-1);
+			this.editor.setCursor(line-1, ch);
 		},
 
 		search: function(n, options)
@@ -289,16 +289,11 @@ ide.Editor.Source = ide.Editor.File.extend({
 				return history[l];
 	},
 
-	getValue: function()
-	{
-		return this.editor.getValue(this.options.lineSeparator);
-	},
-
 	getCursor: function()
 	{
 		return this.editor.getCursor();
 	},
-
+	
 	getCursorCoordinates: function(cursor)
 	{
 		cursor = cursor || true;

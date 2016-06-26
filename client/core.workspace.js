@@ -518,6 +518,19 @@ ide.plugins.registerCommands({
 		}
 
 	},
+	
+	fileFormatApply: function(from, to)
+	{
+	var
+		file = ide.editor.file,
+		content
+	;
+		if (file instanceof ide.File)
+		{
+			content = file.get('content');
+			file.set('content', content.replace(from, to));
+		}
+	},
 
 	commands: {
 
@@ -542,6 +555,15 @@ ide.plugins.registerCommands({
 			else
 				ide.open();
 		},
+		
+		fileformat: [
+			{ cmd: 'unix', fn: function() {
+				this.fileFormatApply(/\r/g, "");
+			}, editor: true },
+			{ cmd: 'dos', fn: function() {
+				this.fileFormatApply(/\n/g, "\r\n");
+			}, editor: true }
+		],
 
 		tabe: function(name)
 		{

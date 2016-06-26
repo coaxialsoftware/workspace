@@ -45,6 +45,13 @@ extensibility and user experience.
 	npm link
 	</code></pre>
 	
+	<h2>
+		Architecture
+	</h2>
+	<p>
+		Workspace is designed as a server/client application. Communication between the client and server is done by a WebSocket and REST requests.
+	</p>
+	
 	<h2>Basic Concepts</h2>
 	
 	<h3>Workspace</h3>
@@ -53,7 +60,7 @@ extensibility and user experience.
 	</p>
 	<h3>Project</h3>
 	<p>
-		A project is a folder in a workspace.
+		A project is a directory inside a workspace that contains source code. Project settings are stored in the optional <code>project.json</code> file.
 	</p>
 	<h4>
 		Project Files
