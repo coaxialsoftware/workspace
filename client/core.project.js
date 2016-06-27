@@ -78,8 +78,10 @@ ide.Project = cxl.Model.extend({
 	{
 		this.attributes.files = files;
 		files.forEach(function(f) {
-			f.hint = new ide.Hint({
-				title: f.filename, icon: f.directory ? 'folder-o' : 'file-o'
+			Object.defineProperty(f, 'hint', {
+				value: new ide.Hint({
+					title: f.filename, icon: f.directory ? 'folder-o' : 'file-o'
+				})
 			});
 		});
 	}

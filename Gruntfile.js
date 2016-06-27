@@ -9,6 +9,7 @@ module.exports = function(grunt) {
 					'client/core.js',
 					'client/core.keymap.js',
 					'client/core.plugins.js',
+					'client/core.worker.js',
 					'client/core.cmd.js',
 					'client/core.workspace.js',
 					'client/core.socket.js',

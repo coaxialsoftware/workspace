@@ -182,10 +182,11 @@ _.extend(InlineAssist.prototype, {
 
 	select: function(hint)
 	{
-		if (this.selected)
+		if (this.selected && this.selected!== hint)
 			this.selected.el.classList.remove('selected');
-
+		
 		hint.el.classList.add('selected');
+
 		this.selected = hint;
 	},
 

@@ -55,7 +55,11 @@ var
 		}
 	}
 
-	return new RegExp(reStr);
+	try {
+		return new RegExp(reStr);
+	} catch (e) {
+		return new RegExp(_.escapeRegExp(glob));
+	}
 }
 
 var frag = cxl.dom('DIV');
@@ -328,16 +332,38 @@ ide.plugins.register('find', new ide.Plugin({
 		this.listenTo('assist', this.onAssist);
 		this.listenTo('assist.inline', this.onAssistInline);
 	},
+	
+	findWorker: new ide.Worker(function(data) {
+	var
+		regex = data.meta.regex,
+		files = data.meta.files,
+		str = data.meta.mask,
+		result
+	;
+		if (str)
+		{
+			result = files.filter(function(val) {
+				return regex.test(val.filename);
+			});
+
+			if (result.length===1)
+				return { title: 'Open file "' + result[0].filename + '"', action: 'find' };
+			else if (result.length)
+				return { title: 'Find file "' + str + '" (' + result.length +
+					' matches)', action: 'find' };
+		}
+	}),
 
 	onAssist: function(done, editor, token)
 	{
-		var str = token && (token.type===null || token.type==='string' ||
-			token.type==='string property') && token.string;
-
-		if (str)
-			done({
-				title: 'Find file ' + str,
-				action: 'find'
+		var mask = token && (token.type===null || token.type==='string' ||
+			token.type==='string property') && this.get_mask(token);
+			
+		if (mask)
+			this.findWorker.assist(done, editor, token, {
+				files: ide.project.get('files'),
+				mask: mask,
+				regex: globToRegex(mask)
 			});
 	},
 
@@ -355,7 +381,7 @@ ide.plugins.register('find', new ide.Plugin({
 		{
 			files = this.find(str);
 
-			if (files.length)
+			if (files && files.length)
 				done(files);
 		}
 	},
@@ -402,9 +428,9 @@ ide.plugins.register('find', new ide.Plugin({
 			});
 	},
 
-	get_mask: function()
+	get_mask: function(token)
 	{
-		var token = ide.editor && ide.editor.token;
+		token = token || ide.editor && ide.editor.token;
 
 		if (token)
 		{
