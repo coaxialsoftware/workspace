@@ -286,7 +286,7 @@ ide.plugins.register('cmd', {
 			{
 				if (search && i.indexOf(search)!==0)
 					continue;
-				
+
 				fn = cmds[i];
 				key = ide.keyboard.findKey(i);
 
@@ -406,14 +406,14 @@ ide.Command.prototype = {
 			this.plugin[def.fn] : def.fn).bind(this.plugin);
 		def.cmd = def.cmd && def.cmd.split(' ');
 		def.hint = { icon: 'terminal', description: def.help };
-		
+
 		if (!def.cmd)
 			this.fn.help = def.help;
 	},
 
 	getHints: function(editor, token)
 	{
-	var	
+	var
 		result = [], ch = token.string,
 		args = token.state.args, l=args.length-1,
 		matches = this.def.filter(this.match.bind(this, args, false))
@@ -439,7 +439,7 @@ ide.Command.prototype = {
 	;
 		if ((def.editor && !editor) || (l>0 && !cmd))
 			return false;
-		
+
 		if (l>0 && cmd)
 			for (; i<l; i++)
 			{
@@ -447,10 +447,11 @@ ide.Command.prototype = {
 				cur = cmd[i];
 
 				// Parameter
-				if (!cur || (exact && cur !== arg) || (cur.indexOf(arg)!==0))
-					return;
-				else if (cur[0]==='@')
+				if (cur && cur[0]==='@')
 					match[cur.substr(1)] = arg;
+				else if (!cur || (exact && cur !== arg) || (cur.indexOf(arg)!==0))
+					return;
+
 			}
 
 		return (def.match = match);

@@ -540,7 +540,7 @@ workspace.extend({
 		this.__data[plugin] = data;
 		this.__saveData();
 	},
-	
+
 	restart: function()
 	{
 		process.exit(128);
@@ -569,7 +569,7 @@ workspace.extend({
 					options.plugin.error(err);
 					options.plugin.dbg(stderr);
 					options.plugin.dbg(stdout);
-					reject(err);
+					return reject(err);
 				}
 
 				resolve(stdout);

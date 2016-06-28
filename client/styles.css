@@ -247,6 +247,7 @@ div.CodeMirror-cursors { visibility: visible; }
 	font-size: inherit; font-weight: normal;
 	margin: 0; padding: 2px 0;
 	word-wrap: break-word; display: inline-block;
+	word-break: break-word;
 }
 .item footer { margin-top: 4px; }
 .item-collapsed .item-detail { display: none; }

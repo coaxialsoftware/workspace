@@ -102,10 +102,9 @@ _.extend(InlineAssist.prototype, {
 	{
 	var
 		pos = this.pos = editor.getCursorCoordinates &&
-			editor.getCursorCoordinates(this.cursor),
-		style = this.el.style
+			editor.getCursorCoordinates(this.cursor)
 	;
-		style.left = Math.round(pos.left) + 'px';
+		this.leftPos = Math.round(pos.left);
 	},
 
 	calculateTop: function()
@@ -117,7 +116,7 @@ _.extend(InlineAssist.prototype, {
 		isDown = bottom <= viewHeight,
 		height = isDown ? pos.bottom : pos.top - el.clientHeight
 	;
-		this.el.style.top = height + 'px';
+		this.el.style.transform = 'translate(' + this.leftPos + 'px,' + height + 'px)';
 	},
 
 	addHints: function(version, hints)
@@ -135,10 +134,21 @@ _.extend(InlineAssist.prototype, {
 			this.select(this.hints[0]);
 	},
 
+	getIndex: function(title)
+	{
+		var i=0, hints=this.hints, l=hints.length;
+
+		for(;i<l;i++)
+			if (hints[i].title > title)
+				return i;
+
+		return l;
+	},
+
 	add: function(hint)
 	{
 	var
-		order = _.sortedIndexBy(this.hints, hint, 'title'),
+		order = this.getIndex(hint.title),
 		ref = this.hints[order]
 	;
 		// Make sure there are no duplicates.
@@ -184,7 +194,7 @@ _.extend(InlineAssist.prototype, {
 	{
 		if (this.selected && this.selected!== hint)
 			this.selected.el.classList.remove('selected');
-		
+
 		hint.el.classList.add('selected');
 
 		this.selected = hint;
@@ -193,7 +203,9 @@ _.extend(InlineAssist.prototype, {
 	renderHint: function(hint, order, ref)
 	{
 		hint.el.$hint = hint;
-		hint.el.classList.remove('selected');
+
+		if (this.selected !== hint)
+			hint.el.classList.remove('selected');
 
 		if (ref)
 			this.el.insertBefore(hint.el, ref.el);
@@ -270,7 +282,7 @@ _.extend(InlineAssist.prototype, {
 		if (hint && token && editor.replaceRange)
 		{
 			value = hint.value || hint.title;
-			
+
 			editor.replaceRange(value,
 				{ ch: token.start, line: token.line },
 				{ ch: token.ch, line: token.line }, 'assist.inline'
