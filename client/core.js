@@ -365,9 +365,7 @@ ide.Editor.File = ide.Editor.extend({
 
 	onFileChanged: function()
 	{
-		var content = this.file.get('content');
-
-		this.setValue(content);
+		this.setValue(this.file.attributes.content);
 	},
 
 	load: function()

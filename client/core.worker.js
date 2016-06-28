@@ -1,43 +1,75 @@
-(function(ide) {
+(function(ide, _) {
 "use strict";
 	
-ide.Worker = function(fn, process)
+ide.Worker = function(methods)
 {
 var
-	source = this.source = this.getSource(fn),
-	worker = this.createWorker(source)
+	source = this.buildSource(methods),
+	worker = this.worker = this.createWorker(source)
 ;
-	this.assist = function(done, editor, token, meta)
-	{
-		var file = editor.file, msg = {
-			$: ide.assist.version,
-			file: file && file.id,
-			mime: file && file.attributes.mime,
-			meta: meta,
-			token: {
-				ch: token.ch, end: token.end,
-				line: token.line, start: token.start,
-				string: token.string, type: token.type
-			}
-		};
-		
-		worker.postMessage(process ? process(editor, token, msg) : msg);
-	};
+	this.$ = 0;
+	this.response = [];
+	this.methods = methods;
 	
-	worker.onmessage = function(e)
-	{
-		if (e.data.result)
-			ide.assist.addHint(e.data.version, e.data.result);
-	};
+	worker.onmessage = this.onMessage.bind(this);
 };
 	
 ide.Worker.prototype = {
 	
-	getSource: function(fn)
+	response: null,
+	
+	onMessage: function(e)
 	{
-		return this.source || 'var fn =' + fn.toString() +
-			';onmessage=function(data) {' +
-		'var r = fn(data.data); postMessage({ version: data.data.$, result: r });}';
+	var
+		data = e.data,
+		id = data.$,
+		cb = this.response[id]
+	;
+		delete this.response[id];
+		
+		if (cb)
+		{
+			if (data.error)
+				(cb.error || ide.error)(data.error);
+			else if (data.result !== undefined)
+				cb(data.result);
+		}
+	},
+	
+	post: function(method, data, cb)
+	{
+	var
+		id = this.$++,
+		msg = { $: id, method: method, data: data }
+	;
+		this.response[id] = cb;
+		this.worker.postMessage(msg);
+	},
+	
+	promise: function(method, data)
+	{
+		var me = this;
+		
+		return new Promise(function(resolve, reject) {
+			resolve.error = reject;
+			me.post(method, data, resolve);
+		});
+	},
+	
+	getSource: function(fn, name)
+	{
+		return 'self["' + name + '"]=' + fn.toString() + ';';
+	},
+	
+	buildSource: function(methods)
+	{
+		var result = _.map(methods, this.getSource).join('');
+		
+		result += 'onmessage=function(ev) { try { var data=ev.data;' +
+		'data.result=self[data.method](data.data);}catch(e){data.error=e.message;}' +
+		'postMessage(data);}';
+		
+		return result;
 	},
 	
 	createWorker: function(source)
@@ -48,5 +80,42 @@ ide.Worker.prototype = {
 	}
 	
 };
+	
+ide.WorkerManager = function()
+{
+	this.workers = [];
+	ide.plugins.on('assist', this.onAssist.bind(this));
+};
 
-})(this.ide);
+ide.WorkerManager.prototype = {
+	
+	register: function(worker)
+	{
+		this.workers.push(worker);
+	},
+	
+	onAssist: function(done, editor, token)
+	{
+		var file = editor.file, msg = {
+			$: ide.assist.version,
+			type: 'assist',
+			file: file && file.id,
+			mime: file && file.attributes.mime,
+			token: {
+				ch: token.ch, end: token.end,
+				line: token.line, start: token.start,
+				string: token.string, type: token.type
+			}
+		};
+		
+		this.workers.forEach(function(a) {
+			if (a.methods.assist)
+				a.post('assist', msg, done);
+		});
+	}
+	
+};
+	
+ide.workerManager = new ide.WorkerManager();
+
+})(this.ide, this._);

@@ -501,6 +501,10 @@ ide.Editor.Source = ide.Editor.File.extend({
 
 	setValue: function(content)
 	{
+		if (content === this.value)
+			return;
+		
+		// TODO figure out a way not to scroll
 		var cursor = this.editor.getCursor();
 
 		this.editor.setValue(content, false);

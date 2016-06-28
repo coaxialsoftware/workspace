@@ -58,8 +58,14 @@ var
 	try {
 		return new RegExp(reStr);
 	} catch (e) {
-		return new RegExp(_.escapeRegExp(glob));
+		return new RegExp(glob.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
 	}
+}
+	
+function getMask(token)
+{
+	return token.type==='string' ?
+		token.string.substr(1, token.string.length-2) : token.string;
 }
 
 var frag = cxl.dom('DIV');
@@ -324,23 +330,27 @@ ide.Editor.FileList = ide.Editor.List.extend({
 	}
 
 });
-
-ide.plugins.register('find', new ide.Plugin({
-
-	start: function()
+	
+var worker = new ide.Worker({
+	
+	setFiles: function(files)
 	{
-		this.listenTo('assist', this.onAssist);
-		this.listenTo('assist.inline', this.onAssistInline);
+		this.files = files;
 	},
 	
-	findWorker: new ide.Worker(function(data) {
+	getMask: getMask,
+	
+	assist: function(data)
+	{
 	var
-		regex = data.meta.regex,
-		files = data.meta.files,
-		str = data.meta.mask,
+		token = data.token,
+		str = token && (token.type===null || token.type==='string' ||
+			token.type==='string property') && this.getMask(token),
+		regex = str && this.globToRegex(str),
+		files = this.files,
 		result
 	;
-		if (str)
+		if (regex && files)
 		{
 			result = files.filter(function(val) {
 				return regex.test(val.filename);
@@ -352,21 +362,26 @@ ide.plugins.register('find', new ide.Plugin({
 				return { title: 'Find file "' + str + '" (' + result.length +
 					' matches)', action: 'find' };
 		}
-	}),
-
-	onAssist: function(done, editor, token)
-	{
-		var mask = token && (token.type===null || token.type==='string' ||
-			token.type==='string property') && this.get_mask(token);
-			
-		if (mask)
-			this.findWorker.assist(done, editor, token, {
-				files: ide.project.get('files'),
-				mask: mask,
-				regex: globToRegex(mask)
-			});
 	},
+	
+	globToRegex: globToRegex
+});
+	
+ide.workerManager.register(worker);
 
+ide.plugins.register('find', new ide.Plugin({
+
+	start: function()
+	{
+		this.listenTo('project.load', this.onProject);
+		this.listenTo('assist.inline', this.onAssistInline);
+	},
+	
+	onProject: function(p)
+	{
+		worker.post('setFiles', p.attributes.files);
+	},
+	
 	onAssistInline: function(done, editor, token)
 	{
 		var files, fn = token.state && token.state.fn, str=token.string;
@@ -403,7 +418,8 @@ ide.plugins.register('find', new ide.Plugin({
 	open: function(options)
 	{
 	var
-		mask = options.file || this.get_mask() || '',
+		token = ide.editor && ide.editor.token,
+		mask = options.file || (token && getMask(token)) || '',
 		files = this.find(mask).map(function(val) {
 			return { title: val.title, icon: val.icon };
 		})
@@ -426,18 +442,6 @@ ide.plugins.register('find', new ide.Plugin({
 				plugin: this,
 				slot: options.slot
 			});
-	},
-
-	get_mask: function(token)
-	{
-		token = token || ide.editor && ide.editor.token;
-
-		if (token)
-		{
-			return token.type==='string' ?
-				// TODO make more generic?
-				token.string.substr(1, token.string.length-2) : token.string;
-		}
 	},
 
 	commands: { /** @lends ide.commands */
