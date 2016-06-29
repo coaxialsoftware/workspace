@@ -65,11 +65,10 @@ cxl.extend(Hash.prototype, {
  */
 ide.Layout = {
 
-	Smart: function(el)
+	Smart: function(child)
 	{
 	var
 		i=0,
-		child = el.children,
 		l = child.length,
 		result, w, ws
 	;
@@ -202,7 +201,7 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 
 	do_layout: function()
 	{
-		var layout = this.layout(this.el);
+		var layout = this.layout(this.slots);
 
 		this.slots.forEach(function(slot, i)
 		{
@@ -360,7 +359,7 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 	initialize: function()
 	{
 		var showInfo = this.showInfo.bind(this);
-		
+
 		this.load_project(this.load_workspace.bind(this));
 		this._on_hashchange = this.on_hashchange.bind(this);
 
@@ -518,7 +517,7 @@ ide.plugins.registerCommands({
 		}
 
 	},
-	
+
 	fileFormatApply: function(from, to)
 	{
 	var
@@ -555,7 +554,7 @@ ide.plugins.registerCommands({
 			else
 				ide.open();
 		},
-		
+
 		fileformat: [
 			{ cmd: 'unix', fn: function() {
 				this.fileFormatApply(/\r/g, "");
