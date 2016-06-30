@@ -14,6 +14,7 @@ ide.File = cxl.Model.extend({
 	initialize: function()
 	{
 		this.attributes.project = ide.project.get('path');
+		this.hint = { code: 'file' };
 		this.on('error', this._onError);
 	},
 
@@ -59,7 +60,7 @@ ide.File = cxl.Model.extend({
 		
 		var separator = this.originalValue.indexOf("\r\n")!==-1 ? 'CRLF' : 'LF';
 			
-		this.hint = { code: 'file', tags: [ separator ] };
+		this.hint.tags = [ separator ];
 		return data;
 	},
 

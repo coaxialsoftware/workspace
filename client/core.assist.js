@@ -121,7 +121,7 @@ _.extend(InlineAssist.prototype, {
 
 	addHints: function(version, hints)
 	{
-		if (version !== this.version && hints.length)
+		if (version !== this.version || !hints)
 			return;
 
 		ide.keymap.setUIState('inlineAssist');
@@ -420,7 +420,7 @@ var Assist = cxl.View.extend({
 	 */
 	addHint: function(version, hints)
 	{
-		if (version!==this.version || !this.visible)
+		if (version!==this.version || !this.visible || !hints)
 			return;
 
 		if (Array.isArray(hints))
