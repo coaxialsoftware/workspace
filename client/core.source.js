@@ -293,7 +293,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 	{
 		return this.editor.getCursor();
 	},
-	
+
 	getCursorCoordinates: function(cursor)
 	{
 		cursor = cursor || true;
@@ -503,7 +503,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 	{
 		if (content === this.value)
 			return;
-		
+
 		// TODO figure out a way not to scroll
 		var cursor = this.editor.getCursor();
 
@@ -521,13 +521,16 @@ ide.Editor.Source = ide.Editor.File.extend({
 	}
 
 });
-	
+
 _.each(codeMirror.commands, function(cmd, key) {
-	
-	ide.Editor.Source.prototype.commands[key] = function() {
-		cmd.call(codeMirror, this.editor);
-	};
-	
+
+	var fn = ide.Editor.Source.prototype.commands[key];
+
+	if (!fn)
+		ide.Editor.Source.prototype.commands[key] = function() {
+			cmd.call(codeMirror, this.editor);
+		};
+
 });
 
 

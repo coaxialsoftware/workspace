@@ -7,10 +7,10 @@ module.exports = function(grunt) {
 				options: { jshintrc: 'client/.jshintrc' },
 				src: [
 					'client/core.js',
-					'client/core.keymap.js',
 					'client/core.plugins.js',
-					'client/core.worker.js',
 					'client/core.cmd.js',
+					'client/core.keymap.js',
+					'client/core.worker.js',
 					'client/core.workspace.js',
 					'client/core.socket.js',
 					'client/core.diff.js',
@@ -41,7 +41,7 @@ module.exports = function(grunt) {
 				],
 				dest: 'public/build/ide.css'
 			},
-			
+
 			test: {
 				src: 'node_modules/jquery-mockjax/dist/jquery.mockjax.js',
 				dest: 'public/build/test.js'
@@ -74,12 +74,12 @@ module.exports = function(grunt) {
 				],
 				dest: 'public/build/libs.js'
 			},
-			
+
 			/*templates: {
 				options: {
 					banner: '',
 					stripBanners: false,
-					
+
 					process: function(src, path)
 					{
 						var id = path.replace(/^client\//, '');
@@ -135,12 +135,12 @@ module.exports = function(grunt) {
 				files: [ '<%= jshint.client.src %>' ],
 				tasks: [ 'jshint:client', 'concat:client', 'concat:debug', 'karma:client' ]
 			},
-			
+
 			client_tests: {
 				files: [ 'test/client.js', 'test/client/*.js' ],
 				tasks: [ 'karma:client' ]
 			},
-			
+
 			libs: {
 				files: '<%=concat.libs.src %>',
 				tasks: [ 'concat:libs' ]
@@ -161,7 +161,7 @@ module.exports = function(grunt) {
 				tasks: [ 'concat:html', 'concat:htmldbg' ]
 			}
 		},
-		
+
 		karma: {
 
 			options: {
@@ -195,7 +195,7 @@ module.exports = function(grunt) {
 				}
 			}
 		},
-		
+
 		copy: {
 			codemirror: {
 				files: [
@@ -207,7 +207,7 @@ module.exports = function(grunt) {
 					}
 				]
 			},
-			
+
 			fonts: {
 				files: [
 					{
@@ -227,7 +227,7 @@ module.exports = function(grunt) {
 		}
 
 	});
-	
+
 	grunt.loadNpmTasks('grunt-karma');
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-concat');

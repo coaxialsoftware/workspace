@@ -245,7 +245,7 @@ ide.Bar.Command = ide.Bar.extend({
 			return ide.error(e.message);
 		}
 
-		result = cmd ? ide.run(cmd.fn, cmd.args) : ide.Pass;
+		result = cmd ? ide.runParsedCommand(cmd) : ide.Pass;
 
 		if (result===ide.Pass)
 			ide.warn('Unknown Command: ' + val);
@@ -265,7 +265,7 @@ ide.Bar.Command = ide.Bar.extend({
 
 			ide.plugins.trigger('token', this, this.token = {
 				line: 0, start: start, ch: end, string: s,
-				state: cmd
+				state: cmd[cmd.length-1]
 			});
 		});
 	},

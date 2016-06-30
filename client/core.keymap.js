@@ -11,17 +11,12 @@
 ide.action = function action(name)
 {
 var
-	actions = name.split(' '),
-	i = 0, result
+	cmd = ide.commandParser.parse(name),
+	handler = ide.runParsedCommand.bind(ide, cmd)
 ;
-	for (; i<actions.length;i++)
-	{
-		result = ide.run(actions[i]);
-		if (result===ide.Pass)
-			break;
-	}
-	
-	return result;
+	handler.action = name;
+
+	return handler;
 };
 
 function KeyboardManager()
@@ -273,8 +268,7 @@ cxl.extend(KeyMap.prototype, {
 			handler.action = fn.action || fn.name;
 		} else
 		{
-			handler = ide.action.bind(ide, fn);
-			handler.action = fn;
+			handler = ide.action(fn);
 		}
 
 		handler.key = key;
@@ -331,7 +325,7 @@ cxl.extend(KeyMap.prototype, {
 
 ide.keyboard = new KeyboardManager();
 ide.keymap = new KeyMap();
-	
+
 /**
  * Global keymap handler. Make sure to fallback to default bindings
  */
@@ -347,18 +341,18 @@ var
 		if (state===this.uiState)
 			return result;
 	}
-	
+
 	if (result===false)
 		result = handle.call(this, key, state);
-		
+
 	state = state || this.state;
-	
+
 	if (result===false && state !== 'default')
 		result = handle.call(this, key, 'default');
-		
+
 	return result;
 };
-	
+
 /**
  * Sets the UI state. UI States have a higher priority than global states, but lower
  * than editor states.

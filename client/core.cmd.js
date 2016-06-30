@@ -12,17 +12,6 @@ function sandbox(a) {
 	)).call(undefined);
 }
 
-function runArray(cmds)
-{
-	var result;
-
-	cmds.forEach(function(cmd) {
-		result = ide.run(cmd.fn, cmd.args);
-	});
-
-	return result;
-}
-
 function CommandParser() {}
 
 cxl.extend(CommandParser.prototype, {
@@ -75,13 +64,14 @@ cxl.extend(CommandParser.prototype, {
 
 	parsePath: function(args, state)
 	{
-		this.parseUntil(args, state, /[^\\](\s)|$/g, function(a) {
-			return a.replace(/\\ /g, ' '); });
+		this.parseUntil(args, state, /[^\\]([\s;])|$/g, function(a) {
+			return a.replace(/\\ /g, ' ');
+		});
 	},
 
 	parseCmd: function(args, state)
 	{
-		this.parseUntil(args, state, /\s|$/g, null);
+		this.parseUntil(args, state, /[\s;]|$/g, null);
 		this.ignoreSpace(args, state);
 		return state.result[0];
 	},
@@ -129,16 +119,14 @@ cxl.extend(CommandParser.prototype, {
 			commands.push(current);
 		} while(state.i < state.end);
 
-		return commands.length>1 ? commands : commands[0];
+		return commands;
 	},
 
 	/** Parses and executes command. */
 	run: function(src)
 	{
 		var cmd = this.parse(src);
-
-		return Array.isArray(cmd) ? runArray(cmd) :
-			ide.run(cmd.fn, cmd.args);
+		return ide.runParsedCommand(cmd);
 	}
 
 });
@@ -155,7 +143,7 @@ function tryCmd(commands, cmd, args)
 	return typeof(fn)==='string' ? ide.run(fn, args) : fn.apply(ide, args);
 }
 
-/** Execute command. */
+/** Execute single command. */
 ide.run = function(fn, args)
 {
 var
@@ -176,6 +164,22 @@ var
 	{
 		ide.workspace.add(result);
 		result.focus();
+	}
+
+	return result;
+};
+
+ide.runParsedCommand = function(cmds)
+{
+	var result, i=0, l=cmds.length, cmd;
+
+	for (;i<l; i++)
+	{
+		cmd = cmds[i];
+		result = ide.run(cmd.fn, cmd.args);
+
+		if (result===ide.Pass)
+			break;
 	}
 
 	return result;
@@ -239,7 +243,7 @@ ide.plugins.register('cmd', {
 				hints = (fn && fn.getHints) ? fn.getHints(editor, token) :
 					this.getFiles(token.string);
 			} else
-				hints = this.getAllCommands(token.string, 'inline');
+				hints = this.getAllCommands(token.string);
 
 			if (hints)
 				done(hints);
