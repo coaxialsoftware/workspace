@@ -381,36 +381,25 @@ ide.keymap.registerKeys({
 		f1: 'help',
 		f10: 'assist',
 
-		'mod+end': 'goDocEnd',
-		'mod+down': 'goLineDown',
-		'mod+home': 'goDocStart',
-		'mod+left': 'goGroupLeft',
-		'mod+right': 'goGroupRight',
-		'mod+up': 'goLineUp',
-
 		// WORKSPACE
 		"alt+left": 'editorPrevious',
 		"alt+right": 'editorNext',
 		'alt+.': 'editorMoveNext',
 		'alt+,': 'editorMovePrevious',
 		'alt+enter': 'ex',
+		
+		'alt+u': 'redoSelection',
 
 		// SELECTION
-		'shift+left': 'selectStart goCharLeft selectEnd',
-		'shift+right': 'selectStart goCharRight selectEnd',
-		'shift+up': 'selectStart goLineUp selectEnd',
-		'shift+down': 'selectStart goLineDown selectEnd',
-		'shift+home': 'selectStart goLineStart selectEnd',
-		'shift+end': 'selectStart goLineEnd selectEnd',
-		'shift+pagedown': 'selectStart goPageDown selectEnd',
-		'shift+pageup': 'selectStart goPageUp selectEnd',
+		'shift+left': 'selectStart; goCharLeft; selectEnd',
+		'shift+right': 'selectStart; goCharRight; selectEnd',
+		'shift+up': 'selectStart; goLineUp; selectEnd',
+		'shift+down': 'selectStart; goLineDown; selectEnd',
+		'shift+home': 'selectStart; goLineStart; selectEnd',
+		'shift+end': 'selectStart; goLineEnd; selectEnd',
+		'shift+pagedown': 'selectStart; goPageDown; selectEnd',
+		'shift+pageup': 'selectStart; goPageUp; selectEnd',
 
-		'alt+u': 'redoSelection',
-		'mod+a': 'selectAll',
-
-		// SEARCH
-		'mod+f': 'searchbar',
-		'mod+g': 'findNext',
 
 		// EDITING
 		backspace: 'delCharBefore',
@@ -418,19 +407,36 @@ ide.keymap.registerKeys({
 		enter: 'insertLine',
 		insert: 'toggleOverwrite',
 		'shift+backspace': 'delCharBefore',
+		
+		'mod+backspace': 'delGroupBefore',
+		'mod+del': 'delGroupAfter',
+		'mod+end': 'goDocEnd',
+		'mod+down': 'scrollLineDown',
+		'mod+home': 'goDocStart',
+		'mod+left': 'goGroupLeft',
+		'mod+right': 'goGroupRight',
+		'mod+up': 'scrollLineUp',
+		'mod+pageup': 'scrollScreenUp',
+		'mod+pagedown': 'scrollScreenDown',
+		
+		'mod+a': 'selectAll',
+		'mod+d': 'deleteLine',
+		'mod+f': 'searchbar',
+		'mod+g': 'findNext',
+		'mod+u': 'undoSelection',
 		'mod+s': 'write',
 		'mod+y': 'redo',
 		'mod+z': 'undo',
-		'mod+backspace': 'delGroupBefore',
-		'mod+d': 'deleteLine',
-		'mod+del': 'delGroupAfter',
-		'mod+u': 'undoSelection',
+		
 		'mod+[': 'indentLess',
 		'mod+]': 'indentMore',
+		
 		'shift+mod+f': 'searchReplace',
+		'shift+mod+k': 'deleteLine',
 		'shift+mod+r': 'searchReplaceRange',
 		'shift+mod+u': 'redoSelection',
 		'shift+mod+z': 'redo',
+		
 		'tab': 'insertTab',
 		'shift+tab': 'indentAuto'
 	}

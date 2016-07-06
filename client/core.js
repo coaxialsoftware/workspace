@@ -133,7 +133,8 @@ var
 		if (typeof(file)==='string')
 			file = ide.fileManager.getFile(file);
 
-		return file.attributes.content ? Promise.resolve(file) :
+		return file.attributes.content || !file.attributes.filename ?
+			Promise.resolve(file) :
 			new Promise(function(resolve) {
 				file.fetch({
 					silent: true,

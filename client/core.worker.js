@@ -96,7 +96,8 @@ ide.WorkerManager.prototype = {
 
 	onAssist: function(done, editor, token)
 	{
-		var file = editor && editor.file, msg = {
+	var
+		file = editor && editor.file, msg = {
 			$: ide.assist.version,
 			type: 'assist',
 			file: file && file.id,
@@ -106,12 +107,18 @@ ide.WorkerManager.prototype = {
 				line: token.line, start: token.start,
 				string: token.string, type: token.type
 			}
-		};
-
-		this.workers.forEach(function(a) {
+		},
+		l = this.workers.length, a
+	;
+		while (l--)
+		{
+			a = this.workers[l];
+			
+			if (a.methods.canAssist && !a.methods.canAssist(msg))
+				return;
 			if (a.methods.assist)
 				a.post('assist', msg, done);
-		});
+		}
 	}
 
 };

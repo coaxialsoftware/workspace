@@ -340,12 +340,18 @@ var worker = new ide.Worker({
 	
 	getMask: getMask,
 	
+	canAssist: function(data)
+	{
+		var token = data.token;
+		return token && (token.type===null || token.type==='string' ||
+			token.type==='string property');
+	},
+	
 	assist: function(data)
 	{
 	var
 		token = data.token,
-		str = token && (token.type===null || token.type==='string' ||
-			token.type==='string property') && this.getMask(token),
+		str = this.getMask(token),
 		regex = str && this.globToRegex(str),
 		files = this.files,
 		result
@@ -386,14 +392,14 @@ ide.plugins.register('find', new ide.Plugin({
 	{
 		var files, fn = token.state && token.state.fn, str=token.string;
 
-		if ((fn==='e' || fn==='tabe') && str.indexOf('find:')===0)
-		{
-			fn = 'find';
-			str = str.substr(5);
-		}
-
 		if (editor === ide.commandBar && fn==='find' && str)
 		{
+			if ((fn==='e' || fn==='tabe') && str.indexOf('find:')===0)
+			{
+				fn = 'find';
+				str = str.substr(5);
+			}
+			
 			files = this.find(str);
 
 			if (files && files.length)

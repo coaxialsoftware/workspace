@@ -60,7 +60,7 @@ ide.File = cxl.Model.extend({
 		
 		var separator = this.originalValue.indexOf("\r\n")!==-1 ? 'CRLF' : 'LF';
 			
-		this.hint.tags = [ separator ];
+		this.hint.tags = [ separator, data.mime ];
 		return data;
 	},
 
