@@ -392,13 +392,14 @@ ide.plugins.register('find', new ide.Plugin({
 	{
 		var files, fn = token.state && token.state.fn, str=token.string;
 
-		if (editor === ide.commandBar && fn==='find' && str)
+		if (editor === ide.commandBar && str)
 		{
 			if ((fn==='e' || fn==='tabe') && str.indexOf('find:')===0)
 			{
 				fn = 'find';
 				str = str.substr(5);
-			}
+			} else if (fn!=='find')
+				return;
 			
 			files = this.find(str);
 
