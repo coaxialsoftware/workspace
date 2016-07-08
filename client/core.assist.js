@@ -298,6 +298,10 @@ _.extend(InlineAssist.prototype, {
 		// TODO find a better way?
 		//this.requestHints.cancel();
 		//this._requestHints(this.editor, this.editor.token);
+		
+		if (this.hints.length===0)
+			return ide.Pass;
+		
 		setTimeout(this.doAccept, this.delay);
 	}
 
