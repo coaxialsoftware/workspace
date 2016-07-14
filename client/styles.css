@@ -103,12 +103,25 @@ kbd {
 	box-sizing: border-box;
 }
 
-.list .list-content {
-	position: absolute; top: 46px; left: 12px; right: 12px; bottom: 0;
-	padding-bottom: 12px; overflow: hidden;
+.editor-content {
+	position: absolute; top: 24px; left: 0; right: 0; bottom: 0;
+	overflow: hidden; height: auto;
 }
-.list h3 { overflow: hidden; white-space: nowrap; }
-.list h3 > .icon { position: absolute; right: 12px; }
+
+.focus .editor-header {
+	/*background-color: rgba(0, 100, 159, 0.5);*/
+	background-color: rgba(255,255,255,0.2);
+	color: rgba(255,255,255,0.95);
+}
+.editor-header .icon { color: rgba(255,255,255,0.5); }
+.editor-header .icon:hover { color: rgba(255,255,255,0.9); }
+.editor-header {
+	line-height: 16px;
+	overflow: hidden; white-space: nowrap; margin: 0; padding: 4px 8px;
+	font-size: 12px; color: rgba(255,255,255,0.7);
+}
+
+.list .editor-content { padding: 8px; }
 
 .focus {
 	animation-duration: 0.5s;
@@ -182,6 +195,7 @@ kbd {
 	font-family: Monaco, Menlo, 'Ubuntu Mono', Consolas, source-code-pro, monospace;
 
 	overflow: hidden !important;
+	background-color: transparent !important;
 }
 
 .CodeMirror-scroll {
@@ -198,7 +212,9 @@ kbd {
 }
 .CodeMirror-gutter-elt { overflow-y: hidden; }
 
-div.CodeMirror-cursors { visibility: visible; }
+
+.focus div.CodeMirror-cursors { visibility: visible; }
+div.CodeMirror-cursors { visibility: hidden; }
 
 /*
  *

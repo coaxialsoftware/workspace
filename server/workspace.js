@@ -94,10 +94,14 @@ class WorkspaceConfiguration extends Configuration {
 
 		if (this['plugins.global']===undefined && !this['plugins.path'])
 			this['plugins.global'] = true;
+		
+		// check for v8 inspector support
+		var inspect = process.execArgv.join('').match(/--inspect(?:=(\d+))?/);
 
 		this.set({
 			version: '0.5.4',
-			user: process.env.USER || process.env.USERNAME
+			user: process.env.USER || process.env.USERNAME,
+			inspect: inspect && (+inspect[1] || 9222)
 		});
 
 		if (this.debug)

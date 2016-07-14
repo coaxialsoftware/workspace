@@ -14,7 +14,6 @@ ide.File = cxl.Model.extend({
 	initialize: function()
 	{
 		this.attributes.project = ide.project.get('path');
-		this.hint = { code: 'file' };
 		this.on('error', this._onError);
 	},
 
@@ -60,7 +59,11 @@ ide.File = cxl.Model.extend({
 		
 		var separator = this.originalValue.indexOf("\r\n")!==-1 ? 'CRLF' : 'LF';
 			
-		this.hint.tags = [ separator, data.mime ];
+		this.hint = new ide.Hint({
+			code: 'file', title: data.filename,
+			tags: [ separator, data.mime ]
+		});
+		
 		return data;
 	},
 
@@ -146,11 +149,7 @@ ide.plugins.on('assist', function(done, editor) {
 	if (editor && editor.file)
 	{
 		if (editor.file instanceof ide.File)
-		{
-			var hint = editor.file.hint;
-			hint.title = editor.getInfo();
-			done(hint);
-		}
+			done(editor.file.hint);
 	}
 
 });

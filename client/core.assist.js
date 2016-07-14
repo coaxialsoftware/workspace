@@ -529,7 +529,7 @@ ide.plugins.register('assist', new ide.Plugin({
 		this.listenTo('socket.message.assist.inline', this.onInline);
 
 		if (ide.workspace.hash.data.a)
-			window.setTimeout(ide.assist.show.bind(ide.assist), 150);
+			ide.assist.show(ide.assist);
 	}
 
 }));

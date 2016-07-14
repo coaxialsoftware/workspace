@@ -4,17 +4,20 @@ var
 	node = 'node',
 	bin = __dirname + '/../server/workspace.js',
 	child_process = require('child_process'),
-	child = start(),
-	startTime, timeout=1000
+	child,
+	startTime, timeout=1000,
+	args = process.argv.slice(2)
 ;
 /* jshint esnext:true */
+args.push(bin);
+start();
 
 function onExit(code)
 {
 	if (code !== 0 && startTime-Date.now() > timeout)
 	{
 		console.log(`Received signal ${code}. Attempting restart...`);
-		child = start();
+		start();
 	}
 }
 
@@ -22,12 +25,13 @@ function start()
 {
 	startTime = Date.now();
 
-	var c = child_process.spawn(node, [bin], {
+	var c = child_process.spawn(node, args, {
 		stdio: 'inherit'
 	});
 
 	c.on('exit', onExit);
 
-	return c;
+	child = c;
 }
+
 

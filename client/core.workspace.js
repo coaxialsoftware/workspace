@@ -1,5 +1,5 @@
 
-(function(ide, cxl, $, undefined) {
+(function(ide, cxl, $, _, undefined) {
 "use strict";
 
 var
@@ -64,6 +64,19 @@ cxl.extend(Hash.prototype, {
  * @enum
  */
 ide.Layout = {
+	
+	// Layout Breakpoints
+	SMALL: 544,
+	
+	Vertical: function(child)
+	{
+	var
+		h = (100 / child.length)
+	;
+		return child.map(function(c, i) {
+			return { left: 0, top: (i*h)+'%', height: h+'%', width: '100%' };
+		});
+	},
 
 	Smart: function(child)
 	{
@@ -72,6 +85,9 @@ ide.Layout = {
 		l = child.length,
 		result, w, ws
 	;
+		if (ide.workspace.el.clientWidth < ide.Layout.SMALL)
+			return ide.Layout.Vertical(child);
+		
 		switch (l)
 		{
 		case 0: return;
@@ -364,6 +380,8 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 		this._on_hashchange = this.on_hashchange.bind(this);
 
 		this.listenTo(window, 'beforeunload', this.on_beforeunload);
+		this.listenTo(window, 'resize', _.debounce(this.do_layout.bind(this), 250));
+		
 		ide.plugins.on('editor.focus', showInfo);
 		ide.plugins.on('file.write', showInfo);
 	}
@@ -582,7 +600,7 @@ ide.plugins.registerCommands({
 		q: function()
 		{
 			if (ide.editor)
-				ide.workspace.remove(ide.editor);
+				ide.editor.quit();
 			else
 				window.close();
 		},
@@ -612,4 +630,4 @@ ide.plugins.registerCommands({
 
 });
 
-})(this.ide, this.cxl, this.jQuery);
+})(this.ide, this.cxl, this.jQuery, this._);

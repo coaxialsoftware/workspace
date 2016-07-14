@@ -31,11 +31,12 @@ class File {
 			this.filename = path.normalize(this.filename);
 
 		this.path = filepath;
-		this.mime = mime.lookup(this.path);
+		this.mime = File.getMime(this.path);
 	}
 
 	static getMime(path)
 	{
+		// TODO add typescript support
 		return mime.lookup(path);
 	}
 

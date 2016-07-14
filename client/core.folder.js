@@ -132,16 +132,8 @@ ide.Notification = ide.Item.extend({
 
 ide.Editor.List = ide.Editor.extend({
 
-	title: '',
-	templateId: 'tpl-editor-list',
 	itemTemplate: null,
 	itemClass: ide.Item,
-	html: '',
-
-	$footer: null,
-
-	/// Content DOM element
-	$list: null,
 
 	/** @type {function} */
 	onItemClick: null,
@@ -167,7 +159,7 @@ ide.Editor.List = ide.Editor.extend({
 
 	initialize: function()
 	{
-		this.$el.addClass('panel list');
+		this.$el.addClass('list');
 	},
 
 	onWheel: function(ev)
@@ -186,10 +178,10 @@ ide.Editor.List = ide.Editor.extend({
 
 	render: function()
 	{
-		this.listenTo(this.$list, 'wheel', this.onWheel);
-		this.listenTo(this.$list, 'keydown', this.onKey);
+		this.listenTo(this.$content, 'wheel', this.onWheel);
+		this.listenTo(this.$content, 'keydown', this.onKey);
 
-		this.$list = $(this.$list)
+		this.$list = $(this.$content)
 			.on('click', '.item', this.onListClick.bind(this));
 
 		this.children = this.children ? this._addElements(this.children, 0) : [];
@@ -255,11 +247,6 @@ ide.Editor.List = ide.Editor.extend({
 	},
 
 	commands: {
-
-		quit: function()
-		{
-			ide.workspace.remove(this);
-		},
 
 		search: function(regex)
 		{

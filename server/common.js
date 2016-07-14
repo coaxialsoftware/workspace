@@ -6,7 +6,6 @@ var
 	Q = require('bluebird'),
 	_ = require('lodash'),
 	mime = require('mime'),
-	path = require('path'),
 	micromatch = require('micromatch'),
 
 	Watcher = require('./watcher'),
@@ -143,14 +142,6 @@ common = module.exports = {
 	readDirectory: Q.promisify(fs.readdir),
 	writeFile: Q.promisify(fs.writeFile),
 	stat: Q.promisify(fs.stat),
-
-	/**
-	 * Returns relative path from cwd and an optional project path.
-	 */
-	relative: function(filepath, project)
-	{
-		return path.relative(process.cwd() + (project ? '/' + project : ''), filepath);
-	},
 
 	read: function(filename)
 	{

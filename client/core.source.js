@@ -422,11 +422,11 @@ ide.Editor.Source = ide.Editor.File.extend({
 		ide.plugins.trigger('editor.scroll', this);
 	},
 
-	initialize: function()
+	render: function()
 	{
 	var
 		options = this._getOptions(),
-		editor = this.editor = codeMirror(this.el, options)
+		editor = this.editor = codeMirror(this.$content, options)
 	;
 		this.hints = new HintManager(this);
 

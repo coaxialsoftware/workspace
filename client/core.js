@@ -222,6 +222,10 @@ ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 
 	/// Workspace slot @required
 	slot: null,
+	
+	templateId: 'tpl-editor',
+	
+	title: '',
 
 	/// @private
 	load: function()
@@ -234,6 +238,8 @@ ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 		this.keymap = new ide.KeyMap();
 
 		cxl.View.prototype.load.call(this, this.$el);
+		
+		this.set('title', this.getInfo());
 
 		ide.plugins.trigger('editor.load', this);
 	},
@@ -273,14 +279,12 @@ ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 	getInfo: function()
 	{
 	var
-		project = ide.project.get('name') || ide.project.id,
 		plugin = this.plugin && this.plugin.name || this.plugin
 	;
 		return (this.changed && this.changed() ? '+ ' : '') +
 			((this.file instanceof ide.File ?
 			  this.file.get('filename') :
-			  plugin + ':' + this.file) || 'No Name') +
-			(project ? ' [' + project + ']' : '');
+			  plugin + ':' + this.file) || 'No Name');
 	},
 
 	/**
@@ -299,6 +303,11 @@ ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 
 		this.$el.addClass('focus');
 		ide.plugins.trigger('editor.focus', this);
+	},
+	
+	quit: function()
+	{
+		ide.workspace.remove(this);
 	},
 
 	/** @private */
