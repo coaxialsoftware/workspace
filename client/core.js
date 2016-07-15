@@ -211,6 +211,56 @@ var
 		return span;
 	};
 };
+	
+ide.EditorTitle = function(editor)
+{
+	this.editor = editor;
+	
+	editor.$title.appendChild(cxl.compile(cxl.html('tpl-editor-title'), this));
+	
+	this.render();
+};
+
+_.extend(ide.EditorTitle.prototype, {
+	
+	quit: function()
+	{
+		this.editor.quit();
+	},
+	
+	getTitle: function()
+	{
+	var
+		editor = this.editor,
+		plugin = editor.plugin && editor.plugin.name || editor.plugin
+	;
+		return ((editor.file instanceof ide.File ?
+			  editor.file.get('filename') :
+			  plugin + ':' + editor.file) || 'No Name');
+	},
+	
+	render: function()
+	{
+	var
+		e = this.editor,
+		changed = e.changed && e.changed(),
+		state = e.keymap.state,
+		title = this.getTitle()
+	;
+		if (this.changed!==changed)
+		{
+			this.changed = changed;
+			this.$changed.style.display = changed ? 'inline' : 'none';
+		}
+		
+		if (this.state!==state)
+			this.$state.innerHTML = this.state = state;
+		
+		if (this.title!==title)
+			this.$title.innerHTML = this.title = title;
+	}
+	
+});
 
 ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 
@@ -239,8 +289,9 @@ ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 
 		cxl.View.prototype.load.call(this, this.$el);
 		
-		this.set('title', this.getInfo());
-
+		this.$title = new ide.EditorTitle(this);
+		this.listenTo(ide.plugins, 'assist', this.$title.render.bind(this.$title));
+		
 		ide.plugins.trigger('editor.load', this);
 	},
 
@@ -274,17 +325,6 @@ ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 			return this.cmd(fn, args);
 
 		return fn ? fn.apply(this, args) : ide.Pass;
-	},
-
-	getInfo: function()
-	{
-	var
-		plugin = this.plugin && this.plugin.name || this.plugin
-	;
-		return (this.changed && this.changed() ? '+ ' : '') +
-			((this.file instanceof ide.File ?
-			  this.file.get('filename') :
-			  plugin + ':' + this.file) || 'No Name');
 	},
 
 	/**

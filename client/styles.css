@@ -115,6 +115,7 @@ kbd {
 }
 .editor-header .icon { color: rgba(255,255,255,0.5); }
 .editor-header .icon:hover { color: rgba(255,255,255,0.9); }
+.editor-header .label { margin-top: 3px; }
 .editor-header {
 	line-height: 16px;
 	overflow: hidden; white-space: nowrap; margin: 0; padding: 4px 8px;
@@ -230,6 +231,7 @@ div.CodeMirror-cursors { visibility: hidden; }
 
 .icon:hover { color: #fff; }
 .icon:focus { color: #fff; outline: 1px solid #ccc; }
+.icon-modified:before { content: "\f067"; }
 
 .item {
 	box-sizing: border-box;

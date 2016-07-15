@@ -1,16 +1,20 @@
 <script id="tpl-editor-list" type="text/template">
-<div class="editor-header">
-	<a href="#" &="click(quit)" class="pull-right icon fa fa-times"></a><span &="html:=title @title:=title"></span></div>
+<div &="$$title" class="editor-header"></div>
 <div &="$$content" class="editor-content">
 	<div &="$$list"></div>
 	<div &="$$footer html:=html"></div>
 </div>
 </script>
 
+<script id="tpl-editor-title" type="text/template">
+<a href="#" &="click(quit)" class="pull-right icon fa fa-times"></a>
+<span &="$$state" class="pull-right label"></span>
+<span &="$$changed" class="fa icon-modified"></span>
+<span &="$$title"></span>
+</script>
+
 <script id="tpl-editor" type="text/template">
-<div class="editor-header">
-	<a href="#" &="click(quit)" class="pull-right icon fa fa-times"></a><span &="html:=title @title:=title"></span>
-</div>
+<div &="$$title" class="editor-header"></div>
 <div &="$$content" class="editor-content"></div>
 </script>
 

@@ -128,16 +128,6 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 
 	layout: ide.Layout.Smart,
 
-	showInfo: function()
-	{
-		var info = ide.editor && ide.editor.getInfo();
-
-		window.document.title = info || 'workspace';
-
-		if (!ide.assist.visible)
-			ide.notify(info);
-	},
-
 	load_editor: function(file)
 	{
 	var
@@ -374,16 +364,11 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 
 	initialize: function()
 	{
-		var showInfo = this.showInfo.bind(this);
-
 		this.load_project(this.load_workspace.bind(this));
 		this._on_hashchange = this.on_hashchange.bind(this);
 
 		this.listenTo(window, 'beforeunload', this.on_beforeunload);
 		this.listenTo(window, 'resize', _.debounce(this.do_layout.bind(this), 250));
-		
-		ide.plugins.on('editor.focus', showInfo);
-		ide.plugins.on('file.write', showInfo);
 	}
 
 });
