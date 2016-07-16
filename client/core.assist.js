@@ -43,6 +43,9 @@ _.extend(InlineAssist.prototype, {
 
 	/// Selected hint
 	selected: null,
+	
+	/// Selected hint value
+	selectedValue: null,
 
 	onClick: function(ev)
 	{
@@ -110,13 +113,15 @@ _.extend(InlineAssist.prototype, {
 	calculateTop: function()
 	{
 	var
-		el = this.el, pos = this.pos,
-		bottom = pos.bottom + el.clientHeight,
+		el = this.el, pos = this.pos, clientHeight = el.clientHeight,
+		bottom = pos.bottom + clientHeight,
 		viewHeight = window.innerHeight,
 		isDown = bottom <= viewHeight,
-		height = isDown ? pos.bottom : pos.top - el.clientHeight
+		height = isDown ? pos.bottom : pos.top - clientHeight,
+		translate = 'translate(' + this.leftPos + 'px,' + height + 'px)'
 	;
-		this.el.style.transform = 'translate(' + this.leftPos + 'px,' + height + 'px)';
+		if (this.translateStr!==translate)
+			this.el.style.transform = this.translateStr = translate;
 	},
 
 	addHints: function(version, hints)
@@ -152,7 +157,7 @@ _.extend(InlineAssist.prototype, {
 		ref = this.hints[order]
 	;
 		// Make sure there are no duplicates.
-		if (ref && ref.title === hint.title)
+		if (ref && ref.value === hint.value)
 			return;
 
 		hint = hint instanceof ide.Hint ? hint : new ide.Hint(hint);
@@ -184,7 +189,7 @@ _.extend(InlineAssist.prototype, {
 		if (!this.visible)
 		{
 			this.visible = true;
-			this.copyFont(editor.el);
+			this.copyFont(editor.$content || editor.el);
 			this.el.style.display='block';
 			this.render();
 		}
@@ -198,13 +203,16 @@ _.extend(InlineAssist.prototype, {
 		hint.el.classList.add('selected');
 
 		this.selected = hint;
+		this.selectedValue = hint.value;
 	},
 
 	renderHint: function(hint, order, ref)
 	{
 		hint.el.$hint = hint;
 
-		if (this.selected !== hint)
+		if (this.selectedValue === hint.value)
+			this.select(hint);
+		else
 			hint.el.classList.remove('selected');
 
 		if (ref)
@@ -276,13 +284,10 @@ _.extend(InlineAssist.prototype, {
 	var
 		editor = this.editor,
 		token = this.token,
-		hint = this.selected,
-		value
+		value = this.selectedValue
 	;
-		if (hint && token && editor.replaceRange)
+		if (value && token && editor.replaceRange)
 		{
-			value = hint.value || hint.title;
-
 			editor.replaceRange(value,
 				{ ch: token.start, line: token.line },
 				{ ch: token.ch, line: token.line }, 'assist.inline'

@@ -98,6 +98,9 @@ ide.Item = cxl.View.extend({
 			var key = ide.keyboard.findKey(this.action);
 			this.key = key ? key : ':' + this.action;
 		}
+		
+		if (this.value===null)
+			this.value = this.title;
 	},
 
 	remove: function()

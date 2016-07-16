@@ -75,6 +75,7 @@ kbd {
 
 .pull-right { float: right; }
 .text-right { text-align: right; }
+.hidden { display: none; }
 
 /*
  * core.workspace
@@ -117,7 +118,7 @@ kbd {
 	padding-top: 0; color: rgba(255,255,255,0.5); line-height: 16px;
 }
 .editor-header .icon:hover { color: rgba(255,255,255,0.9); }
-.editor-header .label { margin-top: 2px; float: right; }
+.editor-header .label { margin-top: 2px; float: right; box-shadow: none; }
 .editor-header {
 	line-height: 16px;
 	overflow: hidden; white-space: nowrap; margin: 0; padding: 4px 8px;

@@ -229,34 +229,33 @@ _.extend(ide.EditorTitle.prototype, {
 		this.editor.quit();
 	},
 	
-	getTitle: function()
+	createTag: function(id)
 	{
-	var
-		editor = this.editor,
-		plugin = editor.plugin && editor.plugin.name || editor.plugin
-	;
-		return ((editor.file instanceof ide.File ?
-			  editor.file.get('filename') :
-			  plugin + ':' + editor.file) || 'No Name');
-	},
-	
-	createTag: function(id, text, kls)
-	{
-		var tag = this.tags[id] = { el: document.createElement('SPAN'), text: text };
+		var tag = this.tags[id] = {
+			el: document.createElement('SPAN')
+		};
 		
-		tag.el.className = 'label ' + (kls || '');
-		tag.el.innerHTML = text;
 		this.$tags.appendChild(tag.el);
+		tag.el.className = 'label';
+		
+		return tag;
 	},
 	
-	setTag: function(id, text)
+	setTag: function(id, text, kls)
 	{
 		var el = this.tags[id];
 		
 		if (!el)
-			this.createTag(id, text);
-		else if (el.text !== text)
+			el = this.createTag(id);
+		
+		if (text !== undefined && el.text !== text)
 			el.el.innerHTML = el.text = text;
+		
+		if (kls !== undefined && kls !== el.kls)
+		{
+			el.kls = kls;
+			el.el.className = 'label ' + (kls || '');
+		}
 	},
 	
 	render: function()
@@ -264,7 +263,7 @@ _.extend(ide.EditorTitle.prototype, {
 	var
 		e = this.editor,
 		changed = e.changed && e.changed(),
-		title = this.getTitle()
+		title = e.getTitle()
 	;
 		if (this.changed!==changed)
 		{
@@ -290,6 +289,17 @@ ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 	slot: null,
 	
 	templateId: 'tpl-editor',
+	
+	getTitle: function()
+	{
+	var
+		editor = this,
+		plugin = editor.plugin && editor.plugin.name || editor.plugin
+	;
+		return ((editor.file instanceof ide.File ?
+			  editor.file.get('filename') :
+			  plugin + ':' + editor.file) || 'No Name');
+	},
 	
 	/// @private
 	load: function()
