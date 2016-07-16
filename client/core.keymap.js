@@ -236,8 +236,9 @@ cxl.extend(KeyboardManager.prototype, {
 
 });
 
-function KeyMap()
+function KeyMap(editor)
 {
+	this.editor = editor;
 	this.states = {};
 }
 
@@ -306,7 +307,7 @@ cxl.extend(KeyMap.prototype, {
 	setState: function(state)
 	{
 		this.state = state;
-		ide.plugins.trigger('editor.keymap', this, state);
+		ide.plugins.trigger('editor.keymap', this, this.editor);
 	},
 
 	/**

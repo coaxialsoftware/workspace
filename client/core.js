@@ -215,6 +215,7 @@ var
 ide.EditorTitle = function(editor)
 {
 	this.editor = editor;
+	this.tags = {};
 	
 	editor.$title.appendChild(cxl.compile(cxl.html('tpl-editor-title'), this));
 	
@@ -239,12 +240,30 @@ _.extend(ide.EditorTitle.prototype, {
 			  plugin + ':' + editor.file) || 'No Name');
 	},
 	
+	createTag: function(id, text, kls)
+	{
+		var tag = this.tags[id] = { el: document.createElement('SPAN'), text: text };
+		
+		tag.el.className = 'label ' + (kls || '');
+		tag.el.innerHTML = text;
+		this.$tags.appendChild(tag.el);
+	},
+	
+	setTag: function(id, text)
+	{
+		var el = this.tags[id];
+		
+		if (!el)
+			this.createTag(id, text);
+		else if (el.text !== text)
+			el.el.innerHTML = el.text = text;
+	},
+	
 	render: function()
 	{
 	var
 		e = this.editor,
 		changed = e.changed && e.changed(),
-		state = e.keymap.state,
 		title = this.getTitle()
 	;
 		if (this.changed!==changed)
@@ -252,9 +271,6 @@ _.extend(ide.EditorTitle.prototype, {
 			this.changed = changed;
 			this.$changed.style.display = changed ? 'inline' : 'none';
 		}
-		
-		if (this.state!==state)
-			this.$state.innerHTML = this.state = state;
 		
 		if (this.title!==title)
 			this.$title.innerHTML = this.title = title;
@@ -275,8 +291,6 @@ ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 	
 	templateId: 'tpl-editor',
 	
-	title: '',
-
 	/// @private
 	load: function()
 	{
@@ -285,12 +299,12 @@ ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 		this.setElement(this.slot.el);
 		this.listenTo(this.$el, 'click', this.focus);
 
-		this.keymap = new ide.KeyMap();
+		this.keymap = new ide.KeyMap(this);
 
 		cxl.View.prototype.load.call(this, this.$el);
 		
-		this.$title = new ide.EditorTitle(this);
-		this.listenTo(ide.plugins, 'assist', this.$title.render.bind(this.$title));
+		this.title = new ide.EditorTitle(this);
+		this.listenTo(ide.plugins, 'assist', this.title.render.bind(this.title));
 		
 		ide.plugins.trigger('editor.load', this);
 	},
