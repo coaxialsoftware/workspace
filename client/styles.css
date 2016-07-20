@@ -234,7 +234,7 @@ div.CodeMirror-cursors { visibility: hidden; }
 
 .icon:hover { color: #fff; }
 .icon:focus { color: #fff; outline: 1px solid #ccc; }
-.icon-modified:before { content: "\f067"; }
+.icon-modified:before { /*content: "\f067";*/ content: "+"; }
 
 .item {
 	box-sizing: border-box;

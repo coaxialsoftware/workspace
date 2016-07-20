@@ -294,11 +294,12 @@ ide.Editor = cxl.View.extend(/** @lends ide.Editor# */{
 	{
 	var
 		editor = this,
-		plugin = editor.plugin && editor.plugin.name || editor.plugin
+		plugin = editor.plugin && editor.plugin.name || editor.plugin,
+		file = editor.file instanceof ide.File ?
+			editor.file.get('filename') || 'No Name' :
+			editor.file || ''
 	;
-		return ((editor.file instanceof ide.File ?
-			  editor.file.get('filename') :
-			  plugin + ':' + editor.file) || 'No Name');
+		return (plugin ? plugin + ':' : '') + file;
 	},
 	
 	/// @private

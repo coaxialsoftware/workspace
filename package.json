@@ -2,7 +2,7 @@
 	"name": "@cxl/workspace",
 	"description": "Javascript Web Editor",
 	"author": "Giancarlo Bellido <giancarlo@coaxialhost.com>",
-	"version": "0.6.4",
+	"version": "0.6.5",
 	"bin": {
 		"workspace": "./bin/workspace.js"
 	},
