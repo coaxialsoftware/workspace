@@ -440,6 +440,7 @@ class PluginManager extends EventEmitter {
 	{
 		_.invokeMap(this.scriptWatchers, 'unbind');
 		this.loadScripts(workspace.configuration.scripts);
+		workspace.plugins.emit('plugins.source', this.id, this.source);
 	}
 
 	start()
