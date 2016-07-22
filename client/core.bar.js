@@ -51,7 +51,7 @@ ide.Bar = cxl.View.extend({
 			},
 		9: function() {
 			if (this.on_complete)
-				this.findWord(this.on_complete);
+				this.on_complete();
 		},
 		219: function(ev) {
 			if (ev.ctrlKey)
@@ -173,6 +173,7 @@ ide.Bar = cxl.View.extend({
 	{
 		this.$el.hide();
 		this.hidden = true;
+		this.ignoreChange = false;
 		ide.assist.cancel();
 
 		if (ide.editor)
@@ -260,6 +261,10 @@ ide.Bar.Command = ide.Bar.extend({
 
 	on_change: function()
 	{
+		if (this.ignoreChange===true)
+			return (this.ignoreChange = false);
+		
+		this.selectedHint = null;
 		this.findWord(function(s, start, end) {
 			var cmd = ide.commandParser.parse(this.el.value, true);
 
@@ -270,32 +275,26 @@ ide.Bar.Command = ide.Bar.extend({
 		});
 	},
 
-	/*
-	on_complete: function(s, start, end)
+	on_complete: function()
 	{
 	var
-		val = this.el.value,
-		files = ide.project.files_text,
-		match
+		inline = ide.assist.inline,
+		hints = inline.hints,
+		i = this.selectedHint
 	;
-		if (files && !this._lastSearch)
-		{
-			this._lastSearch = files.match(
-				new RegExp('^' + s + '[^/\n]*$', 'mg')
-			);
-			this._lastSearchStart = start;
-			this._lastSearchIndex = 0;
-		} else if (this._lastSearch && this._lastSearchIndex===this._lastSearch.length)
-			this._lastSearchIndex = 0;
-
-		if (!this._lastSearch)
+		if (i===null)
+			i = hints.indexOf(inline.selected);
+		if (i === -1)
 			return;
-
-		match = this._lastSearch[this._lastSearchIndex++];
-		this._value = this.el.value = val.slice(0, start) + text + val.slice(start));
-		this.on_change();
+		
+		i = (i === hints.length-1) ? 0 : i+1;
+			
+		this.ignoreChange = true;
+		this.selectedHint = i;
+		this.replaceRange(hints[i].value,
+			{ ch: this.token.start }, { ch: this.token.ch });
+		this.token.ch = this.token.start + hints[i].value.length;
 	},
-	*/
 
 	getCursorCoordinates: function(cursor)
 	{
