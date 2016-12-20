@@ -67,6 +67,8 @@ pre {
 	background-color: rgba(255,255,255,0.3);
 }
 
+.label-transparent { background-color: transparent; }
+
 kbd {
 	background-color: #333;
 	border-radius: 4px;
@@ -272,6 +274,10 @@ div.CodeMirror-cursors { visibility: hidden; }
 }
 .item footer { margin-top: 4px; }
 .item-collapsed .item-detail { display: none; }
+
+.text-error { color: #e91111; }
+.text-success { color: rgb(76, 181, 60); }
+.text-warn { color: rgb(241, 196, 15); }
 
 .success {
 	border-color: rgb(76, 181, 60);
