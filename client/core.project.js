@@ -16,16 +16,18 @@ ide.Project = cxl.Model.extend({
 
 	initialize: function()
 	{
-		this.on('sync', this.on_project);
-		this.on('error', this.on_error);
+		this.on('sync', this.onProject);
+		this.on('error', this.onError);
 		this.reload = _.debounce(this.fetch.bind(this), 500);
 
 		ide.plugins.on('socket.message.project', this.onMessage, this);
 	},
 
-	on_error: function()
+	onError: function()
 	{
 		ide.error('Error loading Project: ' + this.id);
+		this.id='.';
+		this.reload();
 	},
 
 	loadTheme: function(css)
@@ -68,7 +70,7 @@ ide.Project = cxl.Model.extend({
 			ide.notify(msg.notify);
 	},
 
-	on_project: function()
+	onProject: function()
 	{
 		this.hint.icons = this.get('icons');
 		ide.plugins.trigger('project.load', this);
