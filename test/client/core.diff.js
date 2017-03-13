@@ -1,9 +1,5 @@
 
-QUnit.module('core.diff', {
-	afterEach: function() {
-		$.mockjax.clear();
-	}
-});
+QUnit.module('core.diff');
 
 QUnit.test('diff - append string beginning', function(a) {
 	var A = "Hello World", B = "World";

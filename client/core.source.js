@@ -1,5 +1,5 @@
 
-(function(ide, cxl, _, codeMirror, $) {
+(function(ide, cxl, codeMirror) {
 "use strict";
 
 codeMirror.defineOption('fatCursor', false, function(cm, val) {
@@ -10,55 +10,62 @@ codeMirror.defineOption('fatCursor', false, function(cm, val) {
 /**
  * Use to provide Hints capabilities.
  */
-function HintManager(editor) {
-	this.__cm = editor.editor;
-	this.hints = {};
-}
+class HintManager {
+	
+	//hints: null,
+	
+	constructor(editor) {
+		this.__cm = editor.editor;
+		this.hints = {};
+	}
 
-_.extend(HintManager.prototype, {
-
-	hints: null,
-
-	clear: function(id)
+	clear(id)
 	{
-		_.invokeMap(this.hints[id], 'remove');
+		cxl.invokeMap(this.hints[id], 'remove');
 		this.hints[id] = [];
-	},
+	}
 
-	get: function(id)
+	get(id)
 	{
 		return this.hints[id] || (this.hints[id]=[]);
-	},
+	}
+	
+	filter(hints, line)
+	{
+		return hints.filter(function(h) {
+			return h.line === line;
+		});
+	}
 
-	getLine: function(id, line)
+	getLine(id, line)
 	{
 		var hints = this.get(id);
-		return _.filter(hints, ['line', line]);
-	},
+		return this.filter(hints, line);
+	}
 
-	__createMark: function(line)
+	__createMark(line)
 	{
 		var el = document.createElement('DIV');
 
 		this.__cm.setGutterMarker(line, 'editor-hint-gutter', el);
 
 		return el;
-	},
+	}
 
-	__getMarker: function(line)
+	__getMarker(line)
 	{
 		var h = this.__cm.lineInfo(line);
 
 		return h && (h.gutterMarkers && h.gutterMarkers['editor-hint-gutter'] ||
 			this.__createMark(line, h.handle));
-	},
+	}
 
-	__removeHint: function(el)
+	__removeHint(el)
 	{
 		this.removeChild(el);
-	},
+	}
 
-	add: function(id, hint)
+	add(id, hint)
 	{
 	var
 		el = document.createElement('DIV'),
@@ -83,7 +90,7 @@ _.extend(HintManager.prototype, {
 		marker.appendChild(el);
 	}
 
-});
+}
 
 
 /**
@@ -92,193 +99,188 @@ _.extend(HintManager.prototype, {
  * tokenchange
  * cursorchange
  */
-ide.Editor.Source = ide.Editor.File.extend({
+class SourceEditor extends ide.FileEditor {
 
-	editor: null,
-	mode: null,
-	hints: null,
+	delSelection()
+	{
+		this.editor.replaceSelection('');
+	}
 
-	commands: {
+	delLine()
+	{
+		this.editor.deleteLine();
+	}
 
-		delSelection: function()
+	replaceSelection(text)
+	{
+		var e = this.editor, c;
+
+		if (!this.somethingSelected())
 		{
-			this.editor.replaceSelection('');
-		},
-
-		delLine: 'deleteLine',
-
-		replaceSelection: function(text)
-		{
-			var e = this.editor, c;
-
-			if (!this.somethingSelected())
-			{
-				c = e.getCursor();
-				e.setSelection({ line: c.line, ch: c.ch+1 }, c);
-			}
-
-			e.replaceSelection(text, 'start');
-		},
-
-		inputEnable: function()
-		{
-			if (this.editor.getOption('disableInput'))
-			{
-				this.editor.setOption('fatCursor', false);
-				this.editor.setOption('disableInput', false);
-			}
-		},
-
-		inputDisable: function()
-		{
-			if (this.editor.getOption('disableInput')===false)
-			{
-				// Go back one char if coming back from insert mode.
-				if (this.editor.getCursor().ch>0)
-					this.editor.execCommand('goCharLeft');
-
-				this.editor.setOption('fatCursor', true);
-				this.editor.setOption('disableInput', true);
-			}
-		},
-
-		selectStart: function()
-		{
-			this.editor.display.shift = true;
-		},
-
-		selectEnd: function()
-		{
-			this.editor.display.shift = false;
-		},
-
-		insertTab: function()
-		{
-			this.editor.execCommand('defaultTab');
-		},
-
-		insertLine: function()
-		{
-			this.editor.execCommand('newlineAndIndent');
-		},
-
-		selectClear: function()
-		{
-			this.editor.setSelection(this.editor.getCursor('anchor'));
-		},
-
-		option: function(option, value)
-		{
-			if (value===undefined)
-				return this.editor.getOption(option);
-			else
-				this.editor.setOption(option, value);
-		},
-
-		selectLine: function()
-		{
-		var
-			e = this.editor,
-			anchor = e.getCursor('anchor'),
-			head = e.getCursor('head'),
-			// True is "down"
-			bias = (head.line === anchor.line) ?
-				(head.ch < anchor.ch) :
-				(head.line > anchor.line),
-			anchorEnd = bias ? 0 : e.getLine(anchor.line).length,
-			headEnd = bias ? e.getLine(head.line).length : 0
-		;
-			e.setSelection(
-				{ line: anchor.line, ch: anchorEnd },
-				{ line: head.line, ch: headEnd },
-				{ extend: true, origin: 'select' }
-			);
-		},
-
-		scroll: function(x, y)
-		{
-			this.editor.scrollTo(x, y<0 ? 0 : y);
-		},
-
-		scrollLineUp: function(n, dir)
-		{
-		var
-			ed = this.editor,
-			h = ed.defaultTextHeight(),
-			scroll = ed.getScrollInfo(),
-			y = (dir||-1) * Math.round(n ? h*n : scroll.clientHeight / 2)
-		;
-			this.scroll(scroll.left, scroll.top + y);
-		},
-
-		scrollLineDown: function(n)
-		{
-			this.scrollLineUp(n, 1);
-		},
-
-		scrollScreenDown: function(n)
-		{
-		var
-			ed = this.editor,
-			scroll = ed.getScrollInfo()
-		;
-			n = n || 1;
-			this.scroll(scroll.left, scroll.top + scroll.height * n);
-		},
-
-		scrollScreenUp: function(n)
-		{
-			this.scrollScreenDown(-(n || 1));
-		},
-
-		go: function(line, ch)
-		{
-			this.editor.setCursor(line-1, ch);
-		},
-
-		search: function(n, options)
-		{
-			n = n || this.token && this.token.string;
-
-			if (n)
-				this.editor.find(n, options);
-		},
-
-		searchReplace: function(pattern, str, options)
-		{
-			this.editor.replace(pattern, str, options);
-		},
-
-		searchReplaceRange: function(pattern, str, from, to)
-		{
-			from = from || { line: 0, ch: 0 };
-			to = to || { line: this.editor.lastLine() };
-			this.editor.replace(pattern, str, {
-				from: from, to: to, separator: this.options.lineSeparator
-			});
-		},
-
-		insert: function(text)
-		{
-			this.editor.replaceSelection(text);
-		},
-
-		replaceRange: function(text, start, end)
-		{
-			this.editor.replaceRange(text, start, end);
+			c = e.getCursor();
+			e.setSelection({ line: c.line, ch: c.ch+1 }, c);
 		}
 
-	},
+		e.replaceSelection(text, 'start');
+	}
 
-	cmd: function(fn, args)
+	inputEnable()
+	{
+		if (this.editor.getOption('disableInput'))
+		{
+			this.editor.setOption('fatCursor', false);
+			this.editor.setOption('disableInput', false);
+		}
+	}
+
+	inputDisable()
+	{
+		if (this.editor.getOption('disableInput')===false)
+		{
+			// Go back one char if coming back from insert mode.
+			if (this.editor.getCursor().ch>0)
+				this.editor.execCommand('goCharLeft');
+
+			this.editor.setOption('fatCursor', true);
+			this.editor.setOption('disableInput', true);
+		}
+	}
+
+	selectStart()
+	{
+		this.editor.display.shift = true;
+	}
+
+	selectEnd()
+	{
+		this.editor.display.shift = false;
+	}
+
+	insertTab()
+	{
+		this.editor.execCommand('defaultTab');
+	}
+
+	insertLine()
+	{
+		this.editor.execCommand('newlineAndIndent');
+	}
+
+	selectClear()
+	{
+		this.editor.setSelection(this.editor.getCursor('anchor'));
+	}
+
+	option(option, value)
+	{
+		if (value===undefined)
+			return this.editor.getOption(option);
+		else
+			this.editor.setOption(option, value);
+	}
+
+	selectLine()
+	{
+	var
+		e = this.editor,
+		anchor = e.getCursor('anchor'),
+		head = e.getCursor('head'),
+		// True is "down"
+		bias = (head.line === anchor.line) ?
+			(head.ch < anchor.ch) :
+			(head.line > anchor.line),
+		anchorEnd = bias ? 0 : e.getLine(anchor.line).length,
+		headEnd = bias ? e.getLine(head.line).length : 0
+	;
+		e.setSelection(
+			{ line: anchor.line, ch: anchorEnd },
+			{ line: head.line, ch: headEnd },
+			{ extend: true, origin: 'select' }
+		);
+	}
+
+	scroll(x, y)
+	{
+		this.editor.scrollTo(x, y<0 ? 0 : y);
+	}
+
+	scrollLineUp(n, dir)
+	{
+	var
+		ed = this.editor,
+		h = ed.defaultTextHeight(),
+		scroll = ed.getScrollInfo(),
+		y = (dir||-1) * Math.round(n ? h*n : scroll.clientHeight / 2)
+	;
+		this.scroll(scroll.left, scroll.top + y);
+	}
+
+	scrollLineDown(n)
+	{
+		this.scrollLineUp(n, 1);
+	}
+
+	scrollScreenDown(n)
+	{
+	var
+		ed = this.editor,
+		scroll = ed.getScrollInfo()
+	;
+		n = n || 1;
+		this.scroll(scroll.left, scroll.top + scroll.height * n);
+	}
+
+	scrollScreenUp(n)
+	{
+		this.scrollScreenDown(-(n || 1));
+	}
+
+	go(line, ch)
+	{
+		this.editor.setCursor(line-1, ch);
+	}
+
+	search(n, options)
+	{
+		n = n || this.token && this.token.string;
+
+		if (n)
+			this.editor.find(n, options);
+	}
+
+	searchReplace(pattern, str, options)
+	{
+		this.editor.replace(pattern, str, options);
+	}
+
+	searchReplaceRange(pattern, str, from, to)
+	{
+		from = from || { line: 0, ch: 0 };
+		to = to || { line: this.editor.lastLine() };
+		this.editor.replace(pattern, str, {
+			from: from, to: to, separator: this.options.lineSeparator
+		});
+	}
+
+	insert(text)
+	{
+		this.editor.replaceSelection(text);
+	}
+
+	replaceRange(text, start, end)
+	{
+		this.editor.replaceRange(text, start, end);
+	}
+
+	cmd(fn, args)
 	{
 		if (!isNaN(fn))
 			return this.go(fn);
 
-		return ide.Editor.prototype.cmd.call(this, fn, args);
-	},
+		return super.cmd(fn, args);
+	}
 
-	getLastChange: function()
+	getLastChange()
 	{
 	var
 		history = this.editor.getHistory().done,
@@ -287,24 +289,24 @@ ide.Editor.Source = ide.Editor.File.extend({
 		while (l--)
 			if (history[l].changes)
 				return history[l];
-	},
+	}
 
-	getCursor: function()
+	getCursor()
 	{
 		return this.editor.getCursor();
-	},
+	}
 
-	getCursorCoordinates: function(cursor)
+	getCursorCoordinates(cursor)
 	{
 		cursor = cursor || true;
 		return this.editor.cursorCoords(cursor, 'window');
-	},
+	}
 
-	_findMode: function()
+	_findMode()
 	{
 	var
-		filename = this.file.get('filename'),
-		mime = this.file.get('mime'),
+		filename = this.file.filename,
+		mime = this.file.mime,
 		info = (filename && codeMirror.findModeByFileName(filename)) ||
 			(mime && codeMirror.findModeByMIME(mime)) ||
 			codeMirror.findModeByMIME('text/plain'),
@@ -314,7 +316,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 	;
 		function getScript(mode)
 		{
-			return $.ajax({
+			return cxl.ajax({
 				url: 'mode/' + mode + '/' + mode + '.js',
 				cache: true, success: ide.source
 			});
@@ -327,7 +329,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 			if (info.require)
 				promises.push(getScript(info.require));
 
-			$.when.apply($, promises).then(function() {
+			Promise.all(promises).then(function() {
 				me.editor.setOption('mode', info.mime || mode);
 			}, function() {
 				ide.error('Could not load mode.');
@@ -337,9 +339,9 @@ ide.Editor.Source = ide.Editor.File.extend({
 		}
 
 		return info.mime || mode;
-	},
+	}
 
-	_getOptions: function()
+	_getOptions()
 	{
 	var
 		ft = this.mode = this._findMode(),
@@ -362,7 +364,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 				lineSeparator: "\n"
 			}, s,
 			{
-				value: this.file.get('content') || '',
+				value: this.file.content || '',
 				theme: 'workspace',
 				// Disable drag and drop so dragdrop plugin works.
 				dragDrop: false,
@@ -372,13 +374,13 @@ ide.Editor.Source = ide.Editor.File.extend({
 				"CodeMirror-foldgutter",'editor-hint-gutter']
 			}
 		));
-	},
+	}
 
 	/**
 	 * Override keymap handle function to use codemirror plugin keymaps.
 	 * TODO see if we can replace some plugins to avoid using this method.
 	 */
-	_keymapHandle: function(key)
+	_keymapHandle(key)
 	{
 	var
 		maps = this.editor.state.keyMaps,
@@ -397,9 +399,9 @@ ide.Editor.Source = ide.Editor.File.extend({
 		}
 
 		return false;
-	},
+	}
 
-	onCursorActivity: function()
+	onCursorActivity()
 	{
 		var token = this.getToken();
 
@@ -408,22 +410,23 @@ ide.Editor.Source = ide.Editor.File.extend({
 			this.token = token;
 			ide.plugins.trigger('token', this, token);
 		}
-	},
+	}
 
-	onChange: function()
+	onChange()
 	{
 		this.value = this.editor.getValue();
-		this.file.set('content', this.value);
+		this.file.content = this.value;
 		ide.plugins.trigger('editor.change', this);
-	},
+	}
 
-	onScroll: function()
+	onScroll()
 	{
 		ide.plugins.trigger('editor.scroll', this);
-	},
+	}
 
-	render: function()
+	render()
 	{
+		super.render();
 	var
 		options = this._getOptions(),
 		editor = this.editor = codeMirror(this.$content, options)
@@ -434,30 +437,30 @@ ide.Editor.Source = ide.Editor.File.extend({
 
 		this.listenTo(editor, 'focus', this._on_focus);
 		this.listenTo(editor, 'cursorActivity', this.onCursorActivity);
-		this.listenTo(editor, 'change', _.debounce(this.onChange.bind(this), 100));
+		this.listenTo(editor, 'change', cxl.debounce(this.onChange.bind(this), 100));
 		this.listenTo(ide.plugins, 'workspace.resize', this.resize);
 		this.listenTo(editor, 'scroll', this.onScroll);
-	},
+	}
 
-	resize: function()
+	resize()
 	{
 		setTimeout(this.editor.refresh.bind(this.editor), 200);
-	},
+	}
 
 	/**
 	 * Gets token at pos. If pos is ommited it will return the token
 	 * under the cursor
 	 */
-	getToken: function(pos)
+	getToken(pos)
 	{
 		pos = pos || this.editor.getCursor();
 		var token = this.editor.getTokenAt(pos, true);
 		token.line = pos.line;
 		token.ch = pos.ch;
 		return token;
-	},
+	}
 
-	getChar: function(pos)
+	getChar(pos)
 	{
 		var cursor = this.editor.getCursor();
 		pos = pos || cursor;
@@ -467,7 +470,7 @@ ide.Editor.Source = ide.Editor.File.extend({
 		this.editor.setCursor(cursor);
 
 		return result;
-	},
+	}
 
 	/**
 	 * Gets cursor element.
@@ -477,29 +480,29 @@ ide.Editor.Source = ide.Editor.File.extend({
 		return this.editor.renderer.$cursorLayer.cursor;
 	},*/
 
-	somethingSelected: function()
+	somethingSelected()
 	{
 		return this.editor.somethingSelected();
-	},
+	}
 
-	getSelection: function()
+	getSelection()
 	{
 		return this.editor.getSelection(this.options.lineSeparator);
-	},
-
-	getLine: function(n)
+	}
+	
+	getLine(n)
 	{
 		n = n || this.editor.getCursor().line;
 
 		return this.editor.getLine(n);
-	},
+	}
 
-	_on_focus: function()
+	_on_focus()
 	{
 		this.focus(true);
-	},
+	}
 
-	setValue: function(content)
+	setValue(content)
 	{
 		if (content === this.value)
 			return;
@@ -509,9 +512,9 @@ ide.Editor.Source = ide.Editor.File.extend({
 
 		this.editor.setValue(content, false);
 		this.editor.setCursor(cursor, null, { scroll: false });
-	},
+	}
 
-	focus: function(ignore)
+	focus(ignore)
 	{
 		ide.Editor.prototype.focus.apply(this);
 		this.onCursorActivity();
@@ -520,20 +523,20 @@ ide.Editor.Source = ide.Editor.File.extend({
 			this.editor.focus();
 	}
 
-});
+}
 
-_.each(codeMirror.commands, function(cmd, key) {
+/*cxl.each(codeMirror.commands, function(cmd, key) {
 
-	var fn = ide.Editor.Source.prototype.commands[key];
+	var fn = SourceEditor.prototype.commands[key];
 
 	if (!fn)
-		ide.Editor.Source.prototype.commands[key] = function() {
+		SourceEditor.prototype.commands[key] = function() {
 			cmd.call(codeMirror, this.editor);
 		};
 
-});
+});*/
 
-
+ide.SourceEditor = SourceEditor;
 ide.defaultEdit = function(options)
 {
 	var file = options.file;
@@ -541,7 +544,7 @@ ide.defaultEdit = function(options)
 	if (!file.attributes.content)
 		file.attributes.content = '';
 
-	var editor = new ide.Editor.Source({
+	var editor = new ide.SourceEditor({
 		file: options.file,
 		slot: options.slot
 	});
@@ -554,4 +557,4 @@ ide.defaultEdit = function(options)
 	return editor;
 };
 
-})(this.ide, this.cxl, this._, this.CodeMirror, this.jQuery);
+})(this.ide, this.cxl, this.CodeMirror);

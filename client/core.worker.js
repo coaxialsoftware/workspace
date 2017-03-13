@@ -1,4 +1,4 @@
-(function(ide, _) {
+(function(ide) {
 "use strict";
 
 ide.Worker = function(methods)
@@ -63,7 +63,10 @@ ide.Worker.prototype = {
 
 	buildSource: function(methods)
 	{
-		var result = _.map(methods, this.getSource).join('');
+		var result = '', i;
+		
+		for (i in methods)
+			result += this.getSource(methods[i], i);
 
 		result += 'onmessage=function(ev) { try { var data=ev.data;' +
 		'data.result=self[data.method](data.data);}catch(e){data.error=e.message;}' +

@@ -254,7 +254,8 @@ cxl.extend(KeyMap.prototype, {
 
 	start: function()
 	{
-		this.defaultState = this.state = ide.project && ide.project.get('keymap') || 'default';
+		this.state = (ide.project && ide.project.get('keymap')) ||
+			this.defaultState || 'default';
 	},
 
 	getHandler: function(map, key)
@@ -307,7 +308,9 @@ cxl.extend(KeyMap.prototype, {
 	setState: function(state)
 	{
 		this.state = state;
-		ide.plugins.trigger('editor.keymap', this, this.editor);
+		
+		if (this.editor)
+			ide.plugins.trigger('editor.keymap', this, this.editor);
 	},
 
 	/**

@@ -1,5 +1,5 @@
 
-(function(ide, cxl, _) {
+(function(ide, cxl) {
 "use strict";
 
 function sandbox(a) {
@@ -316,7 +316,7 @@ ide.plugins.register('cmd', {
 		var result = this.getAllCommands();
 
 		e.reset();
-		e.add(_.sortBy(result, 'title'));
+		e.add(cxl.sortBy(result, 'title'));
 	},
 
 	openCommands: function(options)
@@ -348,7 +348,7 @@ ide.plugins.register('cmd', {
 		items = items.concat(this.getKeys(ide.editor.keymap.getState(state)));
 		items = items.concat(this.getKeys(ide.keymap.getState(state)));
 
-		items = _.sortBy(items, 'title');
+		items = cxl.sortBy(items, 'title');
 		items.unshift({
 			code: 'state', title: state, className: 'state'
 		});
@@ -384,27 +384,29 @@ ide.plugins.register('cmd', {
 
 });
 
-ide.Command = function(name, def, plugin)
-{
-	// Listen to inline assist events
-	// Listen to assist events
-	// Lookup best match
-	var fn = this.fn = this.run.bind(this);
+/**
+ * Listen to inline assist events
+ * Listen to assist events
+ * Lookup best match
+ */
+ide.Command = class Command {
+	
+	constructor(name, def, plugin)
+	{
+		var fn = this.fn = this.run.bind(this);
 
-	this.name = name;
-	this.def = def;
-	this.plugin = plugin;
+		this.name = name;
+		this.def = def;
+		this.plugin = plugin;
 
-	def.forEach(this.parse, this);
+		def.forEach(this.parse, this);
 
-	fn.getHints = this.getHints.bind(this);
+		fn.getHints = this.getHints.bind(this);
 
-	return fn;
-};
+		return fn;
+	}
 
-ide.Command.prototype = {
-
-	parse: function(def)
+	parse(def)
 	{
 		def.run = (typeof(def.fn)==='string' ?
 			this.plugin[def.fn] : def.fn).bind(this.plugin);
@@ -413,9 +415,9 @@ ide.Command.prototype = {
 
 		if (!def.cmd)
 			this.fn.help = def.help;
-	},
+	}
 
-	getHints: function(editor, token)
+	getHints(editor, token)
 	{
 	var
 		result = [], ch = token.string,
@@ -433,9 +435,9 @@ ide.Command.prototype = {
 		});
 
 		return result;
-	},
+	}
 
-	match: function(args, exact, def)
+	match(args, exact, def)
 	{
 	var
 		i=0, match={}, cmd = def.cmd, l=args.length, cur, arg,
@@ -459,9 +461,9 @@ ide.Command.prototype = {
 			}
 
 		return (def.match = match);
-	},
+	}
 
-	run: function()
+	run()
 	{
 		var fn = this.def.find(this.match.bind(this, arguments, true));
 

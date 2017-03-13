@@ -1,5 +1,5 @@
 
-(function(ide, $, _, cxl) {
+(function(ide, cxl) {
 "use strict";
 
 function globToRegex(glob) {
@@ -67,238 +67,204 @@ function getMask(token)
 	return token.type==='string' ?
 		token.string.substr(1, token.string.length-2) : token.string;
 }
-
-var frag = cxl.dom('DIV');
-
-ide.Item = cxl.View.extend({
-
-	priority: 0,
-
-	/** Shortcut */
-	key: null,
-
-	className: 'log',
-
-	action: null,
-
-	/** Actual value of item. Used when title is different to value */
-	value: null,
-
-	loadTemplate: function(tpl)
+	
+class ListEditor extends ide.Editor {
+	
+	initialize(p)
 	{
-		// TODO optimize and test
-		frag.innerHTML = tpl(this);
-		this.setElement(frag.children[0]);
-	},
+		this.children = p.children;
+	}
 
-	initialize: function()
+	onListClick(ev)
 	{
-		if (!this.key && this.action)
-		{
-			var key = ide.keyboard.findKey(this.action);
-			this.key = key ? key : ':' + this.action;
-		}
+		if (!this.onItemClick)
+			return;
 		
-		if (this.value===null)
-			this.value = this.title;
-	},
-
-	remove: function()
-	{
-		this.$el.remove();
-		this.unbind();
-	}
-
-});
-
-ide.Notification = ide.Item.extend({
-
-	/** Optional Id for progress hints */
-	id: null,
-
-	/**
-	 * If present hint will persist until progress becomes 1.
-	 * Progress from 0.0 to 1.0. A value of -1 will show a spinner
-	 */
-	progress: null,
-
-	constructor: function(message, kls)
-	{
-		if (typeof(message)==='string')
-			message = { title: message, className: kls };
-
-		ide.Item.call(this, message);
-	}
-
-});
-
-
-ide.Editor.List = ide.Editor.extend({
-
-	itemTemplate: null,
-	itemClass: ide.Item,
-
-	/** @type {function} */
-	onItemClick: null,
-
-	onListClick: function(ev)
-	{
-		this._onClick(ev.currentTarget, ev);
-	},
-
-	_onClick: function(target, ev) {
-	var
-		id = target.dataset.id
-	;
-		if (id && this.onItemClick)
-		{
-			if (this.onItemClick)
-				this.onItemClick(ev, this.children[id]);
-		}
-
-		ev.stopPropagation();
+		var target = ev.target;
+		
+		while (!target.$item && target!==this.el)
+			target = target.parentNode;
+		
+		if (target.$item)
+			this.onItemClick(ev, target.$item);
+			
 		ev.preventDefault();
-	},
+	}
 
-	initialize: function()
+	render()
 	{
-		this.$el.addClass('list');
-	},
+		super.render();
+		this.el.classList.add('list');
+		this.$list = document.createElement('ide-editor-list');
+		this.$footer = document.createElement('ide-editor-footer');
+		
+		this.$content.appendChild(this.$list);
+		this.$content.appendChild(this.$footer);
+		
+		this.listenTo(this.$content, 'wheel', this.onWheel);
+		this.listenTo(this.$content, 'keydown', this.onKey);
+		this.listenTo(this.$content, 'click', this.onListClick);
 
-	onWheel: function(ev)
+		this.children = this.children ? this._addElements(this.children, 0) : [];
+	}
+
+	onWheel(ev)
 	{
 		var dY = ev.deltaY;
 		this.$content.scrollTop += dY;
 		ev.preventDefault();
-	},
+	}
 
 	// TODO see if it makes sense to use a keymap for this...
-	onKey: function(ev)
+	onKey(ev)
 	{
 		if (ev.keyCode===13)
 			this._onClick(ev.target, ev);
-	},
-
-	render: function()
-	{
-		this.listenTo(this.$content, 'wheel', this.onWheel);
-		this.listenTo(this.$content, 'keydown', this.onKey);
-
-		this.$list = $(this.$content)
-			.on('click', '.item', this.onListClick.bind(this));
-
-		this.children = this.children ? this._addElements(this.children, 0) : [];
-	},
-
-	createItem: function(item)
-	{
-		if (!(item instanceof this.itemClass))
-		{
-			if (this.itemTemplate)
-				item.template = this.itemTemplate;
-			item = new this.itemClass(item);
-		}
-
-		return item;
-	},
+	}
 
 	// TODO support remove?
-	_addElements: function(items, i)
+	_addElements(items)
 	{
-		var l = i===undefined ? this.children.length : i, item;
-
-		return items.map(function(f, i) {
-			f.id = l + i;
-			item = this.createItem(f);
-			this.$list.append(item.el);
+		return items.map(function(item) {
+			this.$list.appendChild(item.el);
+			item.el.$item = item;
 			return item;
 		}, this);
-	},
+	}
 
-	reset: function()
+	reset()
 	{
-		_.invokeMap(this.children, 'unbind');
+		cxl.invokeMap(this.children, 'destroy');
 		this.children = [];
-		this.$list.empty();
-	},
+		this.$list.innerHTML = '';
+	}
 
-	add: function(items)
+	add(items)
 	{
 		items = this._addElements(items);
 		this.children = this.children.concat(items);
-	},
-
-	focus: function()
-	{
-		this._findFocus().focus();
-		ide.Editor.prototype.focus.call(this);
-	},
-
-	_findTest: function(regex, file)
-	{
-		return regex.test(file.title);
-	},
-
-	_findFocus: function()
-	{
-		var focused = this.$list.find(':focus');
-
-		if (!focused.is(':visible'))
-			focused = this.$list.find('.item:visible:eq(0)');
-
-		return focused;
-	},
-
-	commands: {
-
-		search: function(regex)
-		{
-		var
-			i=0, files = this.children,
-			children = this.$list[0].children, clear=!regex
-		;
-			for (; i<files.length; i++)
-				children[i].style.display =
-					(clear || this._findTest(regex, files[i])) ?
-						'block' : 'none';
-		},
-
-		goDocStart: function()
-		{
-			this.$list.find('.item:visible:eq(0)').focus();
-		},
-
-		goDocEnd: function()
-		{
-			this.$list.find('.item:visible:last-child').focus();
-		},
-
-		goLineDown: function(dir)
-		{
-			dir = dir || 'next';
-			this._findFocus()[dir](':visible').focus();
-		},
-
-		goLineUp: function()
-		{
-			this.goLineDown('prev');
-		}
-
 	}
 
-});
+	focus()
+	{
+		var i = this._findFocus();
+		
+		if (i)
+			i.el.focus();
+		
+		ide.Editor.prototype.focus.call(this);
+	}
 
-ide.Editor.FileList = ide.Editor.List.extend({
-
-	// Path prefix
-	prefix: null,
-
-	_findTest: function(regex, file)
+	_findTest(regex, file)
 	{
 		return regex.test(file.title);
+	}
+
+	_findFocus()
+	{
+		return this.children.find(function(i) {
+			return i.el.matches(':focus') && i.el.style.display!=='none';
+		});
+	}
+	
+	_findFirst()
+	{
+		return this.children.find(function(i) {
+			return i.el.style.display!=='none';
+		});
+	}
+	
+	_findLast()
+	{
+		var l = this.children.length;
+		
+		while (l--)
+			if (this.children[l].el.style.display!=='none')
+				return this.children[l];
+	}
+	
+	search(regex)
+	{
+	var
+		i=0, files = this.children,
+		children = this.$list.children, clear=!regex
+	;
+		for (; i<files.length; i++)
+			children[i].style.display =
+				(clear || this._findTest(regex, files[i])) ?
+					'block' : 'none';
+	}
+
+
+
+}
+	
+ListEditor.registerCommands({
+	
+	goDocStart: function()
+	{
+		var c = this._findFirst();
+
+		if (c)
+			c.el.focus();
 	},
 
-	onItemClick: function(ev, item)
+	goDocEnd: function()
+	{
+		var c = this._findLast();
+
+		if (c)
+			c.el.focus();
+	},
+
+	goLineDown: function(dir)
+	{
+		var i = this._findFocus();
+
+		if (i)
+		{
+			dir = dir || 'nextSibling';
+			i=i.el;
+
+			while ((i = i[dir]))
+			{
+				if (i.style.display!=='none')
+					break;
+			}
+		} else
+		{
+			i = this._findFirst();
+			i = i && i.el;
+		}
+
+		if (i)
+			i.focus();
+	},
+
+	goLineUp: function()
+	{
+		this.goLineDown('previousSibling');
+	}
+	
+});
+	
+class FileListEditor extends ListEditor {
+	
+	constructor(p)
+	{
+		super(p);
+		
+		this.file = p.file;
+		this.prefix = p.prefix;
+		this.getHash = ide.FileEditor.prototype.getHash;
+	}
+
+	_findTest(regex, file)
+	{
+		return regex.test(file.title);
+	}
+
+	onItemClick(ev, item)
 	{
 	var
 		title = item.value || item.title,
@@ -316,10 +282,10 @@ ide.Editor.FileList = ide.Editor.List.extend({
 		ide.open(options);
 
 		if (options.focus)
-			ide.workspace.remove(this);
+			this.quit();
 	}
 
-});
+}
 	
 var worker = new ide.Worker({
 	
@@ -418,7 +384,7 @@ ide.plugins.register('find', new ide.Plugin({
 		token = ide.editor && ide.editor.token,
 		mask = options.file || (token && getMask(token)) || '',
 		files = this.find(mask).map(function(val) {
-			return { title: val.title, icon: val.icon };
+			return new ide.Item({ title: val.title, icon: val.icon });
 		})
 	;
 		if (!files)
@@ -432,7 +398,7 @@ ide.plugins.register('find', new ide.Plugin({
 		else if (files.length===0)
 			ide.notify('No files found that match "' + mask + '"');
 		else
-			return new ide.Editor.FileList({
+			return new ide.FileListEditor({
 				title: 'find ' + mask,
 				file: mask,
 				children: files,
@@ -459,12 +425,6 @@ ide.plugins.register('find', new ide.Plugin({
 
 ide.plugins.register('folder', new ide.Plugin({
 
-	ready: function()
-	{
-		// TODO replace with cxl templates
-		ide.Editor.List.prototype.itemTemplate = _.template(cxl.html('tpl-item'));
-	},
-
 	commands: {
 
 		browse: function()
@@ -478,18 +438,18 @@ ide.plugins.register('folder', new ide.Plugin({
 	{
 		var file=options.file, files, path;
 
-		if (file.get('directory'))
+		if (file.attributes.directory)
 		{
-			files = file.get('content').map(function(f) {
-				return {
+			files = file.content.map(function(f) {
+				return new ide.Item({
 					title: f.filename, className: f.directory ? 'directory' : 'file'
-				};
+				});
 			});
 
-			files.unshift({ title: '..', className: 'directory' });
-			path = file.get('filename');
+			files.unshift(new ide.Item({ title: '..', className: 'directory' }));
+			path = file.filename;
 
-			return new ide.Editor.FileList({
+			return new ide.FileListEditor({
 				file: file,
 				children: files,
 				title: path,
@@ -500,5 +460,8 @@ ide.plugins.register('folder', new ide.Plugin({
 	}
 
 }));
+	
+ide.ListEditor = ListEditor;
+ide.FileListEditor = FileListEditor;
 
-})(this.ide, this.jQuery, this._, this.cxl);
+})(this.ide, this.cxl);

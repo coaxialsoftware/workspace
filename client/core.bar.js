@@ -1,7 +1,7 @@
 
-(function(ide, cxl, $, undefined) {
+(function(ide, cxl) {
 "use strict";
-
+	
 ide.Bar = cxl.View.extend({
 
 	/**
@@ -20,11 +20,13 @@ ide.Bar = cxl.View.extend({
 
 	/** @abstract */
 	cancel: function() { },
+	
+	run: function() { },
 
 	findWord: function(cb)
 	{
 	var
-		el = this.el,
+		el = this.$input,
 		text,
 		i = el.selectionStart
 	;
@@ -42,32 +44,31 @@ ide.Bar = cxl.View.extend({
 	initialize: function Bar()
 	{
 		this._keys = {
-		// TODO Use Key constants
-		27: function() { this.cancel(); this.hide(); },
-		13: function() { this.run(); this.hide(); },
-		8: function() {
-			if (this._value==='')
-				this.hide();
+			// TODO Use Key constants
+			27: function() { this.cancel(); this.hide(); },
+			13: function() { this.run(); this.hide(); },
+			8: function() {
+				if (this._value==='')
+					this.hide();
+				},
+			9: function() {
+				if (this.on_complete)
+					this.on_complete();
 			},
-		9: function() {
-			if (this.on_complete)
-				this.on_complete();
-		},
-		219: function(ev) {
-			if (ev.ctrlKey)
-			{
-				this.cancel(); this.hide();
+			219: function(ev) {
+				if (ev.ctrlKey)
+				{
+					this.cancel(); this.hide();
+				}
 			}
-		}
 		};
+		
+		this.$input = this.el.children[0];
 
-		this.listenTo(this.el, 'keyup', this.on_keyup);
-		this.listenTo(this.el, 'keydown', this.on_key);
-		this.$el.on('keypress', this.on_keypress.bind(this));
-		this.$el.on('blur', this.on_blur.bind(this));
-
-		if (this.start)
-			this.start();
+		this.listenTo(this.$input, 'keyup', this.on_keyup);
+		this.listenTo(this.$input, 'keydown', this.on_key);
+		this.listenTo(this.$input, 'keypress', this.on_keypress);
+		this.listenTo(this.$input, 'blur', this.on_blur);
 	},
 
 	on_blur: function(ev)
@@ -77,7 +78,7 @@ ide.Bar = cxl.View.extend({
 		if (rel && (rel===assist || rel.parentNode===assist))
 		{
 			ev.preventDefault();
-			this.el.focus();
+			this.$input.focus();
 		}
 		else
 			this.hide();
@@ -85,14 +86,14 @@ ide.Bar = cxl.View.extend({
 
 	on_keyup: function(ev)
 	{
-		if (this.el.value!==this._value)
+		if (this.$input.value!==this._value)
 		{
 			this._lastSearch = null;
 			if (this.on_change)
-				this.on_change(this.el.value);
+				this.on_change(this.$input.value);
 		}
 
-		this._value = this.el.value;
+		this._value = this.$input.value;
 
 		if (ev)
 			ev.stopPropagation();
@@ -132,46 +133,49 @@ ide.Bar = cxl.View.extend({
 
 	keys: function(k)
 	{
-		$.extend(this._keys, k);
+		cxl.extend(this._keys, k);
 	},
 
 	show: function(val)
 	{
 		val = val || '';
-		this.$el.val(val).css('display', 'block');
+		this.$input.value = val;
+		this.el.style.display = 'block';
+		
 		if (val.length)
-			this.el.setSelectionRange(val.length, val.length);
+			this.$input.setSelectionRange(val.length, val.length);
+		
 		this.hidden = false;
 		this.focus();
 	},
 
 	focus: function()
 	{
-		this.el.focus();
+		this.$input.focus();
 	},
 
 	insert: function(text)
 	{
 	var
-		val = this.el.value,
-		start = this.el.selectionStart
+		val = this.$input.value,
+		start = this.$input.selectionStart
 	;
-		this.el.value = val.slice(0, start) + text + val.slice(start);
+		this.$input.value = val.slice(0, start) + text + val.slice(start);
 		this.on_keyup();
 	},
 
 	replaceRange: function(text, start, end)
 	{
 	var
-		val = this.el.value
+		val = this.$input.value
 	;
-		this.el.value = val.slice(0, start.ch) + text + val.slice(end.ch);
+		this.$input.value = val.slice(0, start.ch) + text + val.slice(end.ch);
 		this.on_keyup();
 	},
 
 	hide: function()
 	{
-		this.$el.hide();
+		this.el.style.display = 'none';
 		this.hidden = true;
 		this.ignoreChange = false;
 		ide.assist.cancel();
@@ -188,7 +192,7 @@ ide.Bar = cxl.View.extend({
 
 ide.Bar.Command = ide.Bar.extend({
 
-	el: '#command',
+	el: 'command',
 
 	history: [],
 	history_max: 50,
@@ -200,7 +204,7 @@ ide.Bar.Command = ide.Bar.extend({
 		var val = this.history[this.history_index++];
 
 		if (val)
-			this.el.value = val;
+			this.$input.value = val;
 
 		ev.preventDefault();
 	},
@@ -219,7 +223,7 @@ ide.Bar.Command = ide.Bar.extend({
 		this.history_up(ev);
 	},
 
-	start: function()
+	render: function()
 	{
 		this._keys[38] = this.history_up.bind(this);
 		this._keys[40] = this.history_down.bind(this);
@@ -232,7 +236,7 @@ ide.Bar.Command = ide.Bar.extend({
 	run: function()
 	{
 	var
-		val = this.el.value,
+		val = this.$input.value,
 		cmd, result
 	;
 		if (val==='')
@@ -266,7 +270,7 @@ ide.Bar.Command = ide.Bar.extend({
 		
 		this.selectedHint = null;
 		this.findWord(function(s, start, end) {
-			var cmd = ide.commandParser.parse(this.el.value, true);
+			var cmd = ide.commandParser.parse(this.$input.value, true);
 
 			ide.plugins.trigger('token', this, this.token = {
 				line: 0, start: start, ch: end, string: s,
@@ -299,9 +303,9 @@ ide.Bar.Command = ide.Bar.extend({
 	getCursorCoordinates: function(cursor)
 	{
 	var
-		el = this.el, clone = this.cloneEl
+		el = this.el, input = this.$input, clone = this.cloneEl
 	;
-		clone.innerHTML = el.value.substr(0, cursor.ch).replace(/ /g, '&nbsp;');
+		clone.innerHTML = input.value.substr(0, cursor.ch).replace(/ /g, '&nbsp;');
 
 		return {
 			left: el.offsetLeft + clone.offsetWidth,
@@ -315,17 +319,9 @@ ide.Bar.Command = ide.Bar.extend({
 
 ide.Bar.Search = ide.Bar.extend({
 
-	el: '#search',
+	el: 'search',
 
 	reverse: false,
-
-	run: function()
-	{
-	},
-
-	cancel: function()
-	{
-	},
 
 	on_change: function(val)
 	{

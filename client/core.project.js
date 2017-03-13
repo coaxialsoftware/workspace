@@ -2,7 +2,7 @@
  * workspace.project
  */
 
-(function(cxl, ide, _) {
+(function(cxl, ide) {
 "use strict";
 
 ide.Project = cxl.Model.extend({
@@ -16,9 +16,9 @@ ide.Project = cxl.Model.extend({
 
 	initialize: function()
 	{
-		this.on('sync', this.onProject);
-		this.on('error', this.onError);
-		this.reload = _.debounce(this.fetch.bind(this), 500);
+		this.on('sync', this.onProject, this);
+		this.on('error', this.onError, this);
+		this.reload = cxl.debounce(this.fetch.bind(this), 500);
 
 		ide.plugins.on('socket.message.project', this.onMessage, this);
 	},
@@ -112,4 +112,4 @@ ide.registerCommand('project', function(name) {
 
 
 
-})(this.cxl, this.ide, this._);
+})(this.cxl, this.ide);

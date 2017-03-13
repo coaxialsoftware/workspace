@@ -100,6 +100,13 @@ _.extend(Watcher.prototype, {
 	;
 		return this._doWatch(id, dir);
 	},
+	
+	isWatching: function(file)
+	{
+		var id = this.getId(path.normalize(file));
+		
+		return !!this.watchers[id];
+	},
 
 	unwatch: function(id)
 	{

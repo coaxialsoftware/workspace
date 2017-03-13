@@ -1,33 +1,29 @@
 
-(function(ide, cxl, $, _, undefined) {
+(function(ide, cxl) {
 "use strict";
 
 var
 	FILE_REGEX = /^(?:([\w\.\-]+):)?(.*)$/
 ;
+	
+class Hash {
+	
+	constructor()
+	{
+		this._onHashChange = this.onHashChange.bind(this);
+		this.decode();
+	}
 
-function Hash()
-{
-var
-	hash = this.decode()
-;
-	this.data = hash;
-}
-
-cxl.extend(Hash.prototype, {
-
-	data: null,
-
-	clean: function(hash)
+	clean(hash)
 	{
 		for (var i in hash)
 			if (!hash[i])
 				delete hash[i];
 
 		return hash;
-	},
+	}
 
-	decode: function()
+	decode()
 	{
 	var
 		h = '{'+window.location.hash.substr(1)+'}',
@@ -38,26 +34,88 @@ cxl.extend(Hash.prototype, {
 		} catch (e) {
 			window.location.hash = '';
 		} finally {
-			return result || {};
+			this.data = result || {};
 		}
-	},
+	}
 
-	encode: function(obj)
+	encode(obj)
 	{
 	var
 		data = this.clean(cxl.extend({}, this.data, obj)),
 		hash = JSON.stringify(data)
 	;
-
 		return hash.slice(1, hash.length-1);
-	},
+	}
 
-	set: function(obj)
+	set(obj)
 	{
 		cxl.extend(this.data, obj);
 		window.location.hash = this.encode();
 	}
-});
+	
+	/**
+	 * Save workspace state in the URL Hash.
+	 */
+	save()
+	{
+		var hash = this, files = [];
+
+		ide.workspace.editors.forEach(function(child) {
+			files.push(child.getHash());
+		});
+
+		hash.set({ f: files });
+
+		return this;
+	}
+	
+	onHashChange()
+	{
+		var hash = window.location.hash;
+		window.removeEventListener('hashchange', this._onHashChange, false);
+
+		this.ignore_hash = true;
+		this.close_all();
+		window.location.hash = hash;
+
+		if (ide.project.get('path') !== this.hash.data.p)
+			this.loadProject(this.loadFiles.bind(this));
+		else
+		{
+			this.data = this.decode();
+			this.loadFiles();
+		}
+	}
+	
+	loadEditor(file)
+	{
+	var
+		m = FILE_REGEX.exec(file),
+		op = {
+			file: m[2],
+			plugin: m[1]
+		}
+	;
+		if (op.file)
+			op.file = decodeURIComponent(op.file);
+
+		ide.open(op);
+	}
+	
+	loadFiles()
+	{
+		var files = this.data.f;
+		
+		if (!files)
+			return;
+
+		if (files instanceof Array)
+			files.forEach(this.loadEditor.bind(this));
+		else
+			this.loadEditor(files);
+	}
+	
+}
 
 /**
  * Layout Algorithms.
@@ -119,108 +177,68 @@ ide.Layout = {
 
 };
 
-ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
+class Slot {
 
-	el: '#workspace',
-
-	slots: null,
-	editors: null,
-
-	layout: ide.Layout.Smart,
-
-	load_editor: function(file)
+	constructor()
 	{
-	var
-		m = FILE_REGEX.exec(file),
-		op = {
-			file: m[2],
-			plugin: m[1]
-		}
-	;
-		if (op.file)
-			op.file = decodeURIComponent(op.file);
+		this.el = document.createElement('DIV');
+	}
 
-		ide.open(op);
-	},
-
-	load_files: function()
+	remove()
 	{
-	var
-		files = this.hash.data.f
-	;
-		if (!files)
-			return;
+		ide.workspace.el.removeChild(this.el);
+	}
 
-		if (files instanceof Array)
-			files.forEach(this.load_editor.bind(this));
-		else
-			this.load_editor(files);
-	},
-
-	load_workspace: function()
+	setPosition(layout)
 	{
-		ide.plugins.start();
-		ide.keymap.start();
-		this.load_files();
-	},
-
-	state: function(editor)
+		var s = this.el.style;
+		s.top = layout.top;
+		s.left = layout.left;
+		s.width = layout.width;
+		s.height = layout.height;
+	}
+}
+	
+ide.Workspace = class Workspace {
+	
+	constructor()
 	{
-	var
-		file = (editor.file instanceof ide.File ?
-			editor.file.get('filename') :
-			editor.file) || '',
-		plugin = editor.plugin && (typeof(editor.plugin)==='string' ?
-			editor.plugin : editor.plugin.name)
-	;
-		return (plugin ? plugin + ':' : '') + encodeURIComponent(file);
-	},
-
-	/**
-	 * Save workspace state in the URL Hash.
-	 */
-	save: function()
-	{
-		var hash = this.hash, files = [];
-
-		this.each(function(child) {
-			files.push(this.state(child));
-		});
-
-		hash.set({ f: files });
-
-		return this;
-	},
+		this.el = document.getElementById('workspace');
+		this.editors = [];
+		this.layout = ide.Layout.Smart;
+		window.addEventListener('resize', cxl.debounce(this.update.bind(this), 250));
+	}
 
 	/** Returns a slot(DIV) to place a new editor */
-	slot: function()
+	slot()
 	{
-	var
-		el = document.createElement('DIV'),
-		slot = { el: el, $el: $(el) }
-	;
-		this.$el.append(el);
-		this.slots.push(slot);
-
+		var slot = new Slot();
+		this.el.appendChild(slot.el);
 		return slot;
-	},
-
-	do_layout: function()
+	}
+	
+	update()
 	{
-		var layout = this.layout(this.slots);
+		var layout = this.layout(this.editors);
 
-		this.slots.forEach(function(slot, i)
+		ide.workspace.editors.forEach(function(editor, i)
 		{
-			slot.$el.css(layout[i]);
-			slot.index = i;
-		});
-
-		ide.plugins.trigger('workspace.resize');
-		return this.save();
-	},
+			editor.slot.setPosition(layout[i]);
+		}, this);
+		
+		ide.hash.save();
+	}
+	
+	swap(e1, e2)
+	{
+		var tmp = this.editors[e1];
+		this.editors[e1] = this.editors[e2];
+		this.editors[e2] = tmp;
+		this.update();
+	}
 
 	/** Iterates through open editors. Return false to stop. */
-	each: function(cb)
+	/*each(cb)
 	{
 	var
 		i = 0,
@@ -229,17 +247,17 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 		for (; i<slots.length; i++)
 			if (slots[i].editor && cb.call(this, slots[i].editor, i)=== false)
 				return;
-	},
+	}
 
-	close_all: function()
+	closeAll()
 	{
 		this.each(function(item) {
 			setTimeout(this.remove.bind(this, item));
 		});
-	},
+	}
 
 	/** Find editor by id. */
-	find: function(id)
+	/*find(id)
 	{
 	var
 		slots = this.slots,
@@ -252,126 +270,59 @@ ide.Workspace = cxl.View.extend({ /** @lends ide.Workspace# */
 			if (editor && editor.id===id)
 				return editor;
 		}
-	},
+	}*/
 
-	add: function(item)
+	add(item, focus)
 	{
-		item.slot.editor = item;
+		this.editors.push(item);
+		
 		ide.plugins.trigger('workspace.add', item);
-		return this.do_layout();
-	},
 
-	remove: function(item, force)
+		if (focus!==false)
+			item.focus();
+		
+		this.update();
+		ide.plugins.trigger('workspace.resize');
+		
+		ide.hash.save();
+	}
+
+	remove(item)
 	{
-	var
-		slot = item.slot,
-		msg = item._close(force)
-	;
-		if (typeof(msg)==='string')
-		{
-			if (window.confirm(msg))
-				item._close(true);
-			else
-				return this;
-		}
-
-		this.slots.splice(slot.index, 1);
-
-		if (this.slots[0] && this.slots[0].editor)
-			this.slots[0].editor.focus();
+		var i = this.editors.indexOf(item);
+		item.slot.remove();
+		
+		this.editors.splice(i, 1);
+		
+		if (this.editors[0])
+			this.editors[0].focus();
 		else
 			ide.editor = null;
 
 		ide.plugins.trigger('workspace.remove', item);
-
-		return this.do_layout();
-	},
-
-	/** Returns next editor */
-	next: function()
-	{
-	var
-		i = ide.editor.slot.index,
-		next = this.slots[i+1] || this.slots[0]
-	;
-		return next.editor;
-	},
-
-	previous: function()
-	{
-	var
-		i = ide.editor.slot.index,
-		next = this.slots[i-1] || this.slots[this.slots.length-1]
-	;
-		return next.editor;
-	},
-
-	on_beforeunload: function(ev)
-	{
-		var i=0, slots=this.slots, msg;
-
-		for (; i<slots.length; i++)
-		{
-			msg = slots[i].editor && slots[i].editor._close();
-			if (typeof(msg)==='string')
-			{
-				ev.returnValue = msg;
-				return msg;
-			}
-		}
-	},
-
-	swap: function(e1, e2)
-	{
-		var tmp = this.slots[e1];
-		this.slots[e1] = this.slots[e2];
-		this.slots[e2] = tmp;
-
-		this.do_layout();
-	},
-
-	on_hashchange: function()
-	{
-		var hash = window.location.hash;
-		window.removeEventListener('hashchange', this._on_hashchange, false);
-
-		this.ignore_hash = true;
-		this.close_all();
-		window.location.hash = hash;
-
-		if (ide.project.get('path') !== this.hash.data.p)
-			this.load_project(this.load_files.bind(this));
-		else
-		{
-			this.hash = new Hash();
-			this.load_files();
-		}
-	},
-
-	load_project: function(cb)
-	{
-	var
-		hash = this.hash = new Hash(),
-		project = this.project = ide.project = new ide.Project({
-			path: hash.data.p || hash.data.project
-		})
-	;
-		this.slots = [];
-		this.editors = [];
-
-		project.fetch({ success: cb });
-	},
-
-	initialize: function()
-	{
-		this.load_project(this.load_workspace.bind(this));
-		this._on_hashchange = this.on_hashchange.bind(this);
-
-		this.listenTo(window, 'beforeunload', this.on_beforeunload);
-		this.listenTo(window, 'resize', _.debounce(this.do_layout.bind(this), 250));
+		this.update();
 	}
 
-});
+	/** Returns next editor */
+	next()
+	{
+	var
+		i = this.editors.indexOf(ide.editor),
+		next = this.editors[i+1] || this.editors[0]
+	;
+		return next;
+	}
+
+	previous()
+	{
+	var
+		i = this.editors.indexOf(ide.editor),
+		next = this.editors[i-1] || this.editors[this.editors.length-1]
+	;
+		return next;
+	}
+
+};
 
 ide.plugins.registerCommands({
 
@@ -409,7 +360,7 @@ ide.plugins.registerCommands({
 
 			ide.open({ file: newfile }).then(function(editor) {
 				editor.listenTo(file, 'change:content', function() {
-					newfile.set('content', JSON.stringify(file.diff(), null, 2));
+					newfile.content = JSON.stringify(file.diff(), null, 2);
 				});
 				editor.cmd('inputDisable');
 			});
@@ -427,9 +378,9 @@ ide.plugins.registerCommands({
 		{
 			if (ide.editor.insert)
 			{
-				file = file || ide.editor.file.get('filename');
+				file = file || ide.editor.file.filename;
 
-				$.get('/file?p=' + ide.project.id + '&n=' + file)
+				cxl.ajax.get('/file?p=' + ide.project.id + '&n=' + file)
 					.then(function(content) {
 						if (content.new)
 							ide.notify('File does not exist.');
@@ -455,27 +406,14 @@ ide.plugins.registerCommands({
 
 		write: function(filename, force)
 		{
-			var editor = ide.editor, file=editor.file;
-
-			if (!(file instanceof ide.File))
+			var editor = ide.editor, file;
+			
+			if (!editor)
 				return ide.Pass;
 
 			if (filename)
-			{
-				if (file.get('filename'))
-				{
-					file = ide.fileManager.getFile(filename);
-					editor.setFile(file);
-				} else
-					file.set('filename', filename);
-			}
-
-			if (!file.get('filename'))
-				return ide.error('No file name.');
-
-			if (!force && file.old)
-				return ide.error('File contents have changed.');
-
+				file = ide.fileManager.getFile(filename);
+			
 			editor.write(file, force);
 		},
 
@@ -529,8 +467,8 @@ ide.plugins.registerCommands({
 	;
 		if (file instanceof ide.File)
 		{
-			content = file.get('content');
-			file.set('content', content.replace(from, to));
+			content = file.content;
+			file.content = content.replace(from, to);
 		}
 	},
 
@@ -585,21 +523,26 @@ ide.plugins.registerCommands({
 		q: function()
 		{
 			if (ide.editor)
-				ide.editor.quit();
+			{
+				var msg = ide.editor.quit();
+
+				if (msg && window.confirm(msg))
+					ide.editor.quit(true);
+			}
 			else
 				window.close();
 		},
 
 		qa: function()
 		{
-			ide.workspace.close_all();
+			ide.workspace.closeAll();
 		},
 
 		/// Quit always, without writing.
 		"q!": function()
 		{
 			if (ide.editor)
-				ide.workspace.remove(ide.editor, true);
+				ide.editor.quit(true);
 		},
 
 		version: function()
@@ -614,5 +557,22 @@ ide.plugins.registerCommands({
 	}
 
 });
+	
+ide.Hash = Hash;
+	
+window.addEventListener('beforeunload', function(ev) {
+	var i=0, slots=ide.workspace.editors, msg;
 
-})(this.ide, this.cxl, this.jQuery, this._);
+	for (; i<slots.length; i++)
+	{
+		msg = slots[i].quit();
+		
+		if (typeof(msg)==='string')
+		{
+			ev.returnValue = msg;
+			return msg;
+		}
+	}
+});
+
+})(this.ide, this.cxl);

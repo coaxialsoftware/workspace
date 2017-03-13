@@ -3,7 +3,7 @@ QUnit.module('core.cmd');
 
 QUnit.test('Should Parse Single Command With No Parameters', function(a) {
 var
-	cmd = ide.commandParser.parse('quit')
+	cmd = ide.commandParser.parse('quit')[0]
 ;
 	a.ok(cmd.fn);
 	a.ok(!cmd.args);
@@ -11,7 +11,7 @@ var
 
 QUnit.test('Should Parse Single Command With Single Path', function(a) {
 var
-	cmd = ide.commandParser.parse('quit now')
+	cmd = ide.commandParser.parse('quit now')[0]
 ;
 	a.equal(cmd.fn, 'quit');
 	a.equal(cmd.args[0], 'now');
@@ -19,7 +19,7 @@ var
 
 QUnit.test('Should Parse Single Command With Multiple Paths', function(a) {
 var
-	cmd = ide.commandParser.parse('quit now test\\ space.js\t \tmultiple/hello')
+	cmd = ide.commandParser.parse('quit now test\\ space.js\t \tmultiple/hello')[0]
 ;
 	a.equal(cmd.fn, 'quit');
 	a.equal(cmd.args[0], 'now');
@@ -29,7 +29,7 @@ var
 
 QUnit.test('Should Parse Single Command With Multiple Strings', function(a) {
 var
-	cmd = ide.commandParser.parse('quit "single" "multiple word" "quote\\" middle"')
+	cmd = ide.commandParser.parse('quit "single" "multiple word" "quote\\" middle"')[0]
 ;
 	a.equal(cmd.fn, 'quit');
 	a.equal(cmd.args[0], 'single');
@@ -39,7 +39,7 @@ var
 
 QUnit.test('Should parse Regex parameters', function(a) {
 var
-	cmd = ide.commandParser.parse('hello.world /\\w+\\w/gi /\\d\\d/m')
+	cmd = ide.commandParser.parse('hello.world /\\w+\\w/gi /\\d\\d/m')[0]
 ;
 	a.equal(cmd.fn, 'hello.world');
 	a.equal(cmd.args[0].source, '\\w+\\w');
@@ -48,7 +48,7 @@ var
 
 QUnit.test('Should parse Javascript parameters', function(a) {
 var
-	cmd = ide.commandParser.parse('hello.world `10+10``"No Spaces"` `"hell\\`o"`')
+	cmd = ide.commandParser.parse('hello.world `10+10``"No Spaces"` `"hell\\`o"`')[0]
 ;
 	a.equal(cmd.fn, 'hello.world');
 	a.equal(cmd.args[0], 20);
@@ -58,7 +58,7 @@ var
 
 QUnit.test('Should parse mixed parameters', function(a) {
 var
-	cmd = ide.commandParser.parse('hello.world "10+10""No Spaces"/abc/g `"hell\\`o"`')
+	cmd = ide.commandParser.parse('hello.world "10+10""No Spaces"/abc/g `"hell\\`o"`')[0]
 ;
 	a.equal(cmd.fn, 'hello.world');
 	a.equal(cmd.args[0], '10+10');

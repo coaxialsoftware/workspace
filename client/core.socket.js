@@ -4,39 +4,39 @@
 
 (function(window, ide, cxl) {
 "use strict";
+	
+class SocketManager {
+	
+	constructor()
+	{
+		this.retries = 0;
+		this.maxRetries = 1;
+		
+		if (!window.WebSocket)
+			return ide.warn('WebSockets not supported. Some features will not be available.');
 
-function SocketManager()
-{
-	if (!window.WebSocket)
-		return ide.warn('WebSockets not supported. Some features will not be available.');
+		ide.plugins.on('project.load', this.connect, this);
+		window.addEventListener('focus', this.checkConnection.bind(this));
+	}
 
-	ide.plugins.on('project.load', this.connect, this);
-	window.addEventListener('focus', this.checkConnection.bind(this));
-}
-
-SocketManager.prototype = {
-
-	retries: 0,
-	maxRetries: 1,
-
-	__doSend: function(plugin, data)
+	__doSend(plugin, data)
 	{
 		this.ws.send(JSON.stringify({ plugin: plugin, data: data }));
-	},
+	}
 
 	/**
 	 * Sends Data to Socket. If socket is not ready it will wait until it is
 	 * and send it.
 	 */
-	send: function(plugin, data)
+	send(plugin, data)
 	{
 		if (!this.ws || this.ws.readyState!==WebSocket.OPEN)
 			ide.plugins.once('socket.ready', this.__doSend.bind(this, plugin, data));
 		else
 			this.__doSend(plugin, data);
-	},
+	}
 
-	connect: function()
+	connect()
 	{
 		if (this.ws && (this.ws.readyState===WebSocket.OPEN ||
 			this.ws.readyState===WebSocket.CONNECTING))
@@ -87,9 +87,9 @@ SocketManager.prototype = {
 			else
 				ide.plugins.trigger('socket.message.' + msg.plugin, msg.data);
 		};
-	},
+	}
 
-	checkConnection: function()
+	checkConnection()
 	{
 		if (this.ws && this.ws.readyState===3 /* closed */)
 		{
@@ -98,7 +98,7 @@ SocketManager.prototype = {
 		}
 	}
 
-};
+}
 
 ide.socket = new SocketManager();
 

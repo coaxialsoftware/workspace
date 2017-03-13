@@ -1,55 +1,46 @@
 
-(function(ide, _, $, cxl) {
+(function(ide, cxl) {
 "use strict";
 
-var ProjectList = ide.Editor.List.extend({
+class ProjectList extends ide.ListEditor { 
 
-	title: 'projects',
-
-	initialize: function()
+	render()
 	{
-		ide.Editor.List.prototype.initialize.call(this);
-
-		this.itemTemplate = _.template(cxl.html('tpl-project'));
-	},
-
-	render: function()
-	{
-		ide.Editor.List.prototype.render.call(this);
+		this.title = this.command = 'projects';
+		super.render();
 		this._loadProjects();
-	},
+	}
 
-	_loadProjects: function()
+	_loadProjects()
 	{
-		var me = this;
+		cxl.ajax.get('/projects').then(this._renderProjects.bind(this));
+	}
 
-		$.get('/projects', function(d) {
-			me._renderProjects(d);
-		});
-	},
-
-	onItemClick: function(ev, item)
+	onItemClick(ev, item)
 	{
-		// TODO umm ugly
-		if (ev.target.parentNode.tagName==='A')
-			return ev.stopPropagation();
-
 		if (item.path)
 		{
 			ide.commands.project(item.path);
 			ev.preventDefault();
 		}
-	},
-
-	_renderProjects: function(projects)
-	{
-	var
-		all = _.sortBy(projects, 'name')
-	;
-		this.add(all);
 	}
 
-});
+	_renderProjects(projects)
+	{
+	var
+		all = cxl.sortBy(Object.values(projects), 'name')
+	;
+		this.add(all.map(function(p) {
+			return new ide.Item({
+				title: p.name || p.path,
+				tags: p.tags,
+				description: p.description,
+				icons: p.icons
+			});
+		}));
+	}
+
+}
 
 ide.plugins.register('welcome', new ide.Plugin({
 
@@ -61,13 +52,8 @@ ide.plugins.register('welcome', new ide.Plugin({
 
 		projects: function()
 		{
-			this.openProjects({ plugin: this, file: 'projects' });
+			ide.workspace.add(new ProjectList({ plugin: this }));
 		}
-	},
-
-	openProjects: function(options)
-	{
-		ide.workspace.add(new ProjectList(options));
 	},
 
 	open: function(options)
@@ -78,26 +64,27 @@ ide.plugins.register('welcome', new ide.Plugin({
 
 	onChange: function()
 	{
-		if (ide.workspace.slots.length===0)
-			this.$el.show().css('opacity', 1);
+		if (ide.workspace.editors.length===0)
+		{
+			this.$el.style.display='block';
+			this.$el.style.opacity=1;
+		}
 		else
-			this.$el.hide().css('opacity', 0);
+		{
+			this.$el.style.display='none';
+			this.$el.style.opacity=0;
+		}
 	},
-
-	onTimeout: function()
+	
+	renderTemplate: function()
 	{
-		this.exKey = ide.keyboard.findKey('ex');
-		this.assistKey = ide.keyboard.findKey('assist');
-
-		this.template = _.template($('#tpl-welcome').html())(this);
-		this.$el = $('#welcome').html(this.template);
-		this.onChange();
-
-		ide.plugins.on('workspace.add', this.onChange, this);
-		ide.plugins.on('workspace.remove', this.onChange, this);
+		return '<h1 id="title">workspace<small> ' + ide.version + '</small></h1>' +
+			'<p>Type <kbd>' + this.exKey + '</kbd> to enter commands or <kbd>' + 
+			this.assistKey + '</kbd> for the assist window.</p><h2 id="subtitle">' +
+			this.project + '</h2>';
 	},
 
-	start: function()
+	ready: function()
 	{
 	var
 		p = ide.project,
@@ -109,10 +96,18 @@ ide.plugins.register('welcome', new ide.Plugin({
 
 		if (project)
 			window.document.title = project;
+		
+		this.exKey = ide.keyboard.findKey('ex');
+		this.assistKey = ide.keyboard.findKey('assist');
 
-		window.setTimeout(this.onTimeout.bind(this));
+		this.$el = document.getElementById('welcome');
+		this.$el.innerHTML = this.renderTemplate();
+		this.onChange();
+
+		ide.plugins.on('workspace.add', this.onChange, this);
+		ide.plugins.on('workspace.remove', this.onChange, this);
 	}
 
 }));
 
-})(window.ide, this._, this.jQuery, this.cxl);
+})(this.ide, this.cxl);

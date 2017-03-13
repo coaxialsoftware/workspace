@@ -1,5 +1,5 @@
 
-(function(ide, cxl, $, _) {
+(function(ide, cxl) {
 "use strict";
 
 /**
@@ -131,7 +131,10 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 			if (plug.shortcuts)
 				this.registerShortcuts(plug);
 		});
-
+	},
+	
+	ready: function()
+	{
 		this.each(function(plug) {
 			if (plug.ready)
 				plug.ready();
@@ -239,13 +242,13 @@ ide.plugins.register('plugins', {
 			ide.warn('Could not retrieve plugins from server.');
 		}
 
-		_.each(all, function(a, k) {
+		cxl.each(all, function(a, k) {
 			a.enabled = (enabled && enabled.indexOf(k)!==-1);
 			a.installed = !!a.installed;
 			a.description = a.description || false;
 		});
 
-		l.add(_.values(all));
+		l.add(Object.values(all));
 	},
 
 	open: function(options)
@@ -262,7 +265,7 @@ ide.plugins.register('plugins', {
 			file: 'list'
 		});
 
-		$.get('/plugins').then(function(all) {
+		cxl.ajax.get('/plugins').then(function(all) {
 			me.addPlugins(l, all);
 		});
 
@@ -270,4 +273,4 @@ ide.plugins.register('plugins', {
 	}
 });
 
-})(this.ide, this.cxl, this.jQuery, this._);
+})(this.ide, this.cxl);

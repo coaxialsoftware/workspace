@@ -1,13 +1,13 @@
 
-(function(window, ide, cxl, _) {
+(function(window, ide, cxl) {
 "use strict";
 
 ide.Hint = ide.Item;
 
 var InlineAssist = function() {
 	this.hints = [];
-	this.el = cxl.id('assist-inline');
-	this.requestHints = _.debounce(this._requestHints.bind(this));
+	this.el = document.getElementById('assist-inline');
+	this.requestHints = cxl.debounce(this._requestHints.bind(this));
 	this.cursor = { line: 0, ch: 0 };
 	this.add = this.add.bind(this);
 	this.doAccept = this.doAccept.bind(this);
@@ -25,7 +25,7 @@ var InlineAssist = function() {
 	ide.registerCommand('inlineAssistHide', this.hide, this);
 };
 
-_.extend(InlineAssist.prototype, {
+cxl.extend(InlineAssist.prototype, {
 
 	hints: null,
 	visible: false,
@@ -313,7 +313,7 @@ _.extend(InlineAssist.prototype, {
 });
 
 var Assist = cxl.View.extend({
-	el: '#assist',
+	el: 'assist',
 	visible: false,
 	delay: 200,
 
@@ -331,8 +331,11 @@ var Assist = cxl.View.extend({
 
 	initialize: function()
 	{
-		this.template = cxl.id('tpl-assist').innerHTML;
-		this.requestHints = _.debounce(this._requestHints, this.delay);
+		this.requestHints = cxl.debounce(this._requestHints, this.delay);
+		this.el.innerHTML = '<div class="assist-hints"></div>';
+		this.$hints = this.el.children[0];
+		
+		this.listenTo(this.$hints, 'click', this.onItemClick);
 		//this.listenTo(ide.plugins, 'file.write', this.onToken);
 		this.listenTo(ide.plugins, 'token', this.onToken);
 		this.listenTo(ide.plugins, 'editor.focus', this.onToken);
@@ -342,7 +345,7 @@ var Assist = cxl.View.extend({
 
 		this.inline = new InlineAssist();
 	},
-
+	
 	onItemClick: function()
 	{
 		if (this.action)
@@ -366,21 +369,22 @@ var Assist = cxl.View.extend({
 
 	hide: function()
 	{
-		cxl.$body.append(ide.logger.el);
-		this.$el.removeClass('assist-show');
+		document.body.appendChild(ide.logger.el);
+		this.el.classList.remove('assist-show');
 		this.visible = false;
-		ide.workspace.$el.removeClass('assist-show');
+		
+		ide.workspace.el.classList.remove('assist-show');
 		ide.workspace.hash.set({ a: false });
 	},
 
 	show: function()
 	{
-		this.$el.addClass('assist-show');
+		this.el.classList.add('assist-show');
 		this.el.insertBefore(ide.logger.el, this.$hints);
 		this.visible = true;
-		ide.workspace.$el.addClass('assist-show');
+		ide.workspace.el.classList.add('assist-show');
 		this._requestHints();
-		ide.workspace.hash.set({ a: 1 });
+		ide.hash.set({ a: 1 });
 	},
 
 	cancel: function()
@@ -444,13 +448,23 @@ var Assist = cxl.View.extend({
 				this.hints.push(h);
 		}
 	},
+	
+	sortedLastIndexBy: function(hint)
+	{
+		var l = this.hints.length;
+		
+		while (l--)
+		{
+			if (hint.priority > this.hints[l].priority)
+				return l;
+		}
+		
+		return 0;
+	},
 
 	renderHint: function(hint, i)
 	{
-		i = i===undefined ?
-			_.sortedLastIndexBy(this.hints, hint, 'priority') :
-			i
-		;
+		i = i===undefined ? this.sortedLastIndexBy(hint) : i;
 
 		var ref = this.hints[i];
 
@@ -469,8 +483,12 @@ var Assist = cxl.View.extend({
 
 	render: function()
 	{
-		var hints = this.hints = _.sortBy(this.hints, 'priority');
-		hints.forEach(this.appendHint, this);
+		if (this.hints)
+		{
+			var hints = this.hints = cxl.sortBy(this.hints, 'priority');
+			hints.forEach(this.appendHint, this);
+		}
+
 		this.rendered = true;
 	}
 
@@ -493,7 +511,7 @@ ide.plugins.register('assist', new ide.Plugin({
 	{
 		var hints = [];
 
-		if (!ide.workspace.slots.length)
+		if (!ide.workspace.editors.length)
 		{
 			hints.push({ title: 'Documentation', action: 'help' });
 
@@ -533,7 +551,7 @@ ide.plugins.register('assist', new ide.Plugin({
 		this.listenTo('socket.message.assist', this.onSocket);
 		this.listenTo('socket.message.assist.inline', this.onInline);
 
-		if (ide.workspace.hash.data.a)
+		if (ide.hash.data.a)
 			ide.assist.show(ide.assist);
 	}
 

@@ -2,30 +2,32 @@
 (function(ide) {
 "use strict";
 
-var LoginDialog = ide.Editor.extend({
+class LoginDialog extends ide.Editor {
 
-	templateId: 'tpl-login',
-
-	file: 'login',
-
-	onAuth: function(auth)
+	onAuth(auth)
 	{
 		this.username = auth && (auth.username || auth.uid);
 		this.digest();
-	},
+	}
+	
+	constructor(p)
+	{
+		super(p);
+		this.file = 'login';
+	}
 
-	initialize: function()
+	render()
 	{
 		this.listenTo(ide.plugins, 'online.auth', this.onAuth);
 		this.username = ide.project.get('online.user');
-	},
+	}
 
-	logOut: function()
+	logOut()
 	{
 		ide.socket.send('online', { logout: true });
-	},
+	}
 
-	submit: function()
+	submit()
 	{
 		ide.socket.send('online', {
 			login: {
@@ -34,7 +36,7 @@ var LoginDialog = ide.Editor.extend({
 			}
 		});
 	}
-});
+}
 
 ide.plugins.register('online', {
 

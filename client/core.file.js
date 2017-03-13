@@ -2,76 +2,103 @@
  * workspace.file
  */
 
-(function(cxl, ide, _) {
+(function(cxl, ide) {
 "use strict";
 
-ide.File = cxl.Model.extend({
+class File {
 
-	idAttribute: 'path',
-	originalValue: '',
-	version: 0,
-
-	initialize: function()
+	constructor(filename)
 	{
-		this.attributes.project = ide.project.get('path');
-		this.on('error', this._onError);
-	},
+		this.filename = filename;
+		this.content = '';
+		this.attributes = { content: '' };
+		this._createHint();
+	}
 
-	_onSync: function()
+	onSave()
 	{
-		this.trigger('write');
 		this.old = false;
 		ide.plugins.trigger('file.write', this);
-		ide.notify('File ' + this.id + ' saved.');
-	},
-
-	_onError: function(file, res)
+	}
+	
+	_createHint()
 	{
 	var
-		id = this.id || (this.get('project') + '/' + this.get('filename')),
+		separator = this.content.indexOf("\r\n")!==-1 ? 'CRLF' : 'LF',
+		tags = [ separator ]
+	;
+		if (this.mime)
+			tags.push(this.mime);
+		
+		this.hint = new ide.Hint({
+			code: 'file', title: this.filename, tags: tags
+		});
+	}
+	
+	parse(data)
+	{
+		this.attributes = data;
+		// Get normalized path
+		this.filename = data.filename;
+		this.mime = data.mime;
+		this.content = this.originalContent = data.content;
+		this.id = data.path;
+		
+		this._createHint();
+		
+		return this;
+	}
+	
+	hasChanged()
+	{
+		return this.content !== this.attributes.content;
+	}
+
+	onError(res)
+	{
+	var
+		id = this.id || (this.attributes.project + '/' + this.filename),
 		msg = (res && (res.responseJSON && res.responseJSON.error) ||
 			res.responseText) ||
 			(this.saving ? 'Error saving file: ' : 'Error opening file: ') + id
 	;
 		ide.error(msg);
-	},
-
-	save: function()
+		return Promise.reject(msg);
+	}
+	
+	fetch()
 	{
+		var url = this.url();
+		
+		return cxl.ajax({ url: url }).then(this.parse.bind(this), this.onError.bind(this));
+	}
+
+	save()
+	{
+		var url = this.url();
+		
 		ide.plugins.trigger('file.beforewrite', this);
-		cxl.Model.prototype.save.call(this, null, {
-			success: this._onSync.bind(this)
-		});
-	},
+		
+		return cxl.ajax({
+			url: url,
+			method: this.id ? 'PUT' : 'POST',
+			data: this.attributes
+		}).then(this.parse.bind(this)).then(this.onSave.bind(this), this.onError.bind(this));
+	}
 
-	url: function()
+	url()
+	{
+		var mtime = Date.now();
+		
+		return '/file?p=' + encodeURIComponent(ide.project.id) + 
+			'&n=' + encodeURIComponent(this.filename) + '&t=' + mtime;
+	}
+	
+	diff()
 	{
 	var
-		mtime = Date.now()
-	;
-		return '/file?p=' + this.get('project') +
-			'&n=' + this.get('filename') + '&t=' + mtime;
-	},
-
-	parse: function(data)
-	{
-		this.originalValue = data.content || '';
-		
-		var separator = this.originalValue.indexOf("\r\n")!==-1 ? 'CRLF' : 'LF';
-			
-		this.hint = new ide.Hint({
-			code: 'file', title: data.filename,
-			tags: [ separator, data.mime ]
-		});
-		
-		return data;
-	},
-
-	diff: function()
-	{
-	var
-		cur = this.attributes.content,
-		old = this.originalValue,
+		old = this.attributes.content,
+		cur = this.content,
 		changed = this.diffChanged = this.diffValue !== cur
 	;
 		if (changed)
@@ -82,32 +109,33 @@ ide.File = cxl.Model.extend({
 			return this.lastDiff;
 	}
 
-});
-
-function FileManager()
-{
-	ide.plugins.on('socket.message.file', this.onMessage, this);
 }
 
-FileManager.prototype = {
+class FileManager {
+	
+	constructor() {
+		ide.plugins.on('socket.message.file', this.onMessage, this);
+	}
 
-	findFiles: function(filename)
+	findFiles(filename)
 	{
-		return _.filter(ide.workspace.slots, [ 'editor.file.attributes.filename', filename ]);
-	},
+		return ide.workspace.editors.filter(function(editor) {
+			return editor.file && editor.file.filename===filename;
+		});
+	}
 
-	onMessageStat: function(data)
+	onMessageStat(data)
 	{
 		var files = this.findFiles(data.f), updated=0;
 
 		// TODO optimize this?
-		files.forEach(function(slot) {
+		files.forEach(function(editor) {
 
-			var file = slot.editor.file;
+			var file = editor.file;
 
-			if (file.get('mtime')!==data.t)
+			if (file.attributes.mtime!==data.t)
 			{
-				if (file.hasChanged('content'))
+				if (file.hasChanged())
 				{
 					file.old = true;
 					ide.warn('File "' + file.id + '" contents could not be updated.');
@@ -123,26 +151,25 @@ FileManager.prototype = {
 
 		if (updated)
 			ide.notify('File "' + data.f + '" was updated.');
-	},
+	}
 
-	onMessage: function(data)
+	onMessage(data)
 	{
 		if (data.stat)
 			this.onMessageStat(data.stat);
-	},
+	}
 
 	/**
 	 * Creates a new file object.
 	 */
-	getFile: function(filename)
+	getFile(filename)
 	{
-		if (typeof(filename)==='string')
-			filename = { filename: filename };
-
 		return new ide.File(filename);
 	}
 
-};
+}
+	
+Object.assign(File.prototype, cxl.Events);
 	
 ide.plugins.on('assist', function(done, editor) {
 
@@ -154,6 +181,7 @@ ide.plugins.on('assist', function(done, editor) {
 
 });
 
+ide.File = File;
 ide.fileManager = new FileManager();
 
 })(this.cxl, this.ide, this._);
