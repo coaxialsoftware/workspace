@@ -216,7 +216,11 @@ ide.plugins.register('cmd', {
 	commands: {
 		commands: function()
 		{
-			return this.openCommands({});
+			var editor = new ide.ListEditor({ command: 'commands', plugin: this });
+			
+			editor.listenTo(ide.plugins, 'editor.focus', this.loadCommands.bind(this, editor));
+			
+			return editor;
 		},
 
 		keymap: function()
@@ -294,11 +298,11 @@ ide.plugins.register('cmd', {
 				fn = cmds[i];
 				key = ide.keyboard.findKey(i);
 
-				result.push({
+				result.push(new ide.Item({
 					key: key, title: i, className: 'cmd',
 					icon: 'terminal',
 					description: fn.help
-				});
+				}));
 			}
 		}
 
@@ -306,7 +310,7 @@ ide.plugins.register('cmd', {
 		getCommands(ide.editorCommands);
 
 		if (ide.editor)
-			getCommands(ide.editor.commands);
+			getCommands(ide.editor.constructor.commands);
 
 		return result;
 	},
@@ -317,15 +321,6 @@ ide.plugins.register('cmd', {
 
 		e.reset();
 		e.add(cxl.sortBy(result, 'title'));
-	},
-
-	openCommands: function(options)
-	{
-		options.title = 'commands';
-		options.plugin = 'cmd.openCommands';
-		var editor = new ide.Editor.List(options);
-		editor.listenTo(ide.plugins, 'editor.focus', this.loadCommands.bind(this, editor));
-		return editor;
 	},
 
 	getKeys: function(state)
@@ -361,7 +356,7 @@ ide.plugins.register('cmd', {
 		options.title = 'keymap';
 		options.plugin = 'cmd.openKeymap';
 
-		var editor = new ide.Editor.List(options);
+		var editor = new ide.ListEditor(options);
 
 		editor.listenTo(ide.plugins, 'editor.focus', this.loadKeymap.bind(this, editor));
 		editor.listenTo(ide.plugins, 'editor.keymap', this.loadKeymap.bind(this, editor));
@@ -371,7 +366,7 @@ ide.plugins.register('cmd', {
 
 	openLog: function(options)
 	{
-		return new ide.Editor.List({
+		return new ide.ListEditor({
 			title: 'log', children: ide.logger.items, plugin: 'cmd.openLog',
 			slot: options.slot
 		});

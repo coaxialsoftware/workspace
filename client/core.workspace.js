@@ -3,7 +3,7 @@
 "use strict";
 
 var
-	FILE_REGEX = /^(?:([\w\.\-]+):)?(.*)$/
+	FILE_REGEX = /^([\w\-]+)(?:\.(\w+))?:(.*)$/
 ;
 	
 class Hash {
@@ -89,17 +89,13 @@ class Hash {
 	
 	loadEditor(file)
 	{
-	var
-		m = FILE_REGEX.exec(file),
-		op = {
-			file: m[2],
-			plugin: m[1]
-		}
-	;
-		if (op.file)
-			op.file = decodeURIComponent(op.file);
-
-		ide.open(op);
+		var m = FILE_REGEX.exec(file);
+		
+		ide.open({
+			file: m[3] && new ide.File(decodeURIComponent(m[3])),
+			command: m[2],
+			plugin: m[1] && ide.plugins.get(m[1])
+		});
 	}
 	
 	loadFiles()

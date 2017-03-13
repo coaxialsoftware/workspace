@@ -108,11 +108,8 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	 */
 	findPlugin: function(options)
 	{
-		if (options.plugin)
-			return options.plugin[options.fn](options);
-
 		return this.each(function(plug) {
-			return plug.edit && plug.edit(options);
+			return plug.open && plug.open(options);
 		}) || ide.defaultEdit(options);
 	},
 

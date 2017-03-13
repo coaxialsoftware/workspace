@@ -67,7 +67,89 @@ function getMask(token)
 	return token.type==='string' ?
 		token.string.substr(1, token.string.length-2) : token.string;
 }
+
+class ListEditorCursor extends ide.CursorFeature {
 	
+	_findFocus()
+	{
+		return this.editor.children.find(function(i) {
+			return i.el.matches(':focus') && i.el.style.display!=='none';
+		});
+	}
+	
+	_findFirst()
+	{
+		return this.editor.children.find(function(i) {
+			return i.el.style.display!=='none';
+		});
+	}
+	
+	_findLast()
+	{
+		var l = this.editor.children.length;
+		
+		while (l--)
+			if (this.editor.children[l].el.style.display!=='none')
+				return this.editor.children[l];
+	}
+
+	goForward()
+	{
+		this.goDown();
+	}
+
+	goBackwards()
+	{
+		this.goUp();
+	}
+
+	goDown(dir)
+	{
+		var i = this._findFocus();
+
+		if (i)
+		{
+			dir = dir || 'nextSibling';
+			i=i.el;
+
+			while ((i = i[dir]))
+			{
+				if (i.style.display!=='none')
+					break;
+			}
+		} else
+		{
+			i = this._findFirst();
+			i = i && i.el;
+		}
+
+		if (i)
+			i.focus();
+	}
+
+	goUp()
+	{
+		this.goDown('previousSibling');
+	}
+
+	goStart()
+	{
+		var c = this._findFirst();
+
+		if (c)
+			c.el.focus();
+	}
+
+	goEnd()
+	{
+		var c = this._findLast();
+
+		if (c)
+			c.el.focus();
+	}	
+
+}
+
 class ListEditor extends ide.Editor {
 	
 	initialize(p)
@@ -159,29 +241,6 @@ class ListEditor extends ide.Editor {
 	{
 		return regex.test(file.title);
 	}
-
-	_findFocus()
-	{
-		return this.children.find(function(i) {
-			return i.el.matches(':focus') && i.el.style.display!=='none';
-		});
-	}
-	
-	_findFirst()
-	{
-		return this.children.find(function(i) {
-			return i.el.style.display!=='none';
-		});
-	}
-	
-	_findLast()
-	{
-		var l = this.children.length;
-		
-		while (l--)
-			if (this.children[l].el.style.display!=='none')
-				return this.children[l];
-	}
 	
 	search(regex)
 	{
@@ -195,58 +254,9 @@ class ListEditor extends ide.Editor {
 					'block' : 'none';
 	}
 
-
-
 }
 	
-ListEditor.registerCommands({
-	
-	goDocStart: function()
-	{
-		var c = this._findFirst();
-
-		if (c)
-			c.el.focus();
-	},
-
-	goDocEnd: function()
-	{
-		var c = this._findLast();
-
-		if (c)
-			c.el.focus();
-	},
-
-	goLineDown: function(dir)
-	{
-		var i = this._findFocus();
-
-		if (i)
-		{
-			dir = dir || 'nextSibling';
-			i=i.el;
-
-			while ((i = i[dir]))
-			{
-				if (i.style.display!=='none')
-					break;
-			}
-		} else
-		{
-			i = this._findFirst();
-			i = i && i.el;
-		}
-
-		if (i)
-			i.focus();
-	},
-
-	goLineUp: function()
-	{
-		this.goLineDown('previousSibling');
-	}
-	
-});
+ListEditor.feature('cursor', ListEditorCursor);
 	
 class FileListEditor extends ListEditor {
 	

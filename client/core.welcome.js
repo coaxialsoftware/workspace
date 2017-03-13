@@ -4,10 +4,9 @@
 
 class ProjectList extends ide.ListEditor { 
 
-	render()
+	initialize()
 	{
 		this.title = this.command = 'projects';
-		super.render();
 		this._loadProjects();
 	}
 
@@ -28,16 +27,16 @@ class ProjectList extends ide.ListEditor {
 	_renderProjects(projects)
 	{
 	var
-		all = cxl.sortBy(Object.values(projects), 'name')
-	;
-		this.add(all.map(function(p) {
+		all = Object.values(projects).map(function(p) {
 			return new ide.Item({
 				title: p.name || p.path,
 				tags: p.tags,
 				description: p.description,
 				icons: p.icons
 			});
-		}));
+		})
+	;
+		this.add(cxl.sortBy(all, 'title'));
 	}
 
 }
@@ -52,14 +51,8 @@ ide.plugins.register('welcome', new ide.Plugin({
 
 		projects: function()
 		{
-			ide.workspace.add(new ProjectList({ plugin: this }));
+			return new ProjectList({ plugin: this });
 		}
-	},
-
-	open: function(options)
-	{
-		if (options.file==='projects')
-			return new ProjectList(options);
 	},
 
 	onChange: function()

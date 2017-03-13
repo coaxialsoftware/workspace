@@ -110,6 +110,107 @@ class File {
 	}
 
 }
+	
+class FileFeature {
+	
+	constructor(editor, config)
+	{
+		this.file = config.file;
+		editor.file = config.file;
+	}
+	
+	write(file, force)
+	{
+		var value = this.file.content;
+
+		if (file && this.file !== file)
+		{
+			this._setFile(file);
+			file.content = value;
+		}
+		else
+			file = this.file;
+		
+		if (!file.filename)
+			return ide.error('No file name.');
+
+		if (!force && file.old)
+			return ide.error('File contents have changed.');
+
+		ide.notify('File ' + file.id + ' saved.');
+		
+		file.save();
+	}
+	
+	read()
+	{
+
+	}
+	
+	hasChanged()
+	{
+		return this.file.hasChanged();
+	}
+	
+}
+
+/**
+ * Editor with ide.File support
+ */
+class FileEditor extends ide.Editor {
+	
+	getHash()
+	{
+	var
+		editor = this,
+		plugin = editor.plugin && editor.plugin.name || editor.plugin,
+		file = editor.file.filename || ''
+	;
+		return (plugin ? plugin + ':' : '') + encodeURIComponent(file);
+	}
+	
+	quit(force)
+	{
+		if (!force && this.file.hasChanged())
+			return 'File has changed. Are you sure?';
+
+		super.quit(force);
+	}
+	
+}
+	
+class FileEditorHeader extends ide.EditorHeader {
+	
+	getTitle()
+	{
+	var
+		plugin = this.editor.plugin && this.editor.plugin.name,
+		filename = this.editor.file.filename || 'No Name'
+	;
+		return (plugin ? plugin + ':' : '') + filename;
+	}
+	
+	render()
+	{
+	var
+		file = this.editor.file,
+		changed = file.hasChanged(),
+		title = this.getTitle()
+	;
+		if (this.changed!==changed)
+		{
+			this.changed = changed;
+			this.$changed.style.display = changed ? 'inline' : 'none';
+		}
+		
+		if (this.title!==title)
+			this.$title.innerHTML = this.title = title;
+	}
+	
+}
+	
+FileEditor.feature('file', FileFeature);
+FileEditor.feature('header', FileEditorHeader);
 
 class FileManager {
 	
@@ -182,6 +283,8 @@ ide.plugins.on('assist', function(done, editor) {
 });
 
 ide.File = File;
+ide.FileFeature = FileFeature;
+ide.FileEditor = FileEditor;
 ide.fileManager = new FileManager();
 
 })(this.cxl, this.ide, this._);

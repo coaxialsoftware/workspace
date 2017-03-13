@@ -12,12 +12,13 @@ var
 	
 class Item {
 	
-	//key: null,
-	//className: 'log',
-	//action: null,
-	/** Actual value of item. Used when title is different to value */
-	//value: null,
-	
+	/**
+	 * Options:
+	 * key
+	 * className
+	 * action
+	 * value
+	 */
 	constructor(p)
 	{
 		this.priority = 0;
@@ -83,6 +84,10 @@ class Item {
 		;
 		
 		return el;
+	}
+	
+	destroy()
+	{
 	}
 
 }
@@ -155,9 +160,11 @@ class EditorHeader {
 	constructor(editor)
 	{
 		var el = this.el = document.createElement('ide-editor-header');
+		
+		editor.header = this;
 		this.editor = editor;
 		this.tags = {};
-
+		
 		el.innerHTML = '<div class="close"></div><div class="tags"></div>' +
 			'<span class="modified"></span><span class="title"></span>';
 
@@ -165,10 +172,10 @@ class EditorHeader {
 		this.$tags = el.childNodes[1];
 		this.$changed = el.childNodes[2];
 		this.$title = el.childNodes[3];
-
+		
+		editor.el.appendChild(this.el);
 		editor.listenTo(this.$close, 'click', this.onClose);
-
-		this.render();
+		editor.listenTo(ide.plugins, 'assist', this.render.bind(this));
 	}
 	
 	onClose(ev)
@@ -210,33 +217,86 @@ class EditorHeader {
 	{
 	var
 		e = this.editor,
-		changed = e.changed && e.changed(),
 		title = e.title
 	;
-		if (this.changed!==changed)
-		{
-			this.changed = changed;
-			this.$changed.style.display = changed ? 'inline' : 'none';
-		}
-		
 		if (this.title!==title)
 			this.$title.innerHTML = this.title = title;
 	}
 	
 }
 	
+class FocusFeature
+{
+	constructor(editor)
+	{
+		this.editor = editor;
+		editor.focus = this.focus.bind(this);
+		editor.focus.blur = this.blur.bind(this);
+		editor.listenTo(editor.el, 'click', editor.focus);
+	}
+	
+	blur()
+	{
+		ide.editor = null;
+		this.editor.el.classList.remove('focus');
+		ide.plugins.trigger('editor.blur', this.editor);
+	}
+
+	/**
+	 * Focus editor. Sets ide.editor.
+	 */
+	focus()
+	{
+		if (ide.editor === this.editor)
+			return;
+
+		if (ide.editor)
+			ide.editor.focus.blur();
+
+		ide.editor = this.editor;
+
+		this.editor.el.classList.add('focus');
+		ide.plugins.trigger('editor.focus', this.editor);
+	}
+	
+}
+
+class CursorFeature {
+
+	constructor(editor)
+	{
+		editor.cursor = this;
+		this.editor = editor;
+	}
+
+}
+
+CursorFeature.commands = {
+	'cursor.goUp': function() { this.cursor.goUp(); },
+	'cursor.goDown': function() { this.cursor.goDown(); },
+	'cursor.goForward': function() { this.cursor.goForward(); },
+	'cursor.goBackwards': function() { this.cursor.goBackwards(); },
+	'cursor.goStart' : function() { this.cursor.goStart(); },
+	'cursor.goEnd' : function() { this.cursor.goEnd(); },
+	// TODO remove
+	'goLineUp': 'cursor.goUp',
+	'goLineDown': 'cursor.goDown'
+};
+	
 class Editor {
 
 	constructor(p)
 	{
 		this.bindings = [];
-		
 		this.plugin = p.plugin;
 		this.slot = p.slot || ide.workspace.slot();
 		this.el = this.slot.el;
 		this.keymap = new ide.KeyMap(this);
 		this.command = p.command;
-		this.title = p.title;
+		this.title = p.title || p.command;
+		this.features = {};
+		
+		this.loadFeatures(p);
 		
 		if (this.initialize)
 			this.initialize(p);
@@ -248,10 +308,43 @@ class Editor {
 	
 	static registerCommands(cmds)
 	{
-		this.commands = this.commands || Object.assign({}, super.commands);
+		var fn, i;
+
+		if (!this.hasOwnProperty('commands'))
+			this.commands = Object.assign({}, this.commands);
 		
-		for (var i in cmds)
-			this.commands[i] = cmds[i];
+		for (i in cmds)
+		{
+			fn = cmds[i];
+
+			if (typeof(fn)==='string')
+				fn = cmds[fn];
+
+			this.commands[i] = fn; 
+		}
+	}
+	
+	static feature(name, Feature)
+	{
+		if (!this.hasOwnProperty('features'))
+			this.features = Object.assign({}, this.features);
+		
+		this.features[name] = Feature;
+		
+		if (Feature.commands)
+			this.registerCommands(Feature.commands);
+	}
+	
+	loadFeatures(p)
+	{
+		var features = this.constructor.features, i;
+		
+		for (i in features)
+			this.features[i] = new features[i](this, p);
+		
+		for (i in features)
+			if (this.features[i].render)
+				this.features[i].render();
 	}
 	
 	/**
@@ -259,21 +352,17 @@ class Editor {
 	 */
 	render()
 	{
-		this.header = new ide.EditorHeader(this);
 		this.$content = document.createElement('ide-editor-content');
 		
-		this.el.appendChild(this.header.el);
 		this.el.appendChild(this.$content);
-		
-		this.listenTo(this.el, 'click', this.focus);
-		this.listenTo(ide.plugins, 'assist', this.header.render.bind(this.header));
 	}
 	
 	getHash()
 	{
 		var p = this.plugin && this.plugin.name, cmd = this.command || '';
 		
-		return (p ? p + ':' : '') + cmd;  
+		// TODO Verify
+		return (p ? p + '.' : '') + cmd + ':';  
 	}
 	
 	/**
@@ -299,6 +388,7 @@ class Editor {
 	destroy()
 	{
 		cxl.invokeMap(this.bindings, 'unsubscribe');
+		cxl.invokeMap(this.features, 'destroy');
 	}
 
 	/**
@@ -311,34 +401,7 @@ class Editor {
 	{
 		var fn = this.constructor.commands && this.constructor.commands[name];
 
-		if (typeof(fn)==='string')
-			return this.cmd(fn, args);
-
 		return fn ? fn.apply(this, args) : ide.Pass;
-	}
-	
-	blur()
-	{
-		ide.editor = null;
-		this.el.classList.remove('focus');
-		ide.plugins.trigger('editor.blur', this);
-	}
-
-	/**
-	 * Focus editor. Sets ide.editor.
-	 */
-	focus()
-	{
-		if (ide.editor === this)
-			return;
-
-		if (ide.editor)
-			ide.editor.blur();
-
-		ide.editor = this;
-
-		this.el.classList.add('focus');
-		ide.plugins.trigger('editor.focus', this);
 	}
 	
 	quit()
@@ -349,82 +412,8 @@ class Editor {
 
 }
 	
-/**
- * Editor with ide.File support
- */
-class FileEditor extends Editor {
-
-	initialize(p)
-	{
-		this._setFile(p.file);
-	}
-	
-	getTitle()
-	{
-	var
-		editor = this,
-		plugin = editor.plugin && editor.plugin.name || editor.plugin,
-		file = editor.file.filename || 'No Name'
-	;
-		return (plugin ? plugin + ':' : '') + file;
-	}
-	
-	getHash()
-	{
-	var
-		editor = this,
-		plugin = editor.plugin && editor.plugin.name || editor.plugin,
-		file = editor.file.filename || ''
-	;
-		return (plugin ? plugin + ':' : '') + encodeURIComponent(file);
-	}
-
-	changed()
-	{
-		return this.file.hasChanged();
-	}
-
-	/**
-	 * Saves file.
-	 */
-	write(file, force)
-	{
-		var value = this.file.content;
-
-		if (file && this.file !== file)
-		{
-			this._setFile(file);
-			file.content = value;
-		}
-		else
-			file = this.file;
-		
-		if (!file.filename)
-			return ide.error('No file name.');
-
-		if (!force && file.old)
-			return ide.error('File contents have changed.');
-
-		ide.notify('File ' + file.id + ' saved.');
-		
-		file.save();
-	}
-
-	_setFile(file)
-	{
-		this.file = file;
-		this.title = this.getTitle();
-	}
-	
-	quit(force)
-	{
-		if (!force && this.changed())
-			return 'File has changed. Are you sure?';
-
-		super.quit(force);
-	}
-	
-}
+Editor.feature('header', EditorHeader);
+Editor.feature('focus', FocusFeature);
 
 function _start()
 {
@@ -452,8 +441,9 @@ Object.assign(ide, {
 	Pass: {},
 		
 	EditorHeader: EditorHeader,
+	CursorFeature: CursorFeature,
+	FocusFeature: FocusFeature,
 	Editor: Editor,
-	FileEditor: FileEditor,
 	Item: Item,
 	Notification: Notification,
 
@@ -509,54 +499,34 @@ Object.assign(ide, {
 	 */
 	open: function(options)
 	{
-		if (!options || typeof(options)==='string' || options instanceof ide.File)
-			options = { file: options || '' };
-
-		var name, fn='edit', plugin=options.plugin, plugins=this.plugins;
-
-		if (typeof(plugin)==='string')
-		{
-			// 'plugin.method'
-			name = plugin.split('.');
-			options.plugin = plugins.get(name[0]);
-			if (!options.plugin)
-				return ide.error('Plugin not found: ' + name[0]);
-
-			options.fn = fn = name[1] || 'open';
-		}
-
 		options.slot = options.slot || ide.workspace.slot();
 
 		function loadEditor(file)
 		{
-			if (file)
-				options.file = file;
-
-			var editor = plugins.findPlugin(options);
-
-			if (editor)
+			var editor;
+			
+			options.file = file;
+			
+			if (options.plugin)
 			{
-				ide.workspace.add(editor, options.focus);
+				editor = options.command ?
+					options.plugin.commands[options.command].call(options.plugin, file) :
+					options.plugin.open(options);
 			} else
-				options.slot.remove();
+				editor = ide.plugins.findPlugin(options);
+			
+			ide.workspace.add(editor, options.focus);
 			
 			return editor;
 		}
 
-		return (fn==='edit') ?
-			this.loadFile(options.file).then(loadEditor) :
+		return options.file ? this.loadFile(options.file).then(loadEditor) :
 			Promise.resolve(loadEditor());
 	},
 
 	loadFile: function(file)
 	{
-		if (typeof(file)==='string')
-			file = ide.fileManager.getFile(file);
-
-		return file.content || !file.filename ?
-			Promise.resolve(file) :
-			file.fetch()
-		;
+		return file.content || !file.filename ? Promise.resolve(file) : file.fetch();
 	},
 
 	/** Displays notification on right corner */

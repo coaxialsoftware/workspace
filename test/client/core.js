@@ -150,17 +150,25 @@ var
 
 QUnit.test('ide.Editor#blur', function(a) {
 var
-	e = new ide.Editor({
-		plugin: { name: 'test' },
-		slot: ide.workspace.slot()
+	A = new ide.Editor({
+		plugin: { name: 'test' }
+	}),
+	B = new ide.Editor({
+		plugin: { name: 'test' }
 	})
 ;
-	a.ok(ide.editor!==e);
-	e.focus();
-	a.equal(ide.editor, e);
-	e.blur();
-	a.ok(ide.editor!==e);
-	e.quit();
+	ide.workspace.add(A);
+	ide.workspace.add(B);
+	
+	a.ok(ide.editor!==A);
+	a.ok(ide.editor===B);
+	
+	A.focus();
+	a.equal(ide.editor, A);
+	B.focus();
+	a.equal(ide.editor, B);
+	A.quit();
+	B.quit();
 });
 
 
