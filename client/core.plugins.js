@@ -226,7 +226,20 @@ ide.plugins = new PluginManager();
 ide.plugins.register('plugins', {
 	commands: {
 		plugins: function() {
-			return this.open();
+		var
+			me = this, l = new ide.ListEditor({
+				plugin: this,
+				title: 'plugins',
+				itemTemplate: null,
+				itemClass: ide.Plugin.Item,
+				file: 'list'
+			})
+		;
+			cxl.ajax.get('/plugins').then(function(all) {
+				me.addPlugins(l, all);
+			});
+
+			return l;
 		}
 	},
 
@@ -246,28 +259,8 @@ ide.plugins.register('plugins', {
 		});
 
 		l.add(Object.values(all));
-	},
-
-	open: function(options)
-	{
-	var
-		me = this, l
-	;
-		l = new ide.Editor.List({
-			slot: options && options.slot,
-			plugin: this,
-			title: 'plugins',
-			itemTemplate: null,
-			itemClass: ide.Plugin.Item,
-			file: 'list'
-		});
-
-		cxl.ajax.get('/plugins').then(function(all) {
-			me.addPlugins(l, all);
-		});
-
-		return l;
 	}
+
 });
 
 })(this.ide, this.cxl);

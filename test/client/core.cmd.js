@@ -1,5 +1,5 @@
 
-QUnit.module('core.cmd');
+QUnit.module('ide.commandParser');
 
 QUnit.test('Should Parse Single Command With No Parameters', function(a) {
 var
@@ -85,4 +85,45 @@ var
 	a.equal(cmd[1].args[1], 'No Spaces');
 	a.equal(cmd[1].args[2].source, 'abc');
 	a.equal(cmd[1].args[3], 'hell`o');
+});
+
+QUnit.test('commandParser.run()', function(a) {
+	
+	var done = a.async();
+
+	ide.registerCommand('test', function(n, s) {
+		a.equal(n, 10);
+		a.equal(s, 'hello');
+	});
+	
+	ide.commandParser.run('test 10 "hello"');
+	
+	ide.registerCommand('test', {
+		fn: function(s, n) {
+			a.equal(n, 10);
+			a.equal(s, 'hello');
+			done();
+		}
+	});
+	
+	ide.commandParser.run('test "hello" 10');
+});
+
+QUnit.module('ide.Command');
+
+QUnit.test('ide.Command#constructor', function(a) {
+var
+	done = a.async(),
+	scope = { test: 'test' },
+	A = new ide.Command('test', function(num) {
+		a.equal(num, 10);
+	}),
+	B = new ide.Command('test2', function(test) {
+		a.equal(this.test, test);
+		done();
+	}, scope)
+;
+	a.ok(A instanceof ide.Command);
+	A.apply(null, [ 10 ]);
+	B.apply(null, [ 'test' ]);
 });

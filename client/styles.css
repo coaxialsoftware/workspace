@@ -128,6 +128,7 @@ ide-editor-header {
 	overflow: hidden; white-space: nowrap; margin: 0; padding: 0 8px;
 	font-size: 16px; color: rgba(255,255,255,0.7);
 }
+ide-editor-header > .modified:before { /*content: "\f067";*/ content: "+"; }
 
 .list ide-editor-content { padding: 8px; }
 
@@ -250,7 +251,6 @@ div.CodeMirror-cursors { visibility: hidden; }
 
 .icon:hover { color: #fff; }
 .icon:focus { color: #fff; outline: 1px solid #ccc; }
-.icon-modified:before { /*content: "\f067";*/ content: "+"; }
 
 .item {
 	box-sizing: border-box;

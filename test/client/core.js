@@ -140,12 +140,10 @@ QUnit.test('ide.Editor', function(a) {
 var
 	e = new ide.Editor({
 		plugin: { name: 'test' },
-		title: 'test',
-		slot: ide.workspace.slot()
+		title: 'test'
 	})
 ;
 	a.equal(e.title, 'test');
-	e.quit();
 });
 
 QUnit.test('ide.Editor#blur', function(a) {
@@ -157,32 +155,23 @@ var
 		plugin: { name: 'test' }
 	})
 ;
-	ide.workspace.add(A);
-	ide.workspace.add(B);
-	
-	a.ok(ide.editor!==A);
-	a.ok(ide.editor===B);
-	
-	A.focus();
+	A.focus.set();
 	a.equal(ide.editor, A);
-	B.focus();
+	B.focus.set();
 	a.equal(ide.editor, B);
-	A.quit();
-	B.quit();
 });
 
 
 QUnit.test('ide.Editor#quit', function(a) {
 var
 	e = new ide.Editor({
-		plugin: { name: 'test' },
-		slot: ide.workspace.slot()
+		plugin: { name: 'test' }
 	})
 ;
-	ide.workspace.add(e);
-	a.equal(ide.workspace.editors.length, 1);
-	e.quit();
-	a.equal(ide.workspace.editors.length, 0);
+	ide.workspace.slot().setEditor(e);
+	a.equal(ide.workspace.slots.length, 1);
+	ide.workspace.remove(e);
+	a.equal(ide.workspace.slots.length, 0);
 });
 
 QUnit.module('ide.FileEditor');
@@ -196,7 +185,6 @@ var
 	})
 ;
 	a.equal(e.file, file);
-	e.quit();
 });
 
 /*QUnit.test('ide.Editor#cmd', function(a) {

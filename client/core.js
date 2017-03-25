@@ -7,7 +7,8 @@
 "use strict";
 	
 var
-	ide = window.ide = { version: '2.0.0' }
+	ide = window.ide = { version: '2.0.0' },
+	editorId = 1
 ;
 	
 class Item {
@@ -154,15 +155,28 @@ class Logger {
 		return span;
 	}
 }
-	
-class EditorHeader {
-	
+
+/**
+ * A feature defines a set of functions and commands for an Editor.
+ */
+class Feature {
+
 	constructor(editor)
 	{
+		this.editor = editor;
+		editor[this.constructor.featureName] = this;
+	}
+
+}
+	
+class EditorHeader extends Feature {
+
+	constructor(e)
+	{
+		super(e);
+		
 		var el = this.el = document.createElement('ide-editor-header');
 		
-		editor.header = this;
-		this.editor = editor;
 		this.tags = {};
 		
 		el.innerHTML = '<div class="close"></div><div class="tags"></div>' +
@@ -172,16 +186,45 @@ class EditorHeader {
 		this.$tags = el.childNodes[1];
 		this.$changed = el.childNodes[2];
 		this.$title = el.childNodes[3];
-		
-		editor.el.appendChild(this.el);
-		editor.listenTo(this.$close, 'click', this.onClose);
-		editor.listenTo(ide.plugins, 'assist', this.render.bind(this));
+		this._title = '';
+		this.changed = false;
+	}
+	
+	render()
+	{
+		this.editor.el.appendChild(this.el);
+		this.editor.listenTo(this.$close, 'click', this.onClose);
+	}
+
+	set title(title)
+	{
+		if (this._title!==title)
+			this.$title.innerHTML = this._title = title;
+	}
+
+	get title()
+	{
+		return this._title;
+	}
+
+	set changed(val)
+	{
+		if (this._changed!==val)
+		{
+			this._changed = val;
+			this.$changed.style.display = val ? 'inline' : 'none';
+		}
+	}
+
+	get changed()
+	{
+		return this._changed;
 	}
 	
 	onClose(ev)
 	{
 		ev.preventDefault(); ev.stopPropagation();
-		this.quit();
+		ide.workspace.remove(this);
 	}
 	
 	createTag(id)
@@ -212,40 +255,28 @@ class EditorHeader {
 			el.el.className = 'label ' + (kls || '');
 		}
 	}
+		
+}
+
+EditorHeader.featureName = 'header';
 	
+class FocusFeature extends Feature
+{
 	render()
 	{
-	var
-		e = this.editor,
-		title = e.title
-	;
-		if (this.title!==title)
-			this.$title.innerHTML = this.title = title;
-	}
-	
-}
-	
-class FocusFeature
-{
-	constructor(editor)
-	{
-		this.editor = editor;
-		editor.focus = this.focus.bind(this);
-		editor.focus.blur = this.blur.bind(this);
-		editor.listenTo(editor.el, 'click', editor.focus);
+		this.editor.listenTo(this.editor.el, 'click', this.set.bind(this));
 	}
 	
 	blur()
 	{
 		ide.editor = null;
 		this.editor.el.classList.remove('focus');
-		ide.plugins.trigger('editor.blur', this.editor);
 	}
 
 	/**
 	 * Focus editor. Sets ide.editor.
 	 */
-	focus()
+	set()
 	{
 		if (ide.editor === this.editor)
 			return;
@@ -261,16 +292,11 @@ class FocusFeature
 	
 }
 
-class CursorFeature {
+FocusFeature.featureName = 'focus';
 
-	constructor(editor)
-	{
-		editor.cursor = this;
-		this.editor = editor;
-	}
+class CursorFeature extends Feature { }
 
-}
-
+CursorFeature.featureName = 'cursor';
 CursorFeature.commands = {
 	'cursor.goUp': function() { this.cursor.goUp(); },
 	'cursor.goDown': function() { this.cursor.goDown(); },
@@ -278,30 +304,136 @@ CursorFeature.commands = {
 	'cursor.goBackwards': function() { this.cursor.goBackwards(); },
 	'cursor.goStart' : function() { this.cursor.goStart(); },
 	'cursor.goEnd' : function() { this.cursor.goEnd(); },
-	// TODO remove
-	'goLineUp': 'cursor.goUp',
-	'goLineDown': 'cursor.goDown'
+	'cursor.enter': function(shift, mod) { this.cursor.enter(shift, mod); }
 };
+
+class HintsFeature extends Feature {
+}
+
+HintsFeature.featureName = 'hints';
+
+class InsertFeature extends Feature {
+	
+}
+
+InsertFeature.featureName = 'insert';
+InsertFeature.commands = {
+	'insert.enable': function() { this.insert.enable(); },
+	'insert.disable': function() { this.insert.disable(); },
+	'insert.line': function() { this.insert.line(); },
+	'insert.tab': function() { this.insert.tab(); },
+	'insert.backspace': function() { this.insert.backspace(); },
+	'insert.del': function() { this.insert.del(); }
+};
+
+class HashFeature extends Feature {
+
+	serializeArg(arg)
+	{
+		// TODO
+		return arg;	
+	}
+
+	get()
+	{
+	var
+		editor = this.editor,
+		p = editor.plugin && editor.plugin.name,
+		cmd = editor.command || '',
+		args = editor.arguments ? editor.arguments.map(this.serializeArg).join(' ') : ''
+	;
+		return (p && cmd ? p + '.' : p || '') + cmd + ':' + args;
+	}
+}
+
+HashFeature.featureName = 'hash';
+
+class SearchFeature extends Feature { }
+
+SearchFeature.featureName = 'search';
+SearchFeature.commands = {
+	'search.next': function() { this.search.next(); },
+	'search.previous': function() { this.search.previous(); },
+	'search': 'search.next'
+};
+
+class ScrollFeature extends Feature { }
+
+ScrollFeature.featureName = 'scroll';
+
+class SelectionFeature extends Feature {
+
+}
+
+SelectionFeature.featureName = 'selection';
+SelectionFeature.commands = {
+	'selection.begin': function() { this.selection.begin(); },
+	'selection.end': function() { this.selection.end(); },
+	'selection.clear': function() { this.selection.clear(); },
+	'selection.remove': function() { this.selection.remove(); }
+};
+
+class LineFeature extends Feature { }
+
+LineFeature.featureName = 'line';
+LineFeature.commands = {
+	'line.select': function() { this.line.select(); },
+	'line.goStart': function() { this.cursor.go(this.line.rowStart, this.line.columnStart); },
+	'line.goEnd': function() { this.cursor.go(this.line.rowEnd, this.line.columnEnd); }
+};
+
+class HistoryFeature extends Feature { }
+
+HistoryFeature.featureName = 'history';
+HistoryFeature.commands = {
+	'history.undo': function() { this.history.undo(); },
+	'history.redo': function() { this.history.redo(); }
+};
+
+class WordFeature extends Feature { }
+
+WordFeature.featureName = 'word';
+WordFeature.commands = {
+	'word.goNext': function() {
+		this.cursor.go(undefined, this.word.current.endColumn);
+		this.cursor.goForward();
+	},
+
+	'word.goPrevious': function() {
+		this.cursor.go(undefined, this.word.current.startColumn);
+	}
+};
+
+class PageFeature extends Feature { }
+
+PageFeature.featureName = 'page';
+
+class TokenFeature extends Feature { }
+
+TokenFeature.featureName = 'token';
+
+class Token {
+
+}
+
+class Range {
+
+
+}
 	
 class Editor {
 
 	constructor(p)
 	{
+		this.id = editorId++;
 		this.bindings = [];
 		this.plugin = p.plugin;
-		this.slot = p.slot || ide.workspace.slot();
-		this.el = this.slot.el;
+		this.el = document.createElement('DIV');
 		this.keymap = new ide.KeyMap(this);
 		this.command = p.command;
-		this.title = p.title || p.command;
 		this.features = {};
 		
-		this.loadFeatures(p);
-		
-		if (this.initialize)
-			this.initialize(p);
-		
-		this.render(p);
+		this.loadFeatures(p);		
 		
 		ide.plugins.trigger('editor.load', this);
 	}
@@ -323,46 +455,49 @@ class Editor {
 			this.commands[i] = fn; 
 		}
 	}
-	
-	static feature(name, Feature)
+
+	static features()
 	{
-		if (!this.hasOwnProperty('features'))
-			this.features = Object.assign({}, this.features);
-		
-		this.features[name] = Feature;
-		
-		if (Feature.commands)
-			this.registerCommands(Feature.commands);
+		if (!this.hasOwnProperty('$features'))
+			this.$features = Object.assign({}, this.$features);
+
+		for (var Feature of arguments)
+		{
+			this.$features[Feature.featureName] = Feature;
+			
+			if (Feature.commands)
+				this.registerCommands(Feature.commands);
+		}
+	}
+
+	supports(featureName)
+	{
+		return featureName in this.features;
 	}
 	
 	loadFeatures(p)
 	{
-		var features = this.constructor.features, i;
+		var features = this.constructor.$features, i;
 		
 		for (i in features)
 			this.features[i] = new features[i](this, p);
-		
-		for (i in features)
-			if (this.features[i].render)
-				this.features[i].render();
+
+		this.render(p);
+
+		cxl.invokeMap(this.features, 'render');
 	}
 	
 	/**
 	 * Render editor content.
 	 */
-	render()
+	render(p)
 	{
 		this.$content = document.createElement('ide-editor-content');
 		
 		this.el.appendChild(this.$content);
-	}
-	
-	getHash()
-	{
-		var p = this.plugin && this.plugin.name, cmd = this.command || '';
-		
-		// TODO Verify
-		return (p ? p + '.' : '') + cmd + ':';  
+
+		if (p.title)
+			this.header.title = p.title;
 	}
 	
 	/**
@@ -406,14 +541,11 @@ class Editor {
 	
 	quit()
 	{
-		ide.workspace.remove(this);
-		ide.plugins.trigger('editor.quit', this);
 	}
 
 }
 	
-Editor.feature('header', EditorHeader);
-Editor.feature('focus', FocusFeature);
+Editor.features(HashFeature, EditorHeader, FocusFeature);
 
 function _start()
 {
@@ -434,15 +566,33 @@ function _start()
 	ide.searchBar = new ide.Bar.Search();
 	ide.commandBar = new ide.Bar.Command();
 }
-	
+		
 Object.assign(ide, {
 
 	/** Used by commands to indicate that the command wasn't handled. */
 	Pass: {},
 		
-	EditorHeader: EditorHeader,
-	CursorFeature: CursorFeature,
-	FocusFeature: FocusFeature,
+	Feature: Feature,
+	Token: Token,
+	Range: Range,
+
+	feature: {
+		EditorHeader: EditorHeader,
+		CursorFeature: CursorFeature,
+		FocusFeature: FocusFeature,
+		SearchFeature: SearchFeature,
+		HashFeature: HashFeature,
+		ScrollFeature: ScrollFeature,
+		SelectionFeature: SelectionFeature,
+		LineFeature: LineFeature,
+		HistoryFeature: HistoryFeature,
+		WordFeature: WordFeature,
+		PageFeature: PageFeature,
+		TokenFeature: TokenFeature,
+		InsertFeature: InsertFeature,
+		HintsFeature: HintsFeature
+	},
+
 	Editor: Editor,
 	Item: Item,
 	Notification: Notification,
@@ -497,37 +647,7 @@ Object.assign(ide, {
 	 *
 	 * @return {Promise}
 	 */
-	open: function(options)
-	{
-		options.slot = options.slot || ide.workspace.slot();
 
-		function loadEditor(file)
-		{
-			var editor;
-			
-			options.file = file;
-			
-			if (options.plugin)
-			{
-				editor = options.command ?
-					options.plugin.commands[options.command].call(options.plugin, file) :
-					options.plugin.open(options);
-			} else
-				editor = ide.plugins.findPlugin(options);
-			
-			ide.workspace.add(editor, options.focus);
-			
-			return editor;
-		}
-
-		return options.file ? this.loadFile(options.file).then(loadEditor) :
-			Promise.resolve(loadEditor());
-	},
-
-	loadFile: function(file)
-	{
-		return file.content || !file.filename ? Promise.resolve(file) : file.fetch();
-	},
 
 	/** Displays notification on right corner */
 	notify: function(message, kls)
@@ -540,6 +660,58 @@ Object.assign(ide, {
 	}
 		
 });
+	
+function loadFile(file)
+{
+	return file.content || !file.filename ? Promise.resolve(file) : file.fetch();
+}
+	
+function findPlugin(options)
+{
+	if (options.plugin)
+	{
+		return options.command ?
+			options.plugin.commands[options.command].call(options.plugin, options.params) :
+		options.plugin.open(options);
+	}
+	
+	return ide.plugins.findPlugin(options);
+}
+
+function loadEditor(options, file)
+{
+	options.file = file;
+	var editor = findPlugin(options);
+
+	options.slot.setEditor(editor);
+
+	if (options.focus!==false)
+		editor.focus.set();
+
+	return editor;
+}
+
+function onOpenError(options, e)
+{
+	if (options.slot)
+		ide.workspace.removeSlot(options.slot);
+
+	ide.error('Error opening editor.');
+	window.console.error(e);
+
+	return Promise.reject(e);
+}
+	
+ide.open = function(options)
+{
+	options.slot = options.slot || ide.workspace.slot();
+
+	if (options.file && !(options.file instanceof ide.File))
+		options.file = new ide.File(options.file);
+
+	return (options.file ? loadFile(options.file).then(loadEditor.bind(ide, options)) :
+		Promise.resolve(loadEditor(options))).catch(onOpenError.bind(ide, options));
+};
 
 	if (document.readyState!=='loading')
 		window.setTimeout(_start);

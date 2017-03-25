@@ -11,8 +11,10 @@ var
 	// a group (eg {*.html,*.js}), and false otherwise.
 	inGroup = false,
 
-	c, len = glob.length, i=0
+	c, len = glob && glob.length, i=0
 ;
+	if (!len)
+		return /[\s\S]*/;
 
 	for (;i < len; i++) {
 		c = glob[i];
@@ -68,9 +70,29 @@ function getMask(token)
 		token.string.substr(1, token.string.length-2) : token.string;
 }
 
-class ListEditorCursor extends ide.CursorFeature {
+class ListEditorCursor extends ide.feature.CursorFeature {
 	
-	_findFocus()
+	render()
+	{
+		this.editor.listenTo(this.editor.$content, 'click', this.$onListClick.bind(this));
+	}
+	
+	$onListClick(ev)
+	{
+		var target = ev.target;
+		
+		while (target!==this.editor.el && !target.$item)
+			target = target.parentNode;
+		
+		if (target.$item)
+		{
+			target.focus();
+			// TODO see if we need to use another key for alt
+			this.enter(ev.shiftKey, ev.altKey);
+		}
+	}
+	
+	get current()
 	{
 		return this.editor.children.find(function(i) {
 			return i.el.matches(':focus') && i.el.style.display!=='none';
@@ -105,7 +127,7 @@ class ListEditorCursor extends ide.CursorFeature {
 
 	goDown(dir)
 	{
-		var i = this._findFocus();
+		var i = this.current;
 
 		if (i)
 		{
@@ -146,63 +168,100 @@ class ListEditorCursor extends ide.CursorFeature {
 
 		if (c)
 			c.el.focus();
-	}	
+	}
+	
+	enter(shift, mod)
+	{
+		var c = this.current;
+		
+		if (c && c.enter)
+			c.enter(shift, mod);
 
+		if (!shift)
+			ide.workspace.remove(this.editor);
+	}
+
+}
+
+class ListSearchFeature extends ide.feature.SearchFeature {
+
+	constructor(editor)
+	{
+		super(editor);
+		this.editor = editor;
+		editor.search = this.search.bind(this);
+	}
+	
+	_findTest(regex, file)
+	{
+		return regex.test(file.title);
+	}
+	
+	search(regex)
+	{
+	var
+		children = this.editor.children,
+		i=0, files = children,
+		childrenEl = this.editor.$list.children, clear=!regex
+	;
+		for (; i<files.length; i++)
+			childrenEl[i].style.display =
+				(clear || this._findTest(regex, files[i])) ?
+					'block' : 'none';
+	}
+
+}
+
+// TODO see if we need to scroll by row
+class ListScrollFeature extends ide.feature.ScrollFeature {
+
+	render()
+	{
+		this.editor.listenTo(this.editor.$content, 'wheel', this.onWheel.bind(this));
+	}
+
+	get top()
+	{
+		return this.editor.$content.scrollTop;
+	}
+
+	get left()
+	{
+		return this.editor.$content.scrollLeft;
+	}
+
+	set(x, y)
+	{
+		if (x!==undefined && x!==null)
+			this.editor.$content.scrollLeft = x;
+
+		if (y!==undefined)
+			this.editor.$content.scrollTop = y;
+	}
+
+	onWheel(ev)
+	{
+		var dY = ev.deltaY;
+		this.set(null, this.top+dY);
+		ev.preventDefault();
+	}
 }
 
 class ListEditor extends ide.Editor {
 	
-	initialize(p)
+	render(p)
 	{
-		this.children = p.children;
-	}
-
-	onListClick(ev)
-	{
-		if (!this.onItemClick)
-			return;
-		
-		var target = ev.target;
-		
-		while (!target.$item && target!==this.el)
-			target = target.parentNode;
-		
-		if (target.$item)
-			this.onItemClick(ev, target.$item);
-			
-		ev.preventDefault();
-	}
-
-	render()
-	{
-		super.render();
+		super.render(p);
 		this.el.classList.add('list');
 		this.$list = document.createElement('ide-editor-list');
 		this.$footer = document.createElement('ide-editor-footer');
 		
 		this.$content.appendChild(this.$list);
 		this.$content.appendChild(this.$footer);
-		
-		this.listenTo(this.$content, 'wheel', this.onWheel);
-		this.listenTo(this.$content, 'keydown', this.onKey);
-		this.listenTo(this.$content, 'click', this.onListClick);
 
-		this.children = this.children ? this._addElements(this.children, 0) : [];
+		this.children = p.children ? this._addElements(p.children, 0) : [];
 	}
 
-	onWheel(ev)
-	{
-		var dY = ev.deltaY;
-		this.$content.scrollTop += dY;
-		ev.preventDefault();
-	}
-
-	// TODO see if it makes sense to use a keymap for this...
-	onKey(ev)
-	{
-		if (ev.keyCode===13)
-			this._onClick(ev.target, ev);
-	}
 
 	// TODO support remove?
 	_addElements(items)
@@ -229,73 +288,44 @@ class ListEditor extends ide.Editor {
 
 	focus()
 	{
-		var i = this._findFocus();
+		var i = this.current;
 		
 		if (i)
 			i.el.focus();
-		
-		ide.Editor.prototype.focus.call(this);
-	}
 
-	_findTest(regex, file)
-	{
-		return regex.test(file.title);
-	}
-	
-	search(regex)
-	{
-	var
-		i=0, files = this.children,
-		children = this.$list.children, clear=!regex
-	;
-		for (; i<files.length; i++)
-			children[i].style.display =
-				(clear || this._findTest(regex, files[i])) ?
-					'block' : 'none';
+		super.focus();
 	}
 
 }
 	
-ListEditor.feature('cursor', ListEditorCursor);
-	
-class FileListEditor extends ListEditor {
-	
-	constructor(p)
-	{
-		super(p);
-		
-		this.file = p.file;
-		this.prefix = p.prefix;
-		this.getHash = ide.FileEditor.prototype.getHash;
-	}
+ListEditor.features(ListEditorCursor, ListSearchFeature, ListScrollFeature);
 
-	_findTest(regex, file)
-	{
-		return regex.test(file.title);
-	}
+class FileItem extends ide.Item {
 
-	onItemClick(ev, item)
+	enter(shift, mod)
 	{
 	var
+		item = this,
 		title = item.value || item.title,
 		options = {
 			file: (this.prefix ? this.prefix+'/' : '') + title,
-			focus: !ev.shiftKey
+			focus: !shift
 		}
 	;
 		if (item.line)
 			options.line = item.line;
 
-		if (ev.ctrlKey)
+		if (mod)
 			options.target = '_blank';
 
 		ide.open(options);
-
-		if (options.focus)
-			this.quit();
 	}
 
 }
+
+class FileListEditor extends ListEditor { }
+
+FileListEditor.features(ide.feature.FileHashFeature, ide.feature.FileFeature);
 	
 var worker = new ide.Worker({
 	
@@ -388,35 +418,6 @@ ide.plugins.register('find', new ide.Plugin({
 			});
 	},
 
-	open: function(options)
-	{
-	var
-		token = ide.editor && ide.editor.token,
-		mask = options.file || (token && getMask(token)) || '',
-		files = this.find(mask).map(function(val) {
-			return new ide.Item({ title: val.title, icon: val.icon });
-		})
-	;
-		if (!files)
-			return ide.warn('[find] No files found in project.');
-
-		if (files.length===1)
-			ide.open({
-				file: files[0].title,
-				slot: options.slot
-			});
-		else if (files.length===0)
-			ide.notify('No files found that match "' + mask + '"');
-		else
-			return new ide.FileListEditor({
-				title: 'find ' + mask,
-				file: mask,
-				children: files,
-				plugin: this,
-				slot: options.slot
-			});
-	},
-
 	commands: { /** @lends ide.commands */
 
 		/**
@@ -426,10 +427,33 @@ ide.plugins.register('find', new ide.Plugin({
 		 */
 		find: function(mask)
 		{
-			return this.open({ file: mask, plugin: this });
-		}
+		var
+			token = ide.editor && ide.editor.token,
+			files = this.find(mask).map(function(val) {
+				return new FileItem({ title: val.title, icon: val.icon });
+			})
+		;
+			mask = mask || (token && getMask(token)) || '';
+			
+			if (!files)
+				return ide.warn('[find] No files found in project.');
 
-	}
+			if (files.length===1)
+				ide.open({
+					file: new ide.File(files[0].title)
+				});
+			else if (files.length===0)
+				ide.notify('No files found that match "' + mask + '"');
+			else
+				return new ide.ListEditor({
+					title: 'find ' + mask,
+					command: 'find', args: mask,
+					children: files,
+					plugin: this
+				});
+			}
+
+		}
 
 }));
 
@@ -444,27 +468,33 @@ ide.plugins.register('folder', new ide.Plugin({
 
 	},
 
-	edit: function(options)
+	open: function(options)
 	{
-		var file=options.file, files, path;
+		var file=options.file, files, path, prefix;
 
-		if (file.attributes.directory)
+		if (file && file.attributes.directory)
 		{
+			path = file.filename;
+			prefix = path==='.' ? '' : (path + '/');
+
 			files = file.content.map(function(f) {
-				return new ide.Item({
-					title: f.filename, className: f.directory ? 'directory' : 'file'
+				return new FileItem({
+					title: f.filename,
+					prefix: prefix,
+					className: f.directory ? 'directory' : 'file'
 				});
 			});
 
-			files.unshift(new ide.Item({ title: '..', className: 'directory' }));
-			path = file.filename;
+			files.unshift(new FileItem(
+				{ title: '..', className: 'directory', prefix: prefix }
+			));
 
 			return new ide.FileListEditor({
 				file: file,
 				children: files,
 				title: path,
-				prefix: path==='.' ? '' : (path + '/'),
-				slot: options.slot
+				slot: options.slot,
+				plugin: this
 			});
 		}
 	}

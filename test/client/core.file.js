@@ -38,7 +38,7 @@ var
 	cxl.ajax = ajax;
 });
 
-QUnit.test('File#save()', function(a) {
+QUnit.test('File#write()', function(a) {
 var
 	f = new ide.File('test'),
 	done = a.async(),
@@ -55,13 +55,13 @@ var
 		});
 	};
 	
-	f.save().then(function() {
+	f.write().then(function() {
 		a.equal(f.id, 'test');
 		a.equal(f.mime, 'text/plain');
 		a.equal(f.content, 'Hello World');
 		a.equal(request.method, 'POST');
 		
-		f.save().then(function() {
+		f.write().then(function() {
 			a.equal(f.id, 'test');
 			a.equal(request.method, 'PUT');
 			cxl.ajax = ajax;
@@ -90,7 +90,7 @@ var
 	f.content = 'Hello';
 	a.ok(f.hasChanged());
 	
-	f.save().then(function() {
+	f.write().then(function() {
 		a.ok(!f.hasChanged());
 	}).then(done);
 	
@@ -98,17 +98,7 @@ var
 	
 });
 
-QUnit.module('FileManager');
-
-QUnit.test('FileManager#getFile()', function(a) {
-	
-	var f = ide.fileManager.getFile('test');
-	
-	a.equal(f.filename, 'test');
-	
-});
-
-QUnit.test('FileManager#onMessageStat()', function(a) {
+QUnit.test('File#onMessageStat()', function(a) {
 	var notify=ide.notify, warn=ide.warn, ajax=cxl.ajax, done=a.async();
 	
 	cxl.ajax = function(p) {
@@ -124,10 +114,10 @@ QUnit.test('FileManager#onMessageStat()', function(a) {
 	ide.notify = function notify() { notify.called = true; };
 	ide.warn = function warn() { warn.called = true; };
 	
-	ide.open('test').then(function(e) {
-		a.ok(ide.workspace.editors.length);
+	ide.open({ file: new ide.File('test') }).then(function(e) {
+		a.ok(ide.workspace.slots.length);
 
-		ide.fileManager.onMessageStat({
+		e.file.onMessageStat({
 			f: 'test', t: Date.now()
 		});
 
@@ -136,7 +126,7 @@ QUnit.test('FileManager#onMessageStat()', function(a) {
 		
 		e.file.content = 'World';
 		
-		ide.fileManager.onMessageStat({
+		e.file.onMessageStat({
 			f: 'test', t: Date.now()
 		});
 		

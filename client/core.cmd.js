@@ -140,7 +140,7 @@ function tryCmd(commands, cmd, args)
 	if (!fn)
 		return ide.Pass;
 
-	return typeof(fn)==='string' ? ide.run(fn, args) : fn.apply(ide, args);
+	return typeof(fn)==='string' ? ide.run(fn, args) : fn.apply(null, args);
 }
 
 /** Execute single command. */
@@ -162,8 +162,11 @@ var
 
 	if (result instanceof ide.Editor)
 	{
-		ide.workspace.add(result);
-		result.focus();
+		// TODO ?
+		result.command = fn;
+		result.arguments = args;
+		ide.workspace.slot().setEditor(result);
+		result.focus.set();
 	}
 
 	return result;
@@ -191,14 +194,10 @@ ide.editorCommands = {};
 
 function addCmd(prop, name, def, scope)
 {
-	var type = typeof(def);
-
 	if (name in prop)
 		window.console.warn('Overriding command "' + name + '"');
 
-	if (type==='function')
-		def = scope ? def.bind(scope) : def;
-	else if (type!=='string')
+	if (typeof(def)!=='string' && !(def instanceof ide.Command))
 		def = new ide.Command(name, def, scope);
 
 	prop[name] = def;
@@ -386,19 +385,11 @@ ide.plugins.register('cmd', {
  */
 ide.Command = class Command {
 	
-	constructor(name, def, plugin)
+	constructor(name, def, scope)
 	{
-		var fn = this.fn = this.run.bind(this);
-
 		this.name = name;
-		this.def = def;
-		this.plugin = plugin;
-
-		def.forEach(this.parse, this);
-
-		fn.getHints = this.getHints.bind(this);
-
-		return fn;
+		this.fn = typeof(def)==='function' ? def : def.fn;
+		this.scope = scope;
 	}
 
 	parse(def)
@@ -411,8 +402,8 @@ ide.Command = class Command {
 		if (!def.cmd)
 			this.fn.help = def.help;
 	}
-
-	getHints(editor, token)
+	
+	getToken(editor, token)
 	{
 	var
 		result = [], ch = token.string,
@@ -458,11 +449,9 @@ ide.Command = class Command {
 		return (def.match = match);
 	}
 
-	run()
+	apply(scope, args)
 	{
-		var fn = this.def.find(this.match.bind(this, arguments, true));
-
-		return fn ? fn.run(fn.match) : ide.Pass;
+		return this.fn.apply(scope || this.scope, args);
 	}
 
 };

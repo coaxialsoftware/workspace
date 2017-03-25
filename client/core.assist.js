@@ -65,7 +65,7 @@ cxl.extend(InlineAssist.prototype, {
 
 	_requestHints: function(editor, token)
 	{
-		token = token || editor.token;
+		token = token || editor.token && editor.token.current;
 	var
 		file = editor.file instanceof ide.File && editor.file
 	;
@@ -397,7 +397,7 @@ var Assist = cxl.View.extend({
 	{
 		editor = this.editor = editor || ide.editor;
 	var
-		token = editor && editor.token,
+		token = editor && editor.token && editor.token.current,
 		file = editor && (editor.file instanceof ide.File) && editor.file,
 		diff = file && file.diff()
 	;
@@ -511,7 +511,7 @@ ide.plugins.register('assist', new ide.Plugin({
 	{
 		var hints = [];
 
-		if (!ide.workspace.editors.length)
+		if (!ide.workspace.slots.length)
 		{
 			hints.push({ title: 'Documentation', action: 'help' });
 

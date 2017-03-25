@@ -17,7 +17,7 @@
 		"lodash": "4",
 		"micromatch": "*",
 		"firebase": "2",
-		"@cxl/cxl": "1",
+		"@cxl/cxl": "2",
 		"npm": "*"
 	},
 

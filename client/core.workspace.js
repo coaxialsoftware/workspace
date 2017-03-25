@@ -3,7 +3,7 @@
 "use strict";
 
 var
-	FILE_REGEX = /^([\w\-]+)(?:\.(\w+))?:(.*)$/
+	FILE_REGEX = /^(?:([\w\-]+)(?:\.(\w+))?:)?(.*)$/
 ;
 	
 class Hash {
@@ -60,8 +60,9 @@ class Hash {
 	{
 		var hash = this, files = [];
 
-		ide.workspace.editors.forEach(function(child) {
-			files.push(child.getHash());
+		ide.workspace.slots.forEach(function(child) {
+			if (child.editor)
+				files.push(child.editor.hash.get());
 		});
 
 		hash.set({ f: files });
@@ -89,13 +90,17 @@ class Hash {
 	
 	loadEditor(file)
 	{
-		var m = FILE_REGEX.exec(file);
-		
-		ide.open({
-			file: m[3] && new ide.File(decodeURIComponent(m[3])),
-			command: m[2],
-			plugin: m[1] && ide.plugins.get(m[1])
-		});
+	var
+		m = FILE_REGEX.exec(file),
+		filename = !m[2] && m[3] && new ide.File(decodeURIComponent(m[3]))
+	;
+		if (filename)
+			ide.open({
+				file: filename, 
+				plugin: m[1] && ide.plugins.get(m[1])
+			});
+		else
+			ide.run(m[2], [ m[3] ]);
 	}
 	
 	loadFiles()
@@ -175,19 +180,22 @@ ide.Layout = {
 
 class Slot {
 
-	constructor()
+	setEditor(editor)
 	{
-		this.el = document.createElement('DIV');
-	}
-
-	remove()
-	{
-		ide.workspace.el.removeChild(this.el);
+		this.editor = editor;
+		// TODO ?
+		editor.slot = this;
+		ide.workspace.el.appendChild(editor.el);
+		ide.workspace.update();
+		ide.plugins.trigger('workspace.add', editor);
 	}
 
 	setPosition(layout)
 	{
-		var s = this.el.style;
+		if (!this.editor)
+			return;
+		
+		var s = this.editor.el.style;
 		s.top = layout.top;
 		s.left = layout.left;
 		s.width = layout.width;
@@ -200,29 +208,66 @@ ide.Workspace = class Workspace {
 	constructor()
 	{
 		this.el = document.getElementById('workspace');
-		this.editors = [];
+		this.slots = [];
 		this.layout = ide.Layout.Smart;
-		window.addEventListener('resize', cxl.debounce(this.update.bind(this), 250));
+		this.update = cxl.debounce(this._update.bind(this));
+		window.addEventListener('resize', this.update);
 	}
 
 	/** Returns a slot(DIV) to place a new editor */
 	slot()
 	{
 		var slot = new Slot();
-		this.el.appendChild(slot.el);
+		this.slots.push(slot);
+		ide.workspace.update();
 		return slot;
 	}
-	
-	update()
-	{
-		var layout = this.layout(this.editors);
 
-		ide.workspace.editors.forEach(function(editor, i)
+	removeSlot(slot)
+	{
+	var
+		slots = this.slots,
+		i = slots.indexOf(slot)
+	;
+		slots.splice(i, 1);
+
+		if (slots[0] && slots[0].editor)
+			slots[0].editor.focus.set();
+		else
+			ide.editor = null;
+
+		this.update();
+	}
+	
+	doRemove(editor)
+	{
+		this.el.removeChild(editor.el);
+		this.removeSlot(editor.slot);
+		ide.plugins.trigger('workspace.remove', this.editor);
+	}
+	
+	// TODO does it make sense to have this here?
+	remove(editor)
+	{
+		var msg = editor.quit();
+		
+		if (msg && window.confirm(msg))
+			editor.quit(true);
+		
+		this.doRemove(editor);
+	}
+	
+	_update()
+	{
+		var layout = this.layout(this.slots);
+
+		ide.workspace.slots.forEach(function(slot, i)
 		{
-			editor.slot.setPosition(layout[i]);
-		}, this);
+			slot.setPosition(layout[i]);
+		});
 		
 		ide.hash.save();
+		ide.plugins.trigger('workspace.resize');
 	}
 	
 	swap(e1, e2)
@@ -251,9 +296,10 @@ ide.Workspace = class Workspace {
 			setTimeout(this.remove.bind(this, item));
 		});
 	}
+	*/
 
 	/** Find editor by id. */
-	/*find(id)
+	find(id)
 	{
 	var
 		slots = this.slots,
@@ -266,56 +312,25 @@ ide.Workspace = class Workspace {
 			if (editor && editor.id===id)
 				return editor;
 		}
-	}*/
-
-	add(item, focus)
-	{
-		this.editors.push(item);
-		
-		ide.plugins.trigger('workspace.add', item);
-
-		if (focus!==false)
-			item.focus();
-		
-		this.update();
-		ide.plugins.trigger('workspace.resize');
-		
-		ide.hash.save();
-	}
-
-	remove(item)
-	{
-		var i = this.editors.indexOf(item);
-		item.slot.remove();
-		
-		this.editors.splice(i, 1);
-		
-		if (this.editors[0])
-			this.editors[0].focus();
-		else
-			ide.editor = null;
-
-		ide.plugins.trigger('workspace.remove', item);
-		this.update();
 	}
 
 	/** Returns next editor */
 	next()
 	{
 	var
-		i = this.editors.indexOf(ide.editor),
-		next = this.editors[i+1] || this.editors[0]
+		i = this.slots.indexOf(ide.editor.slot),
+		next = this.slots[i+1] || this.slots[0]
 	;
-		return next;
+		return next && next.editor;
 	}
 
 	previous()
 	{
 	var
-		i = this.editors.indexOf(ide.editor),
-		next = this.editors[i-1] || this.editors[this.editors.length-1]
+		i = this.slots.indexOf(ide.editor.slot),
+		next = this.slots[i-1] || this.slots[this.editors.length-1]
 	;
-		return next;
+		return next && next.editor;
 	}
 
 };
@@ -391,44 +406,23 @@ ide.plugins.registerCommands({
 
 		r: 'read',
 
-		w: 'write',
-		save: 'write',
-
 		wq: function()
 		{
 			// TODO use one run.
 			ide.run('w').run('q');
 		},
 
-		write: function(filename, force)
+		'workspace.next': function()
 		{
-			var editor = ide.editor, file;
-			
-			if (!editor)
-				return ide.Pass;
-
-			if (filename)
-				file = ide.fileManager.getFile(filename);
-			
-			editor.write(file, force);
+			ide.workspace.next().focus.set();
 		},
 
-		'w!': function(filename)
+		'workspace.previous': function()
 		{
-			this.write(filename, true);
+			ide.workspace.previous().focus.set();
 		},
 
-		editorNext: function()
-		{
-			ide.workspace.next().focus();
-		},
-
-		editorPrevious: function()
-		{
-			ide.workspace.previous().focus();
-		},
-
-		editorMoveNext: function()
+		'workspace.swapNext': function()
 		{
 		var
 			l = ide.workspace.slots.length, i
@@ -440,7 +434,7 @@ ide.plugins.registerCommands({
 			}
 		},
 
-		editorMovePrevious: function()
+		'workspace.swapPrevious': function()
 		{
 		var
 			l = ide.workspace.slots.length, i
@@ -453,19 +447,6 @@ ide.plugins.registerCommands({
 
 		}
 
-	},
-
-	fileFormatApply: function(from, to)
-	{
-	var
-		file = ide.editor.file,
-		content
-	;
-		if (file instanceof ide.File)
-		{
-			content = file.content;
-			file.content = content.replace(from, to);
-		}
 	},
 
 	commands: {
@@ -487,19 +468,10 @@ ide.plugins.registerCommands({
 		edit: function() {
 			if (arguments.length)
 				for (var i=0; i<arguments.length; i++)
-					ide.open(arguments[i]);
+					ide.open({ file: new ide.File(arguments[i]) });
 			else
-				ide.open();
+				ide.open({});
 		},
-
-		fileformat: [
-			{ cmd: 'unix', fn: function() {
-				this.fileFormatApply(/\r/g, "");
-			}, editor: true },
-			{ cmd: 'dos', fn: function() {
-				this.fileFormatApply(/\n/g, "\r\n");
-			}, editor: true }
-		],
 
 		tabe: function(name)
 		{
@@ -520,10 +492,7 @@ ide.plugins.registerCommands({
 		{
 			if (ide.editor)
 			{
-				var msg = ide.editor.quit();
-
-				if (msg && window.confirm(msg))
-					ide.editor.quit(true);
+				ide.workspace.remove(ide.editor);
 			}
 			else
 				window.close();
@@ -557,11 +526,11 @@ ide.plugins.registerCommands({
 ide.Hash = Hash;
 	
 window.addEventListener('beforeunload', function(ev) {
-	var i=0, slots=ide.workspace.editors, msg;
+	var i=0, slots=ide.workspace.slots, msg;
 
 	for (; i<slots.length; i++)
 	{
-		msg = slots[i].quit();
+		msg = slots[i].editor.quit();
 		
 		if (typeof(msg)==='string')
 		{

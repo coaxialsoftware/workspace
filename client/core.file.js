@@ -13,6 +13,8 @@ class File {
 		this.content = '';
 		this.attributes = { content: '' };
 		this._createHint();
+		
+		this.subscriber = ide.plugins.on('socket.message.file', this.onMessage, this);
 	}
 
 	onSave()
@@ -45,6 +47,7 @@ class File {
 		this.id = data.path;
 		
 		this._createHint();
+		ide.plugins.trigger('file.parse', this);
 		
 		return this;
 	}
@@ -66,6 +69,29 @@ class File {
 		return Promise.reject(msg);
 	}
 	
+	onMessageStat(data)
+	{
+		if (this.attributes.mtime!==data.t)
+		{
+			if (this.hasChanged())
+			{
+				this.old = true;
+				ide.warn('File "' + this.id + '" contents could not be updated.');
+			}
+			else
+			{
+				this.fetch();
+				ide.notify('File "' + data.f + '" was updated.');
+			}
+		}
+	}
+
+	onMessage(data)
+	{
+		if (data.stat && data.stat.p===this.id)
+			this.onMessageStat(data.stat);
+	}
+	
 	fetch()
 	{
 		var url = this.url();
@@ -73,8 +99,28 @@ class File {
 		return cxl.ajax({ url: url }).then(this.parse.bind(this), this.onError.bind(this));
 	}
 
-	save()
+	write(filename, force)
 	{
+		if (this.attributes.directory)
+			return ide.warn('Cannot write to directory');
+
+		if (filename && this.filename !== filename)
+			this.filename = filename;
+		
+		if (!this.filename)
+			return ide.error('No file name.');
+
+		if (!force && this.old)
+			return ide.error('File contents have changed.');
+
+		ide.notify('File ' + this.id + ' saved.');
+		
+		return this.$save();
+	}
+
+	$save()
+	{
+
 		var url = this.url();
 		
 		ide.plugins.trigger('file.beforewrite', this);
@@ -108,66 +154,65 @@ class File {
 		} else
 			return this.lastDiff;
 	}
+	
+	destroy()
+	{
+		this.subscriber.unsubscribe();
+	}
 
 }
+	
+Object.assign(File.prototype, cxl.Events);
 	
 class FileFeature {
 	
 	constructor(editor, config)
 	{
-		this.file = config.file;
-		editor.file = config.file;
+		editor.file = this.file = config.file;
 	}
-	
-	write(file, force)
+
+	destroy()
 	{
-		var value = this.file.content;
-
-		if (file && this.file !== file)
-		{
-			this._setFile(file);
-			file.content = value;
-		}
-		else
-			file = this.file;
-		
-		if (!file.filename)
-			return ide.error('No file name.');
-
-		if (!force && file.old)
-			return ide.error('File contents have changed.');
-
-		ide.notify('File ' + file.id + ' saved.');
-		
-		file.save();
+		this.file.destroy();
 	}
 	
-	read()
+}
+
+FileFeature.featureName = 'file';
+FileFeature.commands = {
+
+	w: 'write',
+	save: 'write',
+
+	write: function(filename, force)
 	{
+		this.file.write(filename, force);
+	},
 
-	}
-	
-	hasChanged()
+	'w!': function(filename)
 	{
-		return this.file.hasChanged();
+		this.file.write(filename, true);
 	}
-	
+
+};
+
+class FileHashFeature extends ide.feature.HashFeature {
+
+	get()
+	{
+	var
+		editor = this.editor,
+		plugin = editor.plugin && editor.plugin.name || editor.plugin,
+		file = editor.file.filename || ''
+	;
+		return (plugin ? plugin+':' : '') + encodeURIComponent(file);
+	}
 }
 
 /**
  * Editor with ide.File support
  */
 class FileEditor extends ide.Editor {
-	
-	getHash()
-	{
-	var
-		editor = this,
-		plugin = editor.plugin && editor.plugin.name || editor.plugin,
-		file = editor.file.filename || ''
-	;
-		return (plugin ? plugin + ':' : '') + encodeURIComponent(file);
-	}
 	
 	quit(force)
 	{
@@ -179,7 +224,14 @@ class FileEditor extends ide.Editor {
 	
 }
 	
-class FileEditorHeader extends ide.EditorHeader {
+class FileEditorHeader extends ide.feature.EditorHeader {
+
+	render()
+	{
+		super.render();
+		this.editor.listenTo(ide.plugins, 'file.parse', this.update.bind(this));
+		this.update();
+	}
 	
 	getTitle()
 	{
@@ -189,88 +241,46 @@ class FileEditorHeader extends ide.EditorHeader {
 	;
 		return (plugin ? plugin + ':' : '') + filename;
 	}
-	
-	render()
+
+	update()
 	{
 	var
-		file = this.editor.file,
-		changed = file.hasChanged(),
+		changed = this.editor.file.hasChanged(),
 		title = this.getTitle()
 	;
-		if (this.changed!==changed)
-		{
-			this.changed = changed;
-			this.$changed.style.display = changed ? 'inline' : 'none';
-		}
-		
-		if (this.title!==title)
-			this.$title.innerHTML = this.title = title;
-	}
-	
-}
-	
-FileEditor.feature('file', FileFeature);
-FileEditor.feature('header', FileEditorHeader);
-
-class FileManager {
-	
-	constructor() {
-		ide.plugins.on('socket.message.file', this.onMessage, this);
-	}
-
-	findFiles(filename)
-	{
-		return ide.workspace.editors.filter(function(editor) {
-			return editor.file && editor.file.filename===filename;
-		});
-	}
-
-	onMessageStat(data)
-	{
-		var files = this.findFiles(data.f), updated=0;
-
-		// TODO optimize this?
-		files.forEach(function(editor) {
-
-			var file = editor.file;
-
-			if (file.attributes.mtime!==data.t)
-			{
-				if (file.hasChanged())
-				{
-					file.old = true;
-					ide.warn('File "' + file.id + '" contents could not be updated.');
-				}
-				else
-				{
-
-					updated++;
-					file.fetch();
-				}
-			}
-		});
-
-		if (updated)
-			ide.notify('File "' + data.f + '" was updated.');
-	}
-
-	onMessage(data)
-	{
-		if (data.stat)
-			this.onMessageStat(data.stat);
-	}
-
-	/**
-	 * Creates a new file object.
-	 */
-	getFile(filename)
-	{
-		return new ide.File(filename);
+		this.changed = changed;
+		this.title = title;
 	}
 
 }
 	
-Object.assign(File.prototype, cxl.Events);
+FileEditor.features(FileFeature, FileEditorHeader, FileHashFeature);
+	
+function fileFormatApply(from, to)
+{
+var
+	file = ide.editor.file,
+	content
+;
+	if (file instanceof ide.File)
+	{
+		content = file.content;
+		file.content = content.replace(from, to);
+	}
+}
+	
+ide.registerEditorCommand('fileformat.unix', {
+	description: 'Set the file line end format to "\\n"',
+	run: function() { fileFormatApply(/\r\n?/g, "\n"); }
+});
+ide.registerEditorCommand('fileformat.dos', {
+	description: 'Set the file line end format to "\\r\\n"',
+	run: function() { fileFormatApply(/\r?\n/g, "\r\n"); }
+});
+ide.registerEditorCommand('fileformat.mac', {
+	description: 'Set the file line end format to "\\r"',
+	run: function() { fileFormatApply(/\r?\n/g, "\r"); }
+});
 	
 ide.plugins.on('assist', function(done, editor) {
 
@@ -283,8 +293,8 @@ ide.plugins.on('assist', function(done, editor) {
 });
 
 ide.File = File;
-ide.FileFeature = FileFeature;
+ide.feature.FileFeature = FileFeature;
+ide.feature.FileHashFeature = FileHashFeature;
 ide.FileEditor = FileEditor;
-ide.fileManager = new FileManager();
 
 })(this.cxl, this.ide, this._);

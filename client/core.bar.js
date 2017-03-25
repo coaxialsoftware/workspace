@@ -181,7 +181,7 @@ ide.Bar = cxl.View.extend({
 		ide.assist.cancel();
 
 		if (ide.editor)
-			ide.editor.focus();
+			ide.editor.focus.set();
 
 		ide.assist.inline.hide();
 

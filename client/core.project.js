@@ -74,6 +74,7 @@ ide.Project = cxl.Model.extend({
 	{
 		this.hint.icons = this.get('icons');
 		ide.plugins.trigger('project.load', this);
+		ide.notify('Project was updated.');
 	},
 
 	set_files: function(files)
@@ -100,7 +101,7 @@ ide.plugins.on('assist', function(done) {
  * Open project by path
  */
 ide.registerCommand('project', function(name) {
-	var hash = '#' + ide.workspace.hash.encode({ p: name || null, f: null });
+	var hash = '#' + ide.hash.encode({ p: name || null, f: null });
 	if (ide.project.id!=='.' || ide.workspace.slots.length)
 		window.open(hash);
 	else

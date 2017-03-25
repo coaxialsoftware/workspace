@@ -10,11 +10,10 @@ codeMirror.defineOption('fatCursor', false, function(cm, val) {
 /**
  * Use to provide Hints capabilities.
  */
-class HintManager {
-	
-	//hints: null,
+class SourceHintsFeature extends ide.feature.HintsFeature {
 	
 	constructor(editor) {
+		super(editor);
 		this.__cm = editor.editor;
 		this.hints = {};
 	}
@@ -92,111 +91,147 @@ class HintManager {
 
 }
 
+class SourceInsertFeature extends ide.feature.InsertFeature {
 
-/**
- * Events:
- *
- * tokenchange
- * cursorchange
- */
-class SourceEditor extends ide.FileEditor {
-
-	delSelection()
+	tab()
 	{
-		this.editor.replaceSelection('');
+		this.editor.editor.execCommand('defaultTab');
 	}
 
-	delLine()
+	backspace()
 	{
-		this.editor.deleteLine();
+		codeMirror.commands.delCharBefore(this.editor.editor);
 	}
 
-	replaceSelection(text)
+	del()
 	{
-		var e = this.editor, c;
+		codeMirror.commands.delCharAfter(this.editor.editor);
+	}
 
-		if (!this.somethingSelected())
+	line()
+	{
+		codeMirror.commands.newlineAndIndent(this.editor.editor);
+	}
+
+	enable()
+	{
+		var cm = this.editor.editor;
+
+		if (cm.getOption('disableInput'))
 		{
-			c = e.getCursor();
-			e.setSelection({ line: c.line, ch: c.ch+1 }, c);
-		}
-
-		e.replaceSelection(text, 'start');
-	}
-
-	inputEnable()
-	{
-		if (this.editor.getOption('disableInput'))
-		{
-			this.editor.setOption('fatCursor', false);
-			this.editor.setOption('disableInput', false);
+			cm.setOption('fatCursor', false);
+			cm.setOption('disableInput', false);
+			this.enabled = true;
 		}
 	}
 
-	inputDisable()
+	disable()
 	{
-		if (this.editor.getOption('disableInput')===false)
+		var cm = this.editor.editor;
+
+		if (cm.getOption('disableInput')===false)
 		{
 			// Go back one char if coming back from insert mode.
-			if (this.editor.getCursor().ch>0)
-				this.editor.execCommand('goCharLeft');
+			if (cm.getCursor().ch>0)
+				cm.execCommand('goCharLeft');
 
-			this.editor.setOption('fatCursor', true);
-			this.editor.setOption('disableInput', true);
+			cm.setOption('fatCursor', true);
+			cm.setOption('disableInput', true);
+			this.enabled = false;
 		}
 	}
 
-	selectStart()
+}
+
+class SourceCursorFeature extends ide.feature.CursorFeature {
+
+	get row()
 	{
-		this.editor.display.shift = true;
 	}
 
-	selectEnd()
+	get column()
 	{
-		this.editor.display.shift = false;
 	}
 
-	insertTab()
+	goDown()
 	{
-		this.editor.execCommand('defaultTab');
+		codeMirror.commands.goLineDown(this.editor.editor);
+	}
+	
+	goUp()
+	{
+		codeMirror.commands.goLineUp(this.editor.editor);
 	}
 
-	insertLine()
+	goBackwards()
 	{
-		this.editor.execCommand('newlineAndIndent');
+		codeMirror.commands.goCharLeft(this.editor.editor);
 	}
 
-	selectClear()
+	goForward()
 	{
-		this.editor.setSelection(this.editor.getCursor('anchor'));
+		codeMirror.commands.goCharRight(this.editor.editor);
 	}
 
-	option(option, value)
+	goStart()
 	{
-		if (value===undefined)
-			return this.editor.getOption(option);
-		else
-			this.editor.setOption(option, value);
+		codeMirror.commands.goDocStart(this.editor.editor);
 	}
 
-	selectLine()
+	goEnd()
 	{
-	var
-		e = this.editor,
-		anchor = e.getCursor('anchor'),
-		head = e.getCursor('head'),
-		// True is "down"
-		bias = (head.line === anchor.line) ?
-			(head.ch < anchor.ch) :
-			(head.line > anchor.line),
-		anchorEnd = bias ? 0 : e.getLine(anchor.line).length,
-		headEnd = bias ? e.getLine(head.line).length : 0
-	;
-		e.setSelection(
-			{ line: anchor.line, ch: anchorEnd },
-			{ line: head.line, ch: headEnd },
-			{ extend: true, origin: 'select' }
-		);
+		codeMirror.commands.goDocEnd(this.editor.editor);
+	}
+
+	go(row, column)
+	{
+		this.editor.editor.setCursor(row, column);
+	}
+
+	enter()
+	{
+		this.goDown();
+	}
+
+	valueAt(row, column)
+	{
+		var cursor = this.editor.getCursor();
+
+		if (row===undefined) row = cursor.line;
+		if (column===undefined) column = cursor.ch;
+
+		var result = this.editor.getRange(
+			{ line: row, ch: column }, { line: row, ch: column+1 });
+
+		this.editor.setCursor(cursor);
+
+		return result;
+	}
+
+	get current()
+	{
+		return this.valueAt();
+	}
+	
+}
+
+class SourceFocusFeature extends ide.feature.FocusFeature {
+
+	focus(ignore)
+	{
+		super.focus();
+
+		if (!ignore)
+			this.editor.editor.focus();
+	}
+
+}
+
+class SourceScrollFeature extends ide.feature.ScrollFeature {
+
+	render()
+	{
+		this.editor.listenTo(this.editor.editor, 'scroll', this._onScroll);
 	}
 
 	scroll(x, y)
@@ -235,10 +270,172 @@ class SourceEditor extends ide.FileEditor {
 		this.scrollScreenDown(-(n || 1));
 	}
 
-	go(line, ch)
+	_onScroll()
 	{
-		this.editor.setCursor(line-1, ch);
+		ide.plugins.trigger('editor.scroll', this);
 	}
+
+}
+
+class SourceSelectionFeature extends ide.feature.SelectionFeature {
+
+	begin()
+	{
+		this.editor.editor.display.shift = true;
+	}
+
+	end()
+	{
+		this.editor.editor.display.shift = false;
+	}
+
+	clear()
+	{
+		this.editor.editor.setSelection(this.editor.getCursor('anchor'));
+	}
+
+	remove()
+	{
+		this.editor.editor.replaceSelection('');
+	}
+
+	get current()
+	{
+	}
+
+	get value()
+	{
+		return this.editor.editor.getSelection(this.editor.options.lineSeparator);
+	}
+
+	somethingSelected()
+	{
+		return this.editor.editor.somethingSelected();
+	}
+
+}
+
+class SourceHistoryFeature extends ide.feature.HistoryFeature {
+
+	getLastChange()
+	{
+	var
+		history = this.editor.editor.getHistory().done,
+		l = history.length
+	;
+		while (l--)
+			if (history[l].changes)
+				return history[l];
+	}
+
+	undo()
+	{
+		this.editor.editor.undo();
+	}
+
+	redo()
+	{
+		this.editor.editor.redo();
+	}
+
+}
+
+class SourceLineFeature extends ide.feature.LineFeature {
+
+	get columnStart()
+	{
+		return 0;
+	}
+
+	get columnEnd()
+	{
+	var
+		cm = this.editor.editor,
+		cursor = cm.getCursor('head')
+	;
+		// TODO ?
+		return this.editor.editor.getLine(cursor.line).length;
+	}
+
+	get rowStart()
+	{
+		return this.editor.editor.getCursor('head').line;
+	}
+	
+	get rowEnd()
+	{
+		return this.editor.editor.getCursor('head').line;
+	}
+
+	get current()
+	{
+	}
+
+	get value()
+	{
+		return this.editor.editor.getLine(this.editor.editor.getCursor().line);
+	}
+
+	getValue(n)
+	{
+		n = n || this.editor.getCursor().line;
+
+		return this.editor.getLine(n);
+	}
+
+	select()
+	{
+	var
+		e = this.editor.editor,
+		anchor = e.getCursor('anchor'),
+		head = e.getCursor('head'),
+		// True is "down"
+		bias = (head.line === anchor.line) ?
+			(head.ch < anchor.ch) :
+			(head.line > anchor.line),
+		anchorEnd = bias ? 0 : e.getLine(anchor.line).length,
+		headEnd = bias ? e.getLine(head.line).length : 0
+	;
+		e.setSelection(
+			{ line: anchor.line, ch: anchorEnd },
+			{ line: head.line, ch: headEnd },
+			{ extend: true, origin: 'select' }
+		);
+	}
+
+}
+
+class SourceWordFeature extends ide.feature.WordFeature {
+
+	get current()
+	{
+	var
+		editor = this.editor,
+		row = editor.cursor.row,
+		col = editor.cursor.column
+	;
+		if (row===this.$row && col===this.$col)
+			return this.$current;
+
+		this.$row = row;
+		this.$col = col;
+	}
+
+}
+
+SourceWordFeature.commands = Object.assign({}, ide.feature.WordFeature.commands, {
+
+	'word.goNext': function() { codeMirror.commands.goGroupRight(this.editor); },
+	'word.goPrevious': function() { codeMirror.commands.goGroupLeft(this.editor); }
+
+});
+
+class SourcePageFeature extends ide.feature.PageFeature {
+
+	
+}
+
+class SourceSearchFeature extends ide.feature.SearchFeature {
 
 	search(n, options)
 	{
@@ -247,6 +444,76 @@ class SourceEditor extends ide.FileEditor {
 		if (n)
 			this.editor.find(n, options);
 	}
+
+}
+
+class SourceTokenFeature extends ide.feature.TokenFeature {
+
+	render()
+	{
+		this.editor.listenTo(this.editor.editor, 'cursorActivity',
+			this._onCursorActivity.bind(this));
+	}
+
+	get current()
+	{
+		return this.token;
+	}
+
+	/**
+	 * Gets token at pos. If pos is ommited it will return the token
+	 * under the cursor
+	 */
+	getToken(pos)
+	{
+	var
+		cm = this.editor.editor,
+		token, result = this.token = new ide.Token()
+	;
+		pos = pos || cm.getCursor();
+		token = cm.getTokenAt(pos, true);
+
+		result.row = pos.line;
+		result.column = pos.ch;
+
+		return result;
+	}
+
+	_onCursorActivity()
+	{
+		var token = this.getToken();
+
+		if (this.token !== token)
+		{
+			this.token = token;
+			ide.plugins.trigger('token', this, token);
+		}
+	}
+
+}
+
+/**
+ * Events:
+ *
+ * tokenchange
+ * cursorchange
+ */
+class SourceEditor extends ide.FileEditor {
+
+	/*
+	replaceSelection(text)
+	{
+		var e = this.editor, c;
+
+		if (!this.somethingSelected())
+		{
+			c = e.getCursor();
+			e.setSelection({ line: c.line, ch: c.ch+1 }, c);
+		}
+
+		e.replaceSelection(text, 'start');
+	}
+	*/
 
 	searchReplace(pattern, str, options)
 	{
@@ -275,25 +542,9 @@ class SourceEditor extends ide.FileEditor {
 	cmd(fn, args)
 	{
 		if (!isNaN(fn))
-			return this.go(fn);
+			return this.cursor.go(fn-1);
 
 		return super.cmd(fn, args);
-	}
-
-	getLastChange()
-	{
-	var
-		history = this.editor.getHistory().done,
-		l = history.length
-	;
-		while (l--)
-			if (history[l].changes)
-				return history[l];
-	}
-
-	getCursor()
-	{
-		return this.editor.getCursor();
 	}
 
 	getCursorCoordinates(cursor)
@@ -318,8 +569,8 @@ class SourceEditor extends ide.FileEditor {
 		{
 			return cxl.ajax({
 				url: 'mode/' + mode + '/' + mode + '.js',
-				cache: true, success: ide.source
-			});
+				cache: true
+			}).then(ide.source);
 		}
 
 		if (!codeMirror.modes[mode])
@@ -401,107 +652,32 @@ class SourceEditor extends ide.FileEditor {
 		return false;
 	}
 
-	onCursorActivity()
+	render(p)
 	{
-		var token = this.getToken();
+		super.render(p);
+	var
+		options = this._getOptions(),
+		editor = this.editor = codeMirror(this.$content, options)
+	;
+		this.keymap.handle = this._keymapHandle.bind(this);
 
-		if (this.token !== token)
-		{
-			this.token = token;
-			ide.plugins.trigger('token', this, token);
-		}
+		this.listenTo(editor, 'change', cxl.debounce(this.onChange.bind(this), 100));
+		this.listenTo(ide.plugins, 'workspace.resize', this.resize);
 	}
 
 	onChange()
 	{
 		this.value = this.editor.getValue();
 		this.file.content = this.value;
+		this.header.changed = this.file.hasChanged();
 		ide.plugins.trigger('editor.change', this);
-	}
-
-	onScroll()
-	{
-		ide.plugins.trigger('editor.scroll', this);
-	}
-
-	render()
-	{
-		super.render();
-	var
-		options = this._getOptions(),
-		editor = this.editor = codeMirror(this.$content, options)
-	;
-		this.hints = new HintManager(this);
-
-		this.keymap.handle = this._keymapHandle.bind(this);
-
-		this.listenTo(editor, 'focus', this._on_focus);
-		this.listenTo(editor, 'cursorActivity', this.onCursorActivity);
-		this.listenTo(editor, 'change', cxl.debounce(this.onChange.bind(this), 100));
-		this.listenTo(ide.plugins, 'workspace.resize', this.resize);
-		this.listenTo(editor, 'scroll', this.onScroll);
 	}
 
 	resize()
 	{
 		setTimeout(this.editor.refresh.bind(this.editor), 200);
 	}
-
-	/**
-	 * Gets token at pos. If pos is ommited it will return the token
-	 * under the cursor
-	 */
-	getToken(pos)
-	{
-		pos = pos || this.editor.getCursor();
-		var token = this.editor.getTokenAt(pos, true);
-		token.line = pos.line;
-		token.ch = pos.ch;
-		return token;
-	}
-
-	getChar(pos)
-	{
-		var cursor = this.editor.getCursor();
-		pos = pos || cursor;
-		var result = this.editor.getRange(pos,
-			{ line: pos.line, ch: pos.ch+1 });
-
-		this.editor.setCursor(cursor);
-
-		return result;
-	}
-
-	/**
-	 * Gets cursor element.
-	 */
-	/*get_cursor: function()
-	{
-		return this.editor.renderer.$cursorLayer.cursor;
-	},*/
-
-	somethingSelected()
-	{
-		return this.editor.somethingSelected();
-	}
-
-	getSelection()
-	{
-		return this.editor.getSelection(this.options.lineSeparator);
-	}
 	
-	getLine(n)
-	{
-		n = n || this.editor.getCursor().line;
-
-		return this.editor.getLine(n);
-	}
-
-	_on_focus()
-	{
-		this.focus(true);
-	}
-
 	setValue(content)
 	{
 		if (content === this.value)
@@ -514,38 +690,25 @@ class SourceEditor extends ide.FileEditor {
 		this.editor.setCursor(cursor, null, { scroll: false });
 	}
 
-	focus(ignore)
-	{
-		ide.Editor.prototype.focus.apply(this);
-		this.onCursorActivity();
-
-		if (!ignore)
-			this.editor.focus();
-	}
-
 }
 
-/*cxl.each(codeMirror.commands, function(cmd, key) {
-
-	var fn = SourceEditor.prototype.commands[key];
-
-	if (!fn)
-		SourceEditor.prototype.commands[key] = function() {
-			cmd.call(codeMirror, this.editor);
-		};
-
-});*/
+SourceEditor.features(
+	SourceFocusFeature, SourceHintsFeature, ide.feature.FileFeature,
+	SourceInsertFeature, SourceCursorFeature, SourceScrollFeature, SourceSelectionFeature,
+	SourceLineFeature, SourceHistoryFeature, SourceWordFeature, SourcePageFeature,
+	SourceTokenFeature, SourceSearchFeature
+);
 
 ide.SourceEditor = SourceEditor;
 ide.defaultEdit = function(options)
 {
-	var file = options.file;
+	var file = options.file || new ide.File();
 
 	if (!file.attributes.content)
 		file.attributes.content = '';
 
 	var editor = new ide.SourceEditor({
-		file: options.file,
+		file: file,
 		slot: options.slot
 	});
 

@@ -4,3 +4,4 @@ ide.socket.ws = {
 };
 
 ide.socket.send = function() { };
+ide.Hash.prototype.save = function() { };
