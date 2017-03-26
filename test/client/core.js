@@ -143,7 +143,7 @@ var
 		title: 'test'
 	})
 ;
-	a.equal(e.title, 'test');
+	a.equal(e.header.title, 'test');
 });
 
 QUnit.test('ide.Editor#blur', function(a) {

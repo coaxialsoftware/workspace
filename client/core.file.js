@@ -125,6 +125,8 @@ class File {
 		
 		ide.plugins.trigger('file.beforewrite', this);
 		
+		this.attributes.content = this.content;
+
 		return cxl.ajax({
 			url: url,
 			method: this.id ? 'PUT' : 'POST',
@@ -134,7 +136,7 @@ class File {
 
 	url()
 	{
-		var mtime = Date.now();
+		var mtime = this.attributes.mtime || Date.now();
 		
 		return '/file?p=' + encodeURIComponent(ide.project.id) + 
 			'&n=' + encodeURIComponent(this.filename) + '&t=' + mtime;

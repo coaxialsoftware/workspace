@@ -325,6 +325,17 @@ InsertFeature.commands = {
 	'insert.backspace': function() { this.insert.backspace(); },
 	'insert.del': function() { this.insert.del(); }
 };
+	
+class IndentFeature extends Feature {
+	
+}
+	
+IndentFeature.featureName = 'indent';
+IndentFeature.commands = {
+	'indent.more': function() { this.indent.more(); },
+	'indent.less': function() { this.indent.less(); },
+	'indent.auto': function() { this.indent.auto(); }
+};
 
 class HashFeature extends Feature {
 
@@ -352,8 +363,8 @@ class SearchFeature extends Feature { }
 
 SearchFeature.featureName = 'search';
 SearchFeature.commands = {
-	'search.next': function() { this.search.next(); },
-	'search.previous': function() { this.search.previous(); },
+	'search.next': function(val) { this.search.search(val); },
+	'search.previous': function(val) { this.search.search(val, true); },
 	'search': 'search.next'
 };
 
@@ -373,13 +384,16 @@ SelectionFeature.commands = {
 	'selection.remove': function() { this.selection.remove(); }
 };
 
-class LineFeature extends Feature { }
+class LineFeature extends Feature {
+
+}
 
 LineFeature.featureName = 'line';
 LineFeature.commands = {
 	'line.select': function() { this.line.select(); },
 	'line.goStart': function() { this.cursor.go(this.line.rowStart, this.line.columnStart); },
-	'line.goEnd': function() { this.cursor.go(this.line.rowEnd, this.line.columnEnd); }
+	'line.goEnd': function() { this.cursor.go(this.line.rowEnd, this.line.columnEnd); },
+	'line.remove': function() { this.line.remove(); }
 };
 
 class HistoryFeature extends Feature { }
@@ -590,7 +604,8 @@ Object.assign(ide, {
 		PageFeature: PageFeature,
 		TokenFeature: TokenFeature,
 		InsertFeature: InsertFeature,
-		HintsFeature: HintsFeature
+		HintsFeature: HintsFeature,
+		IndentFeature: IndentFeature
 	},
 
 	Editor: Editor,

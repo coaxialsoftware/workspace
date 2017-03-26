@@ -176,7 +176,7 @@ var
 ;
 	this.log(`Reading "${filepath}".`);
 
-	common.respond(this, res, this.getFile(filepath, { filename: req.query.n }));
+	common.respond(this, res, this.getFile(filepath, { project: req.query.p, filename: req.query.n }));
 })
 
 .route('POST', '/file', 'handleWrite')

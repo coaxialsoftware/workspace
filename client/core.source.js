@@ -11,11 +11,16 @@ codeMirror.defineOption('fatCursor', false, function(cm, val) {
  * Use to provide Hints capabilities.
  */
 class SourceHintsFeature extends ide.feature.HintsFeature {
-	
-	constructor(editor) {
-		super(editor);
-		this.__cm = editor.editor;
+
+	constructor(e)
+	{
+		super(e);
 		this.hints = {};
+	}
+	
+	render()
+	{
+		this.__cm = this.editor.editor;
 	}
 
 	clear(id)
@@ -117,12 +122,11 @@ class SourceInsertFeature extends ide.feature.InsertFeature {
 	{
 		var cm = this.editor.editor;
 
-		if (cm.getOption('disableInput'))
-		{
 			cm.setOption('fatCursor', false);
 			cm.setOption('disableInput', false);
 			this.enabled = true;
-		}
+			// Need to make sure editor is focused for keyboard events
+			cm.focus();
 	}
 
 	disable()
@@ -216,12 +220,17 @@ class SourceCursorFeature extends ide.feature.CursorFeature {
 }
 
 class SourceFocusFeature extends ide.feature.FocusFeature {
-
-	focus(ignore)
+	
+	render()
 	{
-		super.focus();
-
-		if (!ignore)
+		this.editor.listenTo(this.editor.editor, 'focus', this.set.bind(this));
+	}
+	
+	set()
+	{
+		super.set();
+		
+		if (!this.editor.editor.hasFocus())
 			this.editor.editor.focus();
 	}
 
@@ -291,12 +300,17 @@ class SourceSelectionFeature extends ide.feature.SelectionFeature {
 
 	clear()
 	{
-		this.editor.editor.setSelection(this.editor.getCursor('anchor'));
+		this.editor.editor.setSelection(this.editor.editor.getCursor('anchor'));
 	}
 
 	remove()
 	{
 		this.editor.editor.replaceSelection('');
+	}
+
+	replace(str)
+	{
+		this.editor.editor.replaceSelection(str);	
 	}
 
 	get current()
@@ -314,6 +328,15 @@ class SourceSelectionFeature extends ide.feature.SelectionFeature {
 	}
 
 }
+
+SourceSelectionFeature.commands = Object.assign({
+	'selection.showCursor': function() {
+		this.editor.setOption('showCursorWhenSelecting', true);
+	},
+	'selection.hideCursor': function() {
+		this.editor.setOption('showCursorWhenSelecting', false);
+	}
+}, ide.feature.SelectionFeature.commands);
 
 class SourceHistoryFeature extends ide.feature.HistoryFeature {
 
@@ -383,6 +406,11 @@ class SourceLineFeature extends ide.feature.LineFeature {
 		return this.editor.getLine(n);
 	}
 
+	remove()
+	{
+		codeMirror.commands.deleteLine(this.editor.editor);
+	}
+
 	select()
 	{
 	var
@@ -437,12 +465,12 @@ class SourcePageFeature extends ide.feature.PageFeature {
 
 class SourceSearchFeature extends ide.feature.SearchFeature {
 
-	search(n, options)
+	search(n, reverse)
 	{
 		n = n || this.token && this.token.string;
 
 		if (n)
-			this.editor.find(n, options);
+			this.editor.editor.find(n, reverse && { reverse: true } );
 	}
 
 }
@@ -491,6 +519,25 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 	}
 
 }
+	
+class SourceIndentFeature extends ide.feature.IndentFeature {
+	
+	more()
+	{
+		codeMirror.commands.indentMore(this.editor.editor);	
+	}
+	
+	less()
+	{
+		codeMirror.commands.indentLess(this.editor.editor);	
+	}
+	
+	auto()
+	{
+		codeMirror.commands.indentAuto(this.editor.editor);	
+	}
+	
+}
 
 /**
  * Events:
@@ -527,11 +574,6 @@ class SourceEditor extends ide.FileEditor {
 		this.editor.replace(pattern, str, {
 			from: from, to: to, separator: this.options.lineSeparator
 		});
-	}
-
-	insert(text)
-	{
-		this.editor.replaceSelection(text);
 	}
 
 	replaceRange(text, start, end)
@@ -696,7 +738,7 @@ SourceEditor.features(
 	SourceFocusFeature, SourceHintsFeature, ide.feature.FileFeature,
 	SourceInsertFeature, SourceCursorFeature, SourceScrollFeature, SourceSelectionFeature,
 	SourceLineFeature, SourceHistoryFeature, SourceWordFeature, SourcePageFeature,
-	SourceTokenFeature, SourceSearchFeature
+	SourceTokenFeature, SourceSearchFeature, SourceIndentFeature
 );
 
 ide.SourceEditor = SourceEditor;

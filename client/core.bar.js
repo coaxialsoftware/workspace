@@ -331,7 +331,7 @@ ide.Bar.Search = ide.Bar.extend({
 		try { regex = val && new RegExp(val, 'm'); } catch(e) { regex = val; }
 
 		if (ide.editor && ide.editor.search)
-			ide.editor.search(regex, { backwards: this.reverse });
+			ide.editor.search.search(regex, this.reverse);
 	}
 
 });

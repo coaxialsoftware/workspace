@@ -185,13 +185,6 @@ class ListEditorCursor extends ide.feature.CursorFeature {
 
 class ListSearchFeature extends ide.feature.SearchFeature {
 
-	constructor(editor)
-	{
-		super(editor);
-		this.editor = editor;
-		editor.search = this.search.bind(this);
-	}
-	
 	_findTest(regex, file)
 	{
 		return regex.test(file.title);
