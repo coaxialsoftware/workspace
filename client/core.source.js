@@ -467,10 +467,13 @@ class SourceSearchFeature extends ide.feature.SearchFeature {
 
 	search(n, reverse)
 	{
-		n = n || this.token && this.token.string;
+		n = n || this.lastSearch;
 
 		if (n)
-			this.editor.editor.find(n, reverse && { reverse: true } );
+		{
+			this.editor.editor.find(n, reverse && { backwards: true } );
+			this.lastSearch = n;
+		}
 	}
 
 }

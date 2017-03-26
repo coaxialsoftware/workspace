@@ -64,7 +64,10 @@ ide.Project = cxl.Model.extend({
 		if (!msg) return;
 
 		if (msg.reload===true)
+		{
+			ide.notify('Project was updated. Reloading.');
 			this.reload();
+		}
 
 		if (msg.notify)
 			ide.notify(msg.notify);
@@ -74,7 +77,6 @@ ide.Project = cxl.Model.extend({
 	{
 		this.hint.icons = this.get('icons');
 		ide.plugins.trigger('project.load', this);
-		ide.notify('Project was updated.');
 	},
 
 	set_files: function(files)
