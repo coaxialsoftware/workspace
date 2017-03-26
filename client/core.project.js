@@ -65,7 +65,10 @@ ide.Project = cxl.Model.extend({
 
 		if (msg.reload===true)
 		{
-			ide.notify('Project was updated. Reloading.');
+			ide.notify({
+				code: 'project', title: 'Project configuration was updated. Reloading.',
+				className: 'warn'
+			});
 			this.reload();
 		}
 
