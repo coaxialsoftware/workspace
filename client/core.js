@@ -385,14 +385,24 @@ SelectionFeature.commands = {
 };
 
 class LineFeature extends Feature {
+	
+	goStart()
+	{
+		this.cursor.go(this.line.rowStart, this.line.columnStart);	
+	}
+	
+	goEnd()
+	{
+		this.cursor.go(this.line.rowEnd, this.line.columnEnd);
+	}
 
 }
 
 LineFeature.featureName = 'line';
 LineFeature.commands = {
 	'line.select': function() { this.line.select(); },
-	'line.goStart': function() { this.cursor.go(this.line.rowStart, this.line.columnStart); },
-	'line.goEnd': function() { this.cursor.go(this.line.rowEnd, this.line.columnEnd); },
+	'line.goStart': function() { this.line.goStart(); },
+	'line.goEnd': function() { this.line.goEnd(); },
 	'line.remove': function() { this.line.remove(); }
 };
 
@@ -415,7 +425,10 @@ WordFeature.commands = {
 
 	'word.goPrevious': function() {
 		this.cursor.go(undefined, this.word.current.startColumn);
-	}
+	},
+	
+	'word.removeNext': function() {	},
+	'word.removePrevious': function() { }
 };
 
 class PageFeature extends Feature { }

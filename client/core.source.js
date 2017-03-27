@@ -199,15 +199,18 @@ class SourceCursorFeature extends ide.feature.CursorFeature {
 
 	valueAt(row, column)
 	{
-		var cursor = this.editor.getCursor();
+	var
+		cm = this.editor.editor,
+		cursor = cm.getCursor()
+	;
 
 		if (row===undefined) row = cursor.line;
 		if (column===undefined) column = cursor.ch;
 
-		var result = this.editor.getRange(
+		var result = cm.getRange(
 			{ line: row, ch: column }, { line: row, ch: column+1 });
 
-		this.editor.setCursor(cursor);
+		cm.setCursor(cursor);
 
 		return result;
 	}
@@ -305,7 +308,7 @@ class SourceSelectionFeature extends ide.feature.SelectionFeature {
 
 	remove()
 	{
-		this.editor.editor.replaceSelection('');
+		this.editor.editor.replaceSelection('', 'start');
 	}
 
 	replace(str)
@@ -430,6 +433,16 @@ class SourceLineFeature extends ide.feature.LineFeature {
 			{ extend: true, origin: 'select' }
 		);
 	}
+	
+	goStart()
+	{
+		codeMirror.commands.goLineStart(this.editor.editor);
+	}
+	
+	goEnd()
+	{
+		codeMirror.commands.goLineEnd(this.editor.editor);
+	}
 
 }
 
@@ -452,10 +465,10 @@ class SourceWordFeature extends ide.feature.WordFeature {
 }
 
 SourceWordFeature.commands = Object.assign({}, ide.feature.WordFeature.commands, {
-
 	'word.goNext': function() { codeMirror.commands.goGroupRight(this.editor); },
-	'word.goPrevious': function() { codeMirror.commands.goGroupLeft(this.editor); }
-
+	'word.goPrevious': function() { codeMirror.commands.goGroupLeft(this.editor); },
+	'word.removeNext': function() {	codeMirror.commands.delGroupAfter(this.editor); },
+	'word.removePrevious': function() { codeMirror.commands.delGroupBefore(this.editor); }
 });
 
 class SourcePageFeature extends ide.feature.PageFeature {

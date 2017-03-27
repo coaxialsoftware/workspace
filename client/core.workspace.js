@@ -179,13 +179,21 @@ ide.Layout = {
 };
 
 class Slot {
+	
+	constructor()
+	{
+		this.placeholder = document.createElement('DIV');
+		ide.workspace.el.appendChild(this.placeholder);
+	}
 
 	setEditor(editor)
 	{
 		this.editor = editor;
-		// TODO ?
 		editor.slot = this;
-		ide.workspace.el.appendChild(editor.el);
+		
+		ide.workspace.el.insertBefore(editor.el, this.placeholder);
+		ide.workspace.el.removeChild(this.placeholder);
+		
 		ide.workspace.update();
 		ide.plugins.trigger('workspace.add', editor);
 	}
