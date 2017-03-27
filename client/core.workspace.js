@@ -280,9 +280,9 @@ ide.Workspace = class Workspace {
 	
 	swap(e1, e2)
 	{
-		var tmp = this.editors[e1];
-		this.editors[e1] = this.editors[e2];
-		this.editors[e2] = tmp;
+		var tmp = this.slots[e1];
+		this.slots[e1] = this.slots[e2];
+		this.slots[e2] = tmp;
 		this.update();
 	}
 
@@ -350,10 +350,13 @@ ide.plugins.registerCommands({
 		ascii: function()
 		{
 		var
-			char = ide.editor.getChar(),
+			char = ide.editor.cursor && ide.editor.cursor.value,
 			code = char.charCodeAt(0)
 		;
-			ide.notify(char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8));
+			ide.notify({
+				code: 'ascii',
+				title: char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8)
+			});
 		},
 
 		f: 'file',

@@ -379,16 +379,16 @@ ide.plugins.register('find', new ide.Plugin({
 	
 	onAssistInline: function(done, editor, token)
 	{
-		var files, fn = token.state && token.state.fn, str=token.string;
+		var files, str=token.value;
 
-		if (editor === ide.commandBar && str)
+		if (token.type==='file' && str)
 		{
-			if ((fn==='e' || fn==='tabe') && str.indexOf('find:')===0)
+			/*if ((fn==='e' || fn==='tabe') && str.indexOf('find:')===0)
 			{
 				fn = 'find';
 				str = str.substr(5);
 			} else if (fn!=='find')
-				return;
+				return;*/
 			
 			files = this.find(str);
 

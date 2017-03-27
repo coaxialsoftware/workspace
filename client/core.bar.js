@@ -69,6 +69,8 @@ ide.Bar = cxl.View.extend({
 		this.listenTo(this.$input, 'keydown', this.on_key);
 		this.listenTo(this.$input, 'keypress', this.on_keypress);
 		this.listenTo(this.$input, 'blur', this.on_blur);
+		// TODO?
+		this.insert.enabled = true;
 	},
 
 	on_blur: function(ev)
@@ -257,10 +259,24 @@ ide.Bar.Command = ide.Bar.extend({
 		else if (typeof(result)==='string' || result instanceof ide.Hint)
 			ide.notify(result);
 	},
-
-	option: function()
+	
+	getToken: function(s, start, end)
 	{
-
+	var
+		cmd = ide.commandParser.parse(this.$input.value, true),
+		result = {
+			getCoordinates: this.getCursorCoordinates.bind(this, { line: 0, ch: start })
+		}
+	;
+		result.row = 0;
+		result.column = start;
+		result.cursorPosition = { column: end, row: end };
+		result.value = s;
+		
+		// TODO ? 
+		result.type = cmd[0].args ? 'file' : 'command';
+		// state: cmd[cmd.length-1]
+		return result;
 	},
 
 	on_change: function()
@@ -270,12 +286,7 @@ ide.Bar.Command = ide.Bar.extend({
 		
 		this.selectedHint = null;
 		this.findWord(function(s, start, end) {
-			var cmd = ide.commandParser.parse(this.$input.value, true);
-
-			ide.plugins.trigger('token', this, this.token = {
-				line: 0, start: start, ch: end, string: s,
-				state: cmd[cmd.length-1]
-			});
+			ide.plugins.trigger('token', this, this.getToken(s, start, end));
 		});
 	},
 

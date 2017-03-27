@@ -235,18 +235,19 @@ ide.plugins.register('cmd', {
 
 	onAssistInline: function(done, editor, token)
 	{
-		var hints, fn;
+		var hints;
 
-		if (editor === ide.commandBar && token.string)
+		if (editor === ide.commandBar && token.value)
 		{
-			if (token.state.fn!==token.string)
+			/*if (token.state.fn!==token.value)
 			{
 				fn = this.getCommand(token.state.fn);
 
 				hints = (fn && fn.getHints) ? fn.getHints(editor, token) :
 					this.getFiles(token.string);
-			} else
-				hints = this.getAllCommands(token.string);
+			} else*/
+			if (token.type === 'command')
+				hints = this.getAllCommands(token.value);
 
 			if (hints)
 				done(hints);

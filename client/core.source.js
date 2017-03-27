@@ -215,7 +215,7 @@ class SourceCursorFeature extends ide.feature.CursorFeature {
 		return result;
 	}
 
-	get current()
+	get value()
 	{
 		return this.valueAt();
 	}
@@ -490,7 +490,25 @@ class SourceSearchFeature extends ide.feature.SearchFeature {
 	}
 
 }
-
+	
+class SourceToken extends ide.Token {
+	
+	constructor(cm, pos)
+	{
+		super();
+		Object.defineProperty(this, '_cm', { enumerable: false, value: cm });
+		this.cursorPosition = pos;
+	}
+	
+	getCoordinates()
+	{
+		var coords = this._cm.charCoords({ line: this.row, ch: this.column });
+		
+		return coords;
+	}
+	
+}
+	
 class SourceTokenFeature extends ide.feature.TokenFeature {
 
 	render()
@@ -512,13 +530,16 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 	{
 	var
 		cm = this.editor.editor,
-		token, result = this.token = new ide.Token()
+		token, result
 	;
 		pos = pos || cm.getCursor();
 		token = cm.getTokenAt(pos, true);
-
+		result = this.token = new SourceToken(cm, pos);
+		
+		result.column = token.start;
 		result.row = pos.line;
-		result.column = pos.ch;
+		result.value = token.string;
+		result.type = token.type;
 
 		return result;
 	}

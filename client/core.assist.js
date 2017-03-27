@@ -95,17 +95,16 @@ cxl.extend(InlineAssist.prototype, {
 		this.cursor.line = token.line;
 		this.cursor.ch = token.start;
 
-		if (editor.option && editor.option('disableInput'))
+		if (editor.insert && !editor.insert.enabled)
 			return this.hide();
 		else
 			this.requestHints(this.editor = editor || ide.editor, token);
 	},
 
-	calculateLeft: function(editor)
+	calculateLeft: function()
 	{
 	var
-		pos = this.pos = editor.getCursorCoordinates &&
-			editor.getCursorCoordinates(this.cursor)
+		pos = this.pos = this.token && this.token.getCoordinates()
 	;
 		this.leftPos = Math.round(pos.left);
 	},
@@ -374,7 +373,7 @@ var Assist = cxl.View.extend({
 		this.visible = false;
 		
 		ide.workspace.el.classList.remove('assist-show');
-		ide.workspace.hash.set({ a: false });
+		ide.hash.set({ a: false });
 	},
 
 	show: function()
