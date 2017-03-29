@@ -264,8 +264,13 @@ ide.Bar.Command = ide.Bar.extend({
 	{
 	var
 		cmd = ide.commandParser.parse(this.$input.value, true),
-		result = {
-			getCoordinates: this.getCursorCoordinates.bind(this, { line: 0, ch: start })
+		me = this,
+		result = this.token = {
+			getCoordinates: this.getCursorCoordinates.bind(this, { line: 0, ch: start }),
+			replace: function(val) {
+				me.replaceRange(val, { line: result.row, ch: result.column },
+					{ line: result.cursorPosition.row, ch: result.cursorPosition.column });
+			}
 		}
 	;
 		result.row = 0;
@@ -307,8 +312,8 @@ ide.Bar.Command = ide.Bar.extend({
 		this.ignoreChange = true;
 		this.selectedHint = i;
 		this.replaceRange(hints[i].value,
-			{ ch: this.token.start }, { ch: this.token.ch });
-		this.token.ch = this.token.start + hints[i].value.length;
+			{ ch: this.token.column }, { ch: this.token.cursorPosition.column });
+		this.token.cursorPosition.column = this.token.column + hints[i].value.length;
 	},
 
 	getCursorCoordinates: function(cursor)

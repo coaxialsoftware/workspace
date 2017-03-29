@@ -106,6 +106,7 @@ cxl.extend(InlineAssist.prototype, {
 	var
 		pos = this.pos = this.token && this.token.getCoordinates()
 	;
+		// TODO ?
 		this.leftPos = Math.round(pos.left);
 	},
 
@@ -188,7 +189,7 @@ cxl.extend(InlineAssist.prototype, {
 		if (!this.visible)
 		{
 			this.visible = true;
-			this.copyFont(editor.$content || editor.el);
+			//this.copyFont(editor.$content || editor.el);
 			this.el.style.display='block';
 			this.render();
 		}
@@ -281,17 +282,11 @@ cxl.extend(InlineAssist.prototype, {
 	doAccept: function()
 	{
 	var
-		editor = this.editor,
 		token = this.token,
 		value = this.selectedValue
 	;
-		if (value && token && editor.replaceRange)
-		{
-			editor.replaceRange(value,
-				{ ch: token.start, line: token.line },
-				{ ch: token.ch, line: token.line }, 'assist.inline'
-			);
-		}
+		if (value && token)
+			token.replace(value);
 
 		this.hide();
 	},

@@ -237,7 +237,7 @@ ide.plugins.register('cmd', {
 	{
 		var hints;
 
-		if (editor === ide.commandBar && token.value)
+		if (token.type==='command' && token.value)
 		{
 			/*if (token.state.fn!==token.value)
 			{
@@ -246,12 +246,11 @@ ide.plugins.register('cmd', {
 				hints = (fn && fn.getHints) ? fn.getHints(editor, token) :
 					this.getFiles(token.string);
 			} else*/
-			if (token.type === 'command')
-				hints = this.getAllCommands(token.value);
-
-			if (hints)
-				done(hints);
+			hints = this.getAllCommands(token.value);
 		}
+		
+		if (hints)
+			done(hints);
 	},
 
 	getCommand: function(name)

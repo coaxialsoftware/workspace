@@ -245,6 +245,7 @@ div.CodeMirror-cursors { visibility: hidden; }
 .icon {
 	display: inline-block; margin: 0;
 	padding-top: 2px; color: #eee;
+	width: 16px;
 	text-decoration: none;
 	margin-left: 4px;
 }
@@ -348,18 +349,16 @@ div.CodeMirror-cursors { visibility: hidden; }
 
 #assist > ul { position: static; padding: 0; margin: 0; }
 #assist-inline {
-	position: absolute; z-index: 10;
-	max-height: 120px; overflow-y: auto; margin-left: -20px;
+	left:-32px; top:0; position: absolute; z-index: 10; max-height: 120px; overflow-y: auto;
+	font-family: monospace;
 }
 #assist-inline .item {
 	border: 0; margin-bottom: 2px; box-shadow: none;
-	padding-right: 24px; padding-left: 20px;
 }
 #assist-inline .item code, #assist-inline .item .label,
 #assist-inline kbd { display: none; }
 
 #assist-inline .item h4 { overflow: visible; white-space: nowrap; display: inline-block; }
-#assist-inline .icon-primary { margin-left: -16px; }
 
 /*
  * Forms
