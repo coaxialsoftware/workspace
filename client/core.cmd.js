@@ -283,24 +283,26 @@ ide.plugins.register('cmd', {
 
 	getAllCommands: function(search)
 	{
-		var result = [];
+		var result = [], len=search && search.length;
 
 		function getCommands(cmds)
 		{
-			var key, fn;
+			var key, fn, index;
 
 			for (var i in cmds)
 			{
-				if (search && i.indexOf(search)!==0)
+				if (search && (index=i.indexOf(search))===-1)
 					continue;
 
 				fn = cmds[i];
 				key = ide.keyboard.findKey(i);
 
-				result.push(new ide.Item({
+				result.push(new ide.Hint({
 					key: key, title: i, className: 'cmd',
-					icon: 'terminal',
-					description: fn.help
+					icon: 'command',
+					description: fn.description,
+					priority: index,
+					matchStart: search && index, matchEnd: search && (index+len)
 				}));
 			}
 		}

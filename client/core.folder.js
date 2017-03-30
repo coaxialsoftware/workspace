@@ -67,7 +67,7 @@ var
 function getMask(token)
 {
 	return token.type==='string' ?
-		token.string.substr(1, token.string.length-2) : token.string;
+		token.value.substr(1, token.value.length-2) : token.value;
 }
 
 class ListEditorCursor extends ide.feature.CursorFeature {
@@ -370,6 +370,7 @@ ide.plugins.register('find', new ide.Plugin({
 	{
 		this.listenTo('project.load', this.onProject);
 		this.listenTo('assist.inline', this.onAssistInline);
+		this.onProject(ide.project);
 	},
 	
 	onProject: function(p)
@@ -383,13 +384,6 @@ ide.plugins.register('find', new ide.Plugin({
 
 		if (token.type==='file' && str)
 		{
-			/*if ((fn==='e' || fn==='tabe') && str.indexOf('find:')===0)
-			{
-				fn = 'find';
-				str = str.substr(5);
-			} else if (fn!=='find')
-				return;*/
-			
 			files = this.find(str);
 
 			if (files && files.length)

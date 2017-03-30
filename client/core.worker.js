@@ -105,11 +105,7 @@ ide.WorkerManager.prototype = {
 			type: 'assist',
 			file: file && file.id,
 			mime: file && file.attributes && file.attributes.mime,
-			token: token && {
-				ch: token.ch, end: token.end,
-				line: token.line, start: token.start,
-				string: token.string, type: token.type
-			}
+			token: token
 		},
 		l = this.workers.length, a
 	;

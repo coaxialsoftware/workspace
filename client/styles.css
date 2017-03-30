@@ -253,6 +253,10 @@ div.CodeMirror-cursors { visibility: hidden; }
 .icon:hover { color: #fff; }
 .icon:focus { color: #fff; outline: 1px solid #ccc; }
 
+/* TODO */
+.fa-variable::before { content: "\f1b2"; }
+.fa-command::before { content: "\f120"; }
+
 .item {
 	box-sizing: border-box;
 	transition: width 0.2s, opacity 0.2s, background-color 0.2s;
@@ -288,6 +292,7 @@ div.CodeMirror-cursors { visibility: hidden; }
 	word-wrap: break-word; display: inline-block;
 	word-break: break-word;
 }
+.item h4 b { color: #fff; }
 .item footer { margin-top: 4px; }
 .item-collapsed .item-detail { display: none; }
 

@@ -101,7 +101,7 @@ ide.plugins.on('assist', function(done) {
 	if (ide.project.id!=='.')
 		done(ide.project.hint);
 });
-
+	
 /**
  * Open project by path
  */

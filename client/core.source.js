@@ -534,7 +534,7 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 	;
 		pos = pos || cm.getCursor();
 		token = cm.getTokenAt(pos, true);
-		result = this.token = new SourceToken(cm, pos);
+		result = new SourceToken(cm, pos);
 		
 		result.column = token.start;
 		result.row = pos.line;
@@ -551,7 +551,7 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 		if (this.token !== token)
 		{
 			this.token = token;
-			ide.plugins.trigger('token', this, token);
+			ide.plugins.trigger('token', this.editor, token);
 		}
 	}
 

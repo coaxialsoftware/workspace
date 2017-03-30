@@ -64,7 +64,7 @@ class Item {
 	{
 		return '<div class="icons">' + icons.map(this.$renderIcon).join('') + '</div>';
 	}
-	
+
 	template(obj)
 	{
 	var
@@ -573,6 +573,14 @@ class Editor {
 }
 	
 Editor.features(HashFeature, EditorHeader, FocusFeature);
+	
+function onProject()
+{
+	ide.plugins.start();
+	ide.keymap.start();
+	ide.plugins.ready();
+	ide.hash.loadFiles();
+}
 
 function _start()
 {
@@ -583,12 +591,13 @@ function _start()
 		path: ide.hash.data.p || ide.hash.data.project
 	});
 	
-	ide.project.fetch().then(function() {
-		ide.plugins.start();
-		ide.keymap.start();
-		ide.plugins.ready();
-		ide.hash.loadFiles();
-	});
+	ide.project.fetch().catch(function() {
+		ide.error('Error loading project "' + ide.project.id + '"');
+		ide.hash.set({ p: null });
+		ide.project.set('path', '.');
+		return ide.project.fetch();
+	}).then(onProject);
+
 	
 	ide.searchBar = new ide.Bar.Search();
 	ide.commandBar = new ide.Bar.Command();
@@ -646,6 +655,7 @@ Object.assign(ide, {
 	/** Displays error notification on right corner */
 	error: function(message)
 	{
+		window.console.error(message);
 		return ide.notify(message, 'error');
 	},
 

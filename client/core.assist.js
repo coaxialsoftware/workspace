@@ -1,9 +1,24 @@
 
 (function(window, ide, cxl) {
 "use strict";
+	
+ide.Hint = class Hint extends ide.Item {
+	
+	template(obj)
+	{
+		if (obj.matchStart!==undefined)
+		{
+			obj.title = obj.title.slice(0, obj.matchStart) + '<b>' +
+				obj.title.slice(obj.matchStart, obj.matchEnd) + '</b>' +
+				obj.title.slice(obj.matchEnd);
+		}
+		
+		return super.template(obj);
+	}
+	
 
-ide.Hint = ide.Item;
-
+};
+	
 var InlineAssist = function() {
 	this.hints = [];
 	this.el = document.getElementById('assist-inline');
@@ -139,12 +154,12 @@ cxl.extend(InlineAssist.prototype, {
 			this.select(this.hints[0]);
 	},
 
-	getIndex: function(title)
+	getIndex: function(title, priority)
 	{
 		var i=0, hints=this.hints, l=hints.length;
 
 		for(;i<l;i++)
-			if (hints[i].title > title)
+			if (hints[i].priority>priority && hints[i].title > title)
 				return i;
 
 		return l;
@@ -153,12 +168,16 @@ cxl.extend(InlineAssist.prototype, {
 	add: function(hint)
 	{
 	var
-		order = this.getIndex(hint.title),
+		order = this.getIndex(hint.title, hint.priority),
 		ref = this.hints[order]
 	;
 		// Make sure there are no duplicates.
 		if (ref && ref.value === hint.value)
 			return;
+
+		if (!hint.icon)
+			// TODO?
+			hint.icon = 'question-circle-o';
 
 		hint = hint instanceof ide.Hint ? hint : new ide.Hint(hint);
 
