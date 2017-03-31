@@ -215,7 +215,9 @@ ide.plugins.register('cmd', {
 	commands: {
 		commands: function()
 		{
-			var editor = new ide.ListEditor({ command: 'commands', plugin: this });
+			var editor = new ide.ListEditor({
+				command: 'commands', plugin: this
+			});
 			
 			editor.listenTo(ide.plugins, 'editor.focus', this.loadCommands.bind(this, editor));
 			
@@ -238,16 +240,7 @@ ide.plugins.register('cmd', {
 		var hints;
 
 		if (token.type==='command' && token.value)
-		{
-			/*if (token.state.fn!==token.value)
-			{
-				fn = this.getCommand(token.state.fn);
-
-				hints = (fn && fn.getHints) ? fn.getHints(editor, token) :
-					this.getFiles(token.string);
-			} else*/
 			hints = this.getAllCommands(token.value);
-		}
 		
 		if (hints)
 			done(hints);
@@ -391,6 +384,7 @@ ide.Command = class Command {
 	{
 		this.name = name;
 		this.fn = typeof(def)==='function' ? def : def.fn;
+		this.description = def.description;
 		this.scope = scope;
 	}
 

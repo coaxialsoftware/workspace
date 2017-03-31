@@ -519,12 +519,14 @@ class Editor {
 	 */
 	render(p)
 	{
+		var title = p.title || p.command;
+		
 		this.$content = document.createElement('ide-editor-content');
 		
 		this.el.appendChild(this.$content);
 
-		if (p.title)
-			this.header.title = p.title;
+		if (title)
+			this.header.title = title;
 	}
 	
 	/**
