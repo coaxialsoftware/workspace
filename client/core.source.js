@@ -738,6 +738,10 @@ class SourceEditor extends ide.FileEditor {
 		options = this._getOptions(),
 		editor = this.editor = codeMirror(this.$content, options)
 	;
+		if (p.startLine)
+			// TODO
+			setTimeout(editor.setCursor.bind(editor, p.startLine-1), 300);
+		
 		this.keymap.handle = this._keymapHandle.bind(this);
 
 		this.listenTo(editor, 'change', cxl.debounce(this.onChange.bind(this), 100));
@@ -788,13 +792,9 @@ ide.defaultEdit = function(options)
 
 	var editor = new ide.SourceEditor({
 		file: file,
-		slot: options.slot
+		slot: options.slot,
+		startLine: options && options.line
 	});
-
-	if (options && options.line)
-		setTimeout(function() {
-			editor.go(options.line);
-		});
 
 	return editor;
 };
