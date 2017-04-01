@@ -248,17 +248,16 @@ class ListEditor extends ide.Editor {
 		
 		this.$content.appendChild(this.$list);
 		this.$content.appendChild(this.$footer);
+		this.ItemClass = p.itemClass || ide.Item;
 
 		this.children = p.children ? this._addElements(p.children, 0) : [];
 	}
 
-
-	// TODO support remove?
 	_addElements(items)
 	{
 		return items.map(function(item) {
 			if (!(item instanceof ide.Item))
-				item = new ide.Item(item);
+				item = new this.ItemClass(item);
 			
 			this.$list.appendChild(item.el);
 			item.el.$item = item;
@@ -427,12 +426,13 @@ ide.plugins.register('find', new ide.Plugin({
 		find: function(mask)
 		{
 		var
-			token = ide.editor && ide.editor.token,
-			files = this.find(mask).map(function(val) {
-				return new FileItem({ title: val.title, icon: val.icon });
-			})
+			token = ide.editor && ide.editor.token && ide.editor.token.current,
+			files
 		;
 			mask = mask || (token && getMask(token)) || '';
+			files = this.find(mask).map(function(val) {
+				return new FileItem({ title: val.title, icon: val.icon });
+			});
 			
 			if (!files)
 				return ide.warn('[find] No files found in project.');
@@ -503,5 +503,6 @@ ide.plugins.register('folder', new ide.Plugin({
 	
 ide.ListEditor = ListEditor;
 ide.FileListEditor = FileListEditor;
+ide.FileItem = FileItem;
 
 })(this.ide, this.cxl);

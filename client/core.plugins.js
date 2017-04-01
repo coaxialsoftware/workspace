@@ -180,42 +180,34 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 
 });
 
-ide.Plugin.Item = cxl.View.extend({
+class PluginItem extends ide.Item {
 
-	templateId: 'tpl-plugin',
-
-	render: function(msg)
+	post(url)
 	{
-		if (msg)
-			ide.notify(msg);
-	},
+		cxl.ajax.post(url, this).then(this.render.bind(this));
+	}
 
-	post: function(url)
-	{
-		ide.post(url, this).then(this.render.bind(this));
-	},
-
-	install: function()
+	install()
 	{
 		this.post('/plugins/install');
-	},
+	}
 
-	uninstall: function()
+	uninstall()
 	{
 		this.post('/plugins/uninstall');
-	},
+	}
 
-	enable: function()
+	enable()
 	{
 		this.post('/plugins/enable');
-	},
+	}
 
-	disable: function()
+	disable()
 	{
 		this.post('/plugins/disable');
 	}
 
-});
+}
 
 /**
  * Plugin Manager
@@ -231,7 +223,7 @@ ide.plugins.register('plugins', {
 				plugin: this,
 				title: 'plugins',
 				itemTemplate: null,
-				itemClass: ide.Plugin.Item,
+				itemClass: PluginItem,
 				file: 'list'
 			})
 		;

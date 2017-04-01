@@ -92,6 +92,7 @@ class File {
 	{
 		if (data.stat && data.stat.p===this.id)
 			this.onMessageStat(data.stat);
+		ide.plugins.trigger('file.message', this, data);
 	}
 	
 	fetch()
@@ -232,9 +233,12 @@ class FileEditorHeader extends ide.feature.EditorHeader {
 
 	render()
 	{
+		var update = this.update.bind(this);
 		super.render();
-		this.editor.listenTo(ide.plugins, 'file.parse', this.update.bind(this));
-		this.update();
+		this.editor.listenTo(ide.plugins, 'file.parse', update);
+		// TODO This might not be ideal
+		this.editor.listenTo(ide.plugins, 'file.message', update);
+		update();
 	}
 	
 	getTitle()
@@ -254,6 +258,10 @@ class FileEditorHeader extends ide.feature.EditorHeader {
 	;
 		this.changed = changed;
 		this.title = title;
+		
+		if (this.editor.file.old)
+			this.setTag('file.old',
+				'<i class="fa fa-refresh" title="File contents have changed"></i>', 'error');
 	}
 
 }
@@ -292,6 +300,9 @@ ide.plugins.on('assist', function(done, editor) {
 	{
 		if (editor.file instanceof ide.File)
 			done(editor.file.hint);
+		
+		if (editor.file.old)
+			done({ title: 'File contents have changed', code: 'file', className: 'error' });
 	}
 
 });
