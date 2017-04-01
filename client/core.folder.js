@@ -175,10 +175,7 @@ class ListEditorCursor extends ide.feature.CursorFeature {
 		var c = this.current;
 		
 		if (c && c.enter)
-			c.enter(shift, mod);
-
-		if (!shift)
-			ide.workspace.remove(this.editor);
+			c.enter(shift, mod, this.editor);			
 	}
 
 }
@@ -260,9 +257,13 @@ class ListEditor extends ide.Editor {
 	_addElements(items)
 	{
 		return items.map(function(item) {
+			if (!(item instanceof ide.Item))
+				item = new ide.Item(item);
+			
 			this.$list.appendChild(item.el);
 			item.el.$item = item;
 			return item;
+			
 		}, this);
 	}
 
@@ -294,8 +295,16 @@ class ListEditor extends ide.Editor {
 ListEditor.features(ListEditorCursor, ListSearchFeature, ListScrollFeature);
 
 class FileItem extends ide.Item {
+	
+	constructor(p)
+	{
+		if (!p.icon)
+			p.icon = p.directory ? 'folder-o' : 'file-o';
+		
+		super(p);
+	}
 
-	enter(shift, mod)
+	enter(shift, mod, editor)
 	{
 	var
 		item = this,
@@ -312,6 +321,9 @@ class FileItem extends ide.Item {
 			options.target = '_blank';
 
 		ide.open(options);
+		
+		if (!shift)
+			ide.workspace.remove(editor);
 	}
 
 }
@@ -450,7 +462,7 @@ ide.plugins.register('folder', new ide.Plugin({
 
 		browse: function()
 		{
-			ide.open('.');
+			ide.open({ file: '.' });
 		}
 
 	},
@@ -467,13 +479,14 @@ ide.plugins.register('folder', new ide.Plugin({
 			files = file.content.map(function(f) {
 				return new FileItem({
 					title: f.filename,
+					directory: f.directory,
 					prefix: prefix,
 					className: f.directory ? 'directory' : 'file'
 				});
 			});
 
 			files.unshift(new FileItem(
-				{ title: '..', className: 'directory', prefix: prefix }
+				{ title: '..', directory: true, prefix: prefix }
 			));
 
 			return new ide.FileListEditor({

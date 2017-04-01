@@ -29,7 +29,9 @@ class File {
 		separator = this.content.indexOf("\r\n")!==-1 ? 'CRLF' : 'LF',
 		tags = [ separator ]
 	;
-		if (this.mime)
+		if (this.attributes.directory)
+			tags.push('directory');
+		else if (this.mime)
 			tags.push(this.mime);
 		
 		this.hint = new ide.Hint({

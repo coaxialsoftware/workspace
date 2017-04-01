@@ -3,7 +3,7 @@
 "use strict";
 
 var
-	FILE_REGEX = /^(?:([\w\-]+)(?:\.(\w+))?:)?(.*)$/
+	FILE_REGEX = /^(?:([\w\-]+)(?:\.([\.\w]+))?:)?(.*)$/
 ;
 	
 class Hash {
@@ -297,14 +297,15 @@ ide.Workspace = class Workspace {
 			if (slots[i].editor && cb.call(this, slots[i].editor, i)=== false)
 				return;
 	}
+	*/
 
 	closeAll()
 	{
-		this.each(function(item) {
-			setTimeout(this.remove.bind(this, item));
-		});
+		this.slots.slice(0).forEach(function(slot) {
+			if (slot.editor)
+				this.remove(slot.editor);
+		}, this);
 	}
-	*/
 
 	/** Find editor by id. */
 	find(id)
@@ -394,6 +395,14 @@ ide.plugins.registerCommands({
 			ide.notify(ide.editor.file ?
 				ide.editor.file.id || '[No Name]' :
 				'No files open.');
+		},
+		
+		openTab: {
+			fn: function() {
+				ide.openTab(ide.editor.hash.get());
+				ide.workspace.remove(ide.editor);
+			},
+			description: 'Open current editor in new tab'
 		},
 
 		read: function(file)

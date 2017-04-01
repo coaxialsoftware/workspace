@@ -197,10 +197,7 @@ function addCmd(prop, name, def, scope)
 	if (name in prop)
 		window.console.warn('Overriding command "' + name + '"');
 
-	if (typeof(def)!=='string' && !(def instanceof ide.Command))
-		def = new ide.Command(name, def, scope);
-
-	prop[name] = def;
+	prop[name] = new ide.Command(name, def, scope);
 }
 
 ide.registerCommand = addCmd.bind(this, ide.commands);
@@ -301,10 +298,12 @@ ide.plugins.register('cmd', {
 		}
 
 		getCommands(ide.commands);
-		getCommands(ide.editorCommands);
-
+		
 		if (ide.editor)
+		{
+			getCommands(ide.editorCommands);
 			getCommands(ide.editor.constructor.commands);
+		}
 
 		return result;
 	},
@@ -382,9 +381,22 @@ ide.Command = class Command {
 	
 	constructor(name, def, scope)
 	{
+		var type = typeof(def), description = def.description;
+		
+		if (type==='string')
+		{
+			this.fn = function() { return ide.run(def, arguments); };
+			
+			if (!description)
+				description = 'Alias of "' + def + '"';
+		}
+		else if (type==='function')
+			this.fn = def;
+		else
+			this.fn = def.fn;
+				
 		this.name = name;
-		this.fn = typeof(def)==='function' ? def : def.fn;
-		this.description = def.description;
+		this.description = description;
 		this.scope = scope;
 	}
 

@@ -245,20 +245,30 @@ ide.plugins.register('plugins', {
 
 	addPlugins: function(l, all)
 	{
-		var enabled = ide.project.get('plugins');
+		var enabled = ide.project.get('plugins'), a, i, items=[], tags;
 
 		if (!all)
-		{
 			ide.warn('Could not retrieve plugins from server.');
+		
+		for (i in all)
+		{
+			a = all[i];
+			tags = [ a.version ];
+			
+			if (enabled && enabled.indexOf(i)!==-1)
+				tags.push('Enabled');
+			if (a.installed)
+				tags.push('Installed');
+			
+			items.push(new ide.Item({
+				code: i,
+				title: a.name,
+				description: a.description,
+				tags: tags
+			}));
 		}
-
-		cxl.each(all, function(a, k) {
-			a.enabled = (enabled && enabled.indexOf(k)!==-1);
-			a.installed = !!a.installed;
-			a.description = a.description || false;
-		});
-
-		l.add(Object.values(all));
+		
+		l.add(items);
 	}
 
 });
