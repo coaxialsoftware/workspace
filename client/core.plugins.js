@@ -214,7 +214,7 @@ class PluginItem extends ide.Item {
  * @type {ide.PluginManager}
  */
 ide.plugins = new PluginManager();
-
+	
 ide.plugins.register('plugins', {
 	commands: {
 		plugins: function() {

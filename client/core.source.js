@@ -343,7 +343,7 @@ SourceSelectionFeature.commands = Object.assign({
 
 class SourceHistoryFeature extends ide.feature.HistoryFeature {
 
-	getLastChange()
+	get lastInsert()
 	{
 	var
 		history = this.editor.editor.getHistory().done,
@@ -351,7 +351,7 @@ class SourceHistoryFeature extends ide.feature.HistoryFeature {
 	;
 		while (l--)
 			if (history[l].changes)
-				return history[l];
+				return history[l].changes[0].text.toString();
 	}
 
 	undo()
@@ -575,6 +575,36 @@ class SourceIndentFeature extends ide.feature.IndentFeature {
 	}
 	
 }
+	
+class SourceFoldFeature extends ide.feature.FoldFeature {
+	
+	isFolded(row, column)
+	{
+	var
+		cm = this.editor.editor,
+		pos = cm.getCursor()
+	;
+		return this.editor.editor.isFolded({
+			line: row || pos.line, ch: column || pos.ch
+		});
+	}
+	
+	toggle()
+	{
+		codeMirror.commands.toggleFold(this.editor.editor);
+	}
+	
+	open()
+	{
+		codeMirror.commands.unfold(this.editor.editor);
+	}
+	
+	close()
+	{
+		codeMirror.commands.fold(this.editor.editor);
+	}
+	
+}
 
 /**
  * Events:
@@ -738,10 +768,6 @@ class SourceEditor extends ide.FileEditor {
 		options = this._getOptions(),
 		editor = this.editor = codeMirror(this.$content, options)
 	;
-		if (p.startLine)
-			// TODO
-			setTimeout(editor.setCursor.bind(editor, p.startLine-1), 300);
-		
 		this.keymap.handle = this._keymapHandle.bind(this);
 
 		this.listenTo(editor, 'change', cxl.debounce(this.onChange.bind(this), 100));
@@ -779,7 +805,7 @@ SourceEditor.features(
 	SourceFocusFeature, SourceHintsFeature, ide.feature.FileFeature,
 	SourceInsertFeature, SourceCursorFeature, SourceScrollFeature, SourceSelectionFeature,
 	SourceLineFeature, SourceHistoryFeature, SourceWordFeature, SourcePageFeature,
-	SourceTokenFeature, SourceSearchFeature, SourceIndentFeature
+	SourceTokenFeature, SourceSearchFeature, SourceIndentFeature, SourceFoldFeature
 );
 
 ide.SourceEditor = SourceEditor;
@@ -792,9 +818,13 @@ ide.defaultEdit = function(options)
 
 	var editor = new ide.SourceEditor({
 		file: file,
-		slot: options.slot,
-		startLine: options && options.line
+		slot: options.slot
 	});
+
+	if (options && options.line)
+		setTimeout(function() {
+			editor.go(options.line);
+		});
 
 	return editor;
 };

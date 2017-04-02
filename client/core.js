@@ -306,6 +306,25 @@ CursorFeature.commands = {
 	'cursor.goEnd' : function() { this.cursor.goEnd(); },
 	'cursor.enter': function(shift, mod) { this.cursor.enter(shift, mod); }
 };
+	
+class FoldFeature extends Feature {
+	
+	toggle()
+	{
+		if (this.isFolded())
+			this.open();
+		else
+			this.close();
+	}
+	
+}
+	
+FoldFeature.featureName = 'fold';
+FoldFeature.commands = {
+	'fold.toggle': function() { this.fold.toggle(); },
+	'fold.open': function() { this.fold.open(); },
+	'fold.close': function() { this.fold.close(); }
+};
 
 class HintsFeature extends Feature {
 }
@@ -411,7 +430,8 @@ class HistoryFeature extends Feature { }
 HistoryFeature.featureName = 'history';
 HistoryFeature.commands = {
 	'history.undo': function() { this.history.undo(); },
-	'history.redo': function() { this.history.redo(); }
+	'history.redo': function() { this.history.redo(); },
+	'history.lastInsert': function() { return this.history.lastInsert; }
 };
 
 class WordFeature extends Feature { }
@@ -618,6 +638,7 @@ Object.assign(ide, {
 		EditorHeader: EditorHeader,
 		CursorFeature: CursorFeature,
 		FocusFeature: FocusFeature,
+		FoldFeature: FoldFeature,
 		SearchFeature: SearchFeature,
 		HashFeature: HashFeature,
 		ScrollFeature: ScrollFeature,

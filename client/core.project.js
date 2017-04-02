@@ -88,7 +88,7 @@ ide.Project = cxl.Model.extend({
 		files.forEach(function(f) {
 			Object.defineProperty(f, 'hint', {
 				value: new ide.Hint({
-					title: f.filename, icon: f.directory ? 'folder-o' : 'file-o'
+					title: f.filename, icon: f.icon || (f.directory ? 'folder-o' : 'file-o')
 				})
 			});
 		});
@@ -114,6 +114,10 @@ ide.registerCommand('project', function(name) {
 		window.location = hash;
 		window.location.reload();
 	}
+});
+	
+ide.registerCommand('project.settings', function() {
+	ide.open({ file: 'project.json' });
 });
 
 

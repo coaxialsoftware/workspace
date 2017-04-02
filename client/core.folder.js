@@ -406,13 +406,28 @@ ide.plugins.register('find', new ide.Plugin({
 	{
 	var
 		regex = globToRegex(mask),
-		files = ide.project.get('files')
+		files = ide.project.get('files'),
+		match
 	;
 		if (files)
 			return files.filter(function(val) {
-				return regex.test(val.filename);
+				match = regex.exec(val.filename);
+				
+				if (match)
+				{
+					val.hint.matchStart = match.index;
+					val.hint.matchEnd = match.index + match[0].length;
+				}
+				
+				return match;
 			}).map(function(val) {
-				return val.hint;
+				// TODO optimize
+				return new ide.FileItem({
+					title: val.filename,
+					icon: val.icon,
+					matchStart: val.hint.matchStart,
+					matchEnd: val.hint.matchEnd
+				});
 			});
 	},
 

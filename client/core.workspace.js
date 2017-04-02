@@ -529,6 +529,12 @@ ide.plugins.registerCommands({
 			if (ide.editor)
 				ide.editor.quit(true);
 		},
+		
+		'workspace.settings': function()
+		{
+			// TODO ?
+			ide.open({ file: '../workspace.json' });
+		},
 
 		version: function()
 		{
