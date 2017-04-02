@@ -378,12 +378,21 @@ class HashFeature extends Feature {
 
 HashFeature.featureName = 'hash';
 
-class SearchFeature extends Feature { }
+class SearchFeature extends Feature {
+	
+	replace(val, replace)
+	{
+		var range = this.search(val);
+		return range.replace(replace);
+	}
+	
+}
 
 SearchFeature.featureName = 'search';
 SearchFeature.commands = {
 	'search.next': function(val) { this.search.search(val); },
 	'search.previous': function(val) { this.search.search(val, true); },
+	'search.replace': function(val, replace) { this.search.replace(val, replace); },
 	'search': 'search.next'
 };
 
@@ -424,11 +433,40 @@ LineFeature.commands = {
 	'line.goEnd': function() { this.line.goEnd(); },
 	'line.remove': function() { this.line.remove(); }
 };
+	
+// TODO
+class HistoryRecord {
+	
+	constructor(type)
+	{
+		this.type = type;
+	}
+	
+}
 
-class HistoryFeature extends Feature { }
+class HistoryFeature extends Feature {
+	
+	openHistory()
+	{
+	var
+		children = this.getAll().map(function(h) {
+			return { code: h.type };
+		}),
+		editor
+	;
+		editor = new ide.ListEditor({
+			title: 'history',
+			children: children
+		});
+
+		return editor;
+	}
+	
+}
 
 HistoryFeature.featureName = 'history';
 HistoryFeature.commands = {
+	'history': function() { return this.history.openHistory(); },
 	'history.undo': function() { this.history.undo(); },
 	'history.redo': function() { this.history.redo(); },
 	'history.lastInsert': function() { return this.history.lastInsert; }
@@ -458,6 +496,10 @@ PageFeature.featureName = 'page';
 class TokenFeature extends Feature { }
 
 TokenFeature.featureName = 'token';
+	
+class RangeFeature extends Feature { }
+	
+RangeFeature.featureName = 'range';
 
 class Token {
 
@@ -633,6 +675,7 @@ Object.assign(ide, {
 	Feature: Feature,
 	Token: Token,
 	Range: Range,
+	HistoryRecord: HistoryRecord,
 
 	feature: {
 		EditorHeader: EditorHeader,
@@ -650,7 +693,8 @@ Object.assign(ide, {
 		TokenFeature: TokenFeature,
 		InsertFeature: InsertFeature,
 		HintsFeature: HintsFeature,
-		IndentFeature: IndentFeature
+		IndentFeature: IndentFeature,
+		RangeFeature: RangeFeature
 	},
 
 	Editor: Editor,

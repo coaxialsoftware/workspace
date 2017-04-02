@@ -289,7 +289,7 @@ ide.plugins.register('cmd', {
 
 				result.push(new ide.Hint({
 					key: key, title: i, className: 'cmd',
-					icon: 'command',
+					icon: fn.icon || 'command',
 					description: fn.description,
 					priority: index,
 					matchStart: search && index, matchEnd: search && (index+len)
@@ -395,6 +395,7 @@ ide.Command = class Command {
 		else
 			this.fn = def.fn;
 				
+		this.icon = def.icon;
 		this.name = name;
 		this.description = description;
 		this.scope = scope;

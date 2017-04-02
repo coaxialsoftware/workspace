@@ -255,7 +255,9 @@ div.CodeMirror-cursors { visibility: hidden; }
 
 /* TODO */
 .fa-variable::before { content: "\f1b2"; }
+.fa-variable-global::before { content: "G"; }
 .fa-command::before { content: "\f120"; }
+.fa-property::before { content: "P"; }
 
 .item {
 	box-sizing: border-box;

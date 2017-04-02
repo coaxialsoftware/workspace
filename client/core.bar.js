@@ -269,13 +269,14 @@ ide.Bar.Command = ide.Bar.extend({
 			getCoordinates: this.getCursorCoordinates.bind(this, { line: 0, ch: start }),
 			replace: function(val) {
 				me.replaceRange(val, { line: result.row, ch: result.column },
-					{ line: result.cursorPosition.row, ch: result.cursorPosition.column });
+					{ line: result.cursorRow, ch: result.cursorColumn });
 			}
 		}
 	;
 		result.row = 0;
 		result.column = start;
-		result.cursorPosition = { column: end, row: end };
+		result.cursorColumn = end;
+		result.cursorRow = 0;
 		result.value = s;
 		
 		// TODO ? 
@@ -312,8 +313,8 @@ ide.Bar.Command = ide.Bar.extend({
 		this.ignoreChange = true;
 		this.selectedHint = i;
 		this.replaceRange(hints[i].value,
-			{ ch: this.token.column }, { ch: this.token.cursorPosition.column });
-		this.token.cursorPosition.column = this.token.column + hints[i].value.length;
+			{ ch: this.token.column }, { ch: this.token.cursorColumn });
+		this.token.cursorColumn = this.token.column + hints[i].value.length;
 	},
 
 	getCursorCoordinates: function(cursor)

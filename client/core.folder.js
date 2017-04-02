@@ -470,7 +470,7 @@ ide.plugins.register('find', new ide.Plugin({
 		}
 
 }));
-
+	
 ide.plugins.register('folder', new ide.Plugin({
 
 	commands: {

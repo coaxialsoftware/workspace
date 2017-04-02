@@ -189,7 +189,8 @@ class SourceCursorFeature extends ide.feature.CursorFeature {
 
 	go(row, column)
 	{
-		this.editor.editor.setCursor(row, column);
+		var first = this.editor.editor.options.firstLineNumber||0;
+		this.editor.editor.setCursor(row-first, column);
 	}
 
 	enter()
@@ -346,12 +347,22 @@ class SourceHistoryFeature extends ide.feature.HistoryFeature {
 	get lastInsert()
 	{
 	var
-		history = this.editor.editor.getHistory().done,
+		cm = this.editor.editor,
+		history = cm.getHistory().done,
 		l = history.length
 	;
 		while (l--)
 			if (history[l].changes)
-				return history[l].changes[0].text.toString();
+				return cm.getRange(history[l].changes[0].from, history[l].changes[0].to);
+	}
+	
+	getAll()
+	{
+		var done = this.editor.editor.getHistory().done;
+		
+		return done && done.map(function(h) {
+			return new ide.HistoryRecord(h.changes ? 'edit' : 'selection');
+		});
 	}
 
 	undo()
@@ -475,87 +486,6 @@ class SourcePageFeature extends ide.feature.PageFeature {
 
 	
 }
-
-class SourceSearchFeature extends ide.feature.SearchFeature {
-
-	search(n, reverse)
-	{
-		n = n || this.lastSearch;
-
-		if (n)
-		{
-			this.editor.editor.find(n, reverse && { backwards: true } );
-			this.lastSearch = n;
-		}
-	}
-
-}
-	
-class SourceToken extends ide.Token {
-	
-	constructor(cm, pos)
-	{
-		super();
-		Object.defineProperty(this, '_cm', { enumerable: false, value: cm });
-		this.cursorPosition = pos;
-	}
-	
-	getCoordinates()
-	{
-		var coords = this._cm.charCoords({ line: this.row, ch: this.column });
-		
-		return coords;
-	}
-	
-}
-	
-class SourceTokenFeature extends ide.feature.TokenFeature {
-
-	render()
-	{
-		this.editor.listenTo(this.editor.editor, 'cursorActivity',
-			this._onCursorActivity.bind(this));
-	}
-
-	get current()
-	{
-		return this.token;
-	}
-
-	/**
-	 * Gets token at pos. If pos is ommited it will return the token
-	 * under the cursor
-	 */
-	getToken(pos)
-	{
-	var
-		cm = this.editor.editor,
-		token, result
-	;
-		pos = pos || cm.getCursor();
-		token = cm.getTokenAt(pos, true);
-		result = new SourceToken(cm, pos);
-		
-		result.column = token.start;
-		result.row = pos.line;
-		result.value = token.string;
-		result.type = token.type;
-
-		return result;
-	}
-
-	_onCursorActivity()
-	{
-		var token = this.getToken();
-
-		if (this.token !== token)
-		{
-			this.token = token;
-			ide.plugins.trigger('token', this.editor, token);
-		}
-	}
-
-}
 	
 class SourceIndentFeature extends ide.feature.IndentFeature {
 	
@@ -605,35 +535,69 @@ class SourceFoldFeature extends ide.feature.FoldFeature {
 	}
 	
 }
-
-/**
- * Events:
- *
- * tokenchange
- * cursorchange
- */
-class SourceEditor extends ide.FileEditor {
-
-	/*
-	replaceSelection(text)
+	
+// TODO Optimize
+class SourceRange {
+	
+	constructor(editor, startRow, startColumn, endRow, endColumn)
 	{
-		var e = this.editor, c;
+		Object.defineProperty(this, 'editor', { enumerable: false, value: editor });
+		this.row = startRow;
+		this.column = startColumn;
+		this.endRow = endRow;
+		this.endColumn = endColumn;
+	}
+	
+	get value()
+	{
+		return this.editor.editor.getRange(
+			{ line: this.row, ch: this.column },
+			{ line: this.endRow, ch: this.endColumn }
+		);
+	}
+	
+	replace(text)
+	{
+		this.editor.editor.replaceRange(text,
+			{ line: this.row, ch: this.column },
+			{ line: this.endRow, ch: this.endColumn }
+		);
+	}
+	
+	getCoordinates()
+	{
+		return this.editor.editor.charCoords({ line: this.row, ch: this.column });
+	}
+	
+}
+	
+class SourceRangeFeature extends ide.feature.RangeFeature {
+	
+	create(startRow, startColumn, endRow, endColumn)
+	{
+		return new SourceRange(startRow, startColumn, endRow, endColumn);
+	}
+	
+}
+	
+class SourceSearchFeature extends ide.feature.SearchFeature {
 
-		if (!this.somethingSelected())
+	search(n, reverse)
+	{
+		var match;
+		
+		n = n || this.lastSearch;
+
+		if (n)
 		{
-			c = e.getCursor();
-			e.setSelection({ line: c.line, ch: c.ch+1 }, c);
+			match = this.editor.editor.find(n, reverse && { backwards: true } );
+			this.lastSearch = n;
+			return new SourceRange(this.editor, match.from.line, match.from.ch,
+				match.to.line, match.to.ch);
 		}
-
-		e.replaceSelection(text, 'start');
 	}
-	*/
-
-	searchReplace(pattern, str, options)
-	{
-		this.editor.replace(pattern, str, options);
-	}
-
+	
+	// TODO
 	searchReplaceRange(pattern, str, from, to)
 	{
 		from = from || { line: 0, ch: 0 };
@@ -643,15 +607,72 @@ class SourceEditor extends ide.FileEditor {
 		});
 	}
 
-	replaceRange(text, start, end)
+}
+
+class SourceToken extends SourceRange {
+	
+}
+	
+Object.defineProperty(SourceToken.prototype, 'value',
+	{ writable: true, enumerable: true, value: null });
+	
+class SourceTokenFeature extends ide.feature.TokenFeature {
+
+	render()
 	{
-		this.editor.replaceRange(text, start, end);
+		this.editor.listenTo(this.editor.editor, 'cursorActivity',
+			this._onCursorActivity.bind(this));
 	}
+
+	/**
+	 * Gets token at pos. If pos is ommited it will return the token
+	 * under the cursor
+	 */
+	getToken(pos)
+	{
+	var
+		cm = this.editor.editor,
+		token, result
+	;
+		pos = pos || cm.getCursor();
+		token = cm.getTokenAt(pos, true);
+		result = new SourceToken(this.editor, pos.line, token.start, pos.line,
+			token.end, pos);
+		
+		// Token Value is constant
+		result.value = token.string;
+		result.type = token.type;
+		result.cursorRow = pos.line;
+		result.cursorColumn = pos.column;
+
+		return result;
+	}
+
+	_onCursorActivity()
+	{
+		var token = this.getToken();
+
+		if (this.current !== token)
+		{
+			this.current = token;
+			ide.plugins.trigger('token', this.editor, token);
+		}
+	}
+
+}
+
+/**
+ * Events:
+ *
+ * tokenchange
+ * cursorchange
+ */
+class SourceEditor extends ide.FileEditor {
 
 	cmd(fn, args)
 	{
 		if (!isNaN(fn))
-			return this.cursor.go(fn-1);
+			return this.cursor.go(fn);
 
 		return super.cmd(fn, args);
 	}
@@ -768,6 +789,10 @@ class SourceEditor extends ide.FileEditor {
 		options = this._getOptions(),
 		editor = this.editor = codeMirror(this.$content, options)
 	;
+		// TODO
+		if (p.startLine)
+			setTimeout(editor.setCursor.bind(editor, p.startLine));
+		
 		this.keymap.handle = this._keymapHandle.bind(this);
 
 		this.listenTo(editor, 'change', cxl.debounce(this.onChange.bind(this), 100));
@@ -805,7 +830,8 @@ SourceEditor.features(
 	SourceFocusFeature, SourceHintsFeature, ide.feature.FileFeature,
 	SourceInsertFeature, SourceCursorFeature, SourceScrollFeature, SourceSelectionFeature,
 	SourceLineFeature, SourceHistoryFeature, SourceWordFeature, SourcePageFeature,
-	SourceTokenFeature, SourceSearchFeature, SourceIndentFeature, SourceFoldFeature
+	SourceTokenFeature, SourceSearchFeature, SourceIndentFeature, SourceFoldFeature,
+	SourceRangeFeature
 );
 
 ide.SourceEditor = SourceEditor;
@@ -818,13 +844,9 @@ ide.defaultEdit = function(options)
 
 	var editor = new ide.SourceEditor({
 		file: file,
-		slot: options.slot
+		slot: options.slot,
+		startLine: +options.line
 	});
-
-	if (options && options.line)
-		setTimeout(function() {
-			editor.go(options.line);
-		});
 
 	return editor;
 };
