@@ -660,6 +660,16 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 	}
 
 }
+	
+class SourceFileFeature extends ide.feature.FileFeature {
+	
+	read(file)
+	{
+		file = file || this.editor.file;
+		this.editor.editor.setValue(file.content);
+	}
+	
+}
 
 /**
  * Events:
@@ -827,7 +837,7 @@ class SourceEditor extends ide.FileEditor {
 }
 
 SourceEditor.features(
-	SourceFocusFeature, SourceHintsFeature, ide.feature.FileFeature,
+	SourceFocusFeature, SourceHintsFeature, SourceFileFeature,
 	SourceInsertFeature, SourceCursorFeature, SourceScrollFeature, SourceSelectionFeature,
 	SourceLineFeature, SourceHistoryFeature, SourceWordFeature, SourcePageFeature,
 	SourceTokenFeature, SourceSearchFeature, SourceIndentFeature, SourceFoldFeature,

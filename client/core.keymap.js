@@ -42,7 +42,6 @@ cxl.extend(KeyboardManager.prototype, {
 	delay: 250,
 	t: 0,
 	sequence: null,
-
 	// What to replace "mod" with, ctrl for win, meta for osx
 	MODREPLACE: null,
 

@@ -6,7 +6,7 @@ class ProjectList extends ide.ListEditor {
 
 	render(p)
 	{
-		this.title = this.command = 'projects';
+		p.title = this.command = 'projects';
 		super.render(p);
 		this._loadProjects();
 	}

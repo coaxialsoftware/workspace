@@ -1,7 +1,6 @@
 /**
  * workspace.file
  */
-
 (function(cxl, ide) {
 "use strict";
 
@@ -173,7 +172,18 @@ class FileFeature {
 	
 	constructor(editor, config)
 	{
+		this.editor = editor;
 		editor.file = this.file = config.file;
+		editor.listenTo(ide.plugins, 'file.parse', this.onFileParse.bind(this));
+	}
+	
+	// TODO Listening to ide.plugins for this might be dangerous
+	onFileParse(file)
+	{
+		if (file!==this.file)
+			return;
+		
+		this.read(file);
 	}
 
 	destroy()
@@ -261,7 +271,7 @@ class FileEditorHeader extends ide.feature.EditorHeader {
 		
 		if (this.editor.file.old)
 			this.setTag('file.old',
-				'<i class="fa fa-refresh" title="File contents have changed"></i>', 'error');
+				'<span title="File contents have changed">Out of Sync</span>', 'error');
 	}
 
 }

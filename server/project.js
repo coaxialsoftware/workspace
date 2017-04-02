@@ -351,7 +351,7 @@ class ProjectManager {
 
 	getProjectInformation(path)
 	{
-		if (!path.directory)
+		if (!path.directory || path.filename.indexOf('.')===0)
 			return;
 
 		if (this.projects[path.filename])
