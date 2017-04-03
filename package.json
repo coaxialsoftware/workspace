@@ -2,7 +2,7 @@
 	"name": "@cxl/workspace",
 	"description": "Javascript Web Editor",
 	"author": "Giancarlo Bellido <giancarlo@coaxialhost.com>",
-	"version": "2.0",
+	"version": "2.0.1",
 	"bin": {
 		"workspace": "./bin/workspace.js"
 	},
@@ -30,7 +30,6 @@
 		"grunt-contrib-clean": "*",
 		"grunt-contrib-concat": "*",
 		"grunt-contrib-watch": "*",
-		"grunt-contrib-uglify": "*",
 		"grunt-contrib-copy": "*",
 		"grunt-karma": "*",
 		"karma":"*",
@@ -38,13 +37,14 @@
 		"qunitjs": "*",
 		"karma-qunit": "*",
 		"karma-coverage": "*",
-		"karma-phantomjs-launcher": "*"
+		"karma-phantomjs-launcher": "*",
+		"uglify-js": "git+https://github.com/mishoo/UglifyJS2.git#harmony"
 	},
 	
 	"files": [ "public", "server", "bin" ],
 
 	"scripts": {
-		"prepublish": "grunt publish",
+		"prepublish": "grunt publish && uglifyjs --compress -o public/build/ide.min.js -- public/build/ide.js",
 		"start": "node bin/workspace.js"
 	}
 }

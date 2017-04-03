@@ -666,7 +666,7 @@ class SourceFileFeature extends ide.feature.FileFeature {
 	read(file)
 	{
 		file = file || this.editor.file;
-		this.editor.editor.setValue(file.content);
+		this.editor.setValue(file.content);
 	}
 	
 }
@@ -685,12 +685,6 @@ class SourceEditor extends ide.FileEditor {
 			return this.cursor.go(fn);
 
 		return super.cmd(fn, args);
-	}
-
-	getCursorCoordinates(cursor)
-	{
-		cursor = cursor || true;
-		return this.editor.cursorCoords(cursor, 'window');
 	}
 
 	_findMode()
