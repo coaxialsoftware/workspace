@@ -489,9 +489,25 @@ WordFeature.commands = {
 	'word.removePrevious': function() { }
 };
 
-class PageFeature extends Feature { }
+class PageFeature extends Feature {
+	
+	goUp()
+	{
+		this.editor.cursor.go(this.current.row);
+	}
+	
+	goDown()
+	{
+		this.editor.cursor.go(this.current.endRow);
+	}
+	
+}
 
 PageFeature.featureName = 'page';
+PageFeature.commands = {
+	'page.goUp': function() { this.page.goUp(); },
+	'page.goDown': function() { this.page.goDown(); }
+};
 
 class TokenFeature extends Feature { }
 

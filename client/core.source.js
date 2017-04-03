@@ -483,7 +483,18 @@ SourceWordFeature.commands = Object.assign({}, ide.feature.WordFeature.commands,
 });
 
 class SourcePageFeature extends ide.feature.PageFeature {
+	
+	// TODO add current
+	
+	goUp()
+	{
+		codeMirror.commands.goPageUp(this.editor.editor);
+	}
 
+	goDown()
+	{
+		codeMirror.commands.goPageDown(this.editor.editor);
+	}
 	
 }
 	
@@ -592,7 +603,7 @@ class SourceSearchFeature extends ide.feature.SearchFeature {
 		{
 			match = this.editor.editor.find(n, reverse && { backwards: true } );
 			this.lastSearch = n;
-			return new SourceRange(this.editor, match.from.line, match.from.ch,
+			return match.found && new SourceRange(this.editor, match.from.line, match.from.ch,
 				match.to.line, match.to.ch);
 		}
 	}
