@@ -472,15 +472,28 @@ class SourceWordFeature extends ide.feature.WordFeature {
 		this.$row = row;
 		this.$col = col;
 	}
+	
+	goNext()
+	{
+		codeMirror.commands.goGroupRight(this.editor);
+	}
+	
+	goPrevious()
+	{
+		codeMirror.commands.goGroupLeft(this.editor);
+	}
+	
+	removeNext()
+	{
+		codeMirror.commands.delGroupAfter(this.editor);
+	}
+	
+	removePrevious()
+	{
+		codeMirror.commands.delGroupBefore(this.editor);
+	}
 
 }
-
-SourceWordFeature.commands = Object.assign({}, ide.feature.WordFeature.commands, {
-	'word.goNext': function() { codeMirror.commands.goGroupRight(this.editor); },
-	'word.goPrevious': function() { codeMirror.commands.goGroupLeft(this.editor); },
-	'word.removeNext': function() {	codeMirror.commands.delGroupAfter(this.editor); },
-	'word.removePrevious': function() { codeMirror.commands.delGroupBefore(this.editor); }
-});
 
 class SourcePageFeature extends ide.feature.PageFeature {
 	

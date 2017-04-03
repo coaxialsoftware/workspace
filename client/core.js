@@ -7,7 +7,7 @@
 "use strict";
 	
 var
-	ide = window.ide = { version: '2.0.0' },
+	ide = window.ide = { version: '2.0.2' },
 	editorId = 1
 ;
 	
@@ -472,21 +472,27 @@ HistoryFeature.commands = {
 	'history.lastInsert': function() { return this.history.lastInsert; }
 };
 
-class WordFeature extends Feature { }
+class WordFeature extends Feature {
+	
+	goNext()
+	{
+		this.cursor.go(undefined, this.word.current.endColumn);
+		this.cursor.goForward();
+	}
+	
+	goPrevious()
+	{
+		this.cursor.go(undefined, this.word.current.startColumn);
+	}
+	
+}
 
 WordFeature.featureName = 'word';
 WordFeature.commands = {
-	'word.goNext': function() {
-		this.cursor.go(undefined, this.word.current.endColumn);
-		this.cursor.goForward();
-	},
-
-	'word.goPrevious': function() {
-		this.cursor.go(undefined, this.word.current.startColumn);
-	},
-	
-	'word.removeNext': function() {	},
-	'word.removePrevious': function() { }
+	'word.goNext': function() { return this.word.goNext(); },
+	'word.goPrevious': function() { return this.word.goPrevious(); },
+	'word.removeNext': function() {	return this.word.removeNext(); },
+	'word.removePrevious': function() { return this.word.removePrevious(); }
 };
 
 class PageFeature extends Feature {
