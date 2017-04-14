@@ -291,7 +291,7 @@ div.CodeMirror-cursors { visibility: hidden; }
 .item h4 {
 	font-size: inherit; font-weight: normal;
 	margin: 0; padding: 2px 0;
-	word-wrap: break-word; display: inline-block;
+	word-wrap: break-word; display: inline;
 	word-break: break-word;
 }
 .item h4 b { color: #fff; }

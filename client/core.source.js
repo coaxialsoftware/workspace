@@ -475,22 +475,22 @@ class SourceWordFeature extends ide.feature.WordFeature {
 	
 	goNext()
 	{
-		codeMirror.commands.goGroupRight(this.editor);
+		codeMirror.commands.goGroupRight(this.editor.editor);
 	}
 	
 	goPrevious()
 	{
-		codeMirror.commands.goGroupLeft(this.editor);
+		codeMirror.commands.goGroupLeft(this.editor.editor);
 	}
 	
 	removeNext()
 	{
-		codeMirror.commands.delGroupAfter(this.editor);
+		codeMirror.commands.delGroupAfter(this.editor.editor);
 	}
 	
 	removePrevious()
 	{
-		codeMirror.commands.delGroupBefore(this.editor);
+		codeMirror.commands.delGroupBefore(this.editor.editor);
 	}
 
 }

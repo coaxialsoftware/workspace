@@ -404,14 +404,14 @@ ide.keymap.registerKeys({
 		'shift+pageup': 'selection.begin; page.goUp; selection.end',
 
 		// EDITING
-		backspace: 'delCharBefore',
-		del: 'delCharAfter',
+		backspace: 'insert.backspace',
+		del: 'insert.del',
 		enter: 'cursor.enter',
 		'shift+enter': 'cursor.enter 1',
 		'mod+enter': 'cursor.enter 0 1',
 		'shift+mod+enter': 'cursor.enter 1 1',
 		insert: 'insert.toggleOverwrite',
-		'shift+backspace': 'delCharBefore',
+		'shift+backspace': 'insert.backspace',
 		
 		'mod+backspace': 'word.removePrevious',
 		'mod+del': 'word.removeNext',

@@ -133,7 +133,9 @@ class File {
 			url: url,
 			method: this.id ? 'PUT' : 'POST',
 			data: this.attributes
-		}).then(this.parse.bind(this)).then(this.onSave.bind(this), this.onError.bind(this));
+		}).then(this.parse.bind(this))
+			.then(this.onSave.bind(this),
+			this.onError.bind(this));
 	}
 
 	url()

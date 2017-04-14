@@ -383,7 +383,7 @@ class SearchFeature extends Feature {
 	replace(val, replace)
 	{
 		var range = this.search(val);
-		return range.replace(replace);
+		return range && range.replace(replace);
 	}
 	
 }
