@@ -98,7 +98,6 @@ ide.Project = cxl.Model.extend({
 
 });
 
-
 ide.plugins.on('assist', function(done) {
 	if (ide.project.id!=='.')
 		done(ide.project.hint);
@@ -118,6 +117,7 @@ ide.registerCommand('project', {
 			window.location.reload();
 		}
 	},
+	args: [ 'project' ],
 	description: 'Load project'
 });
 	

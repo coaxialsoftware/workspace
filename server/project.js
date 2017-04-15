@@ -387,7 +387,7 @@ plugin.extend({
 			});
 	},
 
-	onAssistInline: function(data, done)
+	onAssistInline: function(done, data)
 	{
 		var i, p, result, term, projects=this.projectManager.projects;
 		
@@ -404,7 +404,9 @@ plugin.extend({
 					result.push({
 						priority: i,
 						title: p,
-						icon: 'project'
+						icon: 'project',
+						matchStart: i,
+						matchEnd: i+term.length
 					});
 			}
 			

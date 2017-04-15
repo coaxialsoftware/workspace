@@ -171,7 +171,7 @@ ide.Bar = cxl.View.extend({
 	var
 		val = this.$input.value
 	;
-		this.$input.value = val.slice(0, start.ch) + text + val.slice(end.ch);
+		this.$input.value = val.slice(0, start) + text + val.slice(end);
 		this.on_keyup();
 	},
 
@@ -191,6 +191,70 @@ ide.Bar = cxl.View.extend({
 	}
 
 });
+	
+class CommandToken extends ide.Token {
+	
+	constructor(start, end, s)
+	{
+		super();
+		this.row = 0;
+		this.column = start;
+		this.cursorColumn = end;
+		this.cursorRow = 0;
+		this.value = s;
+	}
+	
+	getCoordinates()
+	{
+	var
+		bar = ide.commandBar,
+		el = bar.el,
+		input = bar.$input,
+		clone = bar.cloneEl
+	;
+		clone.innerHTML = input.value.substr(0, this.column).replace(/ /g, '&nbsp;');
+
+		return {
+			left: el.offsetLeft + clone.offsetWidth,
+			top: el.offsetTop,
+			bottom: el.offsetTop + el.clientHeight,
+			right: 0
+		};
+	}
+	
+	replace(val)
+	{
+		ide.commandBar.replaceRange(val, this.column, this.cursorColumn);
+	}
+	
+	getType()
+	{
+	var
+		input = ide.commandBar.$input,
+		val = input.value.slice(0, this.cursorColumn),
+		// Parse command from beginning to cursor position
+		parsed = ide.commandParser.parse(val, true),
+		cmd
+	;
+		parsed = parsed[parsed.length-1];
+		
+		if (parsed.args)
+		{
+			// TODO Get last command always?
+			cmd = ide.findCommand(parsed.fn);
+			
+			return cmd.args ? cmd.args[parsed.args.length-1] : 'file';
+		}
+		
+		return 'command';
+	}
+	
+	get type()
+	{
+		return this.$type || (this.$type = this.getType());
+	}
+
+}
 
 ide.Bar.Command = ide.Bar.extend({
 
@@ -263,25 +327,8 @@ ide.Bar.Command = ide.Bar.extend({
 	getToken: function(s, start, end)
 	{
 	var
-		cmd = ide.commandParser.parse(this.$input.value, true),
-		me = this,
-		result = this.token = {
-			getCoordinates: this.getCursorCoordinates.bind(this, { line: 0, ch: start }),
-			replace: function(val) {
-				me.replaceRange(val, { line: result.row, ch: result.column },
-					{ line: result.cursorRow, ch: result.cursorColumn });
-			}
-		}
+		result = this.token = new CommandToken(start, end, s)
 	;
-		result.row = 0;
-		result.column = start;
-		result.cursorColumn = end;
-		result.cursorRow = 0;
-		result.value = s;
-		
-		// TODO ? 
-		result.type = cmd[0].args ? 'file' : 'command';
-		// state: cmd[cmd.length-1]
 		return result;
 	},
 
@@ -312,24 +359,8 @@ ide.Bar.Command = ide.Bar.extend({
 			
 		this.ignoreChange = true;
 		this.selectedHint = i;
-		this.replaceRange(hints[i].value,
-			{ ch: this.token.column }, { ch: this.token.cursorColumn });
+		this.replaceRange(hints[i].value, this.token.column, this.token.cursorColumn);
 		this.token.cursorColumn = this.token.column + hints[i].value.length;
-	},
-
-	getCursorCoordinates: function(cursor)
-	{
-	var
-		el = this.el, input = this.$input, clone = this.cloneEl
-	;
-		clone.innerHTML = input.value.substr(0, cursor.ch).replace(/ /g, '&nbsp;');
-
-		return {
-			left: el.offsetLeft + clone.offsetWidth,
-			top: el.offsetTop,
-			bottom: el.offsetTop + el.clientHeight,
-			right: 0
-		};
 	}
 
 });

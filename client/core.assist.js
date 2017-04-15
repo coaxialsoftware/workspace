@@ -100,7 +100,15 @@ cxl.extend(InlineAssist.prototype, {
 			$: this.version,
 			file: file && file.id,
 			mime: file && file.attributes.mime,
-			token: token,
+			// TODO Should we allow custom token properties ?
+			token: {
+				row: token.row,
+				column: token.column,
+				cursorColumn: token.column,
+				cursorRow: token.row,
+				type: token.type,
+				value: token.value
+			},
 			project: ide.project.id
 		});
 	},
