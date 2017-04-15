@@ -29,6 +29,7 @@ class ProjectConfiguration extends workspace.Configuration
 		super(_.pick(workspace.configuration,
 			['keymap', 'theme', 'online.url', 'user', 'inspect' ]));
 
+		this.ignore = [];
 		this.set(workspace.configuration.project);
 		this.set(p);
 
@@ -384,6 +385,36 @@ plugin.extend({
 			.then(function() {
 				project.onMessage(client, data);
 			});
+	},
+
+	onAssistInline: function(data, done)
+	{
+		var i, p, result, term, projects=this.projectManager.projects;
+		
+		if (data.token && data.token.type==='project' && projects)
+		{
+			term = data.token.value;
+			result = [];
+			
+			for (p in projects)
+			{
+				i = p.indexOf(term);
+				
+				if (i!==-1)
+					result.push({
+						priority: i,
+						title: p,
+						icon: 'project'
+					});
+			}
+			
+			done(result);
+		}
+	},
+	
+	onLoad: function()
+	{
+		this.projectManager.findProjects();
 	}
 })
 .config(function() {
@@ -394,6 +425,9 @@ plugin.extend({
 
 	workspace.plugins.on('socket.message.project',
 		this.onMessage.bind(this));
+	
+	workspace.plugins.on('assist.inline', this.onAssistInline.bind(this));
+	workspace.plugins.on('workspace.load', this.onLoad.bind(this));
 
 })
 .route('GET', '/projects', function(req, res) {

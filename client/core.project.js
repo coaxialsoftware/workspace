@@ -32,12 +32,14 @@ ide.Project = cxl.Model.extend({
 
 	loadTheme: function(css)
 	{
+		var body = document.body;
+		
 		if (this.themeEl)
-			cxl.$body[0].removeChild(this.themeEl);
+			body.removeChild(this.themeEl);
 
 		this.themeEl = document.createElement('STYLE');
 		this.themeEl.innerHTML = css;
-		cxl.$body.append(this.themeEl);
+		body.appendChild(this.themeEl);
 	},
 
 	parse: function(data)
@@ -105,15 +107,18 @@ ide.plugins.on('assist', function(done) {
 /**
  * Open project by path
  */
-ide.registerCommand('project', function(name) {
-	var hash = '#' + ide.hash.encode({ p: name || null, f: null });
-	if (ide.project.id!=='.' || ide.workspace.slots.length)
-		window.open(hash);
-	else
-	{
-		window.location = hash;
-		window.location.reload();
-	}
+ide.registerCommand('project', {
+	fn: function(name) {
+		var hash = '#' + ide.hash.encode({ p: name || null, f: null });
+		if (ide.project.id!=='.' || ide.workspace.slots.length)
+			window.open(hash);
+		else
+		{
+			window.location = hash;
+			window.location.reload();
+		}
+	},
+	description: 'Load project'
 });
 	
 ide.registerCommand('project.settings', function() {

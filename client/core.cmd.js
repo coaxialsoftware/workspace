@@ -187,6 +187,23 @@ ide.runParsedCommand = function(cmds)
 
 	return result;
 };
+	
+ide.findCommand = function(name)
+{
+	function getCommands(cmds)
+	{
+		for (var i in cmds)
+		{
+			if (i !== name)
+				continue;
+
+			return cmds[i];
+		}
+	}
+	
+	return getCommands(ide.commands) || (ide.editor &&
+		(getCommands(ide.editorCommands) || getCommands(ide.editor.constructor.commands)));
+};
 
 /** @namespace */
 ide.commands = {};
@@ -395,6 +412,7 @@ ide.Command = class Command {
 		else
 			this.fn = def.fn;
 				
+		this.args = def.args;
 		this.icon = def.icon;
 		this.name = name;
 		this.description = description;

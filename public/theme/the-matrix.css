@@ -31,3 +31,6 @@
 
 #command { background-color: rgba(00, 106, 00, 0.6); }
 #search { background-color: rgba(142, 68, 173, 0.7); }
+
+.item { background-color: rgba(00, 106, 0, 0.6); border-color: #090; }
+.item:focus { outline: 1px solid #0c0; }
