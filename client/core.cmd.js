@@ -240,12 +240,22 @@ ide.plugins.register('cmd', {
 
 		keymap: function()
 		{
-			return this.openKeymap({});
+			var editor = new ide.ListEditor({
+				command: 'keymap', plugin: this
+			});
+
+			editor.listenTo(ide.plugins, 'editor.focus', this.loadKeymap.bind(this, editor));
+			editor.listenTo(ide.plugins, 'editor.keymap', this.loadKeymap.bind(this, editor));
+
+			return editor;
 		},
 
 		log: function()
 		{
-			return this.openLog({});
+			return new ide.ListEditor({
+				command: 'log', title: 'log',
+				children: ide.logger.items, plugin: this
+			});
 		}
 	},
 
@@ -345,41 +355,19 @@ ide.plugins.register('cmd', {
 
 	loadKeymap: function(editor)
 	{
-		var state, items = [];
-
+	var
+		state = ide.editor.keymap.state,
+		items = []
+	;
 		editor.reset();
 
-		state = ide.editor.keymap.state;
+		editor.header.title = 'keymap: ' + (state||'');
 		items = items.concat(this.getKeys(ide.editor.keymap.getState(state)));
 		items = items.concat(this.getKeys(ide.keymap.getState(state)));
 
 		items = cxl.sortBy(items, 'title');
-		items.unshift({
-			code: 'state', title: state, className: 'state'
-		});
 
 		editor.add(items);
-	},
-
-	openKeymap: function(options)
-	{
-		options.title = 'keymap';
-		options.plugin = 'cmd.openKeymap';
-
-		var editor = new ide.ListEditor(options);
-
-		editor.listenTo(ide.plugins, 'editor.focus', this.loadKeymap.bind(this, editor));
-		editor.listenTo(ide.plugins, 'editor.keymap', this.loadKeymap.bind(this, editor));
-
-		return editor;
-	},
-
-	openLog: function(options)
-	{
-		return new ide.ListEditor({
-			title: 'log', children: ide.logger.items, plugin: 'cmd.openLog',
-			slot: options.slot
-		});
 	},
 
 	start: function()

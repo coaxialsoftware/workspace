@@ -394,14 +394,16 @@ ide.keymap.registerKeys({
 		'alt+u': 'selection.redo',
 
 		// SELECTION
-		'shift+left': 'selection.begin; cursor.goLeft; selection.end',
-		'shift+right': 'selection.begin; cursor.goRight; selection.end',
+		'shift+left': 'selection.begin; cursor.goBackwards; selection.end',
+		'shift+right': 'selection.begin; cursor.goForward; selection.end',
 		'shift+up': 'selection.begin; cursor.goUp; selection.end',
 		'shift+down': 'selection.begin; cursor.goDown; selection.end',
 		'shift+home': 'selection.begin; line.goStart; selection.end',
 		'shift+end': 'selection.begin; line.goEnd; selection.end',
 		'shift+pagedown': 'selection.begin; page.goDown; selection.end',
 		'shift+pageup': 'selection.begin; page.goUp; selection.end',
+		'shift+mod+left': 'selection.begin; word.goPrevious; selection.end',
+		'shift+mod+right': 'selection.begin; word.goNext; selection.end',
 
 		// EDITING
 		backspace: 'insert.backspace',
@@ -418,8 +420,8 @@ ide.keymap.registerKeys({
 		'mod+end': 'cursor.goEnd',
 		'mod+down': 'scroll.down',
 		'mod+home': 'cursor.goStart',
-		'mod+left': 'word.previous',
-		'mod+right': 'word.next',
+		'mod+left': 'word.goPrevious',
+		'mod+right': 'word.goNext',
 		'mod+up': 'scroll.up',
 		'mod+pageup': 'scrollScreenUp',
 		'mod+pagedown': 'scrollScreenDown',

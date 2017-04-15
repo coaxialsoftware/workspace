@@ -5,20 +5,20 @@
 .cm-s-workspace .CodeMirror-gutters { background: #060; border-right: 2px solid #00FF00; }
 .cm-s-workspace .CodeMirror-guttermarker { color: #0f0; }
 .cm-s-workspace .CodeMirror-guttermarker-subtle { color: white; }
-.cm-s-workspace .CodeMirror-linenumber { color: #FFFFFF; }
+.cm-s-workspace .CodeMirror-linenumber { color: #0F0; }
 .cm-s-workspace .CodeMirror-cursor { border-left: 1px solid #00FF00 !important; }
 
 .cm-s-workspace span.cm-keyword {color: #008803; font-weight: bold;}
-.cm-s-workspace span.cm-atom {color: #3FF;}
+.cm-s-workspace span.cm-atom {color: #3F3;}
 .cm-s-workspace span.cm-number {color: #FFB94F;}
-.cm-s-workspace span.cm-def {color: #99C;}
-.cm-s-workspace span.cm-variable {color: #F6C;}
-.cm-s-workspace span.cm-variable-2 {color: #C6F;}
-.cm-s-workspace span.cm-variable-3 {color: #96F;}
-.cm-s-workspace span.cm-property {color: #62FFA0;}
+.cm-s-workspace span.cm-def {color: #9C9;}
+.cm-s-workspace span.cm-variable {color: #6F3; }
+.cm-s-workspace span.cm-variable-2 {color: #CF6;}
+.cm-s-workspace span.cm-variable-3 {color: #9F6;}
+.cm-s-workspace span.cm-property {color: #62FF30;}
 .cm-s-workspace span.cm-operator {color: #999}
 .cm-s-workspace span.cm-comment {color: #CCCCCC;}
-.cm-s-workspace span.cm-string {color: #39C;}
+.cm-s-workspace span.cm-string {}
 .cm-s-workspace span.cm-meta {color: #C9F;}
 .cm-s-workspace span.cm-qualifier {color: #FFF700;}
 .cm-s-workspace span.cm-builtin {color: #30a;}
@@ -26,11 +26,26 @@
 .cm-s-workspace span.cm-tag {color: #FFBD40;}
 .cm-s-workspace span.cm-attribute {color: #FFF700;}
 .cm-s-workspace span.cm-error {color: #FF0000;}
+.cm-s-workspace span.cm-invalidchar {color: #0f0;}
 
 .cm-s-workspace .CodeMirror-activeline-background {background: #040;}
 
+#welcome { color: #0c0; }
 #command { background-color: rgba(00, 106, 00, 0.6); }
-#search { background-color: rgba(142, 68, 173, 0.7); }
+#search { background-color: rgba(142, 173, 68, 0.7); }
+#assist { background-color: rgb(0,30,0); }
 
-.item { background-color: rgba(00, 106, 0, 0.6); border-color: #090; }
+#workspace > div:nth-child(2), .bg1 { background-color: #063218; }
+#workspace > div:nth-child(3) { background-color: #002010; }
+#workspace > div:nth-child(4) { background-color: #005024; }
+#workspace > div:nth-child(5) { background-color: #015062; }
+
+ide-editor-header { color: #0f0; }
+.focus ide-editor-header { color: #0f0; }
+
+.icon { color: #0e0; }
+.item { background-color: rgba(0, 106, 0, 0.6); border-color: #090; color: #0f0; }
 .item:focus { outline: 1px solid #0c0; }
+.item:hover { background-color: rgba(0, 186, 0, 0.8); }
+.item h4 { color: #3f3; }
+kbd { color: #0f0; }
