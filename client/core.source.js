@@ -676,7 +676,7 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 	{
 		var token = this.getToken();
 
-		if (this.current !== token)
+		if (this.current !== token && this.editor===ide.editor)
 		{
 			this.current = token;
 			ide.plugins.trigger('token', this.editor, token);

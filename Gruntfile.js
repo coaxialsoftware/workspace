@@ -84,7 +84,7 @@ module.exports = function(grunt) {
 			},
 
 			debug: {
-				src: [ '<%= jshint.client.src %>' ],
+				src: [ '<%= jshint.client.src %>', 'client/debug.js' ],
 				dest: 'public/build/debug.js'
 			},
 

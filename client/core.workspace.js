@@ -259,8 +259,13 @@ ide.Workspace = class Workspace {
 	{
 		var msg = editor.quit();
 		
-		if (msg && window.confirm(msg))
-			editor.quit(true);
+		if (msg)
+		{
+			if (window.confirm(msg))
+				editor.quit(true);
+			else
+				return;
+		}
 		
 		this.doRemove(editor);
 	}

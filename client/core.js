@@ -652,6 +652,9 @@ class Editor {
 		return fn ? fn.apply(this, args) : ide.Pass;
 	}
 	
+	/**
+	 * Handles closing the editor. Return a string to confirm with user first.
+	 */
 	quit()
 	{
 	}

@@ -103,6 +103,10 @@ ide.plugins.on('assist', function(done) {
 		done(ide.project.hint);
 });
 	
+ide.plugins.on('socket.ready', function() {
+	ide.project.reload();
+});
+	
 /**
  * Open project by path
  */
@@ -121,8 +125,11 @@ ide.registerCommand('project', {
 	description: 'Load project'
 });
 	
-ide.registerCommand('project.settings', function() {
-	ide.open({ file: 'project.json' });
+ide.registerCommand('project.settings', {
+	fn: function() {
+		ide.open({ file: 'project.json' });
+	},
+	icon: 'cog'
 });
 
 
