@@ -667,7 +667,7 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 		result.value = token.string;
 		result.type = token.type;
 		result.cursorRow = pos.line;
-		result.cursorColumn = pos.column;
+		result.cursorColumn = pos.ch;
 
 		return result;
 	}
