@@ -107,7 +107,8 @@ cxl.extend(InlineAssist.prototype, {
 				cursorColumn: token.column,
 				cursorRow: token.row,
 				type: token.type,
-				value: token.value
+				value: token.value,
+				cursorValue: token.cursorValue
 			},
 			project: ide.project.id
 		});

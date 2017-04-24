@@ -550,6 +550,15 @@ class RangeFeature extends Feature { }
 RangeFeature.featureName = 'range';
 
 class Token {
+	
+	get cursorValue()
+	{
+		// TODO ?
+		return this.$cursorValue===undefined ?
+			(this.$cursorValue=this.value.substr(this.cursorColumn-this.column)) :
+			this.$cursorValue
+		;
+	}
 
 }
 
