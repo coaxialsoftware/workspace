@@ -11,21 +11,11 @@ A new IDE concept based on web technologies with a focus on
 extensibility and user experience.
 	</p>
 	
-	<h2>Overview</h2>
-	<ul>
-		<li>Easy to install and configure. Runs locally or remotely.</li>
-		<li>Client/Server based.</li>
-		<li>A powerful plugin API and plugins for popular tools.</li>
-		<li>Intelligent Text Editor and Code Assistance.</li>
-		<li>Minimalistic UI. Focus in your code.</li>
-		<li>VIM support.</li>
-	</ul>
-	
 	<h2>Requirements and Installation</h2>
 	
 	<h3>System Requiremets</h3>
 	<ul>
-		<li>A Modern Browser (Chrome, Firefox, IE11, etc)</li>
+		<li>A Modern Browser (Chrome, Firefox, IE Edge, etc)</li>
 		<li>node >5.0 and npm</li>
 	</ul>
 	
@@ -34,23 +24,16 @@ extensibility and user experience.
 		To install from NPM (stable)
 	</p>
 	<pre><code>
-	npm install -g @cxl/workspace
+npm install -g @cxl/workspace
 	</code></pre>
 	<p>
 		To install from source (github)
 	</p>
 	<pre><code>
-	git clone https://github.com/coaxialsoftware/workspace.git
-	cd workspace
-	npm link
+git clone https://github.com/coaxialsoftware/workspace.git
+cd workspace
+npm link
 	</code></pre>
-	
-	<h2>
-		Architecture
-	</h2>
-	<p>
-		Workspace is designed as a server/client application. Communication between the client and server is done through a WebSocket and REST requests.
-	</p>
 	
 	<h2>Basic Concepts</h2>
 	
@@ -60,21 +43,72 @@ extensibility and user experience.
 	</p>
 	<h3>Project</h3>
 	<p>
-		A project is a directory inside a workspace that contains source code. Project settings are stored in the optional <code>project.json</code> file.
+		A project is a directory inside a workspace that contains your source code.
 	</p>
+	<p>
+		The command <kbd>:project</kbd> can be used to open existing projects.
+	</p>
+	<p>
+		There are many ways to create a project.
+	</p>
+	<h4>
+		Creating a Project from existing sources
+	</h4>
+	<h4>
+		Creating a Project from a remote repository
+	</h4>
+	<h4>
+		Creating a Project from scratch
+	</h4>
 	<h4>
 		Project Files
 	</h4>
 	<p>
-		Workspace looks for a <code>project.json</code> file when initializing a project. This file will override any default settings from <code>workspace.json</code>. You can also use <code>project.local.json</code> if you need to override settings from <code>project.json</code>. This is helpful when you dont want those settings to apply to other users.
+	Project settings are stored in the optional <code>project.json</code> file.
+	This file will override any default settings from <code>workspace.json</code>.
+	You can also use <code>project.local.json</code> if you need to override settings from <code>project.json</code> for your local copy. This is helpful when you dont want to check in those settings in your
+		repository.
 	</p>
-	<h4>
-		Project Settings
-	</h4>
+	<h3>
+		Settings
+	</h3>
+	<p>
+		For a list of available settings and descriptions use the <kbd>:settings</kbd> command.
+	</p>
 	
 	<h3>Commands</h3>
+	<p>
+		Commands
+	</p>
+	<div class="alert alert-info">
+		Use <kbd>:commands</kbd> to see a list of commands.
+	</div>
 	<h3>KeyMap</h3>
+	<p>
+		Keymap states are used to associate keyboard events to commands. You can specify the default keymap using the <code>keymap</code> setting.
+	</p>
+	<p>
+		The <code>ide.keymap.registerState(state, map)</code> function can be used to register a keymap state.
+	</p>
 	<h3>Plugins</h3>
+	<p>
+		Plugins are key components of the IDE.
+	</p>
+	<p>
+		To see the list of available plugins, use the <kbd>:plugins</kbd> command.
+	</p>
+	<h3>
+		Themes
+	</h3>
+	<p>
+		Themes are CSS files. They can be specified by using the <code>theme</code> setting. Default templates are in the <code>public/themes</code> folder.
+	</p>
+	<h3>
+		Editors
+	</h3>
+	<p>
+		
+	</p>
 	
 </body>
 </html>

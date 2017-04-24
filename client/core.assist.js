@@ -22,7 +22,7 @@ ide.Hint = class Hint extends ide.Item {
 var InlineAssist = function() {
 	this.hints = [];
 	this.el = document.getElementById('assist-inline');
-	this.requestHints = cxl.debounce(this._requestHints.bind(this));
+	this.requestHints = cxl.debounce(this._requestHints.bind(this), this.delay);
 	this.cursor = { line: 0, ch: 0 };
 	this.add = this.add.bind(this);
 	this.doAccept = this.doAccept.bind(this);
@@ -51,7 +51,7 @@ cxl.extend(InlineAssist.prototype, {
 	pos: null,
 
 	/// How often to send assist requests
-	delay: 100,
+	delay: 150,
 
 	/// Request version
 	version: 0,
@@ -292,18 +292,26 @@ cxl.extend(InlineAssist.prototype, {
 				el.scrollTop = h - el.clientHeight;
 			else if (next.offsetTop < el.scrollTop)
 				el.scrollTop = next.offsetTop;
-		}
+		} else
+			return ide.Pass;
 	},
 
 	/** Go to next suggestion */
 	next: function()
 	{
-		return this._goNext();
+		var result = this._goNext();
+		
+		// TODO ?
+		if (result===ide.Pass && ide.editor.cursor)
+			ide.editor.cursor.goDown();
 	},
 
 	previous: function()
 	{
-		return this._goNext('previousSibling');
+		var result = this._goNext('previousSibling');
+		
+		if (result===ide.Pass && ide.editor.cursor)
+			ide.editor.cursor.goUp();
 	},
 
 	doAccept: function()

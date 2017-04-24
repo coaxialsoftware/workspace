@@ -389,8 +389,9 @@ ide.keymap.registerKeys({
 		"alt+right": 'workspace.next',
 		'alt+.': 'workspace.swapNext',
 		'alt+,': 'workspace.swapPrevious',
+		'alt+down': 'line.moveDown',
+		'alt+up': 'line.moveUp',
 		'alt+enter': 'ex',
-		
 		'alt+u': 'selection.redo',
 
 		// SELECTION
@@ -410,7 +411,7 @@ ide.keymap.registerKeys({
 		del: 'insert.del',
 		enter: 'cursor.enter',
 		'shift+enter': 'cursor.enter 1',
-		'mod+enter': 'cursor.enter 0 1',
+		'mod+enter': 'line.goEnd; cursor.enter 0 1',
 		'shift+mod+enter': 'cursor.enter 1 1',
 		insert: 'insert.toggleOverwrite',
 		'shift+backspace': 'insert.backspace',
@@ -427,9 +428,9 @@ ide.keymap.registerKeys({
 		'mod+pagedown': 'scrollScreenDown',
 		
 		'mod+a': 'selection.selectAll',
-		'mod+d': 'line.remove',
+		'mod+d': 'search.next',
 		'mod+f': 'searchbar',
-		'mod+g': 'search.next',
+		'mod+i': 'line.select',
 		'mod+u': 'selection.undo',
 		'mod+s': 'write',
 		'mod+y': 'history.redo',

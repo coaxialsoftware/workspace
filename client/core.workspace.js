@@ -364,43 +364,6 @@ ide.plugins.registerCommands({
 				title: char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8)
 			});
 		},
-
-		f: 'file',
-
-		/**
-		 * File diff
-		 */
-		diff: function()
-		{
-		var
-			file = ide.editor && ide.editor.file,
-			diff = file && file.diff && file.diff(),
-			newfile
-		;
-			if (!diff)
-				return;
-
-			newfile = new ide.File({
-				filename: '',
-				new: true,
-				content: JSON.stringify(diff, null, 2)
-			});
-
-			ide.open({ file: newfile }).then(function(editor) {
-				editor.listenTo(file, 'change:content', function() {
-					newfile.content = JSON.stringify(file.diff(), null, 2);
-				});
-				editor.cmd('inputDisable');
-			});
-		},
-
-
-		file: function()
-		{
-			ide.notify(ide.editor.file ?
-				ide.editor.file.id || '[No Name]' :
-				'No files open.');
-		},
 		
 		openTab: {
 			fn: function() {
@@ -535,10 +498,15 @@ ide.plugins.registerCommands({
 				ide.editor.quit(true);
 		},
 		
-		'workspace.settings': function()
-		{
-			// TODO ?
-			ide.open({ file: '../workspace.json' });
+		'workspace.settings': {
+			fn: function()
+			{
+				var prefix = ide.project.id==='.' ? '' : '../';
+					
+				ide.open({ file: prefix + 'workspace.json' });
+			},
+			icon: 'gear',
+			description: 'Edit global settings'
 		},
 
 		version: function()

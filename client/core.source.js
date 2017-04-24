@@ -97,6 +97,12 @@ class SourceHintsFeature extends ide.feature.HintsFeature {
 }
 
 class SourceInsertFeature extends ide.feature.InsertFeature {
+	
+	constructor(p)
+	{
+		super(p);
+		this.enabled = true;
+	}
 
 	tab()
 	{
@@ -122,11 +128,11 @@ class SourceInsertFeature extends ide.feature.InsertFeature {
 	{
 		var cm = this.editor.editor;
 
-			cm.setOption('fatCursor', false);
-			cm.setOption('disableInput', false);
-			this.enabled = true;
-			// Need to make sure editor is focused for keyboard events
-			cm.focus();
+		cm.setOption('fatCursor', false);
+		cm.setOption('disableInput', false);
+		this.enabled = true;
+		// Need to make sure editor is focused for keyboard events
+		cm.focus();
 	}
 
 	disable()
@@ -151,10 +157,12 @@ class SourceCursorFeature extends ide.feature.CursorFeature {
 
 	get row()
 	{
+		return this.editor.editor.getCursor().line;
 	}
 
 	get column()
 	{
+		return this.editor.editor.getCursor().ch;
 	}
 
 	goDown()
@@ -193,11 +201,6 @@ class SourceCursorFeature extends ide.feature.CursorFeature {
 		this.editor.editor.setCursor(row-first, column);
 	}
 
-	enter()
-	{
-		this.goDown();
-	}
-
 	valueAt(row, column)
 	{
 	var
@@ -219,6 +222,14 @@ class SourceCursorFeature extends ide.feature.CursorFeature {
 	get value()
 	{
 		return this.valueAt();
+	}
+	
+	enter()
+	{
+		if (this.editor.insert.enabled)
+			this.editor.insert.line();
+		else
+			this.goDown();
 	}
 	
 }
@@ -325,7 +336,7 @@ class SourceSelectionFeature extends ide.feature.SelectionFeature {
 	{
 		return this.editor.editor.getSelection(this.editor.options.lineSeparator);
 	}
-
+	
 	somethingSelected()
 	{
 		return this.editor.editor.somethingSelected();
@@ -560,11 +571,11 @@ class SourceFoldFeature extends ide.feature.FoldFeature {
 	
 }
 	
-// TODO Optimize
 class SourceRange {
 	
 	constructor(editor, startRow, startColumn, endRow, endColumn)
 	{
+		// TODO Optimize
 		Object.defineProperty(this, 'editor', { enumerable: false, value: editor });
 		this.row = startRow;
 		this.column = startColumn;
@@ -582,10 +593,14 @@ class SourceRange {
 	
 	replace(text)
 	{
+		// TODO optimize
+		var cursor = this.editor.editor.getCursor();
 		this.editor.editor.replaceRange(text,
 			{ line: this.row, ch: this.column },
-			{ line: this.endRow, ch: this.endColumn }
+			{ line: this.endRow, ch: this.endColumn },
+			'range.replace'
 		);
+		this.editor.editor.setCursor(cursor);
 	}
 	
 	getCoordinates()
@@ -599,7 +614,7 @@ class SourceRangeFeature extends ide.feature.RangeFeature {
 	
 	create(startRow, startColumn, endRow, endColumn)
 	{
-		return new SourceRange(startRow, startColumn, endRow, endColumn);
+		return new SourceRange(this.editor, startRow, startColumn, endRow, endColumn);
 	}
 	
 }
@@ -634,6 +649,15 @@ class SourceSearchFeature extends ide.feature.SearchFeature {
 }
 
 class SourceToken extends SourceRange {
+	
+	replace(text)
+	{
+		this.editor.editor.replaceRange(text,
+			{ line: this.row, ch: this.column },
+			{ line: this.endRow, ch: this.endColumn },
+			'range.replace'
+		);
+	}
 	
 }
 	
@@ -840,6 +864,7 @@ class SourceEditor extends ide.FileEditor {
 		setTimeout(this.editor.refresh.bind(this.editor), 200);
 	}
 	
+	// TODO move this somewhere else?
 	setValue(content)
 	{
 		if (content === this.value)

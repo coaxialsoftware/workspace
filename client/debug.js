@@ -39,6 +39,34 @@ ide.plugins.register('debug', {
 			},
 			description: 'Show current token',
 			icon: 'bug'
+		},
+		
+		'debug.diff': {
+			
+			// TODO
+			fn: function()
+			{
+			var
+				file = ide.editor && ide.editor.file,
+				diff = file && file.diff && file.diff(),
+				newfile
+			;
+				if (!diff)
+					return;
+
+				newfile = new ide.File({
+					content: JSON.stringify(diff, null, 2)
+				});
+
+				ide.open({ file: newfile }).then(function(editor) {
+					editor.listenTo(file, 'change:content', function() {
+						newfile.content = JSON.stringify(file.diff(), null, 2);
+					});
+					editor.cmd('insert.disable');
+				});
+			},
+			description: 'Show File Diff for current editor',
+			icon: 'bug'
 		}
 	}
 	

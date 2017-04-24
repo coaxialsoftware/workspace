@@ -57,6 +57,13 @@ class File {
 	{
 		return this.content !== this.attributes.content;
 	}
+	
+	setContent(content)
+	{
+		this.content = content;
+		// TODO ? should we fire change and not parse?
+		ide.plugins.trigger('file.parse', this);
+	}
 
 	onError(res)
 	{
@@ -199,6 +206,15 @@ FileFeature.featureName = 'file';
 FileFeature.commands = {
 
 	w: 'write',
+	f: 'file',
+	
+	file: function()
+	{
+		ide.notify(ide.editor.file ?
+			ide.editor.file.id || '[No Name]' :
+			'No files open.');
+	},
+	
 	save: 'write',
 
 	write: function(filename, force)
@@ -217,12 +233,15 @@ class FileHashFeature extends ide.feature.HashFeature {
 
 	get()
 	{
+		// TODO see if we can resuse HashFeature
 	var
 		editor = this.editor,
-		plugin = editor.plugin && editor.plugin.name || editor.plugin,
-		file = editor.file.filename || ''
+		p = editor.plugin && editor.plugin.name,
+		cmd = editor.command || '',
+		args = editor.file.filename || '',
+		prefix = (p && cmd ? p + '.' : p || '') + cmd
 	;
-		return (plugin ? plugin+':' : '') + encodeURIComponent(file);
+		return (prefix ? prefix + ':' : '') + args;
 	}
 }
 
@@ -289,21 +308,21 @@ var
 	if (file instanceof ide.File)
 	{
 		content = file.content;
-		file.content = content.replace(from, to);
+		file.setContent(content.replace(from, to));
 	}
 }
 	
 ide.registerEditorCommand('fileformat.unix', {
 	description: 'Set the file line end format to "\\n"',
-	run: function() { fileFormatApply(/\r\n?/g, "\n"); }
+	fn: function() { fileFormatApply(/\r\n?/g, "\n"); }
 });
 ide.registerEditorCommand('fileformat.dos', {
 	description: 'Set the file line end format to "\\r\\n"',
-	run: function() { fileFormatApply(/\r?\n/g, "\r\n"); }
+	fn: function() { fileFormatApply(/\r?\n/g, "\r\n"); }
 });
 ide.registerEditorCommand('fileformat.mac', {
 	description: 'Set the file line end format to "\\r"',
-	run: function() { fileFormatApply(/\r?\n/g, "\r"); }
+	fn: function() { fileFormatApply(/\r?\n/g, "\r"); }
 });
 	
 ide.plugins.on('assist', function(done, editor) {

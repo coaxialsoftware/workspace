@@ -16,11 +16,7 @@
 		"file:../../workspace.angular",
 		"file:../../workspace.base/workspace.trailing"
 	],
-	
-	
-	
-	
-	
+		
 	"plugins.path": ".",
 	"socket.port": 9005,
     "online.url": "https://cxl-test.firebaseio.com/workspace"

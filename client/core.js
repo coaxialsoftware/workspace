@@ -294,7 +294,7 @@ class FocusFeature extends Feature
 
 FocusFeature.featureName = 'focus';
 
-class CursorFeature extends Feature { }
+class CursorFeature extends Feature {}
 
 CursorFeature.featureName = 'cursor';
 CursorFeature.commands = {
@@ -358,10 +358,20 @@ IndentFeature.commands = {
 
 class HashFeature extends Feature {
 
-	serializeArg(arg)
+	serializeArgs(args)
 	{
-		// TODO
-		return arg;	
+		// TODO ?
+		var result='', i,l;
+		
+		if (args && args.length)
+		{
+			l = args.length-1;
+			for (i=0; i<l; i++)
+				result += args[i] + ' ';
+			result += args[i];
+		}
+		
+		return result;	
 	}
 
 	get()
@@ -370,7 +380,7 @@ class HashFeature extends Feature {
 		editor = this.editor,
 		p = editor.plugin && editor.plugin.name,
 		cmd = editor.command || '',
-		args = editor.arguments ? editor.arguments.map(this.serializeArg).join(' ') : ''
+		args = this.serializeArgs(editor.arguments)
 	;
 		return (p && cmd ? p + '.' : p || '') + cmd + ':' + args;
 	}
@@ -414,14 +424,28 @@ SelectionFeature.commands = {
 
 class LineFeature extends Feature {
 	
+	select()
+	{
+	}
+	
 	goStart()
 	{
-		this.cursor.go(this.line.rowStart, this.line.columnStart);	
+		var e = this.editor;
+		e.cursor.go(this.row, this.column);	
 	}
 	
 	goEnd()
 	{
-		this.cursor.go(this.line.rowEnd, this.line.columnEnd);
+		var e = this.editor;
+		e.cursor.go(this.rowEnd, this.columnEnd);
+	}
+	
+	moveDown()
+	{
+	}
+	
+	moveUp()
+	{
 	}
 
 }
@@ -431,7 +455,9 @@ LineFeature.commands = {
 	'line.select': function() { this.line.select(); },
 	'line.goStart': function() { this.line.goStart(); },
 	'line.goEnd': function() { this.line.goEnd(); },
-	'line.remove': function() { this.line.remove(); }
+	'line.remove': function() { this.line.remove(); },
+	'line.moveDown': function() { this.line.moveDown(); },
+	'line.moveUp': function() { this.line.moveUp(); }
 };
 	
 // TODO

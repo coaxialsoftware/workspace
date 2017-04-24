@@ -227,15 +227,18 @@ ide.registerEditorCommand = addCmd.bind(this, ide.editorCommands);
 ide.plugins.register('cmd', {
 
 	commands: {
-		commands: function()
-		{
-			var editor = new ide.ListEditor({
-				command: 'commands', plugin: this
-			});
-			
-			editor.listenTo(ide.plugins, 'editor.focus', this.loadCommands.bind(this, editor));
-			
-			return editor;
+		commands: {
+			fn: function()
+			{
+				var editor = new ide.ListEditor({
+					command: 'commands', plugin: this
+				});
+
+				editor.listenTo(ide.plugins, 'editor.focus', this.loadCommands.bind(this, editor));
+
+				return editor;
+			},
+			description: 'Show commands for active editor'
 		},
 
 		keymap: function()
@@ -250,11 +253,12 @@ ide.plugins.register('cmd', {
 			return editor;
 		},
 
+		messages: 'log',
 		log: function()
 		{
 			return new ide.ListEditor({
-				command: 'log', title: 'log',
-				children: ide.logger.items, plugin: this
+				children: ide.logger.items,
+				plugin: this, command: 'log'
 			});
 		}
 	},
@@ -390,10 +394,8 @@ ide.Command = class Command {
 		
 		if (type==='string')
 		{
-			this.fn = function() { return ide.run(def, arguments); };
-			
-			if (!description)
-				description = 'Alias of "' + def + '"';
+			this.fn = function() { ide.run(def, arguments); };
+			description = 'Alias of "' + def + '"';
 		}
 		else if (type==='function')
 			this.fn = def;
