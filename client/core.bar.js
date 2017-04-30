@@ -243,7 +243,7 @@ class CommandToken extends ide.Token {
 			// TODO Get last command always?
 			cmd = ide.findCommand(parsed.fn);
 			
-			return cmd.args ? cmd.args[parsed.args.length-1] : 'file';
+			return cmd && cmd.args ? cmd.args[parsed.args.length-1] : 'file';
 		}
 		
 		return 'command';

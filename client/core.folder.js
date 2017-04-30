@@ -401,11 +401,27 @@ ide.plugins.register('find', new ide.Plugin({
 				done(files);
 		}
 	},
+	
+	getFuzzyRegex: function(mask)
+	{
+		var regex;
+		
+		if (typeof(mask)!=='string')
+			return mask;
+		
+		try {
+			regex = new RegExp(mask.split('').join('.*?'));
+		} catch(e) {
+			regex = mask;
+		}
+		
+		return regex;
+	},
 
 	find: function(mask)
 	{
 	var
-		regex = globToRegex(mask),
+		regex = this.getFuzzyRegex(mask),
 		files = ide.project.get('files'),
 		match
 	;

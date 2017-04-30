@@ -11,6 +11,65 @@ var
 	common = workspace.common
 ;
 
+class LanguageServer {
+	
+	constructor(pluginName, mimeMatch)
+	{
+		workspace.plugins.on('assist', this.$onAssist.bind(this));
+		workspace.plugins.on('assist.inline', this.$onInlineAssist.bind(this));
+		
+		this.$plugin = pluginName;
+		this.$mime = mimeMatch;
+	}
+	
+	onAssist()
+	{
+	}
+	
+	onInlineAssist()
+	{
+	}
+	
+	findArray(array, term, fn)
+	{
+		var i=0, l=array.length, index, result=[], tl=term.length;
+		
+		for (;i<l;i++)
+			if ((index=array[i].indexOf(term))!==-1)
+				result.push(fn({
+					title: array[i],
+					matchStart: index,
+					matchEnd: index+tl,
+					priority: index
+				}));
+		
+		return result;
+	}
+	
+	canAssist(data)
+	{
+		var project = workspace.projectManager.getProject(data.project);
+		
+		return project.hasPlugin(this.$plugin) &&
+			(!this.$mime || this.$mime.test(data.mime));
+	}
+	
+	$onAssist(done, data)
+	{
+		if (this.canAssist(data))
+			this.onAssist(done, data);
+	}
+	
+	$onInlineAssist(done, data)
+	{
+		if (this.canAssist(data))
+			this.onInlineAssist(done, data);
+	}
+	
+}
+
+workspace.LanguageServer = LanguageServer;
+
 plugin.extend({
 
 	onMessage: function(client, data)

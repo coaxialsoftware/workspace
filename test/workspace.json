@@ -6,7 +6,7 @@
 	
 	"project": {
         "ignore": [ ".*"],
-		"plugins": [ "vim", "jshint", "karma", "angular" ]
+		"plugins": [ "vim", "jshint", "karma", "angular", "javascript" ]
 	},
 	
 	"plugins": [
@@ -14,7 +14,8 @@
         "file:../../workspace.inference",
 		"file:../../workspace.karma",
 		"file:../../workspace.angular",
-		"file:../../workspace.base/workspace.trailing"
+		"file:../../workspace.base/workspace.trailing",
+		"file:../../workspace.base/workspace.javascript"
 	],
 		
 	"plugins.path": ".",

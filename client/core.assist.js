@@ -84,6 +84,9 @@ cxl.extend(InlineAssist.prototype, {
 	var
 		file = editor.file instanceof ide.File && editor.file
 	;
+		if (!token || !token.cursorValue)
+			return this.hide();
+		
 		this.version++;
 		this.editor = editor;
 		this.token = token;
@@ -101,15 +104,7 @@ cxl.extend(InlineAssist.prototype, {
 			file: file && file.id,
 			mime: file && file.attributes.mime,
 			// TODO Should we allow custom token properties ?
-			token: {
-				row: token.row,
-				column: token.column,
-				cursorColumn: token.column,
-				cursorRow: token.row,
-				type: token.type,
-				value: token.value,
-				cursorValue: token.cursorValue
-			},
+			token: token && token.toJSON(),
 			project: ide.project.id
 		});
 	},
@@ -443,7 +438,7 @@ var Assist = cxl.View.extend({
 			$: this.version,
 			file: file && file.id,
 			mime: file && file.attributes.mime,
-			token: token,
+			token: token && token.toJSON(),
 			project: ide.project.id,
 			fileChanged: file && file.diffChanged,
 			editor: editor && editor.id,

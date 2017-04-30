@@ -571,12 +571,12 @@ class SourceFoldFeature extends ide.feature.FoldFeature {
 	
 }
 	
-class SourceRange {
+class SourceRange extends ide.Token {
 	
 	constructor(editor, startRow, startColumn, endRow, endColumn)
 	{
-		// TODO Optimize
-		Object.defineProperty(this, 'editor', { enumerable: false, value: editor });
+		super();
+		this.editor = editor;
 		this.row = startRow;
 		this.column = startColumn;
 		this.endRow = endRow;
@@ -693,6 +693,7 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 		result.cursorRow = pos.line;
 		result.cursorColumn = pos.ch;
 		result.cursorValue = token.string.substr(0, result.cursorColumn-token.start);
+		result.$token = token;
 
 		return result;
 	}
@@ -888,6 +889,7 @@ SourceEditor.features(
 	SourceRangeFeature
 );
 
+ide.SourceToken = SourceToken;
 ide.SourceEditor = SourceEditor;
 ide.defaultEdit = function(options)
 {

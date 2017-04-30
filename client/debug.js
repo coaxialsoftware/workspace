@@ -6,6 +6,7 @@ class TokenEditor extends ide.SourceEditor {
 	render(p)
 	{
 		this.file = new ide.File();
+		this.file.mime = 'application/json';
 		
 		super.render(p);
 		

@@ -555,9 +555,27 @@ class Token {
 	{
 		// TODO ?
 		return this.$cursorValue===undefined ?
-			(this.$cursorValue=this.value.substr(this.cursorColumn-this.column)) :
+			(this.$cursorValue=this.value.substr(0, this.cursorColumn-this.column)) :
 			this.$cursorValue
 		;
+	}
+	
+	set cursorValue(val)
+	{
+		this.$cursorValue = val;
+	}
+	
+	toJSON()
+	{
+		return this.$json || (this.$json={
+			row: this.row,
+			column: this.column,
+			cursorColumn: this.column,
+			cursorRow: this.row,
+			type: this.type,
+			value: this.value,
+			cursorValue: this.cursorValue
+		});
 	}
 
 }

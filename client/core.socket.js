@@ -100,6 +100,7 @@ class SocketManager {
 
 }
 
+ide.Socket = SocketManager;
 ide.socket = new SocketManager();
 
 })(this, this.ide, this.cxl);

@@ -258,6 +258,7 @@ div.CodeMirror-cursors { visibility: hidden; }
 .fa-variable-global::before { content: "G"; }
 .fa-command::before { content: "\f120"; }
 .fa-property::before { content: "P"; }
+.fa-keyword::before { content: "K"; }
 
 .item {
 	box-sizing: border-box;
