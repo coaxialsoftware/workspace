@@ -391,15 +391,18 @@ ide.plugins.register('find', new ide.Plugin({
 	
 	onAssistInline: function(done, editor, token)
 	{
-		var files, str=token.value;
+		var files, str=token.cursorValue;
 
-		if (token.type==='file' && str)
+		if (token.type==='file')
 		{
 			files = this.find(str);
-
-			if (files && files.length)
-				done(files);
+		} else if (token.type==='file-fuzzy')
+		{
+			files = this.find(str, true);
 		}
+		
+		if (files && files.length)
+			done(files);
 	},
 	
 	getFuzzyRegex: function(mask)
@@ -418,10 +421,10 @@ ide.plugins.register('find', new ide.Plugin({
 		return regex;
 	},
 
-	find: function(mask)
+	find: function(mask, fuzzy)
 	{
 	var
-		regex = this.getFuzzyRegex(mask),
+		regex = fuzzy ? this.getFuzzyRegex(mask) : globToRegex(mask),
 		files = ide.project.get('files'),
 		match
 	;
@@ -454,36 +457,38 @@ ide.plugins.register('find', new ide.Plugin({
 		 * it will automatically open it. If not mask is specified it will use
 		 * the token under the active editor.
 		 */
-		find: function(mask)
-		{
-		var
-			token = ide.editor && ide.editor.token && ide.editor.token.current,
-			files
-		;
-			mask = mask || (token && getMask(token)) || '';
-			files = this.find(mask).map(function(val) {
-				return new FileItem({ title: val.title, icon: val.icon });
-			});
-			
-			if (!files)
-				return ide.warn('[find] No files found in project.');
-
-			if (files.length===1)
-				ide.open({
-					file: new ide.File(files[0].title)
+		find: {
+			fn: function(mask)
+			{
+			var
+				token = ide.editor && ide.editor.token && ide.editor.token.current,
+				files
+			;
+				mask = mask || (token && getMask(token)) || '';
+				files = this.find(mask).map(function(val) {
+					return new FileItem({ title: val.title, icon: val.icon });
 				});
-			else if (files.length===0)
-				ide.notify('No files found that match "' + mask + '"');
-			else
-				return new ide.ListEditor({
-					title: 'find ' + mask,
-					command: 'find', args: mask,
-					children: files,
-					plugin: this
-				});
-			}
 
+				if (!files)
+					return ide.warn('[find] No files found in project.');
+
+				if (files.length===1)
+					ide.open({
+						file: new ide.File(files[0].title)
+					});
+				else if (files.length===0)
+					ide.notify('No files found that match "' + mask + '"');
+				else
+					return new ide.ListEditor({
+						title: 'find ' + mask,
+						command: 'find', args: mask,
+						children: files,
+						plugin: this
+					});
+			},
+			args: [ 'file-fuzzy' ]
 		}
+	}
 
 }));
 	

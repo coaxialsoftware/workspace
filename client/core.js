@@ -632,6 +632,8 @@ class Editor {
 			if (Feature.commands)
 				this.registerCommands(Feature.commands);
 		}
+		
+		return this.$features;
 	}
 
 	supports(featureName)

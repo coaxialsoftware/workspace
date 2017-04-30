@@ -3,6 +3,13 @@
 	
 class TokenEditor extends ide.SourceEditor {
 	
+	// TODO figure a better way to disable token feature.
+	loadFeatures(p)
+	{
+		delete this.constructor.features().token;
+		return super.loadFeatures(p);
+	}
+	
 	render(p)
 	{
 		this.file = new ide.File();

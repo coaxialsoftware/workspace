@@ -103,7 +103,6 @@ cxl.extend(InlineAssist.prototype, {
 			$: this.version,
 			file: file && file.id,
 			mime: file && file.attributes.mime,
-			// TODO Should we allow custom token properties ?
 			token: token && token.toJSON(),
 			project: ide.project.id
 		});
