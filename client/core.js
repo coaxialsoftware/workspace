@@ -11,7 +11,84 @@ var
 	editorId = 1
 ;
 	
-class Item {
+class Hint {
+	
+	constructor(p)
+	{
+		this.priority = p.priority || 0;
+		this.className = p.className || 'log';
+		this.icon = p.icon;
+		this.title = p.title;
+		this.description = p.description;
+		this.value = 'value' in p ? p.value : p.title;
+		this.matchStart = p.matchStart;
+		this.matchEnd = p.matchEnd;
+		// TODO Should we show tags?
+		this.tags = p.tags;
+	}
+	
+	$appendChildren()
+	{
+		var el = this.el;
+		
+		if (this.iconEl) el.appendChild(this.iconEl);
+		if (this.titleEl) el.appendChild(this.titleEl);
+		if (this.descEl) el.appendChild(this.descEl);
+	}
+	
+	$renderIcon()
+	{
+		var icon = this.iconEl = document.createElement('ide-icon');
+		// TODO Better Icon rendering
+		icon.className = 'fa fa-' + this.icon;
+	}
+	
+	$renderDescription()
+	{
+		var desc = this.descEl = document.createElement('ide-item-description');
+		desc.innerHTML = this.description;
+	}
+	
+	// TODO do we need escaping?
+	$renderTitle()
+	{
+		var title = this.titleEl = document.createElement('ide-item-title');
+		title.innerHTML = this.title;
+	}
+	
+	$renderElements()
+	{
+	var
+		obj = this,
+		el = obj.el = document.createElement('ide-item')
+	;
+		el.tabIndex = 0;
+		el.className = 'item ' + obj.className;
+		
+		if (obj.icon) this.$renderIcon();
+		if (obj.description) this.$renderDescription();
+		if (obj.matchStart!==undefined)
+		{
+			obj.title = obj.title.slice(0, obj.matchStart) + '<b>' +
+				obj.title.slice(obj.matchStart, obj.matchEnd) + '</b>' +
+				obj.title.slice(obj.matchEnd);
+		}
+		if (obj.title) this.$renderTitle();
+	}
+	
+	render()
+	{
+		if (this.el===undefined)
+		{
+			this.$renderElements();
+			this.$appendChildren();
+		}
+		
+		return this.el;
+	}
+}
+	
+class Item extends Hint {
 	
 	/**
 	 * Options:
@@ -22,24 +99,20 @@ class Item {
 	 */
 	constructor(p)
 	{
-		this.priority = 0;
-		this.className = 'log';
+		super(p);
 		
-		Object.assign(this, p);
+		this.key = p.key;
+		this.action = p.action;
+		this.code = p.code;
 		
 		if (!this.key && this.action)
 		{
 			var key = ide.keyboard.findKey(this.action);
 			this.key = key ? key : ':' + this.action;
 		}
-		
-		if (this.value===undefined)
-			this.value = this.title;
-		
-		this.el = this.template(this);
 	}
 	
-	$renderIcon(i)
+	$renderLink(i)
 	{
 		return '<' + (i.href ? 'a href="' + i.href + '"' : 'span') +
 			' class="icon" title="' + (i.title || i) +
@@ -47,44 +120,60 @@ class Item {
 			(i.text||'') + '</' + (i.href ? 'a' : 'span') + '>';
 	}
 	
-	$renderTags(tags)
+	$renderTags()
 	{
-		var result='', i;
-		
+	var
+		el = this.tagsEl = document.createElement('ide-item-tags'),
+		tags = this.tags,
+		tag, i
+	;
 		for (i in tags)
 		{
 			if (tags[i])
-				result += '<span class="label pull-right">' + tags[i] + '</span>';
+			{
+				tag = document.createElement('ide-tag');
+				tag.innerHTML = tags[i];
+				el.appendChild(tag);
+			}
 		}
-		
-		return result;
 	}
 	
 	$renderIcons(icons)
 	{
 		return '<div class="icons">' + icons.map(this.$renderIcon).join('') + '</div>';
 	}
-
-	template(obj)
+	
+	$renderKey()
 	{
-	var
-		el=document.createElement('ide-item'),
-		tags = obj.tags ? this.$renderTags(obj.tags) : ''
-	;
-		el.tabIndex = 0;
-		el.className = 'item ' + obj.className;
-		el.innerHTML = tags +
-			(obj.code ? '<code>' + obj.code + '</code>' : '') +
-			 '<div class="item-body">' +
-			(obj.key ? '<kbd>' + obj.key + '</kbd>' : '') +
-			(obj.icon ? this.$renderIcon(obj.icon) : '') +
-			(obj.title ? '<h4>' + obj.title + '</h4>' : '') +
-			(obj.description ? '<span class="description">' + obj.description + '</span>' : '') +
-			(obj.icons ? this.$renderIcons(obj.icons) : '') +
-			'</div>' + (obj.html || '')
-		;
+		this.keyEl = document.createElement('kbd');
+		this.keyEl.innerHTML = this.key;
+	}
+	
+	$renderCode()
+	{
+		this.codeEl = document.createElement('code');
+		this.codeEl.innerHTML = this.code;
+	}
+	
+	$renderElements()
+	{
+		super.$renderElements();
 		
-		return el;
+		if (this.key) this.$renderKey();
+		if (this.code) this.$renderCode();
+		if (this.tags) this.$renderTags();
+	}
+	
+	$appendChildren()
+	{
+		var el = this.el;
+		
+		if (this.tagsEl) el.appendChild(this.tagsEl);
+		if (this.codeEl) el.appendChild(this.codeEl);
+		if (this.iconEl) el.appendChild(this.iconEl);
+		if (this.titleEl) el.appendChild(this.titleEl);
+		if (this.keyEl) el.appendChild(this.keyEl);
+		if (this.descEl) el.appendChild(this.descEl);
 	}
 	
 	destroy()
@@ -146,8 +235,10 @@ class Logger {
 
 			this.active[span.id] = span;
 		}
+		
+		var el = span.render();
 
-		this.el.insertBefore(span.el, this.el.firstChild);
+		this.el.insertBefore(el, this.el.firstChild);
 
 		if (span.progress === null || span.progress === undefined || span.progress===1)
 			setTimeout(this.remove.bind(this, span), this.delay);
@@ -779,6 +870,7 @@ Object.assign(ide, {
 
 	Editor: Editor,
 	Item: Item,
+	Hint: Hint,
 	Notification: Notification,
 
 	/** Current opened project */

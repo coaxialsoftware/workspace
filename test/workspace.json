@@ -6,7 +6,7 @@
 	
 	"project": {
         "ignore": [ ".*"],
-		"plugins": [ "vim", "jshint", "karma", "angular", "javascript" ]
+		"plugins": [ "vim", "jshint", "karma", "angular", "javascript", "npm" ]
 	},
 	
 	"plugins": [
@@ -15,10 +15,11 @@
 		"file:../../workspace.karma",
 		"file:../../workspace.angular",
 		"file:../../workspace.base/workspace.trailing",
-		"file:../../workspace.base/workspace.javascript"
+		"file:../../workspace.base/workspace.javascript",
+		"file:../../workspace.base/workspace.npm"
 	],
 		
 	"plugins.path": ".",
 	"socket.port": 9005,
-    "online.url": "https://cxl-test.firebaseio.com/workspace"
+	"online.url": "https://cxl-dev.firebaseio.com/workspace"
 }

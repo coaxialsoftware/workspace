@@ -33,7 +33,7 @@ class File {
 		else if (this.mime)
 			tags.push(this.mime);
 		
-		this.hint = new ide.Hint({
+		this.hint = new ide.Item({
 			code: 'file', title: this.filename, tags: tags
 		});
 	}

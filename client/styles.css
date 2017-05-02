@@ -51,19 +51,20 @@ pre {
 #notification .hint { display: inline-block; }
 
 
-.label, kbd {
+ide-tag, .label, kbd {
 	border-radius: 2px; 
 	color: #eee; 
 	font-weight: normal; 
 	font-family: Monaco, Menlo, 'Ubuntu Mono', Consolas, source-code-pro, monospace;
 }
 
-.label {
+.label, ide-tag {
 	font-size: 10px; 
 	padding: 1px 4px; margin: 0 2px 0 0;
 	line-height: 10px;
 	text-transform: uppercase;
 	background-color: rgba(255,255,255,0.3);
+	display: inline-block;
 }
 
 .label-transparent { background-color: transparent; }
@@ -242,7 +243,7 @@ div.CodeMirror-cursors { visibility: hidden; }
  * core.folder.js
  * 
  */
-.icon {
+ide-icon {
 	display: inline-block; margin: 0;
 	padding-top: 2px; color: #eee;
 	width: 16px;
@@ -250,8 +251,8 @@ div.CodeMirror-cursors { visibility: hidden; }
 	margin-left: 4px;
 }
 
-.icon:hover { color: #fff; }
-.icon:focus { color: #fff; outline: 1px solid #ccc; }
+ide-icon:hover { color: #fff; }
+ide-icon:focus { color: #fff; outline: 1px solid #ccc; }
 
 /* TODO */
 .fa-variable::before { content: "\f1b2"; }
@@ -280,22 +281,24 @@ div.CodeMirror-cursors { visibility: hidden; }
 
 .item pre { white-space: pre-wrap; }
 .item kbd { float: right; }
-.item .item-body { clear: both; }
-.item .icon { margin-right: 8px; }
+.item ide-icon { margin-right: 8px; }
 .item .icons { float: right; }
-.item .description { font-style: italic; font-size: 13px; margin: 0 0 0 16px; }
+.item ide-item-description { font-style: italic; font-size: 13px; margin: 0 0 0 16px; }
 
-.item code {
-	margin-bottom: 2px; display: block;
-	font-size: 10px; text-transform: uppercase;
-}
-.item h4 {
+ide-item-tags { float: right; font-size: 0; }
+ide-item-title {
+	clear: both;
 	font-size: inherit; font-weight: normal;
 	margin: 0; padding: 2px 0;
 	word-wrap: break-word; display: inline-block;
 	word-break: break-word;
 }
-.item h4 b { color: #fff; }
+ide-item-title b { color: #fff; }
+
+.item code {
+	margin-bottom: 2px; display: block;
+	font-size: 10px; text-transform: uppercase;
+}
 .item footer { margin-top: 4px; }
 .item-collapsed .item-detail { display: none; }
 

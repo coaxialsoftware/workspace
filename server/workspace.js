@@ -351,6 +351,11 @@ class PluginManager extends EventEmitter {
 			_.each(installed, function(a, k) {
 				if (a)
 				{
+					if (all[k])
+						a.npmVersion = all[k].version;
+					else
+						a.unofficial = true;
+					
 					all[k] = a;
 					a.installed = true;
 				} else
@@ -369,7 +374,7 @@ class PluginManager extends EventEmitter {
 		data, dir
 	;
 		return this.doNpm(function(npm) {
-			dir = path.join(npm.dir, '@cxl');
+			dir = path.join(npm.globalDir, '@cxl');
 			workspace.dbg(`Loading global plugins from ${dir}`);
 
 			data = fs.readdirSync(dir);

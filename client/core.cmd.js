@@ -318,7 +318,7 @@ ide.plugins.register('cmd', {
 				fn = cmds[i];
 				key = ide.keyboard.findKey(i);
 
-				result.push(new ide.Hint({
+				result.push(new ide.Item({
 					key: key, title: i, className: 'cmd',
 					icon: fn.icon || 'command',
 					description: fn.description,

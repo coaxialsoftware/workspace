@@ -181,6 +181,27 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 });
 
 class PluginItem extends ide.Item {
+	
+	template(p)
+	{
+	var
+		el = super.template(p),
+		actions = document.createElement('DIV'),
+		installBtn = document.createElement('button'),
+		enableBtn = document.createElement('button')
+	;
+		actions.appendChild(installBtn);
+		actions.appendChild(enableBtn);
+		installBtn.innerHTML = 'Install';
+		enableBtn.innerHTML = 'Enable';
+		
+		installBtn.addEventListener('click', this.install.bind(this));
+		enableBtn.addEventListener('click', this.enable.bind(this));
+		
+		el.appendChild(actions);
+		
+		return el;
+	}
 
 	post(url)
 	{
@@ -247,12 +268,22 @@ ide.plugins.register('plugins', {
 			a = all[i];
 			tags = [ a.version ];
 			
+			if (a.npmVersion)
+			{
+				if (a.version<a.npmVersion)
+					tags.push('Update Available');
+				else if (a.version>a.npmVersion)
+					tags.push('NPM: ' + a.npmVersion);
+			}
+			
 			if (enabled && enabled.indexOf(i)!==-1)
 				tags.push('Enabled');
-			if (a.installed)
+			else if (a.installed)
 				tags.push('Installed');
-			
-			items.push(new ide.Item({
+			if (a.unofficial)
+				tags.push('Unofficial');
+
+			items.push(new PluginItem({
 				code: i,
 				title: a.name,
 				description: a.description,
@@ -260,7 +291,7 @@ ide.plugins.register('plugins', {
 			}));
 		}
 		
-		l.add(items);
+		l.add(cxl.sortBy(items, 'title'));
 	}
 
 });

@@ -259,7 +259,7 @@ class ListEditor extends ide.Editor {
 			if (!(item instanceof ide.Item))
 				item = new this.ItemClass(item);
 			
-			this.$list.appendChild(item.el);
+			this.$list.appendChild(item.render());
 			item.el.$item = item;
 			return item;
 			

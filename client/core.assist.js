@@ -2,23 +2,6 @@
 (function(window, ide, cxl) {
 "use strict";
 	
-ide.Hint = class Hint extends ide.Item {
-	
-	template(obj)
-	{
-		if (obj.matchStart!==undefined)
-		{
-			obj.title = obj.title.slice(0, obj.matchStart) + '<b>' +
-				obj.title.slice(obj.matchStart, obj.matchEnd) + '</b>' +
-				obj.title.slice(obj.matchEnd);
-		}
-		
-		return super.template(obj);
-	}
-	
-
-};
-	
 var InlineAssist = function() {
 	this.hints = [];
 	this.el = document.getElementById('assist-inline');
@@ -230,17 +213,19 @@ cxl.extend(InlineAssist.prototype, {
 
 	renderHint: function(hint, order, ref)
 	{
-		hint.el.$hint = hint;
+		var el = hint.render();
+		
+		el.$hint = hint;
 
 		if (this.selectedValue === hint.value)
 			this.select(hint);
 		else
-			hint.el.classList.remove('selected');
+			el.classList.remove('selected');
 
 		if (ref)
-			this.el.insertBefore(hint.el, ref.el);
+			this.el.insertBefore(el, ref.el);
 		else
-			this.el.appendChild(hint.el);
+			this.el.appendChild(el);
 
 		this.calculateTop();
 	},
@@ -464,7 +449,7 @@ var Assist = cxl.View.extend({
 			hints.forEach(this.addHint.bind(this, version));
 		else
 		{
-			var h = hints instanceof ide.Hint ? hints : new ide.Hint(hints);
+			var h = hints instanceof ide.Item ? hints : new ide.Item(hints);
 
 			if (this.rendered)
 				this.renderHint(h);
@@ -491,18 +476,19 @@ var Assist = cxl.View.extend({
 		i = i===undefined ? this.sortedLastIndexBy(hint) : i;
 
 		var ref = this.hints[i];
+		var el = hint.render();
 
 		if (ref && ref !== hint)
 		{
 			this.hints.splice(i, 0, hint);
-			this.$hints.insertBefore(hint.el, ref.el);
+			this.$hints.insertBefore(el, ref.el);
 		} else
-			this.$hints.appendChild(hint.el);
+			this.$hints.appendChild(el);
 	},
 
 	appendHint: function(hint)
 	{
-		this.$hints.appendChild(hint.el);
+		this.$hints.appendChild(hint.render());
 	},
 
 	render: function()

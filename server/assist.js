@@ -3,6 +3,7 @@
  * workspace.assist
  *
  */
+"use strict";
 var
 	fs = require('fs'),
 
@@ -13,13 +14,14 @@ var
 
 class LanguageServer {
 	
-	constructor(pluginName, mimeMatch)
+	constructor(pluginName, mimeMatch, fileMatch)
 	{
 		workspace.plugins.on('assist', this.$onAssist.bind(this));
 		workspace.plugins.on('assist.inline', this.$onInlineAssist.bind(this));
 		
 		this.$plugin = pluginName;
 		this.$mime = mimeMatch;
+		this.$fileMatch = fileMatch;
 	}
 	
 	onAssist()
@@ -30,18 +32,37 @@ class LanguageServer {
 	{
 	}
 	
-	findArray(array, term, fn)
+	match(term, cursorValue)
 	{
-		var i=0, l=array.length, index, result=[], tl=term.length;
+		var index = term.indexOf(cursorValue);
+		
+		if (index!==-1)
+			return {
+				title: term,
+				matchStart: index,
+				matchEnd: index+cursorValue.length,
+				priority: index
+			};
+	}
+	
+	findObject(obj, cursorValue, fn)
+	{
+		var i, result=[], match;
+		
+		for (i in obj)
+			if ((match = this.match(i, cursorValue)))
+				result.push(fn ? fn(match, obj[i]) : Object.assign(match, obj[i]));
+		
+		return result;
+	}
+	
+	findArray(array, cursorValue, fn)
+	{
+		var i=0, l=array.length, result=[], match;
 		
 		for (;i<l;i++)
-			if ((index=array[i].indexOf(term))!==-1)
-				result.push(fn({
-					title: array[i],
-					matchStart: index,
-					matchEnd: index+tl,
-					priority: index
-				}));
+			if ((match = this.match(array[i], cursorValue)))
+				result.push(fn ? fn(match) : match);
 		
 		return result;
 	}
@@ -51,7 +72,8 @@ class LanguageServer {
 		var project = workspace.projectManager.getProject(data.project);
 		
 		return project.hasPlugin(this.$plugin) &&
-			(!this.$mime || this.$mime.test(data.mime));
+			(!this.$mime || this.$mime.test(data.mime)) &&
+			(!this.$fileMatch || this.$fileMatch.test(data.file));
 	}
 	
 	$onAssist(done, data)
