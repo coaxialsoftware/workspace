@@ -25,7 +25,7 @@ QUnit.test('ide.notify limit', function(a) {
 
 QUnit.test('ide.notify ide.Item', function(a) {
 	ide.logger.delay = 0;
-	var item = new ide.Notification();
+	var item = new ide.Notification({});
 	
 	ide.notify(item);
 	var done = a.async();
@@ -52,9 +52,12 @@ QUnit.test('ide.openTab', function(a) {
 
 QUnit.test('Item', function(a) {
 	
-	var item = new ide.Item();
+	var item = new ide.Item({});
 	
 	a.equal(item.priority, 0);
+	
+	item.render();
+	
 	a.ok(item.el);
 	
 	item = new ide.Item({

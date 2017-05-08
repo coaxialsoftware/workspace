@@ -8,7 +8,7 @@ class File {
 
 	constructor(filename)
 	{
-		if (typeof(filename)==='string')
+		if (!filename || (typeof(filename)==='string'))
 		{
 			this.filename = filename;
 			this.content = '';
