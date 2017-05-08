@@ -8,9 +8,18 @@ class File {
 
 	constructor(filename)
 	{
-		this.filename = filename;
-		this.content = '';
-		this.attributes = { content: '' };
+		if (typeof(filename)==='string')
+		{
+			this.filename = filename;
+			this.content = '';
+			this.attributes = { content: '' };
+		} else
+		{
+			this.filename = filename.filename;
+			this.content = filename.content || '';
+			this.attributes = Object.assign(filename);
+		}
+
 		this._createHint();
 		
 		this.subscriber = ide.plugins.on('socket.message.file', this.onMessage, this);
@@ -233,15 +242,12 @@ class FileHashFeature extends ide.feature.HashFeature {
 
 	get()
 	{
-		// TODO see if we can resuse HashFeature
 	var
 		editor = this.editor,
-		p = editor.plugin && editor.plugin.name,
 		cmd = editor.command || '',
-		args = editor.file.filename || '',
-		prefix = (p && cmd ? p + '.' : p || '') + cmd
+		args = editor.file.filename || ''
 	;
-		return (prefix ? prefix + ':' : '') + args;
+		return (cmd ? cmd+':' : '') + args;
 	}
 }
 

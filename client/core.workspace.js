@@ -3,7 +3,7 @@
 "use strict";
 
 var
-	FILE_REGEX = /^(?:([\w\-]+)\.)?(?:([\.\w]+):)?(.*)$/
+	FILE_REGEX = /^(?:([\.\w\-\d]+):)?(.*)$/
 ;
 	
 class Hash {
@@ -92,16 +92,13 @@ class Hash {
 	{
 	var
 		m = FILE_REGEX.exec(file),
-		filename = !m[2] && m[3] && new ide.File(decodeURIComponent(m[3])),
-		plugin = m[1] && ide.plugins.get(m[1])
+		filename = !m[1] && m[2] && new ide.File(decodeURIComponent(m[2])),
+		cmd = m[1]
 	;
 		if (filename)
-			ide.open({
-				file: filename, 
-				plugin: plugin
-			});
+			ide.open({ file: filename });
 		else
-			ide.run(m[2], [ m[3] ]);
+			ide.run(cmd, [ m[2] ]);
 	}
 	
 	loadFiles()
@@ -256,9 +253,9 @@ ide.Workspace = class Workspace {
 	}
 	
 	// TODO does it make sense to have this here?
-	remove(editor)
+	remove(editor, force)
 	{
-		var msg = editor.quit();
+		var msg = editor.quit(force);
 		
 		if (msg)
 		{
@@ -480,9 +477,7 @@ ide.plugins.registerCommands({
 		q: function()
 		{
 			if (ide.editor)
-			{
 				ide.workspace.remove(ide.editor);
-			}
 			else
 				window.close();
 		},
@@ -496,7 +491,9 @@ ide.plugins.registerCommands({
 		"q!": function()
 		{
 			if (ide.editor)
-				ide.editor.quit(true);
+				ide.workspace.remove(ide.editor, true);
+			else
+				window.close();
 		},
 		
 		'workspace.settings': {

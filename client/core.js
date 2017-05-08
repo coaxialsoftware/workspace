@@ -11,6 +11,66 @@ var
 	editorId = 1
 ;
 	
+class HintTemplate {
+	
+	render(obj)
+	{
+		this.$renderElements(obj);
+		this.$appendChildren();
+		
+		return this.el;
+	}
+	
+	$appendChildren()
+	{
+		var el = this.el;
+		
+		if (this.iconEl) el.appendChild(this.iconEl);
+		if (this.titleEl) el.appendChild(this.titleEl);
+		if (this.descEl) el.appendChild(this.descEl);
+	}
+	
+	$renderIcon(obj)
+	{
+		var icon = this.iconEl = document.createElement('ide-icon');
+		// TODO Better Icon rendering
+		icon.className = 'fa fa-' + obj.icon;
+	}
+	
+	$renderDescription(obj)
+	{
+		var desc = this.descEl = document.createElement('ide-item-description');
+		desc.innerHTML = obj.description;
+	}
+	
+	// TODO do we need escaping?
+	$renderTitle(obj)
+	{
+		var title = this.titleEl = document.createElement('ide-item-title');
+		title.innerHTML = obj.title;
+	}
+	
+	$renderElements(obj)
+	{
+	var
+		el = this.el = document.createElement('ide-item')
+	;
+		el.tabIndex = 0;
+		el.className = 'item ' + obj.className;
+		
+		if (obj.icon) this.$renderIcon(obj);
+		if (obj.description) this.$renderDescription(obj);
+		if (obj.matchStart!==undefined)
+		{
+			obj.title = obj.title.slice(0, obj.matchStart) + '<b>' +
+				obj.title.slice(obj.matchStart, obj.matchEnd) + '</b>' +
+				obj.title.slice(obj.matchEnd);
+		}
+		if (obj.title) this.$renderTitle(obj);
+	}
+	
+}
+	
 class Hint {
 	
 	constructor(p)
@@ -25,92 +85,29 @@ class Hint {
 		this.matchEnd = p.matchEnd;
 		// TODO Should we show tags?
 		this.tags = p.tags;
-	}
-	
-	$appendChildren()
-	{
-		var el = this.el;
-		
-		if (this.iconEl) el.appendChild(this.iconEl);
-		if (this.titleEl) el.appendChild(this.titleEl);
-		if (this.descEl) el.appendChild(this.descEl);
-	}
-	
-	$renderIcon()
-	{
-		var icon = this.iconEl = document.createElement('ide-icon');
-		// TODO Better Icon rendering
-		icon.className = 'fa fa-' + this.icon;
-	}
-	
-	$renderDescription()
-	{
-		var desc = this.descEl = document.createElement('ide-item-description');
-		desc.innerHTML = this.description;
-	}
-	
-	// TODO do we need escaping?
-	$renderTitle()
-	{
-		var title = this.titleEl = document.createElement('ide-item-title');
-		title.innerHTML = this.title;
-	}
-	
-	$renderElements()
-	{
-	var
-		obj = this,
-		el = obj.el = document.createElement('ide-item')
-	;
-		el.tabIndex = 0;
-		el.className = 'item ' + obj.className;
-		
-		if (obj.icon) this.$renderIcon();
-		if (obj.description) this.$renderDescription();
-		if (obj.matchStart!==undefined)
-		{
-			obj.title = obj.title.slice(0, obj.matchStart) + '<b>' +
-				obj.title.slice(obj.matchStart, obj.matchEnd) + '</b>' +
-				obj.title.slice(obj.matchEnd);
-		}
-		if (obj.title) this.$renderTitle();
+		this.Template = HintTemplate;
 	}
 	
 	render()
 	{
 		if (this.el===undefined)
 		{
-			this.$renderElements();
-			this.$appendChildren();
+			this.template = new this.Template();
+			this.el = this.template.render(this);
 		}
 		
 		return this.el;
 	}
+	
+	destroy()
+	{
+		
+	}
+	
 }
 	
-class Item extends Hint {
 	
-	/**
-	 * Options:
-	 * key
-	 * className
-	 * action
-	 * value
-	 */
-	constructor(p)
-	{
-		super(p);
-		
-		this.key = p.key;
-		this.action = p.action;
-		this.code = p.code;
-		
-		if (!this.key && this.action)
-		{
-			var key = ide.keyboard.findKey(this.action);
-			this.key = key ? key : ':' + this.action;
-		}
-	}
+class ItemTemplate extends HintTemplate {
 	
 	$renderLink(i)
 	{
@@ -120,11 +117,11 @@ class Item extends Hint {
 			(i.text||'') + '</' + (i.href ? 'a' : 'span') + '>';
 	}
 	
-	$renderTags()
+	$renderTags(obj)
 	{
 	var
 		el = this.tagsEl = document.createElement('ide-item-tags'),
-		tags = this.tags,
+		tags = obj.tags,
 		tag, i
 	;
 		for (i in tags)
@@ -143,25 +140,25 @@ class Item extends Hint {
 		return '<div class="icons">' + icons.map(this.$renderIcon).join('') + '</div>';
 	}
 	
-	$renderKey()
+	$renderKey(obj)
 	{
 		this.keyEl = document.createElement('kbd');
-		this.keyEl.innerHTML = this.key;
+		this.keyEl.innerHTML = obj.key;
 	}
 	
-	$renderCode()
+	$renderCode(obj)
 	{
 		this.codeEl = document.createElement('code');
-		this.codeEl.innerHTML = this.code;
+		this.codeEl.innerHTML = obj.code;
 	}
 	
-	$renderElements()
+	$renderElements(obj)
 	{
-		super.$renderElements();
+		super.$renderElements(obj);
 		
-		if (this.key) this.$renderKey();
-		if (this.code) this.$renderCode();
-		if (this.tags) this.$renderTags();
+		if (obj.key) this.$renderKey(obj);
+		if (obj.code) this.$renderCode(obj);
+		if (obj.tags) this.$renderTags(obj);
 	}
 	
 	$appendChildren()
@@ -176,10 +173,62 @@ class Item extends Hint {
 		if (this.descEl) el.appendChild(this.descEl);
 	}
 	
-	destroy()
+}
+	
+class Item extends Hint {
+	
+	/**
+	 * Options:
+	 * key
+	 * className
+	 * action
+	 * value
+	 */
+	constructor(p)
 	{
+		super(p);
+		
+		this.Template = ItemTemplate;
+		this.key = p.key;
+		this.action = p.action;
+		this.code = p.code;
+		
+		if (p.enter)
+			this.enter = p.enter;
+		
+		if (!this.key && this.action)
+		{
+			var key = ide.keyboard.findKey(this.action);
+			this.key = key ? key : ':' + this.action;
+		}
 	}
 
+}
+	
+class ComponentItem {
+	
+	constructor(component)
+	{
+		this.component = component;
+	}
+	
+	render()
+	{
+		if (this.el===undefined)
+		{
+			this.el = this.component.$native;
+			this.el.tabIndex = 0;
+		}
+		
+		return this.el;
+	}
+	
+	destroy()
+	{
+		if (this.component)
+			this.component.destroy();
+	}
+	
 }
 	
 class Notification extends Item {
@@ -199,6 +248,9 @@ class Notification extends Item {
 			message = { title: message, className: kls };
 		
 		super(message);
+		
+		this.id = message.id;
+		this.progress = message.progress;
 	}
 
 }
@@ -469,11 +521,10 @@ class HashFeature extends Feature {
 	{
 	var
 		editor = this.editor,
-		p = editor.plugin && editor.plugin.name,
 		cmd = editor.command || '',
 		args = this.serializeArgs(editor.arguments)
 	;
-		return (p && cmd ? p + '.' : p || '') + cmd + ':' + args;
+		return cmd + ':' + args;
 	}
 }
 
@@ -783,6 +834,8 @@ class Editor {
 	{
 		cxl.invokeMap(this.bindings, 'unsubscribe');
 		cxl.invokeMap(this.features, 'destroy');
+		this.bindings = null;
+		this.features = null;
 	}
 
 	/**
@@ -803,6 +856,7 @@ class Editor {
 	 */
 	quit()
 	{
+		this.destroy();
 	}
 
 }
@@ -870,6 +924,7 @@ Object.assign(ide, {
 
 	Editor: Editor,
 	Item: Item,
+	ComponentItem: ComponentItem,
 	Hint: Hint,
 	Notification: Notification,
 

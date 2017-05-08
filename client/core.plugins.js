@@ -179,57 +179,109 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	}
 
 });
-
-class PluginItem extends ide.Item {
 	
-	template(p)
+
+var PluginComponent = cxl.component({
+	name: 'ide-plugin-item',
+	shadow: false,
+	template: `<ide-item class="item">
+<ide-item-tags><cxl-fragment &="repeat(tags)"><ide-tag &="item:text"></ide-tag></cxl-fragment>
+</ide-item-tags><code &="=code:|text"></code><ide-item-title &="=title:|text">
+</ide-item-title><ide-item-description &="=description:|if:|text"></ide-item-description>
+<ide-item-footer>
+<cxl-submit &="=installed:unless click:#install =loadInstall:set(submitting)">Install</cxl-submit>
+<cxl-submit &="=installed:if click:#uninstall =loadInstall:set(submitting)">Uninstall</cxl-submit>
+<!--span &="=installed:show">
+<cxl-submit &="=enabled:unless click:#enable =loadEnable:set(submitting)">Enable</cxl-submit>
+<cxl-submit &="=enabled:if click:#disable =loadEnable:set(submitting)">Disable</cxl-submit>
+</span-->
+</ide-item-footer></ide-item>`
+}, class {
+
+	constructor(a)
+	{
+		this.render(a);
+	}
+	
+	render(a)
 	{
 	var
-		el = super.template(p),
-		actions = document.createElement('DIV'),
-		installBtn = document.createElement('button'),
-		enableBtn = document.createElement('button')
+		enabled = ide.project.get('plugins'),
+		tags = this.tags = []
 	;
-		actions.appendChild(installBtn);
-		actions.appendChild(enableBtn);
-		installBtn.innerHTML = 'Install';
-		enableBtn.innerHTML = 'Enable';
+		if (a.enabled)
+			tags.push('Enabled');
 		
-		installBtn.addEventListener('click', this.install.bind(this));
-		enableBtn.addEventListener('click', this.enable.bind(this));
-		
-		el.appendChild(actions);
-		
-		return el;
-	}
+		if (a.installed)
+			tags.push('Installed');
+		if (a.unofficial)
+			tags.push('Unofficial');
 
+		if (a.npmVersion)
+		{
+			if (a.version<a.npmVersion)
+				tags.push('Update Available');
+			else if (a.version>a.npmVersion)
+				tags.push('NPM: ' + a.npmVersion);
+		}
+
+		tags.push(a.version);
+		
+		if (enabled && enabled.indexOf(a.id)!==-1)
+			a.enabled = true;
+		
+		this.code = a.id;
+		this.title = a.name;
+		this.description = a.description;
+		this.installed = a.installed;
+		this.enabled = a.enabled;
+		this.version = a.version;
+	}
+	
 	post(url)
 	{
-		cxl.ajax.post(url, this).then(this.render.bind(this));
+		var me = this;
+		
+		cxl.ajax.post(url, {
+			project: ide.project.id,
+			id: this.code
+		}).then(function(res) {
+			me.render(res);
+		}, function(er) {
+			ide.error(er);
+		}).then(function() {
+			// TODO
+			me.loadInstall = me.loadEnable = false;
+			cxl.renderer.digest(me.$component);
+		});
 	}
 
 	install()
 	{
+		this.loadInstall = true;
 		this.post('/plugins/install');
 	}
 
 	uninstall()
 	{
+		this.loadInstall = true;
 		this.post('/plugins/uninstall');
 	}
 
 	enable()
 	{
+		this.loadEnable = true;
 		this.post('/plugins/enable');
 	}
 
 	disable()
 	{
+		this.loadEnable = true;
 		this.post('/plugins/disable');
 	}
-
-}
-
+	
+});
+	
 /**
  * Plugin Manager
  * @type {ide.PluginManager}
@@ -243,8 +295,7 @@ ide.plugins.register('plugins', {
 			me = this, l = new ide.ListEditor({
 				plugin: this,
 				title: 'plugins',
-				itemTemplate: null,
-				itemClass: PluginItem,
+				itemClass: ide.ComponentItem,
 				file: 'list'
 			})
 		;
@@ -253,12 +304,36 @@ ide.plugins.register('plugins', {
 			});
 
 			return l;
+		},
+		
+		'plugins.install': {
+			fn: function(id) {
+				return cxl.ajax.post('/plugins/install', {
+					project: ide.project.id,
+					id: id
+				});
+			},
+			description: 'Install Plugin',
+			args: [ 'plugin' ],
+			icon: 'cog'
+		},
+		
+		'plugins.uninstall': {
+			fn: function(id) {
+				return cxl.ajax.post('/plugins/uninstall', {
+					project: ide.project.id,
+					id: id
+				});
+			},
+			description: 'Uninstall Plugin',
+			args: [ 'plugin' ],
+			icon: 'cog'
 		}
 	},
 
 	addPlugins: function(l, all)
 	{
-		var enabled = ide.project.get('plugins'), a, i, items=[], tags;
+		var a, i, items=[];
 
 		if (!all)
 			ide.warn('Could not retrieve plugins from server.');
@@ -266,29 +341,7 @@ ide.plugins.register('plugins', {
 		for (i in all)
 		{
 			a = all[i];
-			tags = [ a.version ];
-			
-			if (a.npmVersion)
-			{
-				if (a.version<a.npmVersion)
-					tags.push('Update Available');
-				else if (a.version>a.npmVersion)
-					tags.push('NPM: ' + a.npmVersion);
-			}
-			
-			if (enabled && enabled.indexOf(i)!==-1)
-				tags.push('Enabled');
-			else if (a.installed)
-				tags.push('Installed');
-			if (a.unofficial)
-				tags.push('Unofficial');
-
-			items.push(new PluginItem({
-				code: i,
-				title: a.name,
-				description: a.description,
-				tags: tags
-			}));
+			items.push(new PluginComponent(a, i));
 		}
 		
 		l.add(cxl.sortBy(items, 'title'));

@@ -17,6 +17,27 @@ var
 	online = module.exports = cxl('workspace.online')
 ;
 
+class OnlineWatcher {
+	
+	constructor(path, fn)
+	{
+		var fb = this.ref = online.__getRef(path);
+		
+		this.path = path;
+		this.fn = function(data) {
+			fn(data.val());
+		};
+		
+		fb.on('value', this.fn);
+	}
+	
+	unsubscribe()
+	{
+		this.ref.off('value', this.fn);
+	}
+	
+}
+
 online.extend({
 
 	uid: null,
@@ -167,12 +188,8 @@ online.extend({
 
 	watch: function(p, cb, scope)
 	{
-		var fb = this.__getRef(p);
-
 		this.dbg(`Watching ${p}`);
-		fb.on('value', function(data) {
-			cb.call(scope, data.val());
-		});
+		return new OnlineWatcher(p, cb.bind(scope));
 	}
 
 })

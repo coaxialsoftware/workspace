@@ -1,7 +1,7 @@
 
 (function(ide, cxl) {
 "use strict";
-
+	
 class ProjectList extends ide.ListEditor { 
 
 	render(p)

@@ -6,13 +6,10 @@
 "use strict";
 
 var
-	EventEmitter = require('events').EventEmitter,
-	fs = require('fs'),
 	compression = require('compression'),
 	path = require('path'),
 	_ = require('lodash'),
 	Q = require('bluebird'),
-	npm = require('npm'),
 	cp = require('child_process'),
 
 	cxl = require('@cxl/cxl'),
@@ -99,7 +96,6 @@ class WorkspaceConfiguration extends Configuration {
 		var inspect = process.execArgv.join('').match(/--inspect(?:=(\d+))?/);
 
 		this.set({
-			version: '0.5.4',
 			user: process.env.USER || process.env.USERNAME,
 			inspect: inspect && (+inspect[1] || 9222)
 		});
@@ -152,319 +148,6 @@ cxl.define(WorkspaceConfiguration, {
 	'online.url': 'https://cxl.firebaseio.com/workspace'
 
 });
-
-class Plugin {
-
-	constructor(path)
-	{
-		var mod = this.mod = require(path);
-		// TODO ...umm
-		this.id = mod.name.replace(/^workspace\./, '')
-			.replace(/\./g, '-');
-		this.path = path;
-		this.name = mod.name;
-
-		this.ready = Q.props({
-			source: mod.source ? _.result(mod, 'source') :
-				(mod.sourcePath ? common.read(mod.sourcePath) : ''),
-			pkg: common.load_json(path + '/package.json')
-		}).bind(this).then(function(data) {
-			this.source = data.source;
-			this.package = data.pkg;
-		}, function(e) {
-			this.mod.error(`Failed to load plugin ${this.name}`);
-			this.mod.error(e);
-		});
-
-		if (mod.sourcePath)
-			workspace.watch(mod.sourcePath, this.onWatch.bind(this));
-
-		workspace.online.watch('/plugins/'+this.id, this.onValue, this);
-	}
-
-	start()
-	{
-		this.mod.start();
-	}
-
-	onWatch(ev, file)
-	{
-		workspace.dbg(`Plugin ${this.name} source updated.`);
-		common.read(file).bind(this).then(function(d) {
-			this.source = d;
-			workspace.plugins.emit('plugins.source', this.id, this.source);
-		}, function() { this.source = ''; });
-	}
-
-	onValue(data)
-	{
-		if (!data)
-			return this.mod.dbg('Plugin not in main repository.');
-		if (data.version !== this.package.version)
-			this.mod.dbg(`New version ${data.version} available!`);
-	}
-}
-
-/**
- * Plugin Manager
- */
-class PluginManager extends EventEmitter {
-
-	constructor()
-	{
-		super();
-
-		this.plugins = {};
-	}
-
-	/** Calls npm and returns a promise with the result */
-	doNpm(cmd, a, b, fn)
-	{
-	var
-		pluginsPath = workspace.configuration['plugins.path'],
-		global = workspace.configuration['plugins.global'],
-		cwd = process.cwd(),
-		args = [ a ]
-	;
-		if (arguments.length===4)
-			args.push(b);
-		else if (arguments.length===3)
-			fn = b;
-
-		return new Q(function(resolve, reject) {
-			npm.load(function(er, npm) {
-				if (pluginsPath)
-					process.chdir(pluginsPath);
-
-				npm.config.set('global', global);
-				npm.config.set('json', true);
-				npm.config.set('depth', 0);
-
-				try {
-					if (typeof(cmd)!=='function')
-					{
-						args.push(function(er, data) {
-							if (er)
-								return reject(er);
-
-							resolve(fn(data));
-						});
-
-						npm.commands[cmd].apply(npm.commands, args);
-					} else
-						resolve(cmd(npm));
-				}
-				catch(e) { reject(e); }
-				finally
-				{
-					if (pluginsPath)
-						process.chdir(cwd);
-				}
-			});
-		});
-
-	}
-
-	/**
-	 * Install plugins locally using npm
-	 */
-	install(name, version)
-	{
-		// Make sure we only include plugins from cxl workspace.
-		if (name.indexOf('@cxl/workspace')!==0)
-			return Q.reject(`Invalid plugin name "${name}"`);
-
-		workspace.dbg(`Installing plugin ${name} ${version}`);
-		return this.doNpm('install', '.', [ name ], function() {
-			return `Successfully installed plugin ${name}`;
-		});
-	}
-
-	uninstall(name, version)
-	{
-		// Make sure we only include plugins from cxl workspace.
-		if (name.indexOf('@cxl/workspace')!==0)
-			return Q.reject("Invalid plugin name");
-
-		workspace.dbg(`Uninstalling plugin ${name} ${version}`);
-		return this.doNpm('uninstall', [ name ], function() {
-			return `Successfully uninstalled plugin ${name}`;
-		});
-	}
-
-	/**
-	 * Registers a plugin
-	 *
-	 * @param {cxl.Module} cxl Module
-	 */
-	register(plugin)
-	{
-		if (plugin.id in this.plugins)
-			workspace.log(`WARNING Plugin ${plugin.name} already registered.`);
-
-		this.plugins[plugin.id] = plugin;
-
-		return this;
-	}
-
-	requireFile(file)
-	{
-		try {
-			fs.statSync(file);
-			var plugin = new Plugin(file);
-			this.register(plugin);
-			return plugin;
-		} catch(e) {
-			workspace.error(`Could not load plugin: ${file}`);
-			workspace.dbg(e);
-		}
-	}
-
-	requirePlugins(plugins)
-	{
-		if (plugins)
-			plugins.forEach(this.requirePlugin, this);
-	}
-
-	requirePlugin(name)
-	{
-	var
-		parsed = /^(?:(\w+):)?(.+)/.exec(name)
-	;
-		if (parsed[1]==='file')
-			return this.requireFile(path.resolve(parsed[2]));
-
-		return this.requireFile(name);
-	}
-
-	getPackages()
-	{
-		var plugins = this.plugins;
-
-		return workspace.online.get('plugins').catch(function(e) {
-			workspace.dbg('Could not retrieve plugin list from server');
-			workspace.error(e);
-			return {};
-		}).then(function(all) {
-			var installed = _.mapValues(plugins, 'package');
-
-			_.each(installed, function(a, k) {
-				if (a)
-				{
-					if (all[k])
-						a.npmVersion = all[k].version;
-					else
-						a.unofficial = true;
-					
-					all[k] = a;
-					a.installed = true;
-				} else
-					workspace.error(`package.json not found for plugin "${k}"`);
-			});
-
-			return all;
-		});
-	}
-
-	loadGlobalPlugins()
-	{
-	var
-		me = this,
-		regex = /^workspace\./,
-		data, dir
-	;
-		return this.doNpm(function(npm) {
-			dir = path.join(npm.globalDir, '@cxl');
-			workspace.dbg(`Loading global plugins from ${dir}`);
-
-			data = fs.readdirSync(dir);
-
-			_.each(data, function(d) {
-				if (regex.test(d))
-				{
-					me.requireFile(path.join(dir, d));
-				}
-			});
-
-			return _.map(me.plugins, 'ready');
-		});
-	}
-
-	loadLocalPlugins()
-	{
-		this.requirePlugins(workspace.configuration.plugins);
-	}
-
-	getSources(plugins)
-	{
-		var me = this;
-		plugins = plugins || _.keys(this.plugins);
-
-		return _.reduce(plugins, function(result, n) {
-
-			if (n in me.plugins)
-				result += me.plugins[n].source;
-			else
-				workspace.error(`Plugin "${n}" not found.`);
-
-			return result;
-		}, '') + (this.scripts ? this.scripts : '');
-	}
-
-	loadScripts(scripts)
-	{
-		if (!scripts)
-			return;
-
-		if (typeof(scripts)==='string')
-			scripts = [ scripts ];
-
-		this.scripts = '';
-
-		this.scriptWatchers = scripts.map(function(s) {
-
-			var fn, id;
-
-			try {
-				workspace.dbg(`Loading script "${s}"`);
-				this.scripts += fs.readFileSync(s, 'utf8');
-
-				fn = this.onScriptsWatch.bind(this);
-				id = workspace.watch(s, fn);
-
-				return { unbind: workspace.unwatch.bind(workspace, id, fn) };
-			} catch(e) {
-				workspace.error(`Could not load script "${s}".`);
-				workspace.dbg(e);
-			}
-		}, this);
-
-	}
-
-	onScriptsWatch()
-	{
-		_.invokeMap(this.scriptWatchers, 'unbind');
-		this.loadScripts(workspace.configuration.scripts);
-		workspace.plugins.emit('plugins.source', this.id, this.source);
-	}
-
-	start()
-	{
-		this.loadLocalPlugins();
-
-		return this.loadGlobalPlugins().all().bind(this).then(function() {
-
-			for (var i in this.plugins)
-				this.plugins[i].start();
-
-			this.loadScripts(workspace.configuration.scripts);
-
-			setImmediate(
-				this.emit.bind(this, 'workspace.load', workspace));
-		});
-	}
-
-}
 
 class Theme
 {
@@ -526,7 +209,6 @@ workspace.extend({
 
 	configuration: new WorkspaceConfiguration(),
 
-	plugins: new PluginManager(),
 	themes: new ThemeManager(),
 	basePath: basePath,
 	cwd: path.resolve(process.cwd()),
@@ -632,9 +314,10 @@ workspace.extend({
 			clearTimeout(this.__dataTimeout);
 
 		this.__dataTimeout = setTimeout(function() {
-			me.dbg(`Writing data file. ${me.__dataFile} (${Buffer.byteLength(me.__data)} bytes)`);
-
-			common.writeFile(me.__dataFile, JSON.stringify(me.__data));
+			var data = JSON.stringify(me.__data);
+			
+			me.dbg(`Writing data file. ${me.__dataFile} (${Buffer.byteLength(data)} bytes)`);
+			common.writeFile(me.__dataFile, data);
 		});
 	},
 
@@ -675,8 +358,21 @@ workspace.extend({
 		workspace.plugins.emit('workspace.watch:' + file, ev, file);
 	}
 
-}).config(function()
+})
+
+.createServer()
+
+.use(compression())
+
+.use(cxl.static(basePath + '/public', { maxAge: 86400000 }))
+
+.use(cxl.bodyParser.json({ limit: Infinity }))
+
+.config(function()
 {
+	require('./plugins.js');
+	
+	this.plugins = new workspace.PluginManager();
 	this.port = this.configuration.port;
 	this.watcher = new Watcher({
 		onEvent: this.onWatch.bind(this)
@@ -696,27 +392,6 @@ workspace.extend({
 
 	this.secure = this.configuration.secure;
 })
-
-.createServer()
-
-.use(compression())
-
-.use(cxl.static(basePath + '/public', { maxAge: 86400000 }))
-
-.use(cxl.bodyParser.json({ limit: Infinity }))
-
-.route('GET', '/plugins', function(req, res) {
-	common.respond(workspace, res, this.plugins.getPackages());
-})
-
-.route('POST', '/plugins/install', function(req, res) {
-	common.respond(workspace, res, workspace.plugins.install(req.body.name, req.body.version));
-})
-
-.route('POST', '/plugins/uninstall', function(req, res) {
-	common.respond(workspace, res, workspace.plugins.uninstall(req.body.name, req.body.version));
-})
-
 .run(function() {
 	require('./socket').start();
 	require('./online').start();

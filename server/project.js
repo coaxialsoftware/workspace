@@ -352,7 +352,7 @@ class ProjectManager {
 
 	getProjectInformation(path)
 	{
-		if (!path.directory || path.filename.indexOf('.')===0)
+		if (!path.directory || path.filename.indexOf('.')===0 || path.filename==='node_modules')
 			return;
 
 		if (this.projects[path.filename])
@@ -368,7 +368,10 @@ class ProjectManager {
 			.bind(this)
 			.each(this.getProjectInformation)
 			.then(function() {
-				return this.projects;
+				// TODO Remove '.'
+				var projects = Object.assign({}, this.projects);
+				delete projects['.'];
+				return projects;
 			});
 	}
 }

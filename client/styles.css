@@ -283,7 +283,10 @@ ide-icon:focus { color: #fff; outline: 1px solid #ccc; }
 .item kbd { float: right; }
 .item ide-icon { margin-right: 8px; }
 .item .icons { float: right; }
-.item ide-item-description { font-style: italic; font-size: 13px; margin: 0 0 0 16px; }
+.item ide-item-description {
+	margin-top: 2px; display: block; padding: 4px; background: #333;
+	font-size: 14px;
+}
 
 ide-item-tags { float: right; font-size: 0; }
 ide-item-title {
@@ -369,6 +372,10 @@ ide-item-title b { color: #fff; }
 #assist-inline .item code, #assist-inline .item .label,
 #assist-inline kbd { display: none; }
 
+#assist-inline ide-item-description {
+	display: inline; font-style: italic; font-size: 13px; margin: 0 0 0 16px;
+	background: none;
+}
 #assist-inline .item h4 { overflow: visible; white-space: nowrap; display: inline-block; }
 
 /*
@@ -393,18 +400,17 @@ form input:focus {
 	outline: none;
 }
 
-form button {
+button {
 	background-color: rgba(52, 152, 219, 0.5);
 	border: 1px solid #424242; border-radius: 2px;
-	color: #eee; padding: 8px 16px; line-height: 18px;
-	cursor: pointer; font-size: 14px;
+	color: #eee; padding: 4px 4px; line-height: 18px;
+	cursor: pointer; font-size: 12px;
+	text-transform: uppercase;
 }
 
-form button:hover { background-color: rgba(52, 152, 219, 0.8); }
+button:hover { background-color: rgba(52, 152, 219, 0.8); }
 
-form button { margin: 8px; }
-form button:first-child { margin-left: 0; }
-form button:last-child { margin-right: 0; }
+ide-item-footer { margin-top: 8px; display: block; }
 
 /*
  * Layout
@@ -422,3 +428,8 @@ form button:last-child { margin-right: 0; }
 .col-4 { width: 40%; }
 .col-5 { width: 50%; }
 .col-6 { width: 60%; }
+
+/*
+ * cxl-ui styles
+ */
+cxl-button, cxl-submit { font-size: 12px; line-height: 14px; }

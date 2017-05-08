@@ -49,3 +49,6 @@ ide-editor-header { color: #0f0; }
 .item:hover { background-color: rgba(0, 186, 0, 0.8); }
 .item h4 { color: #3f3; }
 kbd { color: #0f0; }
+
+/* cxl-ui components */
+cxl-button.primary, cxl-submit.primary { background-color: rgba(0, 136, 0, 0.6); }

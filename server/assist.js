@@ -12,6 +12,45 @@ var
 	common = workspace.common
 ;
 
+workspace.assist = {
+	
+	match: function(term, cursorValue)
+	{
+		var index = term.indexOf(cursorValue);
+		
+		if (index!==-1)
+			return {
+				title: term,
+				matchStart: index,
+				matchEnd: index+cursorValue.length,
+				priority: index
+			};
+	},
+	
+	findObject: function(obj, cursorValue, fn)
+	{
+		var i, result=[], match;
+		
+		for (i in obj)
+			if ((match = this.match(i, cursorValue)))
+				result.push(fn ? fn(match, obj[i]) : match);
+		
+		return result;
+	},
+	
+	findArray: function(array, cursorValue, fn)
+	{
+		var i=0, l=array.length, result=[], match;
+		
+		for (;i<l;i++)
+			if ((match = this.match(array[i], cursorValue)))
+				result.push(fn ? fn(match) : match);
+		
+		return result;
+	}
+	
+};
+
 class LanguageServer {
 	
 	constructor(pluginName, mimeMatch, fileMatch)
@@ -30,41 +69,6 @@ class LanguageServer {
 	
 	onInlineAssist()
 	{
-	}
-	
-	match(term, cursorValue)
-	{
-		var index = term.indexOf(cursorValue);
-		
-		if (index!==-1)
-			return {
-				title: term,
-				matchStart: index,
-				matchEnd: index+cursorValue.length,
-				priority: index
-			};
-	}
-	
-	findObject(obj, cursorValue, fn)
-	{
-		var i, result=[], match;
-		
-		for (i in obj)
-			if ((match = this.match(i, cursorValue)))
-				result.push(fn ? fn(match, obj[i]) : Object.assign(match, obj[i]));
-		
-		return result;
-	}
-	
-	findArray(array, cursorValue, fn)
-	{
-		var i=0, l=array.length, result=[], match;
-		
-		for (;i<l;i++)
-			if ((match = this.match(array[i], cursorValue)))
-				result.push(fn ? fn(match) : match);
-		
-		return result;
 	}
 	
 	canAssist(data)
@@ -89,6 +93,10 @@ class LanguageServer {
 	}
 	
 }
+
+LanguageServer.prototype.match = workspace.assist.match;
+LanguageServer.prototype.findObject = workspace.assist.findObject;
+LanguageServer.prototype.findArray = workspace.assist.findArray;
 
 workspace.LanguageServer = LanguageServer;
 
