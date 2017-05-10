@@ -7,7 +7,7 @@
 	},
     "description": "A test project for workspace.",
     
-    "plugins": [ "inference" ],
+    "plugins": [ "inference", "css" ],
     "links": [
         { "href": "hello", "class": "home", "title": "Homepage" }
     ],

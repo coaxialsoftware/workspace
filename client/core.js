@@ -5,51 +5,51 @@
 
 (function(cxl) {
 "use strict";
-	
+
 var
 	ide = window.ide = { version: '2.0.2' },
 	editorId = 1
 ;
-	
+
 class HintTemplate {
-	
+
 	render(obj)
 	{
 		this.$renderElements(obj);
 		this.$appendChildren();
-		
+
 		return this.el;
 	}
-	
+
 	$appendChildren()
 	{
 		var el = this.el;
-		
+
 		if (this.iconEl) el.appendChild(this.iconEl);
 		if (this.titleEl) el.appendChild(this.titleEl);
 		if (this.descEl) el.appendChild(this.descEl);
 	}
-	
+
 	$renderIcon(obj)
 	{
 		var icon = this.iconEl = document.createElement('ide-icon');
 		// TODO Better Icon rendering
-		icon.className = 'fa fa-' + obj.icon;
+		icon.className = obj.icon;
 	}
-	
+
 	$renderDescription(obj)
 	{
 		var desc = this.descEl = document.createElement('ide-item-description');
 		desc.innerHTML = obj.description;
 	}
-	
+
 	// TODO do we need escaping?
 	$renderTitle(obj)
 	{
 		var title = this.titleEl = document.createElement('ide-item-title');
 		title.innerHTML = obj.title;
 	}
-	
+
 	$renderElements(obj)
 	{
 	var
@@ -57,7 +57,7 @@ class HintTemplate {
 	;
 		el.tabIndex = 0;
 		el.className = 'item ' + obj.className;
-		
+
 		if (obj.icon) this.$renderIcon(obj);
 		if (obj.description) this.$renderDescription(obj);
 		if (obj.matchStart!==undefined)
@@ -68,11 +68,11 @@ class HintTemplate {
 		}
 		if (obj.title) this.$renderTitle(obj);
 	}
-	
+
 }
-	
+
 class Hint {
-	
+
 	constructor(p)
 	{
 		this.priority = p.priority || 0;
@@ -87,7 +87,7 @@ class Hint {
 		this.tags = p.tags;
 		this.Template = HintTemplate;
 	}
-	
+
 	render()
 	{
 		if (this.el===undefined)
@@ -95,28 +95,28 @@ class Hint {
 			this.template = new this.Template();
 			this.el = this.template.render(this);
 		}
-		
+
 		return this.el;
 	}
-	
+
 	destroy()
 	{
-		
+
 	}
-	
+
 }
-	
-	
+
+
 class ItemTemplate extends HintTemplate {
-	
+
 	$renderLink(i)
 	{
 		return '<' + (i.href ? 'a href="' + i.href + '"' : 'span') +
 			' class="icon" title="' + (i.title || i) +
-			'"><i class="fa fa-' + (i.class || i) + '"></i>' + 
+			'"><i class="fa fa-' + (i.class || i) + '"></i>' +
 			(i.text||'') + '</' + (i.href ? 'a' : 'span') + '>';
 	}
-	
+
 	$renderTags(obj)
 	{
 	var
@@ -134,37 +134,37 @@ class ItemTemplate extends HintTemplate {
 			}
 		}
 	}
-	
+
 	$renderIcons(icons)
 	{
 		return '<div class="icons">' + icons.map(this.$renderIcon).join('') + '</div>';
 	}
-	
+
 	$renderKey(obj)
 	{
 		this.keyEl = document.createElement('kbd');
 		this.keyEl.innerHTML = obj.key;
 	}
-	
+
 	$renderCode(obj)
 	{
 		this.codeEl = document.createElement('code');
 		this.codeEl.innerHTML = obj.code;
 	}
-	
+
 	$renderElements(obj)
 	{
 		super.$renderElements(obj);
-		
+
 		if (obj.key) this.$renderKey(obj);
 		if (obj.code) this.$renderCode(obj);
 		if (obj.tags) this.$renderTags(obj);
 	}
-	
+
 	$appendChildren()
 	{
 		var el = this.el;
-		
+
 		if (this.tagsEl) el.appendChild(this.tagsEl);
 		if (this.codeEl) el.appendChild(this.codeEl);
 		if (this.iconEl) el.appendChild(this.iconEl);
@@ -172,11 +172,11 @@ class ItemTemplate extends HintTemplate {
 		if (this.keyEl) el.appendChild(this.keyEl);
 		if (this.descEl) el.appendChild(this.descEl);
 	}
-	
+
 }
-	
+
 class Item extends Hint {
-	
+
 	/**
 	 * Options:
 	 * key
@@ -187,15 +187,15 @@ class Item extends Hint {
 	constructor(p)
 	{
 		super(p);
-		
+
 		this.Template = ItemTemplate;
 		this.key = p.key;
 		this.action = p.action;
 		this.code = p.code;
-		
+
 		if (p.enter)
 			this.enter = p.enter;
-		
+
 		if (!this.key && this.action)
 		{
 			var key = ide.keyboard.findKey(this.action);
@@ -204,14 +204,14 @@ class Item extends Hint {
 	}
 
 }
-	
+
 class ComponentItem {
-	
+
 	constructor(component)
 	{
 		this.component = component;
 	}
-	
+
 	render()
 	{
 		if (this.el===undefined)
@@ -219,18 +219,18 @@ class ComponentItem {
 			this.el = this.component.$native;
 			this.el.tabIndex = 0;
 		}
-		
+
 		return this.el;
 	}
-	
+
 	destroy()
 	{
 		if (this.component)
 			this.component.destroy();
 	}
-	
+
 }
-	
+
 class Notification extends Item {
 
 	/** Optional Id for progress hints */
@@ -246,17 +246,17 @@ class Notification extends Item {
 	{
 		if (typeof(message)==='string')
 			message = { title: message, className: kls };
-		
+
 		super(message);
-		
+
 		this.id = message.id;
 		this.progress = message.progress;
 	}
 
 }
-	
+
 class Logger {
-	
+
 	constructor()
 	{
 		this.active = {};
@@ -264,7 +264,7 @@ class Logger {
 		this.el = document.getElementById('notification');
 		this.delay = 3000;
 	}
-	
+
 	remove(item)
 	{
 		if (item.id)
@@ -275,7 +275,7 @@ class Logger {
 		if (this.items.length>100)
 			this.items.length = 100;
 	}
-	
+
 	notify(span)
 	{
 		if (span.id)
@@ -287,7 +287,7 @@ class Logger {
 
 			this.active[span.id] = span;
 		}
-		
+
 		var el = span.render();
 
 		this.el.insertBefore(el, this.el.firstChild);
@@ -311,17 +311,17 @@ class Feature {
 	}
 
 }
-	
+
 class EditorHeader extends Feature {
 
 	constructor(e)
 	{
 		super(e);
-		
+
 		var el = this.el = document.createElement('ide-editor-header');
-		
+
 		this.tags = {};
-		
+
 		el.innerHTML = '<div class="close"></div><div class="tags"></div>' +
 			'<span class="modified"></span><span class="title"></span>';
 
@@ -332,7 +332,7 @@ class EditorHeader extends Feature {
 		this._title = '';
 		this.changed = false;
 	}
-	
+
 	render()
 	{
 		this.editor.el.appendChild(this.el);
@@ -363,53 +363,53 @@ class EditorHeader extends Feature {
 	{
 		return this._changed;
 	}
-	
+
 	onClose(ev)
 	{
 		ev.preventDefault(); ev.stopPropagation();
 		ide.workspace.remove(this);
 	}
-	
+
 	createTag(id)
 	{
 		var tag = this.tags[id] = {
 			el: document.createElement('SPAN')
 		};
-		
+
 		this.$tags.appendChild(tag.el);
 		tag.el.className = 'label';
-		
+
 		return tag;
 	}
-	
+
 	setTag(id, text, kls)
 	{
 		var el = this.tags[id];
-		
+
 		if (!el)
 			el = this.createTag(id);
-		
+
 		if (text !== undefined && el.text !== text)
 			el.el.innerHTML = el.text = text;
-		
+
 		if (kls !== undefined && kls !== el.kls)
 		{
 			el.kls = kls;
 			el.el.className = 'label ' + (kls || '');
 		}
 	}
-		
+
 }
 
 EditorHeader.featureName = 'header';
-	
+
 class FocusFeature extends Feature
 {
 	render()
 	{
 		this.editor.listenTo(this.editor.el, 'click', this.set.bind(this));
 	}
-	
+
 	blur()
 	{
 		ide.editor = null;
@@ -432,7 +432,7 @@ class FocusFeature extends Feature
 		this.editor.el.classList.add('focus');
 		ide.plugins.trigger('editor.focus', this.editor);
 	}
-	
+
 }
 
 FocusFeature.featureName = 'focus';
@@ -449,9 +449,9 @@ CursorFeature.commands = {
 	'cursor.goEnd' : function() { this.cursor.goEnd(); },
 	'cursor.enter': function(shift, mod) { this.cursor.enter(shift, mod); }
 };
-	
+
 class FoldFeature extends Feature {
-	
+
 	toggle()
 	{
 		if (this.isFolded())
@@ -459,9 +459,9 @@ class FoldFeature extends Feature {
 		else
 			this.close();
 	}
-	
+
 }
-	
+
 FoldFeature.featureName = 'fold';
 FoldFeature.commands = {
 	'fold.toggle': function() { this.fold.toggle(); },
@@ -475,7 +475,7 @@ class HintsFeature extends Feature {
 HintsFeature.featureName = 'hints';
 
 class InsertFeature extends Feature {
-	
+
 }
 
 InsertFeature.featureName = 'insert';
@@ -487,11 +487,11 @@ InsertFeature.commands = {
 	'insert.backspace': function() { this.insert.backspace(); },
 	'insert.del': function() { this.insert.del(); }
 };
-	
+
 class IndentFeature extends Feature {
-	
+
 }
-	
+
 IndentFeature.featureName = 'indent';
 IndentFeature.commands = {
 	'indent.more': function() { this.indent.more(); },
@@ -505,7 +505,7 @@ class HashFeature extends Feature {
 	{
 		// TODO ?
 		var result='', i,l;
-		
+
 		if (args && args.length)
 		{
 			l = args.length-1;
@@ -513,8 +513,8 @@ class HashFeature extends Feature {
 				result += args[i] + ' ';
 			result += args[i];
 		}
-		
-		return result;	
+
+		return result;
 	}
 
 	get()
@@ -531,13 +531,13 @@ class HashFeature extends Feature {
 HashFeature.featureName = 'hash';
 
 class SearchFeature extends Feature {
-	
+
 	replace(val, replace)
 	{
 		var range = this.search(val);
 		return range && range.replace(replace);
 	}
-	
+
 }
 
 SearchFeature.featureName = 'search';
@@ -565,27 +565,27 @@ SelectionFeature.commands = {
 };
 
 class LineFeature extends Feature {
-	
+
 	select()
 	{
 	}
-	
+
 	goStart()
 	{
 		var e = this.editor;
-		e.cursor.go(this.row, this.column);	
+		e.cursor.go(this.row, this.column);
 	}
-	
+
 	goEnd()
 	{
 		var e = this.editor;
 		e.cursor.go(this.rowEnd, this.columnEnd);
 	}
-	
+
 	moveDown()
 	{
 	}
-	
+
 	moveUp()
 	{
 	}
@@ -601,19 +601,19 @@ LineFeature.commands = {
 	'line.moveDown': function() { this.line.moveDown(); },
 	'line.moveUp': function() { this.line.moveUp(); }
 };
-	
+
 // TODO
 class HistoryRecord {
-	
+
 	constructor(type)
 	{
 		this.type = type;
 	}
-	
+
 }
 
 class HistoryFeature extends Feature {
-	
+
 	openHistory()
 	{
 	var
@@ -629,7 +629,7 @@ class HistoryFeature extends Feature {
 
 		return editor;
 	}
-	
+
 }
 
 HistoryFeature.featureName = 'history';
@@ -641,18 +641,18 @@ HistoryFeature.commands = {
 };
 
 class WordFeature extends Feature {
-	
+
 	goNext()
 	{
 		this.cursor.go(undefined, this.word.current.endColumn);
 		this.cursor.goForward();
 	}
-	
+
 	goPrevious()
 	{
 		this.cursor.go(undefined, this.word.current.startColumn);
 	}
-	
+
 }
 
 WordFeature.featureName = 'word';
@@ -664,17 +664,17 @@ WordFeature.commands = {
 };
 
 class PageFeature extends Feature {
-	
+
 	goUp()
 	{
 		this.editor.cursor.go(this.current.row);
 	}
-	
+
 	goDown()
 	{
 		this.editor.cursor.go(this.current.endRow);
 	}
-	
+
 }
 
 PageFeature.featureName = 'page';
@@ -686,13 +686,13 @@ PageFeature.commands = {
 class TokenFeature extends Feature { }
 
 TokenFeature.featureName = 'token';
-	
+
 class RangeFeature extends Feature { }
-	
+
 RangeFeature.featureName = 'range';
 
 class Token {
-	
+
 	get cursorValue()
 	{
 		// TODO ?
@@ -701,12 +701,12 @@ class Token {
 			this.$cursorValue
 		;
 	}
-	
+
 	set cursorValue(val)
 	{
 		this.$cursorValue = val;
 	}
-	
+
 	toJSON()
 	{
 		return this.$json || (this.$json={
@@ -726,7 +726,7 @@ class Range {
 
 
 }
-	
+
 class Editor {
 
 	constructor(p)
@@ -738,19 +738,19 @@ class Editor {
 		this.keymap = new ide.KeyMap(this);
 		this.command = p.command;
 		this.features = {};
-		
-		this.loadFeatures(p);		
-		
+
+		this.loadFeatures(p);
+
 		ide.plugins.trigger('editor.load', this);
 	}
-	
+
 	static registerCommands(cmds)
 	{
 		var fn, i;
 
 		if (!this.hasOwnProperty('commands'))
 			this.commands = Object.assign({}, this.commands);
-		
+
 		for (i in cmds)
 		{
 			fn = cmds[i];
@@ -758,7 +758,7 @@ class Editor {
 			if (typeof(fn)==='string')
 				fn = cmds[fn];
 
-			this.commands[i] = fn; 
+			this.commands[i] = fn;
 		}
 	}
 
@@ -770,11 +770,11 @@ class Editor {
 		for (var Feature of arguments)
 		{
 			this.$features[Feature.featureName] = Feature;
-			
+
 			if (Feature.commands)
 				this.registerCommands(Feature.commands);
 		}
-		
+
 		return this.$features;
 	}
 
@@ -782,11 +782,11 @@ class Editor {
 	{
 		return featureName in this.features;
 	}
-	
+
 	loadFeatures(p)
 	{
 		var features = this.constructor.$features, i;
-		
+
 		for (i in features)
 			this.features[i] = new features[i](this, p);
 
@@ -794,22 +794,22 @@ class Editor {
 
 		cxl.invokeMap(this.features, 'render');
 	}
-	
+
 	/**
 	 * Render editor content.
 	 */
 	render(p)
 	{
 		var title = p.title || p.command;
-		
+
 		this.$content = document.createElement('ide-editor-content');
-		
+
 		this.el.appendChild(this.$content);
 
 		if (title)
 			this.header.title = title;
 	}
-	
+
 	/**
 	 * Listen to events. Supports addEventListener, and on/off methods.
 	 * Adds subscriber to this.bindings and returns it.
@@ -824,12 +824,12 @@ class Editor {
 	;
 		if (!(subscriber instanceof cxl.rx.Subscriber))
 			subscriber = { unsubscribe: remove.bind(el, event, fn) };
-			
+
 		this.bindings.push(subscriber);
-		
+
 		return subscriber;
 	}
-	
+
 	destroy()
 	{
 		cxl.invokeMap(this.bindings, 'unsubscribe');
@@ -850,7 +850,7 @@ class Editor {
 
 		return fn ? fn.apply(this, args) : ide.Pass;
 	}
-	
+
 	/**
 	 * Handles closing the editor. Return a string to confirm with user first.
 	 */
@@ -860,9 +860,9 @@ class Editor {
 	}
 
 }
-	
+
 Editor.features(HashFeature, EditorHeader, FocusFeature);
-	
+
 function onProject()
 {
 	ide.plugins.start();
@@ -879,7 +879,7 @@ function _start()
 	ide.project = new ide.Project({
 		path: ide.hash.data.p || ide.hash.data.project
 	});
-	
+
 	ide.project.fetch().catch(function() {
 		ide.error('Error loading project "' + ide.project.id + '"');
 		ide.hash.set({ p: null });
@@ -887,16 +887,16 @@ function _start()
 		return ide.project.fetch();
 	}).then(onProject);
 
-	
+
 	ide.searchBar = new ide.Bar.Search();
 	ide.commandBar = new ide.Bar.Command();
 }
-		
+
 Object.assign(ide, {
 
 	/** Used by commands to indicate that the command wasn't handled. */
 	Pass: {},
-		
+
 	Feature: Feature,
 	Token: Token,
 	Range: Range,
@@ -990,14 +990,14 @@ Object.assign(ide, {
 	;
 		return ide.logger.notify(span);
 	}
-		
+
 });
-	
+
 function loadFile(file)
 {
 	return file.content || !file.filename ? Promise.resolve(file) : file.fetch();
 }
-	
+
 function findPlugin(options)
 {
 	if (options.plugin)
@@ -1006,7 +1006,7 @@ function findPlugin(options)
 			options.plugin.commands[options.command].call(options.plugin, options.params) :
 		options.plugin.open(options);
 	}
-	
+
 	return ide.plugins.findPlugin(options);
 }
 
@@ -1033,7 +1033,7 @@ function onOpenError(options, e)
 
 	return Promise.reject(e);
 }
-	
+
 ide.open = function(options)
 {
 	options.slot = options.slot || ide.workspace.slot();

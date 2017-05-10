@@ -63,7 +63,7 @@ var
 		return new RegExp(glob.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
 	}
 }
-	
+
 function getMask(token)
 {
 	return token.type==='string' ?
@@ -71,19 +71,19 @@ function getMask(token)
 }
 
 class ListEditorCursor extends ide.feature.CursorFeature {
-	
+
 	render()
 	{
 		this.editor.listenTo(this.editor.$content, 'click', this.$onListClick.bind(this));
 	}
-	
+
 	$onListClick(ev)
 	{
 		var target = ev.target;
-		
+
 		while (target!==this.editor.el && !target.$item)
 			target = target.parentNode;
-		
+
 		if (target.$item)
 		{
 			target.focus();
@@ -91,25 +91,25 @@ class ListEditorCursor extends ide.feature.CursorFeature {
 			this.enter(ev.shiftKey, ev.altKey);
 		}
 	}
-	
+
 	get current()
 	{
 		return this.editor.children.find(function(i) {
 			return i.el.matches(':focus') && i.el.style.display!=='none';
 		});
 	}
-	
+
 	_findFirst()
 	{
 		return this.editor.children.find(function(i) {
 			return i.el.style.display!=='none';
 		});
 	}
-	
+
 	_findLast()
 	{
 		var l = this.editor.children.length;
-		
+
 		while (l--)
 			if (this.editor.children[l].el.style.display!=='none')
 				return this.editor.children[l];
@@ -169,13 +169,13 @@ class ListEditorCursor extends ide.feature.CursorFeature {
 		if (c)
 			c.el.focus();
 	}
-	
+
 	enter(shift, mod)
 	{
 		var c = this.current;
-		
+
 		if (c && c.enter)
-			c.enter(shift, mod, this.editor);			
+			c.enter(shift, mod, this.editor);
 	}
 
 }
@@ -186,7 +186,7 @@ class ListSearchFeature extends ide.feature.SearchFeature {
 	{
 		return regex.test(file.title);
 	}
-	
+
 	search(regex)
 	{
 	var
@@ -238,14 +238,14 @@ class ListScrollFeature extends ide.feature.ScrollFeature {
 }
 
 class ListEditor extends ide.Editor {
-	
+
 	render(p)
 	{
 		super.render(p);
 		this.el.classList.add('list');
 		this.$list = document.createElement('ide-editor-list');
 		this.$footer = document.createElement('ide-editor-footer');
-		
+
 		this.$content.appendChild(this.$list);
 		this.$content.appendChild(this.$footer);
 		this.ItemClass = p.itemClass || ide.Item;
@@ -258,11 +258,11 @@ class ListEditor extends ide.Editor {
 		return items.map(function(item) {
 			if (!(item instanceof ide.Item))
 				item = new this.ItemClass(item);
-			
+
 			this.$list.appendChild(item.render());
 			item.el.$item = item;
 			return item;
-			
+
 		}, this);
 	}
 
@@ -282,7 +282,7 @@ class ListEditor extends ide.Editor {
 	focus()
 	{
 		var i = this.current;
-		
+
 		if (i)
 			i.el.focus();
 
@@ -290,17 +290,19 @@ class ListEditor extends ide.Editor {
 	}
 
 }
-	
+
 ListEditor.features(ListEditorCursor, ListSearchFeature, ListScrollFeature);
 
 class FileItem extends ide.Item {
-	
+
 	constructor(p)
 	{
 		if (!p.icon)
-			p.icon = p.directory ? 'folder-o' : 'file-o';
-		
+			p.icon = p.directory ? 'directory' : 'file';
+
 		super(p);
+
+		this.prefix = p.prefix;
 	}
 
 	enter(shift, mod, editor)
@@ -320,7 +322,7 @@ class FileItem extends ide.Item {
 			options.target = '_blank';
 
 		ide.open(options);
-		
+
 		if (!shift)
 			ide.workspace.remove(editor);
 	}
@@ -330,23 +332,23 @@ class FileItem extends ide.Item {
 class FileListEditor extends ListEditor { }
 
 FileListEditor.features(ide.feature.FileHashFeature, ide.feature.FileFeature);
-	
+
 var worker = new ide.Worker({
-	
+
 	setFiles: function(files)
 	{
 		this.files = files;
 	},
-	
+
 	getMask: getMask,
-	
+
 	canAssist: function(data)
 	{
 		var token = data.token;
 		return token && (token.type===null || token.type==='string' ||
 			token.type==='string property');
 	},
-	
+
 	assist: function(data)
 	{
 	var
@@ -369,10 +371,10 @@ var worker = new ide.Worker({
 					' matches)', action: 'find' };
 		}
 	},
-	
+
 	globToRegex: globToRegex
 });
-	
+
 ide.workerManager.register(worker);
 
 ide.plugins.register('find', new ide.Plugin({
@@ -383,12 +385,12 @@ ide.plugins.register('find', new ide.Plugin({
 		this.listenTo('assist.inline', this.onAssistInline);
 		this.onProject(ide.project);
 	},
-	
+
 	onProject: function(p)
 	{
 		worker.post('setFiles', p.attributes.files);
 	},
-	
+
 	onAssistInline: function(done, editor, token)
 	{
 		var files, str=token.cursorValue;
@@ -400,24 +402,24 @@ ide.plugins.register('find', new ide.Plugin({
 		{
 			files = this.find(str, true);
 		}
-		
+
 		if (files && files.length)
 			done(files);
 	},
-	
+
 	getFuzzyRegex: function(mask)
 	{
 		var regex;
-		
+
 		if (typeof(mask)!=='string')
 			return mask;
-		
+
 		try {
 			regex = new RegExp(mask.split('').join('.*?'));
 		} catch(e) {
 			regex = mask;
 		}
-		
+
 		return regex;
 	},
 
@@ -431,13 +433,13 @@ ide.plugins.register('find', new ide.Plugin({
 		if (files)
 			return files.filter(function(val) {
 				match = regex.exec(val.filename);
-				
+
 				if (match)
 				{
 					val.hint.matchStart = match.index;
 					val.hint.matchEnd = match.index + match[0].length;
 				}
-				
+
 				return match;
 			}).map(function(val) {
 				// TODO optimize
@@ -491,7 +493,7 @@ ide.plugins.register('find', new ide.Plugin({
 	}
 
 }));
-	
+
 ide.plugins.register('folder', new ide.Plugin({
 
 	commands: {
@@ -536,7 +538,7 @@ ide.plugins.register('folder', new ide.Plugin({
 	}
 
 }));
-	
+
 ide.ListEditor = ListEditor;
 ide.FileListEditor = FileListEditor;
 ide.FileItem = FileItem;

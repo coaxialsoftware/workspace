@@ -10,16 +10,16 @@
 	},
 	
 	"plugins": [
-		"file:../../workspace.base/workspace.jshint",
-        "file:../../workspace.inference",
-		"file:../../workspace.karma",
-		"file:../../workspace.angular",
-		"file:../../workspace.base/workspace.trailing",
-		"file:../../workspace.base/workspace.javascript",
-		"file:../../workspace.base/workspace.npm"
+		"../../workspace.base/workspace.jshint",
+       		"../../workspace.inference",
+		"../../workspace.karma",
+		"../../workspace.angular",
+		"../../workspace.base/workspace.trailing",
+		"../../workspace.base/workspace.javascript",
+		"../../workspace.base/workspace.npm",
+		"../../workspace.base/workspace.css"
 	],
 		
-	"plugins.path": ".",
 	"socket.port": 9005,
 	"online.url": "https://cxl-dev.firebaseio.com/workspace"
 }

@@ -1,3 +1,9 @@
+@font-face {
+  font-family: 'FontAwesome';
+  src: url('fonts/fontawesome-webfont.woff2') format('woff2'), /* Super Modern Browsers */
+       url('fonts/fontawesome-webfont.woff') format('woff'), /* Pretty Modern Browsers */
+}
+
 /*
  * core
  */
@@ -245,6 +251,7 @@ div.CodeMirror-cursors { visibility: hidden; }
  */
 ide-icon {
 	display: inline-block; margin: 0;
+	font-family: FontAwesome;
 	padding-top: 2px; color: #eee;
 	width: 16px;
 	text-decoration: none;
@@ -255,11 +262,13 @@ ide-icon:hover { color: #fff; }
 ide-icon:focus { color: #fff; outline: 1px solid #ccc; }
 
 /* TODO */
-.fa-variable::before { content: "\f1b2"; }
-.fa-variable-global::before { content: "G"; }
-.fa-command::before { content: "\f120"; }
-.fa-property::before { content: "P"; }
-.fa-keyword::before { content: "K"; }
+ide-icon.variable::before { content: "\f1b2"; }
+ide-icon.variable-global::before { content: "G"; }
+ide-icon.command::before { content: "\f120"; }
+ide-icon.property::before { content: "P"; }
+ide-icon.keyword::before { content: "K"; }
+ide-icon.directory::before { content: "\f114"; }
+ide-icon.file::before { content: "\f016"; }
 
 .item {
 	box-sizing: border-box;

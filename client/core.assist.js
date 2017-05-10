@@ -1,7 +1,7 @@
 
 (function(window, ide, cxl) {
 "use strict";
-	
+
 var InlineAssist = function() {
 	this.hints = [];
 	this.el = document.getElementById('assist-inline');
@@ -41,7 +41,7 @@ cxl.extend(InlineAssist.prototype, {
 
 	/// Selected hint
 	selected: null,
-	
+
 	/// Selected hint value
 	selectedValue: null,
 
@@ -69,7 +69,7 @@ cxl.extend(InlineAssist.prototype, {
 	;
 		if (!token || !token.cursorValue)
 			return this.hide();
-		
+
 		this.version++;
 		this.editor = editor;
 		this.token = token;
@@ -214,7 +214,7 @@ cxl.extend(InlineAssist.prototype, {
 	renderHint: function(hint, order, ref)
 	{
 		var el = hint.render();
-		
+
 		el.$hint = hint;
 
 		if (this.selectedValue === hint.value)
@@ -280,7 +280,7 @@ cxl.extend(InlineAssist.prototype, {
 	next: function()
 	{
 		var result = this._goNext();
-		
+
 		// TODO ?
 		if (result===ide.Pass && ide.editor.cursor)
 			ide.editor.cursor.goDown();
@@ -289,7 +289,7 @@ cxl.extend(InlineAssist.prototype, {
 	previous: function()
 	{
 		var result = this._goNext('previousSibling');
-		
+
 		if (result===ide.Pass && ide.editor.cursor)
 			ide.editor.cursor.goUp();
 	},
@@ -312,10 +312,10 @@ cxl.extend(InlineAssist.prototype, {
 		// TODO find a better way?
 		//this.requestHints.cancel();
 		//this._requestHints(this.editor, this.editor.token);
-		
+
 		if (this.hints.length===0)
 			return ide.Pass;
-		
+
 		setTimeout(this.doAccept, this.delay);
 	}
 
@@ -343,18 +343,18 @@ var Assist = cxl.View.extend({
 		this.requestHints = cxl.debounce(this._requestHints, this.delay);
 		this.el.innerHTML = '<div class="assist-hints"></div>';
 		this.$hints = this.el.children[0];
-		
+
 		this.listenTo(this.$hints, 'click', this.onItemClick);
 		//this.listenTo(ide.plugins, 'file.write', this.onToken);
 		this.listenTo(ide.plugins, 'token', this.onToken);
 		this.listenTo(ide.plugins, 'editor.focus', this.onToken);
-		this.listenTo(ide.plugins, 'editor.change', this.onToken);
+		//this.listenTo(ide.plugins, 'editor.change', this.onToken);
 		this.listenTo(ide.plugins, 'file.write', this.onOther);
 		this.listenTo(ide.plugins, 'workspace.remove', this.onOther);
 
 		this.inline = new InlineAssist();
 	},
-	
+
 	onItemClick: function()
 	{
 		if (this.action)
@@ -381,7 +381,7 @@ var Assist = cxl.View.extend({
 		document.body.appendChild(ide.logger.el);
 		this.el.classList.remove('assist-show');
 		this.visible = false;
-		
+
 		ide.workspace.el.classList.remove('assist-show');
 		ide.hash.set({ a: false });
 	},
@@ -457,17 +457,17 @@ var Assist = cxl.View.extend({
 				this.hints.push(h);
 		}
 	},
-	
+
 	sortedLastIndexBy: function(hint)
 	{
 		var l = this.hints.length;
-		
+
 		while (l--)
 		{
 			if (hint.priority > this.hints[l].priority)
 				return l;
 		}
-		
+
 		return 0;
 	},
 

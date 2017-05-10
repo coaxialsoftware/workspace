@@ -187,7 +187,7 @@ ide.runParsedCommand = function(cmds)
 
 	return result;
 };
-	
+
 ide.findCommand = function(name)
 {
 	function getCommands(cmds)
@@ -200,7 +200,7 @@ ide.findCommand = function(name)
 			return cmds[i];
 		}
 	}
-	
+
 	return getCommands(ide.commands) || (ide.editor &&
 		(getCommands(ide.editorCommands) || getCommands(ide.editor.constructor.commands)));
 };
@@ -269,7 +269,7 @@ ide.plugins.register('cmd', {
 
 		if (token.type==='command' && token.value)
 			hints = this.getAllCommands(token.value);
-		
+
 		if (hints)
 			done(hints);
 	},
@@ -329,7 +329,7 @@ ide.plugins.register('cmd', {
 		}
 
 		getCommands(ide.commands);
-		
+
 		if (ide.editor)
 		{
 			getCommands(ide.editorCommands);
@@ -387,11 +387,11 @@ ide.plugins.register('cmd', {
  * Lookup best match
  */
 ide.Command = class Command {
-	
+
 	constructor(name, def, scope)
 	{
 		var type = typeof(def), description = def.description;
-		
+
 		if (type==='string')
 		{
 			this.fn = function() { ide.run(def, arguments); };
@@ -401,7 +401,7 @@ ide.Command = class Command {
 			this.fn = def;
 		else
 			this.fn = def.fn;
-				
+
 		this.args = def.args;
 		this.icon = def.icon;
 		this.name = name;
@@ -414,12 +414,12 @@ ide.Command = class Command {
 		def.run = (typeof(def.fn)==='string' ?
 			this.plugin[def.fn] : def.fn).bind(this.plugin);
 		def.cmd = def.cmd && def.cmd.split(' ');
-		def.hint = { icon: 'terminal', description: def.help };
+		def.hint = { icon: 'command', description: def.help };
 
 		if (!def.cmd)
 			this.fn.help = def.help;
 	}
-	
+
 	getToken(editor, token)
 	{
 	var

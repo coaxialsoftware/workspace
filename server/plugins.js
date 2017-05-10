@@ -3,17 +3,17 @@ var
 	EventEmitter = require('events').EventEmitter,
 	fs = require('fs'),
 	path = require('path'),
-	
+
 	Q = require('bluebird'),
 	npm = require('npm'),
 	_ = require('lodash'),
-	
+
 	common = require('./common.js'),
 	workspace = global.workspace
 ;
 
 var NPM = {
-	
+
 	/** Calls npm and returns a promise with the result */
 	doNpm(cmd, args)
 	{
@@ -33,7 +33,7 @@ var NPM = {
 			});
 		});
 	},
-	
+
 	load: function()
 	{
 	var
@@ -44,13 +44,15 @@ var NPM = {
 		return new Q(function(resolve, reject) {
 			npm.load(function(er, npm) {
 				if (er)
-					reject(er);
-				
+					return reject(er);
+
 				try {
 					//if (pluginsPath)
 					//	process.chdir(pluginsPath);
 
-					npm.config.set('global', global);
+					if (global)
+						npm.config.set('global', global);
+
 					npm.config.set('json', true);
 					npm.config.set('depth', 0);
 
@@ -65,30 +67,31 @@ var NPM = {
 			});
 		});
 	},
-	
+
 	install: function(module)
 	{
 		return this.doNpm('install', [ [ module ] ]).then(function(a) {
 			return a[0][1];
 		});
 	},
-	
+
 	uninstall: function(module)
 	{
 		return this.doNpm('uninstall', [ [ module ] ]);
 	}
-	
+
 };
 
 class Plugin {
 
-	constructor(path)
+	constructor(path, local)
 	{
 		this.path = path;
+		this.local = local;
 		this.resolvedPath = require.resolve(path);
 		this.load();
 	}
-	
+
 	load()
 	{
 	var
@@ -99,7 +102,7 @@ class Plugin {
 		this.id = mod.name.replace(/^workspace\./, '')
 			.replace(/\./g, '-');
 		this.name = mod.name;
-		
+
 		this.ready = Q.props({
 			source: mod.source ? _.result(mod, 'source') :
 				(mod.sourcePath ? common.read(mod.sourcePath) : ''),
@@ -108,13 +111,13 @@ class Plugin {
 			this.source = data.source;
 			this.package = data.pkg;
 			this.onlineWatch = workspace.online.watch('/plugins/'+this.id, this.onValue, this);
-			
+
 			return this;
 		}, function(e) {
 			this.mod.error(`Failed to load plugin ${this.name}`);
 			this.mod.error(e);
 		});
-		
+
 		if (mod.sourcePath)
 		{
 			this.onWatchFn = this.onWatch.bind(this);
@@ -126,20 +129,20 @@ class Plugin {
 	{
 		this.mod.start();
 	}
-	
+
 	unload()
 	{
-		if (this.mod.unload)
-			this.mod.unload();
+		if (this.mod.destroy)
+			this.mod.destroy();
 		// Invalidate require cache
 		delete require.cache[this.resolvedPath];
-		
+
 		if (this.sourceWatch)
 			workspace.unwatch(this.sourceWatch, this.onWatchFn);
-		
+
 		this.onlineWatch.unsubscribe();
 	}
-	
+
 	reload()
 	{
 		this.unload();
@@ -162,13 +165,13 @@ class Plugin {
 			this.unofficial = true;
 			return this.mod.dbg('Plugin not in main repository.');
 		}
-		
+
 		this.npmVersion = data.version;
-		
+
 		if (data.version !== this.package.version)
 			this.mod.dbg(`New version ${data.version} available!`);
 	}
-	
+
 	toJSON()
 	{
 		return {
@@ -178,7 +181,8 @@ class Plugin {
 			description: this.package.description,
 			version: this.package.version,
 			npmVersion: this.npmVersion,
-			unofficial: this.unofficial
+			unofficial: this.unofficial,
+			local: this.local
 		};
 	}
 }
@@ -191,28 +195,19 @@ class PluginManager extends EventEmitter {
 	constructor()
 	{
 		super();
-
 		this.plugins = {};
 	}
-	
+
 	enable(project, id)
 	{
 		console.log(project, id);
 		return Promise.resolve(this.plugins[id].toJSON());
 	}
-		
+
 	disable(project, id)
 	{
 		console.log(project, id);
 		return Promise.resolve(this.plugins[id].toJSON());
-	}
-	
-	findByName(name)
-	{
-		for (var i in this.plugins)
-			// TODO
-			if (name === '@cxl/' + this.plugins[i].name)
-				return this.plugins[i];
 	}
 
 	/**
@@ -223,7 +218,7 @@ class PluginManager extends EventEmitter {
 		var me = this, name = '@cxl/workspace.' + id;
 
 		workspace.dbg(`Installing plugin ${name}`);
-		return NPM.install(name).then(function(path) {			
+		return NPM.install(name).then(function(path) {
 			var plugin = me.requireFile(path);
 			workspace.dbg(`Successfully installed plugin ${name}`);
 			return plugin.ready;
@@ -239,11 +234,8 @@ class PluginManager extends EventEmitter {
 		name = '@cxl/workspace.' + id,
 		plugin = this.plugins[id]
 	;
-		// Make sure we only include plugins from cxl workspace.
-		if (name.indexOf('@cxl/workspace')!==0)
-			return Q.reject("Invalid plugin name");
-
 		workspace.dbg(`Uninstalling plugin ${name}`);
+
 		return NPM.uninstall(name).then(function(a) {
 			if (plugin)
 			{
@@ -276,11 +268,11 @@ class PluginManager extends EventEmitter {
 		return this;
 	}
 
-	requireFile(file)
+	requireFile(file, local)
 	{
 		try {
 			fs.statSync(file);
-			var plugin = new Plugin(file);
+			var plugin = new Plugin(file, local);
 			this.register(plugin);
 			return plugin;
 		} catch(e) {
@@ -289,23 +281,6 @@ class PluginManager extends EventEmitter {
 		}
 	}
 
-	requirePlugins(plugins)
-	{
-		if (plugins)
-			plugins.forEach(this.requirePlugin, this);
-	}
-
-	requirePlugin(name)
-	{
-	var
-		parsed = /^(?:(\w+):)?(.+)/.exec(name)
-	;
-		if (parsed[1]==='file')
-			return this.requireFile(path.resolve(parsed[2]));
-
-		return this.requireFile(name);
-	}
-	
 	getOnlinePackages()
 	{
 		return workspace.online.get('plugins').catch(function(e) {
@@ -320,16 +295,16 @@ class PluginManager extends EventEmitter {
 		var plugins = this.plugins;
 
 		return this.getOnlinePackages().then(function(all) {
-			
+
 			this.packages = Object.assign({}, all);
-			
+
 			_.each(plugins, function(a, k) {
 				if (a)
 					all[k] = a;
 				else
 					workspace.error(`package.json not found for plugin "${k}"`);
 			});
-			
+
 			// TODO ?
 			_.each(all, function(a, k) {
 				a.id = k;
@@ -344,31 +319,32 @@ class PluginManager extends EventEmitter {
 	var
 		me = this,
 		regex = /^workspace\./,
-		data, dir
+		dir = workspace.configuration['plugins.path'] ||
+			path.join(process.cwd(), 'node_modules', '@cxl'),
+		data
 	;
-		return NPM.load().then(function(npm) {
-			dir = path.join(npm.dir, '@cxl');
+		if (fs.existsSync(dir))
+		{
+			workspace.dbg(`Loading global plugins from ${dir}`);
+			data = fs.readdirSync(dir);
 
-			if (fs.existsSync(dir))
-			{
-				workspace.dbg(`Loading global plugins from ${dir}`);
-				data = fs.readdirSync(dir);
+			_.each(data, function(d) {
+				if (regex.test(d))
+					me.requireFile(path.join(dir, d));
+			});
+		}
 
-				_.each(data, function(d) {
-					if (regex.test(d))
-					{
-						me.requireFile(path.join(dir, d));
-					}
-				});
-			}
-
-			return _.map(me.plugins, 'ready');
-		});
+		return Q.all(_.map(me.plugins, 'ready'));
 	}
 
 	loadLocalPlugins()
 	{
-		this.requirePlugins(workspace.configuration.plugins);
+		var plugins = workspace.configuration.plugins;
+
+		if (plugins)
+			plugins.forEach(function(name) {
+				this.requireFile(path.resolve(name), true);
+			}, this);
 	}
 
 	getSources(plugins)
@@ -423,16 +399,16 @@ class PluginManager extends EventEmitter {
 		this.loadScripts(workspace.configuration.scripts);
 		workspace.plugins.emit('plugins.source', this.id, this.source);
 	}
-	
+
 	onInlineAssist(done, data)
 	{
 		var token = data.token, hints;
-		
+
 		if (token.type!=='plugin')
 			return;
-		
+
 		hints = workspace.assist.findObject(this.plugins, token.cursorValue);
-		
+
 		if (hints.length)
 			done(hints);
 	}
@@ -440,10 +416,10 @@ class PluginManager extends EventEmitter {
 	start()
 	{
 		this.loadLocalPlugins();
-		
+
 		workspace.plugins.on('assist.inline', this.onInlineAssist.bind(this));
 
-		return this.loadWorkspacePlugins().all().bind(this).then(function() {
+		return this.loadWorkspacePlugins().bind(this).then(function() {
 
 			for (var i in this.plugins)
 				this.plugins[i].start();

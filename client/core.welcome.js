@@ -1,8 +1,8 @@
 
 (function(ide, cxl) {
 "use strict";
-	
-class ProjectList extends ide.ListEditor { 
+
+class ProjectList extends ide.ListEditor {
 
 	render(p)
 	{
@@ -20,7 +20,9 @@ class ProjectList extends ide.ListEditor {
 	{
 	var
 		all = Object.values(projects).map(function(p) {
+
 			return new ide.Item({
+				code: p.path,
 				title: p.name || p.path,
 				tags: p.tags,
 				description: p.description,
@@ -50,7 +52,7 @@ ide.plugins.register('welcome', new ide.Plugin({
 			return new ProjectList({ plugin: this });
 		}
 	},
-	
+
 	onChange: function()
 	{
 		if (ide.workspace.slots.length===0)
@@ -64,11 +66,11 @@ ide.plugins.register('welcome', new ide.Plugin({
 			this.$el.style.opacity=0;
 		}
 	},
-	
+
 	renderTemplate: function()
 	{
 		return '<h1 id="title">workspace<small> ' + ide.version + '</small></h1>' +
-			'<p>Type <kbd>' + this.exKey + '</kbd> to enter commands or <kbd>' + 
+			'<p>Type <kbd>' + this.exKey + '</kbd> to enter commands or <kbd>' +
 			this.assistKey + '</kbd> for the assist window.</p><h2 id="subtitle">' +
 			this.project + '</h2>';
 	},
@@ -85,7 +87,7 @@ ide.plugins.register('welcome', new ide.Plugin({
 
 		if (project)
 			window.document.title = project;
-		
+
 		this.exKey = ide.keyboard.findKey('ex');
 		this.assistKey = ide.keyboard.findKey('assist');
 

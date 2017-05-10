@@ -129,7 +129,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 				this.registerShortcuts(plug);
 		});
 	},
-	
+
 	ready: function()
 	{
 		this.each(function(plug) {
@@ -179,7 +179,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	}
 
 });
-	
+
 
 var PluginComponent = cxl.component({
 	name: 'ide-plugin-item',
@@ -189,8 +189,10 @@ var PluginComponent = cxl.component({
 </ide-item-tags><code &="=code:|text"></code><ide-item-title &="=title:|text">
 </ide-item-title><ide-item-description &="=description:|if:|text"></ide-item-description>
 <ide-item-footer>
+<span &="=local:unless">
 <cxl-submit &="=installed:unless click:#install =loadInstall:set(submitting)">Install</cxl-submit>
 <cxl-submit &="=installed:if click:#uninstall =loadInstall:set(submitting)">Uninstall</cxl-submit>
+<span>
 <!--span &="=installed:show">
 <cxl-submit &="=enabled:unless click:#enable =loadEnable:set(submitting)">Enable</cxl-submit>
 <cxl-submit &="=enabled:if click:#disable =loadEnable:set(submitting)">Disable</cxl-submit>
@@ -202,7 +204,7 @@ var PluginComponent = cxl.component({
 	{
 		this.render(a);
 	}
-	
+
 	render(a)
 	{
 	var
@@ -211,11 +213,12 @@ var PluginComponent = cxl.component({
 	;
 		if (a.enabled)
 			tags.push('Enabled');
-		
 		if (a.installed)
 			tags.push('Installed');
 		if (a.unofficial)
 			tags.push('Unofficial');
+		if (a.local)
+			tags.push('Local');
 
 		if (a.npmVersion)
 		{
@@ -226,10 +229,10 @@ var PluginComponent = cxl.component({
 		}
 
 		tags.push(a.version);
-		
+
 		if (enabled && enabled.indexOf(a.id)!==-1)
 			a.enabled = true;
-		
+
 		this.code = a.id;
 		this.title = a.name;
 		this.description = a.description;
@@ -237,11 +240,11 @@ var PluginComponent = cxl.component({
 		this.enabled = a.enabled;
 		this.version = a.version;
 	}
-	
+
 	post(url)
 	{
 		var me = this;
-		
+
 		cxl.ajax.post(url, {
 			project: ide.project.id,
 			id: this.code
@@ -279,15 +282,15 @@ var PluginComponent = cxl.component({
 		this.loadEnable = true;
 		this.post('/plugins/disable');
 	}
-	
+
 });
-	
+
 /**
  * Plugin Manager
  * @type {ide.PluginManager}
  */
 ide.plugins = new PluginManager();
-	
+
 ide.plugins.register('plugins', {
 	commands: {
 		plugins: function() {
@@ -305,7 +308,7 @@ ide.plugins.register('plugins', {
 
 			return l;
 		},
-		
+
 		'plugins.install': {
 			fn: function(id) {
 				return cxl.ajax.post('/plugins/install', {
@@ -317,7 +320,7 @@ ide.plugins.register('plugins', {
 			args: [ 'plugin' ],
 			icon: 'cog'
 		},
-		
+
 		'plugins.uninstall': {
 			fn: function(id) {
 				return cxl.ajax.post('/plugins/uninstall', {
@@ -337,13 +340,13 @@ ide.plugins.register('plugins', {
 
 		if (!all)
 			ide.warn('Could not retrieve plugins from server.');
-		
+
 		for (i in all)
 		{
 			a = all[i];
-			items.push(new PluginComponent(a, i));
+			items.push(new PluginComponent(a));
 		}
-		
+
 		l.add(cxl.sortBy(items, 'title'));
 	}
 
