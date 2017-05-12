@@ -25,6 +25,7 @@ class HintTemplate {
 	{
 		var el = this.el;
 
+		if (this.svgIconEl) el.appendChild(this.svgIconEl);
 		if (this.iconEl) el.appendChild(this.iconEl);
 		if (this.titleEl) el.appendChild(this.titleEl);
 		if (this.descEl) el.appendChild(this.descEl);
@@ -50,6 +51,13 @@ class HintTemplate {
 		title.innerHTML = obj.title;
 	}
 
+	$renderSVGIcon(obj)
+	{
+		// TODO optimize?
+		this.svgIconEl = ide.SVG[obj.svgIcon].cloneNode(true);
+		this.svgIconEl.className.baseVal = 'ide-icon';
+	}
+
 	$renderElements(obj)
 	{
 	var
@@ -58,6 +66,7 @@ class HintTemplate {
 		el.tabIndex = 0;
 		el.className = 'item ' + obj.className;
 
+		if (obj.svgIcon) this.$renderSVGIcon(obj);
 		if (obj.icon) this.$renderIcon(obj);
 		if (obj.description) this.$renderDescription(obj);
 		if (obj.matchStart!==undefined)
@@ -78,6 +87,7 @@ class Hint {
 		this.priority = p.priority || 0;
 		this.className = p.className || 'log';
 		this.icon = p.icon;
+		this.svgIcon = p.svgIcon;
 		this.title = p.title;
 		this.description = p.description;
 		this.value = 'value' in p ? p.value : p.title;
@@ -168,6 +178,7 @@ class ItemTemplate extends HintTemplate {
 		if (this.tagsEl) el.appendChild(this.tagsEl);
 		if (this.codeEl) el.appendChild(this.codeEl);
 		if (this.iconEl) el.appendChild(this.iconEl);
+		if (this.svgIconEl) el.appendChild(this.svgIconEl);
 		if (this.titleEl) el.appendChild(this.titleEl);
 		if (this.keyEl) el.appendChild(this.keyEl);
 		if (this.descEl) el.appendChild(this.descEl);
@@ -879,6 +890,7 @@ function _start()
 	ide.project = new ide.Project({
 		path: ide.hash.data.p || ide.hash.data.project
 	});
+	ide.styles = document.getElementById('styles').sheet;
 
 	ide.project.fetch().catch(function() {
 		ide.error('Error loading project "' + ide.project.id + '"');
@@ -928,6 +940,9 @@ Object.assign(ide, {
 	Hint: Hint,
 	Notification: Notification,
 
+	// Svg Cache
+	SVG: {},
+
 	/** Current opened project */
 	project: null,
 
@@ -969,6 +984,8 @@ Object.assign(ide, {
 			target || '_blank'
 		));
 	},
+
+	styles: null,
 
 	/**
 	 * Opens a file.

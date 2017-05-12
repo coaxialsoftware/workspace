@@ -169,6 +169,15 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		ide.keymap.registerKeys(plugin.shortcuts, plugin);
 	},
 
+	registerSVG: function(id, svgContent, viewbox)
+	{
+		var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+		svg.innerHTML = svgContent;
+		svg.setAttribute('viewBox', viewbox);
+
+		return (ide.SVG[id] = svg);
+	},
+
 	/**
 	 * Registers a new plugin
 	 */

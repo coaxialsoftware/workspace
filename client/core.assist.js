@@ -161,9 +161,9 @@ cxl.extend(InlineAssist.prototype, {
 		if (ref && ref.value === hint.value)
 			return;
 
-		if (!hint.icon)
-			// TODO?
-			hint.icon = 'question-circle-o';
+		// TODO?
+		if (!hint.icon && !hint.svgIcon)
+			hint.icon = 'question';
 
 		hint = hint instanceof ide.Hint ? hint : new ide.Hint(hint);
 
@@ -282,7 +282,7 @@ cxl.extend(InlineAssist.prototype, {
 		var result = this._goNext();
 
 		// TODO ?
-		if (result===ide.Pass && ide.editor.cursor)
+		if (result===ide.Pass && ide.editor && ide.editor.cursor)
 			ide.editor.cursor.goDown();
 	},
 
@@ -290,7 +290,7 @@ cxl.extend(InlineAssist.prototype, {
 	{
 		var result = this._goNext('previousSibling');
 
-		if (result===ide.Pass && ide.editor.cursor)
+		if (result===ide.Pass && ide.editor && ide.editor.cursor)
 			ide.editor.cursor.goUp();
 	},
 

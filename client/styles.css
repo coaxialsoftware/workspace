@@ -249,17 +249,18 @@ div.CodeMirror-cursors { visibility: hidden; }
  * core.folder.js
  * 
  */
-ide-icon {
+ide-icon, .ide-icon {
 	display: inline-block; margin: 0;
 	font-family: FontAwesome;
 	padding-top: 2px; color: #eee;
-	width: 16px;
+	fill:#eee;
+	width: 16px; height: 16px;
 	text-decoration: none;
 	margin-left: 4px;
 }
 
-ide-icon:hover { color: #fff; }
-ide-icon:focus { color: #fff; outline: 1px solid #ccc; }
+ide-icon:hover, .ide-icon:hover { color: #fff; }
+ide-icon:focus, .ide-icon:focus { color: #fff; outline: 1px solid #ccc; }
 
 /* TODO */
 ide-icon.variable::before { content: "\f1b2"; }
@@ -290,7 +291,7 @@ ide-icon.file::before { content: "\f016"; }
 
 .item pre { white-space: pre-wrap; }
 .item kbd { float: right; }
-.item ide-icon { margin-right: 8px; }
+.item ide-icon, .item .ide-icon { margin-right: 8px; }
 .item .icons { float: right; }
 .item ide-item-description {
 	margin-top: 2px; display: block; padding: 4px; background: #333;
