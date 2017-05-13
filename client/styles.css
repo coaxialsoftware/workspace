@@ -252,12 +252,12 @@ div.CodeMirror-cursors { visibility: hidden; }
 ide-icon, .ide-icon {
 	display: inline-block; margin: 0;
 	font-family: FontAwesome;
-	padding-top: 2px; color: #eee;
+	color: #eee;
 	fill:#eee;
-	width: 16px; height: 16px;
 	text-decoration: none;
-	margin-left: 4px;
 }
+
+svg.ide-icon { float:left; }
 
 ide-icon:hover, .ide-icon:hover { color: #fff; }
 ide-icon:focus, .ide-icon:focus { color: #fff; outline: 1px solid #ccc; }
@@ -270,6 +270,8 @@ ide-icon.property::before { content: "P"; }
 ide-icon.keyword::before { content: "K"; }
 ide-icon.directory::before { content: "\f114"; }
 ide-icon.file::before { content: "\f016"; }
+ide-icon.git::before { content: "\f1d3"; }
+ide-icon.cog::before { content: "\f013"; }
 
 .item {
 	box-sizing: border-box;
@@ -291,7 +293,10 @@ ide-icon.file::before { content: "\f016"; }
 
 .item pre { white-space: pre-wrap; }
 .item kbd { float: right; }
-.item ide-icon, .item .ide-icon { margin-right: 8px; }
+.item > ide-icon, .item > .ide-icon {
+	margin: 0 8px 0 4px;
+	width: 16px; height: 18px;
+}
 .item .icons { float: right; }
 .item ide-item-description {
 	margin-top: 2px; display: block; padding: 4px; background: #333;
@@ -302,7 +307,7 @@ ide-item-tags { float: right; font-size: 0; }
 ide-item-title {
 	clear: both;
 	font-size: inherit; font-weight: normal;
-	margin: 0; padding: 2px 0;
+	margin: 0; padding: 0; line-height: 18px;
 	word-wrap: break-word; display: inline-block;
 	word-break: break-word;
 }

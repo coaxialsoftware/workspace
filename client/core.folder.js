@@ -393,7 +393,7 @@ ide.plugins.register('find', new ide.Plugin({
 
 	onAssistInline: function(done, editor, token)
 	{
-		var files, str=token.cursorValue;
+		var files, str=token.cursorValue, ch;
 
 		if (token.type==='file')
 		{
@@ -401,6 +401,12 @@ ide.plugins.register('find', new ide.Plugin({
 		} else if (token.type==='file-fuzzy')
 		{
 			files = this.find(str, true);
+		} else if (token.type==='string')
+		{
+			ch = str[0];
+			str = str.substr(1);
+			if (str.length>0)
+				files = this.find(str, false, ch);
 		}
 
 		if (files && files.length)
@@ -423,7 +429,7 @@ ide.plugins.register('find', new ide.Plugin({
 		return regex;
 	},
 
-	find: function(mask, fuzzy)
+	find: function(mask, fuzzy, enclose)
 	{
 	var
 		regex = fuzzy ? this.getFuzzyRegex(mask) : globToRegex(mask),
@@ -431,6 +437,7 @@ ide.plugins.register('find', new ide.Plugin({
 		match
 	;
 		if (files)
+		{
 			return files.filter(function(val) {
 				match = regex.exec(val.filename);
 
@@ -438,18 +445,25 @@ ide.plugins.register('find', new ide.Plugin({
 				{
 					val.hint.matchStart = match.index;
 					val.hint.matchEnd = match.index + match[0].length;
+
+					if (enclose)
+					{
+						val.hint.matchStart += enclose.length;
+						val.hint.matchEnd += enclose.length;
+					}
 				}
 
 				return match;
 			}).map(function(val) {
 				// TODO optimize
 				return new ide.FileItem({
-					title: val.filename,
+					title: enclose ? enclose + val.filename + enclose : val.filename,
 					icon: val.icon,
 					matchStart: val.hint.matchStart,
 					matchEnd: val.hint.matchEnd
 				});
 			});
+		}
 	},
 
 	commands: { /** @lends ide.commands */

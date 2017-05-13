@@ -17,7 +17,8 @@
 		"../../workspace.base/workspace.trailing",
 		"../../workspace.base/workspace.javascript",
 		"../../workspace.base/workspace.npm",
-		"../../workspace.base/workspace.css"
+		"../../workspace.base/workspace.css",
+   		"../../workspace.base/workspace.git"
 	],
 		
 	"socket.port": 9005,
