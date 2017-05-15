@@ -78,6 +78,7 @@ ide-tag, .label, kbd {
 kbd {
 	background-color: #333;
 	border-radius: 4px;
+	line-height: 16px;
 	padding: 2px 4px;
 }
 
@@ -263,15 +264,19 @@ ide-icon:hover, .ide-icon:hover { color: #fff; }
 ide-icon:focus, .ide-icon:focus { color: #fff; outline: 1px solid #ccc; }
 
 /* TODO */
-ide-icon.variable::before { content: "\f1b2"; }
-ide-icon.variable-global::before { content: "G"; }
+
+ide-icon.bug::before { content: "\f188"; }
 ide-icon.command::before { content: "\f120"; }
-ide-icon.property::before { content: "P"; }
-ide-icon.keyword::before { content: "K"; }
+ide-icon.cog::before { content: "\f013"; }
 ide-icon.directory::before { content: "\f114"; }
 ide-icon.file::before { content: "\f016"; }
 ide-icon.git::before { content: "\f1d3"; }
-ide-icon.cog::before { content: "\f013"; }
+ide-icon.keyword::before { content: "K"; }
+ide-icon.property::before { content: "P"; }
+ide-icon.project::before { content: "\f07b"; }
+ide-icon.settings::before { content: "\f013"; }
+ide-icon.variable::before { content: "\f1b2"; }
+ide-icon.variable-global::before { content: "G"; }
 
 .item {
 	box-sizing: border-box;
@@ -350,14 +355,6 @@ ide-item-title b { color: #fff; }
 
 .directory h4::after { content: '/'; }
 
-/*
- *
- * core.welcome.js
- *
- */
-.project { background-color: rgba(41, 128, 185, 0.8); }
-.project:hover { background-color: rgba(71, 158, 215, 0.9); }
-
 #welcome { 
 	position: fixed; top: 50px; left: 50px; color: #999;
 	transition: opacity 0.2s; opacity: 0;
@@ -385,7 +382,6 @@ ide-item-title b { color: #fff; }
 	border: 0; margin-bottom: 2px; box-shadow: none;
 }
 #assist-inline .item code, #assist-inline .item .label,
-#assist-inline kbd { display: none; }
 
 #assist-inline ide-item-description {
 	display: inline; font-style: italic; font-size: 13px; margin: 0 0 0 16px;

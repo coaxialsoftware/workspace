@@ -258,8 +258,8 @@ cxl.extend(InlineAssist.prototype, {
 	_goNext: function(dir)
 	{
 	var
-		selected = this.selected.el,
-		next = selected[dir || 'nextSibling'],
+		selected = this.selected && this.selected.el,
+		next = selected && selected[dir || 'nextSibling'],
 		el = this.el, h
 	;
 		if (next)

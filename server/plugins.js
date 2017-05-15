@@ -9,24 +9,33 @@ var
 	_ = require('lodash'),
 
 	common = require('./common.js'),
-	workspace = global.workspace
-;
+	workspace = global.workspace,
 
-var NPM = {
+	NPM = {
 
 	/** Calls npm and returns a promise with the result */
-	doNpm(cmd, args)
+	doNpm(cmd, args, cwd)
 	{
-		return this.load().then(function(npm) {
+		args = args || [];
+
+		return this.load(cwd).then(function(npm) {
 			return new Q(function(resolve, reject) {
+
 				try {
+					cwd = cwd ? path.resolve(cwd) :
+						workspace.configuration['plugins.path'] || process.cwd();
+
 					args.push(function(er, data) {
 						if (er)
-							return reject(er);
+							return reject({
+								error: er,
+								data: data
+							});
 
 						resolve(data);
 					});
 
+					npm.prefix = cwd;
 					npm.commands[cmd].apply(npm.commands, args);
 				}
 				catch(e) { reject(e); }
@@ -36,34 +45,20 @@ var NPM = {
 
 	load: function()
 	{
-	var
-		//pluginsPath = workspace.configuration['plugins.path'],
-		global = workspace.configuration['plugins.global']/*,
-		cwd = process.cwd()*/
-	;
+
+
 		return new Q(function(resolve, reject) {
 			npm.load(function(er, npm) {
 				if (er)
 					return reject(er);
 
 				try {
-					//if (pluginsPath)
-					//	process.chdir(pluginsPath);
-
-					if (global)
-						npm.config.set('global', global);
-
 					npm.config.set('json', true);
 					npm.config.set('depth', 0);
 
 					resolve(npm);
 				}
 				catch(e) { reject(e); }
-				finally
-				{
-					/*if (pluginsPath)
-						process.chdir(cwd);*/
-				}
 			});
 		});
 	},
@@ -459,4 +454,5 @@ var
 	common.respond(workspace, res, this.plugins.getPackages());
 });
 
+workspace.NPM = NPM;
 workspace.PluginManager = PluginManager;

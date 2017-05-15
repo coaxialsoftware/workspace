@@ -163,8 +163,11 @@ var
 	if (result instanceof ide.Editor)
 	{
 		// TODO ?
-		result.command = fn;
-		result.arguments = args;
+		if (!result.command)
+			result.command = fn;
+		if (!result.arguments)
+			result.arguments = args;
+
 		ide.workspace.slot().setEditor(result);
 		result.focus.set();
 	}
@@ -253,7 +256,6 @@ ide.plugins.register('cmd', {
 			return editor;
 		},
 
-		messages: 'log',
 		log: function()
 		{
 			return new ide.ListEditor({
@@ -320,7 +322,8 @@ ide.plugins.register('cmd', {
 
 				result.push(new ide.Item({
 					key: key, title: i, className: 'cmd',
-					icon: fn.icon || 'command',
+					icon: fn.icon,
+					svgIcon: fn.svgIcon,
 					description: fn.description,
 					priority: index,
 					matchStart: search && index, matchEnd: search && (index+len)
@@ -397,13 +400,12 @@ ide.Command = class Command {
 			this.fn = function() { ide.run(def, arguments); };
 			description = 'Alias of "' + def + '"';
 		}
-		else if (type==='function')
-			this.fn = def;
 		else
-			this.fn = def.fn;
+			this.fn = type==='function' ? def : def.fn;
 
+		this.icon = (!def.icon && !def.svgIcon) ? 'command' : def.icon;
 		this.args = def.args;
-		this.icon = def.icon;
+		this.svgIcon = def.svgIcon;
 		this.name = name;
 		this.description = description;
 		this.scope = scope;

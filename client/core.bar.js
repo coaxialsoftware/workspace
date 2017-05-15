@@ -1,7 +1,7 @@
 
 (function(ide, cxl) {
 "use strict";
-	
+
 ide.Bar = cxl.View.extend({
 
 	/**
@@ -20,7 +20,7 @@ ide.Bar = cxl.View.extend({
 
 	/** @abstract */
 	cancel: function() { },
-	
+
 	run: function() { },
 
 	findWord: function(cb)
@@ -62,7 +62,7 @@ ide.Bar = cxl.View.extend({
 				}
 			}
 		};
-		
+
 		this.$input = this.el.children[0];
 
 		this.listenTo(this.$input, 'keyup', this.on_keyup);
@@ -143,10 +143,10 @@ ide.Bar = cxl.View.extend({
 		val = val || '';
 		this.$input.value = val;
 		this.el.style.display = 'block';
-		
+
 		if (val.length)
 			this.$input.setSelectionRange(val.length, val.length);
-		
+
 		this.hidden = false;
 		this.focus();
 	},
@@ -191,9 +191,9 @@ ide.Bar = cxl.View.extend({
 	}
 
 });
-	
+
 class CommandToken extends ide.Token {
-	
+
 	constructor(start, end, s)
 	{
 		super();
@@ -203,7 +203,7 @@ class CommandToken extends ide.Token {
 		this.cursorRow = 0;
 		this.value = s;
 	}
-	
+
 	getCoordinates()
 	{
 	var
@@ -221,12 +221,12 @@ class CommandToken extends ide.Token {
 			right: 0
 		};
 	}
-	
+
 	replace(val)
 	{
 		ide.commandBar.replaceRange(val, this.column, this.cursorColumn);
 	}
-	
+
 	getType()
 	{
 	var
@@ -237,18 +237,18 @@ class CommandToken extends ide.Token {
 		cmd
 	;
 		parsed = parsed[parsed.length-1];
-		
+
 		if (parsed.args)
 		{
 			// TODO Get last command always?
 			cmd = ide.findCommand(parsed.fn);
-			
+
 			return cmd && cmd.args ? cmd.args[parsed.args.length-1] : 'file';
 		}
-		
+
 		return 'command';
 	}
-	
+
 	get type()
 	{
 		return this.$type || (this.$type = this.getType());
@@ -264,6 +264,7 @@ ide.Bar.Command = ide.Bar.extend({
 	history_max: 50,
 	history_index: 0,
 	cloneEl: null,
+	selectedHint: null,
 
 	history_up: function(ev)
 	{
@@ -323,7 +324,7 @@ ide.Bar.Command = ide.Bar.extend({
 		else if (typeof(result)==='string' || result instanceof ide.Item)
 			ide.notify(result);
 	},
-	
+
 	getToken: function(s, start, end)
 	{
 	var
@@ -336,7 +337,7 @@ ide.Bar.Command = ide.Bar.extend({
 	{
 		if (this.ignoreChange===true)
 			return (this.ignoreChange = false);
-		
+
 		this.selectedHint = null;
 		this.findWord(function(s, start, end) {
 			ide.plugins.trigger('token', this, this.getToken(s, start, end));
@@ -354,9 +355,9 @@ ide.Bar.Command = ide.Bar.extend({
 			i = hints.indexOf(inline.selected);
 		if (i === -1)
 			return;
-		
+
 		i = (i === hints.length-1) ? 0 : i+1;
-			
+
 		this.ignoreChange = true;
 		this.selectedHint = i;
 		this.replaceRange(hints[i].value, this.token.column, this.token.cursorColumn);

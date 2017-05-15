@@ -5,9 +5,9 @@
 var
 	FILE_REGEX = /^(?:([\.\w\-\d]+):)?(.*)$/
 ;
-	
+
 class Hash {
-	
+
 	constructor()
 	{
 		this._onHashChange = this.onHashChange.bind(this);
@@ -52,7 +52,7 @@ class Hash {
 		cxl.extend(this.data, obj);
 		window.location.hash = this.encode();
 	}
-	
+
 	/**
 	 * Save workspace state in the URL Hash.
 	 */
@@ -69,7 +69,7 @@ class Hash {
 
 		return this;
 	}
-	
+
 	onHashChange()
 	{
 		var hash = window.location.hash;
@@ -87,7 +87,7 @@ class Hash {
 			this.loadFiles();
 		}
 	}
-	
+
 	loadEditor(file)
 	{
 	var
@@ -100,11 +100,11 @@ class Hash {
 		else
 			ide.run(cmd, [ m[2] ]);
 	}
-	
+
 	loadFiles()
 	{
 		var files = this.data.f;
-		
+
 		if (!files)
 			return;
 
@@ -113,7 +113,7 @@ class Hash {
 		else
 			this.loadEditor(files);
 	}
-	
+
 }
 
 /**
@@ -121,10 +121,10 @@ class Hash {
  * @enum
  */
 ide.Layout = {
-	
+
 	// Layout Breakpoints
 	SMALL: 544,
-	
+
 	Vertical: function(child)
 	{
 	var
@@ -144,7 +144,7 @@ ide.Layout = {
 	;
 		if (ide.workspace.el.clientWidth < ide.Layout.SMALL)
 			return ide.Layout.Vertical(child);
-		
+
 		switch (l)
 		{
 		case 0: return;
@@ -177,7 +177,7 @@ ide.Layout = {
 };
 
 class Slot {
-	
+
 	constructor()
 	{
 		this.placeholder = document.createElement('DIV');
@@ -188,10 +188,10 @@ class Slot {
 	{
 		this.editor = editor;
 		editor.slot = this;
-		
+
 		ide.workspace.el.insertBefore(editor.el, this.placeholder);
 		ide.workspace.el.removeChild(this.placeholder);
-		
+
 		ide.workspace.update();
 		ide.plugins.trigger('workspace.add', editor);
 	}
@@ -200,7 +200,7 @@ class Slot {
 	{
 		if (!this.editor)
 			return;
-		
+
 		var s = this.editor.el.style;
 		s.top = layout.top;
 		s.left = layout.left;
@@ -208,9 +208,9 @@ class Slot {
 		s.height = layout.height;
 	}
 }
-	
+
 ide.Workspace = class Workspace {
-	
+
 	constructor()
 	{
 		this.el = document.getElementById('workspace');
@@ -244,19 +244,19 @@ ide.Workspace = class Workspace {
 
 		this.update();
 	}
-	
+
 	doRemove(editor)
 	{
 		this.el.removeChild(editor.el);
 		this.removeSlot(editor.slot);
 		ide.plugins.trigger('workspace.remove', this.editor);
 	}
-	
+
 	// TODO does it make sense to have this here?
 	remove(editor, force)
 	{
 		var msg = editor.quit(force);
-		
+
 		if (msg)
 		{
 			if (window.confirm(msg))
@@ -264,10 +264,10 @@ ide.Workspace = class Workspace {
 			else
 				return;
 		}
-		
+
 		this.doRemove(editor);
 	}
-	
+
 	_update()
 	{
 		var layout = this.layout(this.slots);
@@ -276,11 +276,11 @@ ide.Workspace = class Workspace {
 		{
 			slot.setPosition(layout[i]);
 		});
-		
+
 		ide.hash.save();
 		ide.plugins.trigger('workspace.resize');
 	}
-	
+
 	swap(e1, e2)
 	{
 		var tmp = this.slots[e1];
@@ -362,7 +362,7 @@ ide.plugins.registerCommands({
 				title: char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8)
 			});
 		},
-		
+
 		openTab: {
 			fn: function() {
 				ide.openTab(ide.editor.hash.get());
@@ -495,15 +495,15 @@ ide.plugins.registerCommands({
 			else
 				window.close();
 		},
-		
+
 		'workspace.settings': {
 			fn: function()
 			{
 				var prefix = ide.project.id==='.' ? '' : '../';
-					
+
 				ide.open({ file: prefix + 'workspace.json' });
 			},
-			icon: 'gear',
+			icon: 'settings',
 			description: 'Edit global settings'
 		},
 
@@ -519,16 +519,16 @@ ide.plugins.registerCommands({
 	}
 
 });
-	
+
 ide.Hash = Hash;
-	
+
 window.addEventListener('beforeunload', function(ev) {
 	var i=0, slots=ide.workspace.slots, msg;
 
 	for (; i<slots.length; i++)
 	{
 		msg = slots[i].editor.quit();
-		
+
 		if (typeof(msg)==='string')
 		{
 			ev.returnValue = msg;

@@ -748,6 +748,7 @@ class Editor {
 		this.el = document.createElement('DIV');
 		this.keymap = new ide.KeyMap(this);
 		this.command = p.command;
+		this.arguments = p.arguments;
 		this.features = {};
 
 		this.loadFeatures(p);
@@ -769,7 +770,7 @@ class Editor {
 			if (typeof(fn)==='string')
 				fn = cmds[fn];
 
-			this.commands[i] = fn;
+			this.commands[i] = new ide.Command(i, fn);
 		}
 	}
 
