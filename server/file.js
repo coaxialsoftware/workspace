@@ -34,6 +34,18 @@ class File {
 		this.mime = File.getMime(this.path);
 	}
 
+	static fromSocket(data)
+	{
+		var file = new File(data.id);
+
+		return file.read().then(function(file) {
+			if (data.diff)
+				common.patch(file.content, data.diff);
+
+			return file;
+		});
+	}
+
 	static getMime(path)
 	{
 		// TODO add typescript support
@@ -47,9 +59,14 @@ class File {
 
 	onContent(content)
 	{
-		this.content = content;
+		this.originalContent = this.content = content;
 		workspace.plugins.emit('file.read', this);
 		return this;
+	}
+
+	hasChanged()
+	{
+		return this.originalContent!==this.content;
 	}
 
 	read()

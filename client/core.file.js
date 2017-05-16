@@ -181,6 +181,17 @@ class File {
 			return this.lastDiff;
 	}
 
+	/**
+	 * Serialize file to be read by sockets
+	 */
+	toSocket()
+	{
+		return {
+			id: this.id,
+			diff: this.diff()
+		};
+	}
+
 	destroy()
 	{
 		this.subscriber.unsubscribe();
