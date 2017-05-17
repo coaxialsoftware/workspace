@@ -514,18 +514,13 @@ class HashFeature extends Feature {
 
 	serializeArgs(args)
 	{
-		// TODO ?
-		var result='', i,l;
+		if (!args)
+			return '';
 
-		if (args && args.length)
-		{
-			l = args.length-1;
-			for (i=0; i<l; i++)
-				result += args[i] + ' ';
-			result += args[i];
-		}
+		if (args.length===1)
+			return args[0]+'';
 
-		return result;
+		return JSON.stringify(args);
 	}
 
 	get()

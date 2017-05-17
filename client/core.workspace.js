@@ -93,12 +93,17 @@ class Hash {
 	var
 		m = FILE_REGEX.exec(file),
 		filename = !m[1] && m[2] && new ide.File(decodeURIComponent(m[2])),
-		cmd = m[1]
+		cmd = m[1], args
 	;
 		if (filename)
 			ide.open({ file: filename });
 		else
-			ide.run(cmd, [ m[2] ]);
+		{
+			if (m[2])
+				args = m[2].charAt(0)==='[' ? JSON.parse(m[2]) : [ m[2] ];
+
+			ide.run(cmd, args);
+		}
 	}
 
 	loadFiles()

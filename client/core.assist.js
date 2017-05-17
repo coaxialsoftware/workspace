@@ -5,10 +5,15 @@
 var InlineAssist = function() {
 	this.hints = [];
 	this.el = document.getElementById('assist-inline');
+	this.render = cxl.debounce(this._render);
 	this.requestHints = cxl.debounce(this._requestHints.bind(this), this.delay);
+	this.debouncedHide = cxl.debounce(this.hide, 250);
 	this.cursor = { line: 0, ch: 0 };
 	this.add = this.add.bind(this);
 	this.doAccept = this.doAccept.bind(this);
+
+	this.scrollUpEl = document.createElement('ide-scroll-up');
+	this.scrollDownEl = document.createElement('ide-scroll-down');
 
 	ide.plugins.on('editor.scroll', this.hide, this);
 	this.el.addEventListener('click', this.onClick.bind(this), true);
@@ -38,6 +43,11 @@ cxl.extend(InlineAssist.prototype, {
 
 	/// Request version
 	version: 0,
+
+	/// Number of items to show at a time
+	visibleCount: 8,
+	/// Start Item
+	visibleStart: 0,
 
 	/// Selected hint
 	selected: null,
@@ -74,10 +84,10 @@ cxl.extend(InlineAssist.prototype, {
 		this.editor = editor;
 		this.token = token;
 		this.hints = [];
-		this.el.innerHTML = '';
 		this.selected = null;
-		ide.keymap.setUIState(null);
 		this.calculateLeft(editor);
+		this.debouncedHide();
+		this.visibleStart = 0;
 
 		ide.plugins.trigger('assist.inline',
 			this.addHints.bind(this, this.version), editor, token);
@@ -105,8 +115,12 @@ cxl.extend(InlineAssist.prototype, {
 	calculateLeft: function()
 	{
 	var
-		pos = this.pos = this.token && this.token.getCoordinates()
+		pos = this.pos = this.token && this.token.getCoordinates(),
+		// TODO ...
+		bottom = pos.bottom + 200,
+		viewHeight = window.innerHeight
 	;
+		this.isDown = bottom <= viewHeight;
 		// TODO ?
 		this.leftPos = Math.round(pos.left);
 	},
@@ -114,10 +128,9 @@ cxl.extend(InlineAssist.prototype, {
 	calculateTop: function()
 	{
 	var
-		el = this.el, pos = this.pos, clientHeight = el.clientHeight,
-		bottom = pos.bottom + clientHeight,
-		viewHeight = window.innerHeight,
-		isDown = bottom <= viewHeight,
+		el = this.el, pos = this.pos,
+		clientHeight = el.clientHeight,
+		isDown = this.isDown,
 		height = isDown ? pos.bottom : pos.top - clientHeight,
 		translate = 'translate(' + this.leftPos + 'px,' + height + 'px)'
 	;
@@ -127,50 +140,24 @@ cxl.extend(InlineAssist.prototype, {
 
 	addHints: function(version, hints)
 	{
+		var i = 0, l=hints.length;
+
 		if (version !== this.version || !hints)
 			return;
 
-		ide.keymap.setUIState('inlineAssist');
-		hints.forEach(this.add);
+		for (;i<l;i++)
+			this.add(hints[i]);
 
 		if (!this.visible)
 			this.show(this.editor);
 
-		if (!this.selected && this.hints.length)
-			this.select(this.hints[0]);
-	},
-
-	getIndex: function(title, priority)
-	{
-		var i=0, hints=this.hints, l=hints.length;
-
-		for(;i<l;i++)
-			if (hints[i].priority>priority && hints[i].title > title)
-				return i;
-
-		return l;
+		this.render();
 	},
 
 	add: function(hint)
 	{
-	var
-		order = this.getIndex(hint.title, hint.priority),
-		ref = this.hints[order]
-	;
-		// Make sure there are no duplicates.
-		if (ref && ref.value === hint.value)
-			return;
-
-		// TODO?
-		if (!hint.icon && !hint.svgIcon)
-			hint.icon = 'question';
-
 		hint = hint instanceof ide.Hint ? hint : new ide.Hint(hint);
-
-		this.hints.splice(order, 0, hint);
-
-		if (this.visible)
-			this.renderHint(hint, order, ref);
+		this.hints.push(hint);
 	},
 
 	clear: function()
@@ -193,6 +180,9 @@ cxl.extend(InlineAssist.prototype, {
 
 		if (!this.visible)
 		{
+			ide.keymap.setUIState('inlineAssist');
+
+			this.visibleStart = 0;
 			this.visible = true;
 			//this.copyFont(editor.$content || editor.el);
 			this.el.style.display='block';
@@ -211,23 +201,19 @@ cxl.extend(InlineAssist.prototype, {
 		this.selectedValue = hint.value;
 	},
 
-	renderHint: function(hint, order, ref)
+	renderHint: function(hint, i)
 	{
 		var el = hint.render();
 
 		el.$hint = hint;
+		hint.$index = i;
 
 		if (this.selectedValue === hint.value)
 			this.select(hint);
 		else
 			el.classList.remove('selected');
 
-		if (ref)
-			this.el.insertBefore(el, ref.el);
-		else
-			this.el.appendChild(el);
-
-		this.calculateTop();
+		this.el.appendChild(el);
 	},
 
 	hide: function()
@@ -243,35 +229,89 @@ cxl.extend(InlineAssist.prototype, {
 		}
 	},
 
-	render: function()
+	sortFn: function(A, B)
+	{
+		return A.priority===B.priority ?
+			(A.value>B.value ? 1 : -1) :
+			(A.priority>B.priority ? 1 : -1);
+	},
+
+	sort: function()
+	{
+		return (this.hints = this.hints.sort(this.sortFn));
+	},
+
+	_render: function()
 	{
 	var
-		i=0, hints = this.hints, l=hints.length
+		i = this.visibleStart,
+		l = this.visibleEnd = i + this.visibleCount,
+
+		hints
 	;
-		if (l===0 || (l===1 && hints[0].title === this.token.string))
-			this.hide();
-		else
+		if (l>this.hints.length)
+			l = this.hints.length;
+		if (l===0)
+			return this.hide();
+
+		this.debouncedHide.cancel();
+		this.el.innerHTML = '';
+
+		hints = this.sort();
+
+		if (this.isDown)
+		{
+			if (this.visibleStart>0)
+				this.el.appendChild(this.scrollUpEl);
+
 			for (; i<l; i++)
 				this.renderHint(hints[i], i);
+
+			if (this.visibleEnd<this.hints.length)
+				this.el.appendChild(this.scrollDownEl);
+		}
+		else
+		{
+			if (this.visibleEnd<this.hints.length)
+				this.el.appendChild(this.scrollUpEl);
+
+			for (l--;l>=i; l--)
+				this.renderHint(hints[l], l);
+
+			if (this.visibleStart>0)
+				this.el.appendChild(this.scrollDownEl);
+		}
+
+		this.calculateTop();
+
+		if (!this.selected && this.hints.length)
+			this.select(this.hints[this.visibleStart]);
 	},
 
 	_goNext: function(dir)
 	{
 	var
-		selected = this.selected && this.selected.el,
-		next = selected && selected[dir || 'nextSibling'],
-		el = this.el, h
+		selected = this.selected,
+		index = selected.$index,
+		diff = (this.isDown?1:-1) * (dir==='previousSibling' ? -1 : 1),
+		nextIndex = index + diff,
+		next = this.hints[nextIndex]
 	;
 		if (next)
 		{
-			this.select(next.$hint);
+			if (nextIndex >= this.visibleEnd || nextIndex < this.visibleStart)
+			{
+				this.visibleStart += diff;
+				this._render();
+			}
 
-			h = next.offsetTop + next.offsetHeight;
+			this.select(next);
+			/*h = next.offsetTop + next.offsetHeight;
 
 			if (h > el.scrollTop + el.clientHeight)
 				el.scrollTop = h - el.clientHeight;
 			else if (next.offsetTop < el.scrollTop)
-				el.scrollTop = next.offsetTop;
+				el.scrollTop = next.offsetTop;*/
 		} else
 			return ide.Pass;
 	},

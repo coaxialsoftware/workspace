@@ -260,7 +260,8 @@ class FileHashFeature extends ide.feature.HashFeature {
 	var
 		editor = this.editor,
 		cmd = editor.command || '',
-		args = editor.file.filename || ''
+		args = editor.arguments ? this.serializeArgs(editor.arguments) :
+			(editor.file.filename || '')
 	;
 		return (cmd ? cmd+':' : '') + args;
 	}
