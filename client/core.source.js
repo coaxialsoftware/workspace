@@ -177,12 +177,12 @@ class SourceCursorFeature extends ide.feature.CursorFeature {
 
 	goBackwards()
 	{
-		codeMirror.commands.goCharLeft(this.editor.editor);
+		codeMirror.commands.goColumnLeft(this.editor.editor);
 	}
 
 	goForward()
 	{
-		codeMirror.commands.goCharRight(this.editor.editor);
+		codeMirror.commands.goColumnRight(this.editor.editor);
 	}
 
 	goStart()

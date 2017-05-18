@@ -870,6 +870,24 @@ class Editor {
 
 Editor.features(HashFeature, EditorHeader, FocusFeature);
 
+class ComponentEditor extends Editor {
+
+	render(p)
+	{
+		super.render(p);
+
+		this.$component = p.component(p);
+		this.$content.appendChild(this.$component.$native);
+	}
+
+	destroy()
+	{
+		super.destroy();
+		this.$component.destroy();
+	}
+
+}
+
 function onProject()
 {
 	ide.plugins.start();
@@ -878,8 +896,36 @@ function onProject()
 	ide.hash.loadFiles();
 }
 
+function projectError()
+{
+	ide.error('Error loading project "' + ide.project.id + '"');
+	ide.hash.set({ p: null });
+	ide.project.set('path', '.');
+
+	return ide.project.fetch();
+}
+
+function createProject()
+{
+	return cxl.ajax.post('/project', { path: ide.project.id }).then(function() {
+		return ide.project.fetch();
+	});
+}
+
+function onProjectError(e)
+{
+	// Project does not exist
+	if (e.status===404)
+	{
+		return ide.confirm({ message: 'Project does not exists. Create?', action: 'Create'})
+			.then(createProject, projectError);
+	}
+}
+
 function _start()
 {
+	cxl.dom.root = new cxl.dom.Element(document.body);
+
 	ide.logger = new Logger();
 	ide.workspace = new ide.Workspace();
 	ide.hash = new ide.Hash();
@@ -888,13 +934,7 @@ function _start()
 	});
 	ide.styles = document.getElementById('styles').sheet;
 
-	ide.project.fetch().catch(function() {
-		ide.error('Error loading project "' + ide.project.id + '"');
-		ide.hash.set({ p: null });
-		ide.project.set('path', '.');
-		return ide.project.fetch();
-	}).then(onProject);
-
+	ide.project.fetch().catch(onProjectError).then(onProject);
 
 	ide.searchBar = new ide.Bar.Search();
 	ide.commandBar = new ide.Bar.Command();
@@ -931,6 +971,7 @@ Object.assign(ide, {
 	},
 
 	Editor: Editor,
+	ComponentEditor: ComponentEditor,
 	Item: Item,
 	ComponentItem: ComponentItem,
 	Hint: Hint,
@@ -1046,6 +1087,8 @@ function onOpenError(options, e)
 
 	return Promise.reject(e);
 }
+
+ide.confirm = cxl.ui.confirm;
 
 ide.open = function(options)
 {

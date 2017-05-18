@@ -82,7 +82,7 @@ class FileManager {
 	onWalk(resolve, reject, err, data)
 	{
 		this.building = false;
-		
+
 		if (err)
 			return reject(err);
 
@@ -100,11 +100,11 @@ class FileManager {
 	{
 		this.building = true;
 		return new Q((function(resolve, reject) {
-			
+
 			var fn = this.onWalk.bind(this, resolve, reject);
-			
+
 			common.walk(this.path, this.ignore, fn, '', !this.recursive);
-						   
+
 		}).bind(this));
 	}
 
@@ -142,6 +142,7 @@ common = module.exports = {
 	readDirectory: Q.promisify(fs.readdir),
 	writeFile: Q.promisify(fs.writeFile),
 	stat: Q.promisify(fs.stat),
+	mkdir: Q.promisify(fs.mkdir),
 
 	read: function(filename)
 	{
@@ -173,6 +174,9 @@ common = module.exports = {
 		return function(err)
 		{
 			module.error(err);
+			if (!status && err && err.code==='ENOENT')
+				status = 404;
+
 			res.status(status || 500).send({ error: err.toString() });
 		};
 	},
@@ -300,12 +304,12 @@ common = module.exports = {
 								}, relfile + '/');
 						} else
 							results.push({ filename: relfile });
-						
+
 						if (!--pending) done(null, results);
 					});
 				}
 			});
-			
+
 			if (!pending) return done(null, results);
 		});
 

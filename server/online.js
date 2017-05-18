@@ -18,24 +18,24 @@ var
 ;
 
 class OnlineWatcher {
-	
+
 	constructor(path, fn)
 	{
 		var fb = this.ref = online.__getRef(path);
-		
+
 		this.path = path;
 		this.fn = function(data) {
 			fn(data.val());
 		};
-		
+
 		fb.on('value', this.fn);
 	}
-	
+
 	unsubscribe()
 	{
 		this.ref.off('value', this.fn);
 	}
-	
+
 }
 
 online.extend({
@@ -82,10 +82,9 @@ online.extend({
 			}};
 		}
 
-		workspace.data('online', data);
 		workspace.configuration.set({
-			'user.name': this.username,
-			'user.gravatar': this.gravatar
+			'online.username': this.username,
+			'online.gravatar': this.gravatar
 		});
 
 		workspace.socket.broadcast('online', response);

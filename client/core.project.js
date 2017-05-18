@@ -17,23 +17,15 @@ ide.Project = cxl.Model.extend({
 	initialize: function()
 	{
 		this.on('sync', this.onProject, this);
-		this.on('error', this.onError, this);
 		this.reload = cxl.debounce(this.fetch.bind(this), 500);
 
 		ide.plugins.on('socket.message.project', this.onMessage, this);
 	},
 
-	onError: function()
-	{
-		ide.error('Error loading Project: ' + this.id);
-		this.id='.';
-		this.reload();
-	},
-
 	loadTheme: function(css)
 	{
 		var body = document.body;
-		
+
 		if (this.themeEl)
 			body.removeChild(this.themeEl);
 
@@ -102,11 +94,11 @@ ide.plugins.on('assist', function(done) {
 	if (ide.project.id!=='.')
 		done(ide.project.hint);
 });
-	
+
 ide.plugins.on('socket.ready', function() {
 	ide.project.reload();
 });
-	
+
 /**
  * Open project by path
  */
@@ -124,7 +116,7 @@ ide.registerCommand('project', {
 	args: [ 'project' ],
 	description: 'Load project'
 });
-	
+
 ide.registerCommand('project.settings', {
 	fn: function() {
 		ide.open({ file: 'project.json' });

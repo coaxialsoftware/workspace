@@ -15,6 +15,15 @@ var InlineAssist = function() {
 	this.scrollUpEl = document.createElement('ide-scroll-up');
 	this.scrollDownEl = document.createElement('ide-scroll-down');
 
+	function Next(prev, ev)
+	{
+		this._goNext(prev ? 'previousSibling' : null);
+		ev.stopPropagation();
+	}
+
+	this.scrollUpEl.addEventListener('click', Next.bind(this, true));
+	this.scrollDownEl.addEventListener('click', Next.bind(this, false));
+
 	ide.plugins.on('editor.scroll', this.hide, this);
 	this.el.addEventListener('click', this.onClick.bind(this), true);
 	window.addEventListener('resize', this.hide.bind(this));

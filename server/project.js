@@ -27,7 +27,7 @@ class ProjectConfiguration extends workspace.Configuration
 	constructor(p)
 	{
 		super(_.pick(workspace.configuration,
-			['keymap', 'theme', 'online.url', 'user', 'inspect' ]));
+			[ 'keymap', 'theme', 'online.url', 'online.username', 'online.gravatar', 'inspect' ]));
 
 		this.ignore = [];
 		this.set(workspace.configuration.project);
@@ -38,9 +38,9 @@ class ProjectConfiguration extends workspace.Configuration
 			workspace: this.loadFile(
 				this.path + '/project.json') && 'workspace'
 		};
-		
+
 		this.loadFile(this.path + '/project.local.json');
-		
+
 		this.icons = [];
 	}
 
@@ -118,7 +118,7 @@ class Project {
 	{
 		this.promises.push(promise);
 	}
-	
+
 	/**
 	 * Calls ide.notify in all clients
 	 */
@@ -135,12 +135,25 @@ class Project {
 		workspace.socket.broadcast(plugin || 'project', data, this.clients);
 	}
 
+	onSocketClientClose(client)
+	{
+		var i = this.clients.indexOf(client);
+
+		if (i!==-1)
+		{
+			this.clients.splice(i, 1);
+			this.log.dbg(`Closing socket client id: ${client.id}`);
+		}
+	}
+
 	onMessage(client, data)
 	{
 		if (this.clients.indexOf(client)===-1)
 		{
 			this.log(`Registering client ${client.id}.`);
 			this.clients.push(client);
+
+			client.on('close', this.onSocketClientClose.bind(this, client));
 
 			if (this.ready && data.$ !== this.configuration.$)
 				workspace.socket.respond(client, 'project', { reload: true });
@@ -393,16 +406,16 @@ plugin.extend({
 	onAssistInline: function(done, data)
 	{
 		var i, p, result, term, projects=this.projectManager.projects;
-		
+
 		if (data.token && data.token.type==='project' && projects)
 		{
 			term = data.token.value;
 			result = [];
-			
+
 			for (p in projects)
 			{
 				i = p.indexOf(term);
-				
+
 				if (i!==-1)
 					result.push({
 						priority: i,
@@ -412,11 +425,11 @@ plugin.extend({
 						matchEnd: i+term.length
 					});
 			}
-			
+
 			done(result);
 		}
 	},
-	
+
 	onLoad: function()
 	{
 		this.projectManager.findProjects();
@@ -430,7 +443,7 @@ plugin.extend({
 
 	workspace.plugins.on('socket.message.project',
 		this.onMessage.bind(this));
-	
+
 	workspace.plugins.on('assist.inline', this.onAssistInline.bind(this));
 	workspace.plugins.on('workspace.load', this.onLoad.bind(this));
 
@@ -443,8 +456,14 @@ plugin.extend({
 
 })
 .route('GET', '/project', function(req, res) {
-
 	this.projectManager.load(req.query.n).then(function(result) {
 		res.send(result);
 	}, common.sendError(this, res));
-});
+})
+.route('POST', '/project', function(req, res) {
+	// Create project ?
+	var p = req.body.path;
+
+	common.respond(this, res, common.mkdir(p));
+})
+;

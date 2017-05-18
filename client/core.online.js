@@ -1,56 +1,76 @@
 
-(function(ide) {
+(function(ide, cxl) {
 "use strict";
 
-class LoginDialog extends ide.Editor {
-
-	onAuth(auth)
+cxl.directive('ide.on', {
+	initialize: function()
 	{
-		this.username = auth && (auth.username || auth.uid);
-		this.digest();
+		this.listenTo(ide.plugins, this.parameters, this.set);
 	}
-	
-	constructor(p)
-	{
-		super(p);
-		this.file = 'login';
-	}
+});
 
-	render()
+var LoginComponent = cxl.component({
+	name: 'ide-login',
+	shadow: false,
+	template: `<cxl-container>
+<cxl-form &="submit:#submit =user:unless">
+	<h1>Log In</h1>
+<cxl-form-group>
+	<cxl-label>Username</cxl-label>
+	<cxl-input inverse &="valid(required) value:=username" /></cxl-input>
+</cxl-form-group>
+<cxl-form-group>
+	<cxl-label for="password">Password</cxl-label>
+	<cxl-password inverse &="valid(required) value:=password"></cxl-password>
+</cxl-form-group>
+<br>
+<div>
+		<cxl-submit>Log In</cxl-submit>
+</div>
+</cxl-form>
+<div &="=user:if">
+<p>Logged In as <span &="=user:text"></span></p>
+<br>
+<cxl-button primary &="click:#logOut">Log Out</cxl-button>
+</div>
+</cxl-container>`,
+	bindings: [ 'ide.on(online.auth):#onAuth'],
+	initialize: function(state)
 	{
-		this.listenTo(ide.plugins, 'online.auth', this.onAuth);
-		this.username = ide.project.get('online.user');
+		state.user = ide.project.get('online.username');
 	}
+}, {
 
-	logOut()
+	onAuth: function(auth)
+	{
+		this.user = auth && (auth.username || auth.uid);
+	},
+
+	logOut: function()
 	{
 		ide.socket.send('online', { logout: true });
-	}
+	},
 
-	submit()
+	submit: function()
 	{
 		ide.socket.send('online', {
 			login: {
-				u: this.$el.find('[name="username"]').val(),
-				p: this.$el.find('[name="password"]').val()
+				u: this.$component.get('username'),
+				p: this.$component.get('password')
 			}
 		});
 	}
-}
 
-ide.plugins.register('online', {
+});
 
-	open: function(options)
-	{
-		if (options.file==='login')
-			return new LoginDialog(options);
-	},
+
+ide.plugins.register('online', new ide.Plugin({
 
 	commands: {
 		login: function()
 		{
-			return new LoginDialog({
-				plugin: this
+			return new ide.ComponentEditor({
+				component: LoginComponent
 			});
 		}
 	},
@@ -75,24 +95,23 @@ ide.plugins.register('online', {
 
 	onProject: function()
 	{
-		var user = ide.project.get('online.user');
+		var user = ide.project.get('online.username');
 
-		this.hint = user ? {
+		this.hint = user ? new ide.Item({
 			code: 'online',
-			title: user,
-			icons: [ { title: 'user', class: 'user' } ]
-		} : null;
+			title: user
+		}) : null;
 	},
 
 	ready: function()
 	{
-		ide.plugins.on('socket.message.online', this.onMessage, this);
-		ide.plugins.on('assist', this.onAssist, this);
-		ide.plugins.on('project.load', this.onProject, this);
+		this.listenTo('socket.message.online', this.onMessage);
+		this.listenTo('assist', this.onAssist);
+		this.listenTo('project.load', this.onProject);
 
 		this.onProject();
 	}
 
-});
+}));
 
 })(this.ide, this.cxl);
