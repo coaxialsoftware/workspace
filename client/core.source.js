@@ -87,7 +87,7 @@ class SourceHintsFeature extends ide.feature.HintsFeature {
 
 		hints.push(hint);
 
-		el.setAttribute('class', 'editor-hint ' + (hint.className || 'info'));
+		el.setAttribute('class', 'editor-hint bg-' + (hint.className || 'info'));
 		el.setAttribute('title', hint.title);
 		el.innerHTML = '&nbsp;';
 

@@ -27,7 +27,8 @@ class ProjectConfiguration extends workspace.Configuration
 	constructor(p)
 	{
 		super(_.pick(workspace.configuration,
-			[ 'keymap', 'theme', 'online.url', 'online.username', 'online.gravatar', 'inspect' ]));
+			[ 'keymap', 'theme', 'user', 'online.url',
+			  'online.username', 'online.gravatar', 'inspect' ]));
 
 		this.ignore = [];
 		this.set(workspace.configuration.project);

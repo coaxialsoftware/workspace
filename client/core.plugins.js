@@ -361,4 +361,11 @@ ide.plugins.register('plugins', {
 
 });
 
+cxl.directive('ide.on', {
+	initialize: function()
+	{
+		this.listenTo(ide.plugins, this.parameters, this.set);
+	}
+});
+
 })(this.ide, this.cxl);

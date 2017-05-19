@@ -93,10 +93,12 @@ cxl.extend(InlineAssist.prototype, {
 		this.editor = editor;
 		this.token = token;
 		this.hints = [];
-		this.selected = null;
+		this.selected = this.selectedValue = null;
 		this.calculateLeft(editor);
 		this.debouncedHide();
 		this.visibleStart = 0;
+
+		ide.keymap.setUIState(null);
 
 		ide.plugins.trigger('assist.inline',
 			this.addHints.bind(this, this.version), editor, token);
@@ -189,8 +191,6 @@ cxl.extend(InlineAssist.prototype, {
 
 		if (!this.visible)
 		{
-			ide.keymap.setUIState('inlineAssist');
-
 			this.visibleStart = 0;
 			this.visible = true;
 			//this.copyFont(editor.$content || editor.el);
@@ -217,6 +217,8 @@ cxl.extend(InlineAssist.prototype, {
 		el.$hint = hint;
 		hint.$index = i;
 
+		ide.keymap.setUIState('inlineAssist');
+
 		if (this.selectedValue === hint.value)
 			this.select(hint);
 		else
@@ -234,7 +236,6 @@ cxl.extend(InlineAssist.prototype, {
 			this.el.style.display='none';
 			this.el.innerHTML = '';
 			this.visible = false;
-			ide.keymap.setUIState(null);
 		}
 	},
 
@@ -315,12 +316,6 @@ cxl.extend(InlineAssist.prototype, {
 			}
 
 			this.select(next);
-			/*h = next.offsetTop + next.offsetHeight;
-
-			if (h > el.scrollTop + el.clientHeight)
-				el.scrollTop = h - el.clientHeight;
-			else if (next.offsetTop < el.scrollTop)
-				el.scrollTop = next.offsetTop;*/
 		} else
 			return ide.Pass;
 	},
@@ -357,11 +352,6 @@ cxl.extend(InlineAssist.prototype, {
 
 	accept: function()
 	{
-		// make sure all suggestions are in before accepting it...
-		// TODO find a better way?
-		//this.requestHints.cancel();
-		//this._requestHints(this.editor, this.editor.token);
-
 		if (this.hints.length===0)
 			return ide.Pass;
 

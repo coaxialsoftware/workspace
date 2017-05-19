@@ -384,11 +384,10 @@ class EditorHeader extends Feature {
 	createTag(id)
 	{
 		var tag = this.tags[id] = {
-			el: document.createElement('SPAN')
+			el: document.createElement('ide-tag')
 		};
 
 		this.$tags.appendChild(tag.el);
-		tag.el.className = 'label';
 
 		return tag;
 	}
@@ -487,6 +486,20 @@ HintsFeature.featureName = 'hints';
 
 class InsertFeature extends Feature {
 
+	read(file)
+	{
+		//file = file || ide.editor.file.filename;
+		cxl.ajax.get('/file?p=' + ide.project.id + '&n=' + file)
+			.then(function(content) {
+				if (content.new)
+					ide.notify('File does not exist.');
+				else
+					this.editor.insert(content.content.toString());
+			}, function(err) {
+				ide.error(err);
+			});
+	}
+
 }
 
 InsertFeature.featureName = 'insert';
@@ -496,7 +509,10 @@ InsertFeature.commands = {
 	'insert.line': function() { this.insert.line(); },
 	'insert.tab': function() { this.insert.tab(); },
 	'insert.backspace': function() { this.insert.backspace(); },
-	'insert.del': function() { this.insert.del(); }
+	'insert.del': function() { this.insert.del(); },
+
+	'read': function(file) { this.insert.read(file); },
+	r: 'read'
 };
 
 class IndentFeature extends Feature {

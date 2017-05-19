@@ -376,27 +376,6 @@ ide.plugins.registerCommands({
 			description: 'Open current editor in new tab'
 		},
 
-		read: function(file)
-		{
-			if (ide.editor.insert)
-			{
-				file = file || ide.editor.file.filename;
-
-				cxl.ajax.get('/file?p=' + ide.project.id + '&n=' + file)
-					.then(function(content) {
-						if (content.new)
-							ide.notify('File does not exist.');
-						else
-							ide.editor.insert(content.content.toString());
-					}, function(err) {
-						ide.error(err);
-					});
-			} else
-				ide.error('Current editor does not support command.');
-		},
-
-		r: 'read',
-
 		wq: function()
 		{
 			// TODO use one run.

@@ -2,13 +2,6 @@
 (function(ide, cxl) {
 "use strict";
 
-cxl.directive('ide.on', {
-	initialize: function()
-	{
-		this.listenTo(ide.plugins, this.parameters, this.set);
-	}
-});
-
 var LoginComponent = cxl.component({
 	name: 'ide-login',
 	shadow: false,

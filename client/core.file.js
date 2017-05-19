@@ -226,6 +226,19 @@ class FileFeature {
 
 }
 
+function fileFormatApply(from, to)
+{
+var
+	file = ide.editor.file,
+	content
+;
+	if (file instanceof ide.File)
+	{
+		content = file.content;
+		file.setContent(content.replace(from, to));
+	}
+}
+
 FileFeature.featureName = 'file';
 FileFeature.commands = {
 
@@ -249,6 +262,21 @@ FileFeature.commands = {
 	'w!': function(filename)
 	{
 		this.file.write(filename, true);
+	},
+
+	'fileformat.unix': {
+		description: 'Set the file line end format to "\\n"',
+		fn: function() { fileFormatApply(/\r\n?/g, "\n"); }
+	},
+
+	'fileformat.dos': {
+		description: 'Set the file line end format to "\\r\\n"',
+		fn: function() { fileFormatApply(/\r?\n/g, "\r\n"); }
+	},
+
+	'fileformat.mac': {
+		description: 'Set the file line end format to "\\r"',
+		fn: function() { fileFormatApply(/\r?\n/g, "\r"); }
 	}
 
 };
@@ -320,32 +348,6 @@ class FileEditorHeader extends ide.feature.EditorHeader {
 }
 
 FileEditor.features(FileFeature, FileEditorHeader, FileHashFeature);
-
-function fileFormatApply(from, to)
-{
-var
-	file = ide.editor.file,
-	content
-;
-	if (file instanceof ide.File)
-	{
-		content = file.content;
-		file.setContent(content.replace(from, to));
-	}
-}
-
-ide.registerEditorCommand('fileformat.unix', {
-	description: 'Set the file line end format to "\\n"',
-	fn: function() { fileFormatApply(/\r\n?/g, "\n"); }
-});
-ide.registerEditorCommand('fileformat.dos', {
-	description: 'Set the file line end format to "\\r\\n"',
-	fn: function() { fileFormatApply(/\r?\n/g, "\r\n"); }
-});
-ide.registerEditorCommand('fileformat.mac', {
-	description: 'Set the file line end format to "\\r"',
-	fn: function() { fileFormatApply(/\r?\n/g, "\r"); }
-});
 
 ide.plugins.on('assist', function(done, editor) {
 
