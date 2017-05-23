@@ -1108,6 +1108,9 @@ ide.confirm = cxl.ui.confirm;
 
 ide.open = function(options)
 {
+	if (options instanceof ide.File)
+		options = { file: options };
+
 	options.slot = options.slot || ide.workspace.slot();
 
 	if (options.file && !(options.file instanceof ide.File))

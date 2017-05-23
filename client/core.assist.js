@@ -230,6 +230,7 @@ cxl.extend(InlineAssist.prototype, {
 	hide: function()
 	{
 		this.requestHints.cancel();
+		ide.keymap.setUIState(null);
 
 		if (this.visible)
 		{
