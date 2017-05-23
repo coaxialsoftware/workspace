@@ -1,5 +1,5 @@
 module.exports = function(grunt) {
-	
+
 	grunt.initConfig({
 
 		jshint: {
@@ -75,6 +75,7 @@ module.exports = function(grunt) {
 					'node_modules/@cxl/cxl/client/cxl-dom.js',
 					'node_modules/@cxl/cxl/client/cxl-dom-css.js',
 					'node_modules/@cxl/cxl/client/cxl-template.js',
+					'node_modules/@cxl/cxl/client/cxl-ui-theme.js',
 					'node_modules/@cxl/cxl/client/cxl-ui.js',
 					'node_modules/@cxl/cxl/client/cxl-validity.js',
 					'node_modules/@cxl/cxl/client/cxl-ajax.js',

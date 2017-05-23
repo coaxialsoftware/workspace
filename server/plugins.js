@@ -45,8 +45,6 @@ var
 
 	load: function()
 	{
-
-
 		return new Q(function(resolve, reject) {
 			npm.load(function(er, npm) {
 				if (er)
@@ -325,7 +323,7 @@ class PluginManager extends EventEmitter {
 
 			_.each(data, function(d) {
 				if (regex.test(d))
-					me.requireFile(path.join(dir, d));
+					me.requireFile(path.resolve(dir, d));
 			});
 		}
 
