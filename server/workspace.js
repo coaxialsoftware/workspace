@@ -361,6 +361,10 @@ workspace.extend({
 	reload: function()
 	{
 		workspace.plugins.emit('workspace.reload');
+	},
+
+	onReady: function()
+	{
 	}
 
 })
@@ -398,6 +402,8 @@ workspace.extend({
 	this.secure = this.configuration.secure;
 })
 .run(function() {
+	this.dbg(`Serving Files from "${basePath}/public" and "${basePath}/test"`);
+
 	require('./socket').start();
 	require('./online').start();
 	require('./project').start();
@@ -406,6 +412,7 @@ workspace.extend({
 
 	process.on('uncaughtException', this.error.bind(this));
 
-	this.operation('Loading plugins', this.plugins.start.bind(this.plugins));
+	this.operation('Loading plugins', this.plugins.start.bind(this.plugins))
+		.then(this.onReady.bind(this));
 }).start();
 

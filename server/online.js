@@ -55,7 +55,7 @@ online.extend({
 			response = { auth: null };
 			data = this.username = this.gravatar = null;
 
-			this.log('Not Authenticated');
+			this.dbg('Not Authenticated');
 		} else
 		{
 			this.uid = auth.uid;
@@ -219,7 +219,7 @@ var
 
 	this.__info.child('connected').on('value', function(snap) {
 		var status = this.__connected = snap.val();
-		this.log(status ? 'Connected' : 'Disconnected');
+		this.dbg(status ? 'Connected' : 'Disconnected');
 	}, this);
 
 	workspace.plugins.on('socket.message.online', this.onMessage.bind(this));
