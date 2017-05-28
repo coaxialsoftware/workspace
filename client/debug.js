@@ -1,44 +1,46 @@
 (function(ide) {
 "use strict";
-	
+
 class TokenEditor extends ide.SourceEditor {
-	
+
 	// TODO figure a better way to disable token feature.
 	loadFeatures(p)
 	{
 		delete this.constructor.features().token;
 		return super.loadFeatures(p);
 	}
-	
+
 	render(p)
 	{
 		this.file = new ide.File();
 		this.file.mime = 'application/json';
-		
+
 		super.render(p);
-		
+
 		this.listenTo(ide.plugins, 'token', this.onToken);
 	}
-	
+
 	onToken(editor, token)
 	{
 		var json;
-		
+
 		try {
 			json = JSON.stringify(token, null, 4);
 		} catch(e)
 		{
 			json = 'Error stringifying token';
 		}
-		
+
 		this.editor.setValue(json);
 	}
-	
+
 }
-	
-	
+
+
 ide.plugins.register('debug', {
-	
+
+	core: true,
+
 	commands: {
 		'debug.token': {
 			fn: function()
@@ -48,7 +50,7 @@ ide.plugins.register('debug', {
 			description: 'Show current token',
 			icon: 'bug'
 		},
-		
+
 		'debug.inspect': {
 			fn: function()
 			{
@@ -65,9 +67,9 @@ ide.plugins.register('debug', {
 			description: 'Inspect node server (must be run with --inspect flag)',
 			icon: 'bug'
 		},
-		
+
 		'debug.diff': {
-			
+
 			// TODO
 			fn: function()
 			{
@@ -94,8 +96,8 @@ ide.plugins.register('debug', {
 			icon: 'bug'
 		}
 	}
-	
+
 });
-	
-	
+
+
 })(this.ide);

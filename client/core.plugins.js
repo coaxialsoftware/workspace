@@ -83,6 +83,7 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 		// TODO...
 		cxl.invokeMap(this.__resources, 'unsubscribe');
 		cxl.invokeMap(this.__resources, 'destroy');
+		ide.plugins.unregister(this);
 	}
 
 });
@@ -107,10 +108,10 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 			return;
 
 		cxl.each(this._plugins, function(p) {
-			p.destroy();
+			if (!p.core)
+				p.destroy();
 		});
 
-		this._plugins = {};
 		this.start();
 		this.ready();
 	},
@@ -151,6 +152,9 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	{
 		this.each(function(plug, name) {
 
+			if (this.started && plug.core)
+				return;
+
 			try {
 				if (plug.start)
 					plug.start(ide.project[name]);
@@ -170,9 +174,13 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	ready: function()
 	{
 		this.each(function(plug) {
+			if (this.started && plug.core)
+				return;
 			if (plug.ready)
 				plug.ready();
 		});
+
+		this.started = true;
 	},
 
 	start: function()
@@ -182,7 +190,6 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		if (src)
 			ide.source(src);
 
-		this.started = true;
 		this.load_plugins();
 	},
 
@@ -225,6 +232,12 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 
 		this._plugins[name] = plugin;
 		plugin.name = name;
+	},
+
+	unregister: function(plug)
+	{
+		// TODO
+		delete this._plugins[plug.name];
 	}
 
 });
@@ -339,67 +352,7 @@ var PluginComponent = cxl.component({
  * @type {ide.PluginManager}
  */
 ide.plugins = new PluginManager();
-
-ide.plugins.register('plugins', {
-	commands: {
-		plugins: function() {
-		var
-			me = this, l = new ide.ListEditor({
-				plugin: this,
-				title: 'plugins',
-				itemClass: ide.ComponentItem,
-				file: 'list'
-			})
-		;
-			cxl.ajax.get('/plugins').then(function(all) {
-				me.addPlugins(l, all);
-			});
-
-			return l;
-		},
-
-		'plugins.install': {
-			fn: function(id) {
-				return cxl.ajax.post('/plugins/install', {
-					project: ide.project.id,
-					id: id
-				});
-			},
-			description: 'Install Plugin',
-			args: [ 'plugin' ],
-			icon: 'cog'
-		},
-
-		'plugins.uninstall': {
-			fn: function(id) {
-				return cxl.ajax.post('/plugins/uninstall', {
-					project: ide.project.id,
-					id: id
-				});
-			},
-			description: 'Uninstall Plugin',
-			args: [ 'plugin' ],
-			icon: 'cog'
-		}
-	},
-
-	addPlugins: function(l, all)
-	{
-		var a, i, items=[];
-
-		if (!all)
-			ide.warn('Could not retrieve plugins from server.');
-
-		for (i in all)
-		{
-			a = all[i];
-			items.push(new PluginComponent(a));
-		}
-
-		l.add(cxl.sortBy(items, 'title'));
-	}
-
-});
+ide.PluginComponent = PluginComponent;
 
 cxl.directive('ide.on', {
 	initialize: function()

@@ -41,6 +41,8 @@ class ProjectList extends ide.ListEditor {
 
 ide.plugins.register('welcome', new ide.Plugin({
 
+	core: true,
+
 	commands: {
 		hello: function()
 		{

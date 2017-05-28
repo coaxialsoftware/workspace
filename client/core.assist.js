@@ -546,6 +546,8 @@ var Assist = cxl.View.extend({
 
 ide.plugins.register('assist', new ide.Plugin({
 
+	core: true,
+
 	commands: {
 		assist: function() {
 			this.openAssist();

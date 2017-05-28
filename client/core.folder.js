@@ -378,6 +378,8 @@ ide.workerManager.register(worker);
 
 ide.plugins.register('folder', new ide.Plugin({
 
+	core: true,
+
 	start: function()
 	{
 		this.listenTo('project.load', this.onProject);

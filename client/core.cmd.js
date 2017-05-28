@@ -229,6 +229,8 @@ ide.registerEditorCommand = addCmd.bind(this, ide.editorCommands);
 
 ide.plugins.register('core', {
 
+	core: true,
+
 	editorCommands: {
 
 		ascii: function()
@@ -356,6 +358,57 @@ ide.plugins.register('core', {
 					ide.open({ file: new ide.File(arguments[i]) });
 			else
 				ide.open({});
+		},
+
+		plugins: function() {
+		var
+			l = new ide.ListEditor({
+				plugin: this,
+				title: 'plugins',
+				itemClass: ide.ComponentItem,
+				file: 'list'
+			})
+		;
+			cxl.ajax.get('/plugins').then(function(all) {
+				var a, i, items=[];
+
+				if (!all)
+					ide.warn('Could not retrieve plugins from server.');
+
+				for (i in all)
+				{
+					a = all[i];
+					items.push(new ide.PluginComponent(a));
+				}
+
+				l.add(cxl.sortBy(items, 'title'));
+			});
+
+			return l;
+		},
+
+		'plugins.install': {
+			fn: function(id) {
+				return cxl.ajax.post('/plugins/install', {
+					project: ide.project.id,
+					id: id
+				});
+			},
+			description: 'Install Plugin',
+			args: [ 'plugin' ],
+			icon: 'cog'
+		},
+
+		'plugins.uninstall': {
+			fn: function(id) {
+				return cxl.ajax.post('/plugins/uninstall', {
+					project: ide.project.id,
+					id: id
+				});
+			},
+			description: 'Uninstall Plugin',
+			args: [ 'plugin' ],
+			icon: 'cog'
 		},
 
 		tabe: function(name)

@@ -59,6 +59,8 @@ var LoginComponent = cxl.component({
 
 ide.plugins.register('online', new ide.Plugin({
 
+	core: true,
+
 	commands: {
 		login: function()
 		{
