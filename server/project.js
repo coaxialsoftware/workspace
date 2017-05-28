@@ -212,7 +212,7 @@ class Project {
 		if (this.theme)
 			this.stopListening(workspace.plugins, 'themes.reload:' + this.theme.name);
 
-		this.log(`Loading Theme "${theme.name}"(${theme.path})`);
+		this.log(`Loading theme "${theme.path}"`);
 		this.theme = theme;
 		this.listenTo(workspace.plugins, 'themes.reload:' + this.theme.name,
 			this.onThemeReload);

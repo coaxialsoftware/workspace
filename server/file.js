@@ -176,7 +176,7 @@ plugin.config(function() {
 	handleWrite: function(req, res)
 	{
 	var
-		filepath = this.getPath(req.body.project, req.body.filename)
+		filepath = this.getPath(req.query.p, req.query.n)
 	;
 		if (!req.body)
 			return res.status(400).end();

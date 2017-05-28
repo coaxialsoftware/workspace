@@ -233,7 +233,6 @@ class ListScrollFeature extends ide.feature.ScrollFeature {
 	{
 		var dY = ev.deltaY;
 		this.set(null, this.top+dY);
-		ev.preventDefault();
 	}
 }
 
@@ -377,7 +376,7 @@ var worker = new ide.Worker({
 
 ide.workerManager.register(worker);
 
-ide.plugins.register('find', new ide.Plugin({
+ide.plugins.register('folder', new ide.Plugin({
 
 	start: function()
 	{
@@ -504,19 +503,6 @@ ide.plugins.register('find', new ide.Plugin({
 			},
 			args: [ 'file-fuzzy' ]
 		}
-	}
-
-}));
-
-ide.plugins.register('folder', new ide.Plugin({
-
-	commands: {
-
-		browse: function()
-		{
-			ide.open({ file: '.' });
-		}
-
 	},
 
 	open: function(options)

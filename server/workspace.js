@@ -91,7 +91,7 @@ class WorkspaceConfiguration extends Configuration {
 
 		if (this['plugins.global']===undefined && !this['plugins.path'])
 			this['plugins.global'] = true;
-		
+
 		// check for v8 inspector support
 		var inspect = process.execArgv.join('').match(/--inspect(?:=(\d+))?/);
 
@@ -162,7 +162,7 @@ class Theme
 	onWatch()
 	{
 		this.load().then(function() {
-			workspace.plugins.emit('themes.reload:' + this.name, this);
+			workspace.plugins.emit('themes.reload:' + this.path, this);
 		});
 	}
 
@@ -315,7 +315,7 @@ workspace.extend({
 
 		this.__dataTimeout = setTimeout(function() {
 			var data = JSON.stringify(me.__data);
-			
+
 			me.dbg(`Writing data file. ${me.__dataFile} (${Buffer.byteLength(data)} bytes)`);
 			common.writeFile(me.__dataFile, data);
 		});
@@ -356,6 +356,11 @@ workspace.extend({
 		}
 
 		workspace.plugins.emit('workspace.watch:' + file, ev, file);
+	},
+
+	reload: function()
+	{
+		workspace.plugins.emit('workspace.reload');
 	}
 
 })
@@ -371,7 +376,7 @@ workspace.extend({
 .config(function()
 {
 	require('./plugins.js');
-	
+
 	this.plugins = new workspace.PluginManager();
 	this.port = this.configuration.port;
 	this.watcher = new Watcher({

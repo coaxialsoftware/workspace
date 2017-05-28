@@ -10,7 +10,7 @@
 ide.Plugin = function Plugin(p)
 {
 	cxl.extend(this, p);
-	this.__listeners = [];
+	this.__resources = [];
 };
 
 cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
@@ -27,6 +27,8 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 
 	/// Runs when all plugins are initialized @type {function}
 	ready: null,
+
+	__resources: null,
 
 	/**
 	 * Starts Plugin when all other plugins are loaded.
@@ -51,14 +53,26 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 	},
 
 	/**
+	 * Register resources to be destroy when reloading.
+	 */
+	resources: function()
+	{
+		for (var i=0; i<arguments.length;i++)
+			this.__resources.push(arguments[i]);
+	},
+
+	/**
 	 * Adds event handler.
 	 */
 	listenTo: function(name, fn)
 	{
-		this.__listeners.push({ name: name, fn: fn });
-		ide.plugins.on(name, fn, this);
-
+		this.resources(ide.plugins.on(name, fn, this));
 		return this;
+	},
+
+	listenToElement: function(el, name, fn)
+	{
+		this.resources(ide.plugins.on(el, name, fn));
 	},
 
 	/**
@@ -66,9 +80,9 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 	 */
 	destroy: function()
 	{
-		this.__listeners.forEach(function(l) {
-			ide.plugins.off(l.name, l.fn, this);
-		}, this);
+		// TODO...
+		cxl.invokeMap(this.__resources, 'unsubscribe');
+		cxl.invokeMap(this.__resources, 'destroy');
 	}
 
 });
@@ -76,13 +90,30 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 function PluginManager()
 {
 	this._plugins = {};
+	this.on('project.load', this.reload, this);
 }
 
 cxl.extend(PluginManager.prototype, cxl.Events, {
 
 	started: false,
 
+	source: null,
+
 	_plugins: null,
+
+	reload: function()
+	{
+		if (!this.started || this.source===ide.project.get('plugins.src'))
+			return;
+
+		cxl.each(this._plugins, function(p) {
+			p.destroy();
+		});
+
+		this._plugins = {};
+		this.start();
+		this.ready();
+	},
 
 	get: function(name)
 	{
@@ -120,13 +151,19 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	{
 		this.each(function(plug, name) {
 
-			if (plug.start)
-				plug.start(ide.project[name]);
+			try {
+				if (plug.start)
+					plug.start(ide.project[name]);
 
-			this.registerCommands(plug);
+				this.registerCommands(plug);
 
-			if (plug.shortcuts)
-				this.registerShortcuts(plug);
+				if (plug.shortcuts)
+					this.registerShortcuts(plug);
+			} catch(e)
+			{
+				ide.error('Error loading plugin "' + name + '"');
+			}
+
 		});
 	},
 
@@ -140,7 +177,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 
 	start: function()
 	{
-		var src = ide.project.get('plugins.src');
+		var src = this.source = ide.project.get('plugins.src');
 
 		if (src)
 			ide.source(src);
@@ -155,10 +192,10 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	registerCommands: function(plugin)
 	{
 		for (var i in plugin.commands)
-			ide.registerCommand(i, plugin.commands[i], plugin);
+			plugin.resources(ide.registerCommand(i, plugin.commands[i], plugin));
 
 		for (i in plugin.editorCommands)
-			ide.registerEditorCommand(i, plugin.editorCommands[i], plugin);
+			plugin.resources(ide.registerEditorCommand(i, plugin.editorCommands[i], plugin));
 	},
 
 	/**
@@ -183,6 +220,9 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	 */
 	register: function(name, plugin)
 	{
+		if (!(plugin instanceof ide.Plugin))
+			plugin = new ide.Plugin(plugin);
+
 		this._plugins[name] = plugin;
 		plugin.name = name;
 	}
@@ -193,6 +233,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 var PluginComponent = cxl.component({
 	name: 'ide-plugin-item',
 	shadow: false,
+	bindings: [ 'ide.on(project.load):#render'],
 	template: `<ide-item class="item">
 <ide-item-tags><cxl-fragment &="repeat(tags)"><ide-tag &="item:text"></ide-tag></cxl-fragment>
 </ide-item-tags><code &="=code:|text"></code><ide-item-title &="=title:|text">
@@ -211,18 +252,20 @@ var PluginComponent = cxl.component({
 
 	constructor(a)
 	{
-		this.render(a);
+		this.data = a;
+		this.render();
 	}
 
-	render(a)
+	render()
 	{
 	var
 		enabled = ide.project.get('plugins'),
-		tags = this.tags = []
+		tags = this.tags = [],
+		a = this.data
 	;
-		if (a.enabled)
-			tags.push('Enabled');
-		if (a.installed)
+		if (enabled && enabled.indexOf(a.id)!==-1)
+			tags.push(a.installed ? 'Enabled' : 'Enabled but Not Installed');
+		else if (a.installed)
 			tags.push('Installed');
 		if (a.unofficial)
 			tags.push('Unofficial');
@@ -239,9 +282,6 @@ var PluginComponent = cxl.component({
 
 		tags.push(a.version);
 
-		if (enabled && enabled.indexOf(a.id)!==-1)
-			a.enabled = true;
-
 		this.code = a.id;
 		this.title = a.name;
 		this.description = a.description;
@@ -254,30 +294,30 @@ var PluginComponent = cxl.component({
 	{
 		var me = this;
 
-		cxl.ajax.post(url, {
+		return cxl.ajax.post(url, {
 			project: ide.project.id,
 			id: this.code
 		}).then(function(res) {
-			me.render(res);
+			me.data = res;
+			me.render();
 		}, function(er) {
 			ide.error(er);
 		}).then(function() {
 			// TODO
 			me.loadInstall = me.loadEnable = false;
-			cxl.renderer.digest(me.$component);
 		});
 	}
 
 	install()
 	{
 		this.loadInstall = true;
-		this.post('/plugins/install');
+		return this.post('/plugins/install');
 	}
 
 	uninstall()
 	{
 		this.loadInstall = true;
-		this.post('/plugins/uninstall');
+		return this.post('/plugins/uninstall');
 	}
 
 	enable()

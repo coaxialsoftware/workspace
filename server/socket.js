@@ -12,14 +12,14 @@ var
 ;
 
 plugin.extend({
-	
+
 	/** We store all active connections here */
 	clients: null,
 
 	onMessage: function()
 	{
 	},
-	
+
 	payload: function(plugin, data)
 	{
 		try {
@@ -44,14 +44,14 @@ plugin.extend({
 		i
 	;
 		clients = clients || this.clients;
-		
+
 		this.dbg(`Broadcasting ${payload} (${size} bytes) to ${clients.length} client(s).`);
 
 		for (i in clients)
 			if (clients[i].send)
 				clients[i].send(payload);
 	},
-	
+
 	/**
 	 * Send message back to client.
 	 */
@@ -59,7 +59,7 @@ plugin.extend({
 	{
 		client.send(this.payload(plugin, data));
 	},
-	
+
 	onProjectLoad: function(project)
 	{
 		project.configuration['socket.port'] = plugin.port;
@@ -86,7 +86,7 @@ var
 	ws = workspace.configuration
 ;
 	this.port = ws['socket.port'] || 9002;
-	this.host = ws['socket.host'] || workspace.host; 
+	this.host = ws['socket.host'] || workspace.host;
 
 	this.clients = { length: 0 };
 

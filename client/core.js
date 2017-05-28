@@ -839,18 +839,11 @@ class Editor {
 	 */
 	listenTo(el, event, cb)
 	{
-	var
-		method = el.addEventListener || el.on,
-		remove = el.removeEventListener || el.off,
-		fn = cb.bind(this),
-		subscriber = method.call(el, event, cb.bind(this))
-	;
-		if (!(subscriber instanceof cxl.rx.Subscriber))
-			subscriber = { unsubscribe: remove.bind(el, event, fn) };
+		var s = cxl.listenTo(el, event, cb.bind(this));
 
-		this.bindings.push(subscriber);
+		this.bindings.push(s);
 
-		return subscriber;
+		return s;
 	}
 
 	destroy()

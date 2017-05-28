@@ -114,7 +114,7 @@ ide.registerCommand('project', {
 		}
 	},
 	args: [ 'project' ],
-	description: 'Load project'
+	description: 'Load or create project'
 });
 
 ide.registerCommand('project.settings', {

@@ -1,4 +1,4 @@
-(function(ide) {
+(function(ide, cxl) {
 "use strict";
 
 ide.Worker = function(methods)
@@ -17,6 +17,11 @@ var
 ide.Worker.prototype = {
 
 	response: null,
+
+	destroy: function()
+	{
+		this.worker.terminate();
+	},
 
 	onMessage: function(e)
 	{
@@ -64,7 +69,7 @@ ide.Worker.prototype = {
 	buildSource: function(methods)
 	{
 		var result = '', i;
-		
+
 		for (i in methods)
 			result += this.getSource(methods[i], i);
 
@@ -97,6 +102,11 @@ ide.WorkerManager.prototype = {
 		this.workers.push(worker);
 	},
 
+	unregister: function(worker)
+	{
+		cxl.pull(this.workers, worker);
+	},
+
 	onAssist: function(done, editor, token)
 	{
 	var
@@ -112,7 +122,7 @@ ide.WorkerManager.prototype = {
 		while (l--)
 		{
 			a = this.workers[l];
-			
+
 			if (a.methods.canAssist && !a.methods.canAssist(msg))
 				return;
 			if (a.methods.assist)
@@ -124,4 +134,4 @@ ide.WorkerManager.prototype = {
 
 ide.workerManager = new ide.WorkerManager();
 
-})(this.ide, this._);
+})(this.ide, this.cxl);

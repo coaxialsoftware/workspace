@@ -210,14 +210,14 @@ class PluginManager extends EventEmitter {
 	{
 		var me = this, name = '@cxl/workspace.' + id;
 
-		workspace.dbg(`Installing plugin ${name}`);
-		return NPM.install(name).then(function(path) {
-			var plugin = me.requireFile(path);
-			workspace.dbg(`Successfully installed plugin ${name}`);
-			return plugin.ready;
-		}).then(function(plugin) {
-			return plugin.toJSON();
-		});
+		return workspace.operation(`Installing plugin ${name}`, NPM.install(name)
+			.then(function(path) {
+				var plugin = me.requireFile(path);
+				return plugin.ready;
+			}).then(function(plugin) {
+				workspace.reload();
+				return plugin.toJSON();
+			}));
 	}
 
 	uninstall(id)
@@ -236,6 +236,7 @@ class PluginManager extends EventEmitter {
 				delete me.plugins[id];
 			}
 			workspace.dbg(`Successfully uninstalled plugin ${name}`);
+			workspace.reload();
 			return a;
 		}).then(function() {
 			return me.getOnlinePackages().then(function(packages) {

@@ -217,7 +217,7 @@ function addCmd(prop, name, def, scope)
 	if (name in prop)
 		window.console.warn('Overriding command "' + name + '"');
 
-	prop[name] = new ide.Command(name, def, scope);
+	return (prop[name] = new ide.Command(name, def, scope, prop));
 }
 
 ide.registerCommand = addCmd.bind(this, ide.commands);
@@ -227,9 +227,80 @@ ide.registerCommand = addCmd.bind(this, ide.commands);
  */
 ide.registerEditorCommand = addCmd.bind(this, ide.editorCommands);
 
-ide.plugins.register('cmd', {
+ide.plugins.register('core', {
+
+	editorCommands: {
+
+		ascii: function()
+		{
+		var
+			char = ide.editor.cursor && ide.editor.cursor.value,
+			code = char.charCodeAt(0)
+		;
+			ide.notify({
+				code: 'ascii',
+				title: char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8)
+			});
+		},
+
+		openTab: {
+			fn: function() {
+				ide.openTab(ide.editor.hash.get());
+				ide.workspace.remove(ide.editor);
+			},
+			description: 'Open current editor in new tab'
+		},
+
+		wq: function()
+		{
+			// TODO use one run.
+			ide.run('w').run('q');
+		},
+
+		'workspace.next': function()
+		{
+			ide.workspace.next().focus.set();
+		},
+
+		'workspace.previous': function()
+		{
+			ide.workspace.previous().focus.set();
+		},
+
+		'workspace.swapNext': function()
+		{
+		var
+			l = ide.workspace.slots.length, i
+		;
+			if (l>1)
+			{
+				i = ide.workspace.slots.indexOf(ide.editor.slot);
+				ide.workspace.swap(i, (i === l-1) ? 0 : i+1);
+			}
+		},
+
+		'workspace.swapPrevious': function()
+		{
+		var
+			l = ide.workspace.slots.length, i
+		;
+			if (l>1)
+			{
+				i = ide.workspace.slots.indexOf(ide.editor.slot);
+				ide.workspace.swap(i, (i === 0) ? l-1 : i-1);
+			}
+
+		}
+
+	},
 
 	commands: {
+
+		browse: function()
+		{
+			ide.open({ file: '.' });
+		},
+
 		commands: {
 			fn: function()
 			{
@@ -241,7 +312,8 @@ ide.plugins.register('cmd', {
 
 				return editor;
 			},
-			description: 'Show commands for active editor'
+			description: 'Show commands for active editor',
+
 		},
 
 		keymap: function()
@@ -261,6 +333,85 @@ ide.plugins.register('cmd', {
 			return new ide.ListEditor({
 				children: ide.logger.items,
 				plugin: this, command: 'log'
+			});
+		},
+
+		help: function(topic)
+		{
+			var url = (ide.project.get('help.url') ||
+				'/docs/index.html') + (topic ? '#' + topic : '');
+
+			window.open(url);
+		},
+
+		e: 'edit',
+
+		/**
+		 * Edits file with registered plugins.
+		 * @param {string} ... Files to open.
+		 */
+		edit: function() {
+			if (arguments.length)
+				for (var i=0; i<arguments.length; i++)
+					ide.open({ file: new ide.File(arguments[i]) });
+			else
+				ide.open({});
+		},
+
+		tabe: function(name)
+		{
+			ide.openTab(name);
+		},
+
+		close: function()
+		{
+			window.close();
+		},
+
+		quit: 'q',
+		'quitAll': 'qa',
+		'quitForce': 'q!',
+
+		/// Quit Vim. This fails when changes have been made.
+		q: function()
+		{
+			if (ide.editor)
+				ide.workspace.remove(ide.editor);
+			else
+				window.close();
+		},
+
+		qa: function()
+		{
+			ide.workspace.closeAll();
+		},
+
+		/// Quit always, without writing.
+		"q!": function()
+		{
+			if (ide.editor)
+				ide.workspace.remove(ide.editor, true);
+			else
+				window.close();
+		},
+
+		'workspace.settings': {
+			fn: function()
+			{
+				var prefix = ide.project.id==='.' ? '' : '../';
+
+				ide.open({ file: prefix + 'workspace.json' });
+			},
+			icon: 'settings',
+			description: 'Edit global settings'
+		},
+
+		version: function()
+		{
+			ide.notify({
+				code: 'version',
+				tags: ['workspace:' + ide.project.get('workspace.version')],
+				title: ide.project.get('name') + ':' + ide.project.get('version')
 			});
 		}
 	},
@@ -391,7 +542,7 @@ ide.plugins.register('cmd', {
  */
 ide.Command = class Command {
 
-	constructor(name, def, scope)
+	constructor(name, def, scope, prop)
 	{
 		var type = typeof(def), description = def.description;
 
@@ -409,6 +560,7 @@ ide.Command = class Command {
 		this.name = name;
 		this.description = description;
 		this.scope = scope;
+		this.prop = prop;
 	}
 
 	parse(def)
@@ -466,6 +618,12 @@ ide.Command = class Command {
 			}
 
 		return (def.match = match);
+	}
+
+	destroy()
+	{
+		this.apply = null;
+		cxl.pull(this.prop, this);
 	}
 
 	apply(scope, args)
