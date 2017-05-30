@@ -59,6 +59,7 @@ class File {
 		this.mime = data.mime;
 		this.content = this.originalContent = data.content;
 		this.id = data.path;
+		this.$fetching = null;
 
 		this._createHint();
 		ide.plugins.trigger('file.parse', this);
@@ -87,6 +88,7 @@ class File {
 			(this.saving ? 'Error saving file: ' : 'Error opening file: ') + id
 	;
 		ide.error(msg);
+		this.$fetching = null;
 		return Promise.reject(msg);
 	}
 
@@ -101,8 +103,10 @@ class File {
 			}
 			else
 			{
+				if (!this.$fetching)
+					ide.notify('File "' + data.f + '" was updated.');
+
 				this.fetch();
-				ide.notify('File "' + data.f + '" was updated.');
 			}
 		}
 	}
@@ -118,7 +122,11 @@ class File {
 	{
 		var url = this.url();
 
-		return cxl.ajax({ url: url }).then(this.parse.bind(this), this.onError.bind(this));
+		if (this.$fetching)
+			return this.$fetching;
+
+		return (this.$fetching = cxl.ajax({ url: url })
+			.then(this.parse.bind(this), this.onError.bind(this)));
 	}
 
 	write(filename, force)
