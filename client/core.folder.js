@@ -278,16 +278,6 @@ class ListEditor extends ide.Editor {
 		this.children = this.children.concat(items);
 	}
 
-	focus()
-	{
-		var i = this.current;
-
-		if (i)
-			i.el.focus();
-
-		super.focus();
-	}
-
 }
 
 ListEditor.features(ListEditorCursor, ListSearchFeature, ListScrollFeature);
@@ -330,7 +320,42 @@ class FileItem extends ide.Item {
 
 class FileListEditor extends ListEditor { }
 
-FileListEditor.features(ide.feature.FileHashFeature, ide.feature.FileFeature);
+class DirectoryFeature extends ide.feature.FileFeature {
+
+	// TODO see if we can move this to FileFeature
+	render()
+	{
+		this.read(this.editor.file);
+	}
+
+	read(file)
+	{
+	var
+		path = file.filename,
+		prefix = path==='.' ? '' : (path + '/'),
+		files = file.content.map(function(f) {
+			return new FileItem({
+				title: f.filename,
+				directory: f.directory,
+				prefix: prefix,
+				className: f.directory ? 'directory' : 'file'
+			});
+		})
+	;
+		files.unshift(new FileItem(
+			{ title: '..', directory: true, prefix: prefix }
+		));
+
+		if (this.editor.children.length)
+			this.editor.reset();
+
+		this.editor.header.title = path;
+		this.editor.add(files);
+	}
+
+}
+
+FileListEditor.features(ide.feature.FileHashFeature, DirectoryFeature);
 
 var worker = new ide.Worker({
 
@@ -509,32 +534,12 @@ ide.plugins.register('folder', new ide.Plugin({
 
 	open: function(options)
 	{
-		var file=options.file, files, path, prefix;
+		var file=options.file;
 
 		if (file && file.attributes.directory)
 		{
-			path = file.filename;
-			prefix = path==='.' ? '' : (path + '/');
-
-			files = file.content.map(function(f) {
-				return new FileItem({
-					title: f.filename,
-					directory: f.directory,
-					prefix: prefix,
-					className: f.directory ? 'directory' : 'file'
-				});
-			});
-
-			files.unshift(new FileItem(
-				{ title: '..', directory: true, prefix: prefix }
-			));
-
 			return new ide.FileListEditor({
-				file: file,
-				children: files,
-				title: path,
-				slot: options.slot,
-				plugin: this
+				file: file
 			});
 		}
 	}

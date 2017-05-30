@@ -72,7 +72,7 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 
 	listenToElement: function(el, name, fn)
 	{
-		this.resources(ide.plugins.on(el, name, fn));
+		this.resources(cxl.listenTo(el, name, fn));
 	},
 
 	/**
@@ -145,30 +145,23 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		}) || ide.defaultEdit(options);
 	},
 
-	/**
-	 * Loads plugins from project config
-	 */
-	load_plugins: function()
+	loadPlugin: function(plug, name)
 	{
-		this.each(function(plug, name) {
+		if (this.started && plug.core)
+			return;
 
-			if (this.started && plug.core)
-				return;
+		try {
+			if (plug.start)
+				plug.start(ide.project[name]);
 
-			try {
-				if (plug.start)
-					plug.start(ide.project[name]);
+			this.registerCommands(plug);
 
-				this.registerCommands(plug);
-
-				if (plug.shortcuts)
-					this.registerShortcuts(plug);
-			} catch(e)
-			{
-				ide.error('Error loading plugin "' + name + '"');
-			}
-
-		});
+			if (plug.shortcuts)
+				this.registerShortcuts(plug);
+		} catch(e)
+		{
+			ide.error('Error loading plugin "' + name + '"');
+		}
 	},
 
 	ready: function()
@@ -190,7 +183,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		if (src)
 			ide.source(src);
 
-		this.load_plugins();
+		this.each(this.loadPlugin);
 	},
 
 	/**

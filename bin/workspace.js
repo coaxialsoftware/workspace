@@ -14,7 +14,7 @@ start();
 
 function onExit(code)
 {
-	if (code !== 0 && startTime-Date.now() > timeout)
+	if (code !== 0 && Date.now()-startTime > timeout)
 	{
 		console.log(`Received signal ${code}. Attempting restart...`);
 		start();

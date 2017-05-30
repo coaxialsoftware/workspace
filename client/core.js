@@ -278,6 +278,10 @@ class Logger {
 
 	remove(item)
 	{
+		// Item has already been removed ?
+		if (item.el.parentNode !== this.el)
+			return;
+
 		if (item.id)
 			delete(this.active[item.id]);
 
@@ -757,6 +761,8 @@ class Editor {
 		this.bindings = [];
 		this.plugin = p.plugin;
 		this.el = document.createElement('DIV');
+		// TODO ?
+		this.el.$editor = this;
 		this.keymap = new ide.KeyMap(this);
 		this.command = p.command;
 		this.arguments = p.arguments;

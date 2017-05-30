@@ -104,10 +104,11 @@ class WorkspaceConfiguration extends Configuration {
 			cxl.enableDebug();
 	}
 
-	onUpdate()
+	/*onUpdate()
 	{
-		workspace.plugins.emit('workspace.reload');
-	}
+		workspace.restart();
+		//workspace.plugins.emit('workspace.reload');
+	}*/
 
 }
 
@@ -235,6 +236,7 @@ workspace.extend({
 
 	restart: function()
 	{
+		this.log('Restarting Workspace');
 		process.exit(128);
 	},
 
@@ -352,7 +354,8 @@ workspace.extend({
 	{
 		if (file==='workspace.json')
 		{
-			this.configuration = new WorkspaceConfiguration();
+			//this.configuration = new WorkspaceConfiguration();
+			return this.restart();
 		}
 
 		workspace.plugins.emit('workspace.watch:' + file, ev, file);

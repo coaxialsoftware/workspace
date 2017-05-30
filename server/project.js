@@ -9,6 +9,7 @@ var
 	Q = require('bluebird'),
 	_ = require('lodash'),
 	colors = require('colors/safe'),
+	path = require('path'),
 
 	common = require('./common'),
 	workspace = require('./workspace'),
@@ -166,7 +167,7 @@ class Project {
 		if (ev==='change')
 		{
 			this.broadcast({
-				stat: { f: filepath, p: full, t: s.mtime.getTime() }
+				stat: { f: filepath, p: full, t: s.mtime.getTime(), d: path.dirname(filepath) }
 			}, 'file');
 
 			// TODO see if we need to include full path instead
@@ -177,6 +178,14 @@ class Project {
 				this.reload();
 		} else if (ev!=='error')
 		{
+			this.broadcast({
+				stat: {
+					f: path.dirname(filepath),
+					p: path.dirname(full),
+					t: s && s.mtime.getTime()
+				}
+			}, 'file');
+
 			this.buildFilesDebounced();
 		}
 

@@ -4,14 +4,14 @@
 
 (function(window, ide, cxl) {
 "use strict";
-	
+
 class SocketManager {
-	
+
 	constructor()
 	{
 		this.retries = 0;
 		this.maxRetries = 1;
-		
+
 		if (!window.WebSocket)
 			return ide.warn('WebSockets not supported. Some features will not be available.');
 
@@ -31,7 +31,10 @@ class SocketManager {
 	send(plugin, data)
 	{
 		if (!this.ws || this.ws.readyState!==WebSocket.OPEN)
+		{
+			this.connect();
 			ide.plugins.once('socket.ready', this.__doSend.bind(this, plugin, data));
+		}
 		else
 			this.__doSend(plugin, data);
 	}
@@ -91,7 +94,7 @@ class SocketManager {
 
 	checkConnection()
 	{
-		if (this.ws && this.ws.readyState===3 /* closed */)
+		if (this.ws && this.ws.readyState===window.WebSocket.CLOSED)
 		{
 			this.retries = 0;
 			this.connect();

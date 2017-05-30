@@ -36,6 +36,15 @@ class TokenEditor extends ide.SourceEditor {
 
 }
 
+var loadPlugin = ide.plugins.loadPlugin;
+
+ide.plugins.loadPlugin = function(plug, name) {
+
+	window.console.log(`Loading Plugin ${name}`);
+	loadPlugin.call(this, plug, name);
+
+};
+
 
 ide.plugins.register('debug', {
 
