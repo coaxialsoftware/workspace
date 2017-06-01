@@ -48,12 +48,13 @@ online.extend({
 
 	onAuth: function(auth)
 	{
-		var response, data;
+		var response;
 
 		if (!auth)
 		{
 			response = { auth: null };
-			data = this.username = this.gravatar = null;
+
+			this.uid = this.token = this.username = this.gravatar = null;
 
 			this.dbg('Not Authenticated');
 		} else
@@ -64,30 +65,33 @@ online.extend({
 			if (auth.password)
 			{
 				this.username = auth.password.email;
-				this.gravatar = auth.password && auth.password.profileImageURL;
+			} else if (auth.auth && auth.auth.token)
+			{
+				this.username = auth.auth.token.email;
 			}
 
 			this.log(`Logged In as ${this.username}!`);
 
-			data = {
-				username: this.username,
-				gravatar: this.gravatar,
-				token: this.token,
-				url: this.fb.toString()
-			};
-
-			response = { auth: {
-				uid: this.uid, gravatar: this.gravatar,
-				username: this.username
-			}};
+			// TODO get username
+			response = { auth: this.getAuthResponse(auth) };
 		}
 
 		workspace.configuration.set({
-			'online.username': this.username,
-			'online.gravatar': this.gravatar
+			'online.username': this.username
 		});
 
 		workspace.socket.broadcast('online', response);
+		workspace.plugins.emit('online.auth', auth);
+	},
+
+	getAuthResponse: function(auth)
+	{
+		// TODO verify username
+		return {
+			uid: auth.uid,
+			username: auth.password ? auth.password.email : auth.auth.token.email,
+			token: auth.token
+		};
 	},
 
 	onComplete: function(client, err)
@@ -107,10 +111,10 @@ online.extend({
 	{
 		this.log(`Logging in as ${data.u}`);
 
-		this.fb.authWithPassword({
+		return this.fb.authWithPassword({
 			email: data.u,
 			password: data.p
-		}, this.onComplete.bind(this, client));
+		}, this.onComplete.bind(this, client)).then(this.getAuthResponse);
 	},
 
 	logout: function()
@@ -121,7 +125,8 @@ online.extend({
 
 	loginToken: function(token)
 	{
-		this.fb.authWithCustomToken(token, this.onComplete.bind(this, null));
+		this.dbg('Logging in with token ' + token);
+		return this.fb.authWithCustomToken(token, this.onComplete.bind(this, null));
 	},
 
 	onMessage: function(client, msg)
@@ -130,6 +135,16 @@ online.extend({
 			this.login(client, msg.login);
 		else if (msg.logout)
 			this.logout(client);
+	},
+
+	onConnect: function(client)
+	{
+		workspace.socket.respond(client, 'online', {
+			auth: this.uid ? {
+				uid: this.uid, gravatar: this.gravatar,
+				username: this.username, token: this.token
+			} : null
+		});
 	},
 
 	isConnected: function()
@@ -198,13 +213,13 @@ online.extend({
 })
 .run(function() {
 var
-	fb = this.fb,
-	url = this.url,
-	data = workspace.data('online')
+	fb = this.fb
+	//url = this.url
+	//data = workspace.data('online')
 ;
 	fb.onAuth(this.onAuth.bind(this));
 
-	if (data)
+	/*if (data)
 	{
 		if (data.url !== url)
 			delete data.token;
@@ -215,12 +230,13 @@ var
 			this.username = data.username;
 			this.gravatar = data.gravatar;
 		}
-	}
+	}*/
 
 	this.__info.child('connected').on('value', function(snap) {
 		var status = this.__connected = snap.val();
 		this.dbg(status ? 'Connected' : 'Disconnected');
 	}, this);
 
+	workspace.plugins.on('socket.connect', this.onConnect.bind(this));
 	workspace.plugins.on('socket.message.online', this.onMessage.bind(this));
 });

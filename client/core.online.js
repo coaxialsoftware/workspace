@@ -2,11 +2,17 @@
 (function(ide, cxl) {
 "use strict";
 
-var LoginComponent = cxl.component({
+function saveToken(auth)
+{
+	document.cookie = 'workspace=' + auth.token;
+	return auth;
+}
+
+ide.LoginComponent = cxl.component({
 	name: 'ide-login',
 	shadow: false,
 	template: `<cxl-container>
-<cxl-form &="submit:#submit =user:unless">
+<cxl-form &="submit:=loading:#submit =user:unless">
 	<h1>Log In</h1>
 <cxl-form-group>
 	<cxl-label>Username</cxl-label>
@@ -17,8 +23,9 @@ var LoginComponent = cxl.component({
 	<cxl-password inverse &="valid(required) value:=password"></cxl-password>
 </cxl-form-group>
 <br>
+<div &="=error:if:text"></div>
 <div>
-		<cxl-submit>Log In</cxl-submit>
+		<cxl-submit &="=loading:set(submitting)">Log In</cxl-submit>
 </div>
 </cxl-form>
 <div &="=user:if">
@@ -34,24 +41,39 @@ var LoginComponent = cxl.component({
 	}
 }, {
 
+	loading: false,
+
 	onAuth: function(auth)
 	{
-		this.user = auth && (auth.username || auth.uid);
+		this.user = auth && auth.username;
+		this.$component.trigger('auth', auth);
+		this.loading = false;
+	},
+
+	onError: function()
+	{
+		this.error = 'Invalid username or password';
+		this.loading = false;
 	},
 
 	logOut: function()
 	{
-		ide.socket.send('online', { logout: true });
+		ide.run('logout');
 	},
 
 	submit: function()
 	{
-		ide.socket.send('online', {
-			login: {
-				u: this.$component.get('username'),
-				p: this.$component.get('password')
-			}
-		});
+		var data = {
+			u: this.$component.get('username'),
+			p: this.$component.get('password')
+		};
+
+		if (ide.socket.isConnected())
+			ide.socket.send('online', { login: data });
+		else
+			return cxl.ajax.post('/login', data)
+				.then(saveToken)
+				.then(this.onAuth.bind(this), this.onError.bind(this));
 	}
 
 });
@@ -62,11 +84,20 @@ ide.plugins.register('online', new ide.Plugin({
 	core: true,
 
 	commands: {
+
 		login: function()
 		{
 			return new ide.ComponentEditor({
-				component: LoginComponent
+				title: 'login',
+				component: ide.LoginComponent
 			});
+		},
+
+		logout: function()
+		{
+			ide.socket.send('online', { logout: true });
+			// TODO
+			document.cookie = 'workspace=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 		}
 	},
 
@@ -75,7 +106,11 @@ ide.plugins.register('online', new ide.Plugin({
 		if ('auth' in data)
 		{
 			if (data.auth)
+			{
 				ide.notify('Logged in as ' + data.auth.username);
+				saveToken(data.auth);
+			} else
+				ide.project.set('online.username', null);
 
 			ide.plugins.trigger('online.auth', data.auth);
 		} else if (data.login===false)

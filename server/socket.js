@@ -30,6 +30,19 @@ plugin.extend({
 		}
 	},
 
+	onAuth: function(auth)
+	{
+		if (workspace.configuration['online.required'] && !auth)
+			this.closeAll(1000);
+	},
+
+	closeAll: function(reasonCode)
+	{
+		for (var i in this.clients)
+			if (this.clients[i].close)
+				this.clients[i].close(reasonCode);
+	},
+
 	/**
 	 * Send data to all clients.
 	 * @param plugin to send data to.
@@ -92,6 +105,7 @@ var
 
 	workspace.plugins.on('project.load', this.onProjectLoad);
 	workspace.plugins.on('workspace.load', this.onProjectLoad);
+	workspace.plugins.on('online.auth', this.onAuth.bind(this));
 	workspace.socket = plugin;
 
 }).run(function() {
@@ -117,6 +131,9 @@ var
 
 	this.ws.on('request', function(request) {
 
+		if (workspace.configuration['online.required'] && !workspace.online.uid)
+			return request.reject(401);
+
 		var client = request.accept('workspace', request.origin);
 		me.log(`Client connected ${client.remoteAddress}`);
 
@@ -126,6 +143,7 @@ var
 
 		client.on('close', function(reason, description) {
 			me.log(`Client disconnected ${client.remoteAddress} (${reason} ${description})`);
+
 			me.clients.length--;
 			delete(me.clients[client.id]);
 		});
@@ -139,6 +157,8 @@ var
 				workspace.plugins.emit('socket.message.' + json.plugin,
 					client, json.data);
 		});
+
+		workspace.plugins.emit('socket.connect', client);
 	});
 
 });

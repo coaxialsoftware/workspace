@@ -95,7 +95,6 @@ class Hint {
 		this.matchEnd = p.matchEnd;
 		// TODO Should we show tags?
 		this.tags = p.tags;
-		this.Template = HintTemplate;
 	}
 
 	render()
@@ -115,6 +114,8 @@ class Hint {
 	}
 
 }
+
+Hint.prototype.Template = HintTemplate;
 
 
 class ItemTemplate extends HintTemplate {
@@ -199,7 +200,6 @@ class Item extends Hint {
 	{
 		super(p);
 
-		this.Template = ItemTemplate;
 		this.key = p.key;
 		this.action = p.action;
 		this.code = p.code;
@@ -215,6 +215,8 @@ class Item extends Hint {
 	}
 
 }
+
+Item.prototype.Template = ItemTemplate;
 
 class ComponentItem {
 
@@ -903,40 +905,6 @@ class ComponentEditor extends Editor {
 
 }
 
-function onProject()
-{
-	ide.plugins.start();
-	ide.keymap.start();
-	ide.plugins.ready();
-	ide.hash.loadFiles();
-}
-
-function projectError()
-{
-	ide.error('Error loading project "' + ide.project.id + '"');
-	ide.hash.set({ p: null });
-	ide.project.set('path', '.');
-
-	return ide.project.fetch();
-}
-
-function createProject()
-{
-	return cxl.ajax.post('/project', { path: ide.project.id }).then(function() {
-		return ide.project.fetch();
-	});
-}
-
-function onProjectError(e)
-{
-	// Project does not exist
-	if (e.status===404)
-	{
-		return ide.confirm({ message: 'Project does not exists. Create?', action: 'Create'})
-			.then(createProject, projectError);
-	}
-}
-
 function _start()
 {
 	cxl.dom.root = new cxl.dom.Element(document.body);
@@ -948,11 +916,10 @@ function _start()
 		path: ide.hash.data.p || ide.hash.data.project
 	});
 	ide.styles = document.getElementById('styles').sheet;
-
-	ide.project.fetch().catch(onProjectError).then(onProject);
-
 	ide.searchBar = new ide.Bar.Search();
 	ide.commandBar = new ide.Bar.Command();
+
+	ide.project.fetch();
 }
 
 Object.assign(ide, {
@@ -987,6 +954,7 @@ Object.assign(ide, {
 
 	Editor: Editor,
 	ComponentEditor: ComponentEditor,
+	ItemTemplate: ItemTemplate,
 	Item: Item,
 	ComponentItem: ComponentItem,
 	Hint: Hint,

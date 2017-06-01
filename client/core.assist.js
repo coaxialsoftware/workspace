@@ -48,7 +48,7 @@ cxl.extend(InlineAssist.prototype, {
 	pos: null,
 
 	/// How often to send assist requests
-	delay: 150,
+	delay: 100,
 
 	/// Request version
 	version: 0,

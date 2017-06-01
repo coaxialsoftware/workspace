@@ -70,6 +70,41 @@ function getMask(token)
 		token.value.substr(1, token.value.length-2) : token.value;
 }
 
+class CollapsibleItemTemplate extends ide.ItemTemplate {
+
+	// TODO..
+	toggle(ev, val)
+	{
+		if (ev) ev.stopPropagation();
+		this.collapsed = val===undefined ? !this.collapsed : val;
+		this.collapseEl.className = this.collapsed ? 'expand' : 'collapse';
+	}
+
+	$renderElements(obj)
+	{
+		super.$renderElements(obj);
+
+		this.collapseEl = document.createElement('ide-icon');
+		this.toggle(null, obj.collapsed);
+		this.onClickRemove = cxl.listenTo(this.collapseEl, 'click', this.toggle.bind(this));
+	}
+
+	$appendChildren()
+	{
+		this.el.appendChild(this.collapseEl);
+		super.$appendChildren();
+	}
+
+	destroy()
+	{
+		super.destroy();
+		this.onClickRemove.unsubscribe();
+	}
+}
+
+class CollapsibleItem extends ide.Item { }
+CollapsibleItem.prototype.Template = CollapsibleItemTemplate;
+
 class ListEditorCursor extends ide.feature.CursorFeature {
 
 	render()
@@ -530,6 +565,7 @@ ide.plugins.register('folder', new ide.Plugin({
 			},
 			args: [ 'file-fuzzy' ]
 		}
+
 	},
 
 	open: function(options)
@@ -549,5 +585,6 @@ ide.plugins.register('folder', new ide.Plugin({
 ide.ListEditor = ListEditor;
 ide.FileListEditor = FileListEditor;
 ide.FileItem = FileItem;
+ide.CollapsibleItem = CollapsibleItem;
 
 })(this.ide, this.cxl);

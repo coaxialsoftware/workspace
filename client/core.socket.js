@@ -39,10 +39,17 @@ class SocketManager {
 			this.__doSend(plugin, data);
 	}
 
+	isConnected()
+	{
+		return this.ws && this.ws.readyState===WebSocket.OPEN;
+	}
+
 	connect()
 	{
 		if (this.ws && (this.ws.readyState===WebSocket.OPEN ||
 			this.ws.readyState===WebSocket.CONNECTING))
+			return;
+		if (!ide.project.id)
 			return;
 	var
 		doc = window.document,
@@ -97,7 +104,7 @@ class SocketManager {
 		if (this.ws && this.ws.readyState===window.WebSocket.CLOSED)
 		{
 			this.retries = 0;
-			this.connect();
+			ide.project.fetch();
 		}
 	}
 

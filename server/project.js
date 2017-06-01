@@ -29,7 +29,7 @@ class ProjectConfiguration extends workspace.Configuration
 	{
 		super(_.pick(workspace.configuration,
 			[ 'keymap', 'theme', 'user', 'online.url',
-			  'online.username', 'online.gravatar', 'inspect' ]));
+			  'online.username', 'inspect' ]));
 
 		this.ignore = [];
 		this.set(workspace.configuration.project);
@@ -351,26 +351,24 @@ class ProjectManager {
 
 	getProject(path)
 	{
-		if (!path)
-			return null;
+		if (!path || path==='.')
+			return this.workspaceProject;
 
 		return (this.projects[path] ||
 			(this.projects[path] = new Project(path)));
 	}
 
-	loadProject(path)
+	load(path)
 	{
+		if (!path || path==='.')
+			return this.workspaceProject.load();
+
 		return common.stat(path).bind(this).error(function(e) {
 			var p = this.getProjectByName(path);
 			return p ? (path = p.path) : Q.reject(e);
 		}).then(function() {
 			return this.getProject(path).load();
 		});
-	}
-
-	load(path)
-	{
-		return path ? this.loadProject(path) : this.workspaceProject.load();
 	}
 
 	getProjectInformation(path)

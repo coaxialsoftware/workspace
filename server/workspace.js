@@ -18,7 +18,9 @@ var
 	Watcher = require('./watcher.js'),
 
 	basePath = path.resolve(__dirname + '/../'),
-	workspace = global.workspace = module.exports = cxl('workspace')
+	workspace = global.workspace = module.exports = cxl('workspace'),
+
+	COOKIE_REGEX = /(?:^|;\s*)workspace=([^;,\s]+)/
 ;
 
 /**
@@ -104,11 +106,10 @@ class WorkspaceConfiguration extends Configuration {
 			cxl.enableDebug();
 	}
 
-	/*onUpdate()
+	onUpdate()
 	{
-		workspace.restart();
-		//workspace.plugins.emit('workspace.reload');
-	}*/
+		workspace.plugins.emit('workspace.reload');
+	}
 
 }
 
@@ -191,6 +192,9 @@ class ThemeManager
 		this.themes = {};
 	}
 
+	/**
+	 * Use this function to register a new Theme
+	 */
 	add(path, theme)
 	{
 		return (this.themes[path] = theme);
@@ -354,7 +358,6 @@ workspace.extend({
 	{
 		if (file==='workspace.json')
 		{
-			//this.configuration = new WorkspaceConfiguration();
 			return this.restart();
 		}
 
@@ -378,6 +381,63 @@ workspace.extend({
 
 .use(cxl.static(basePath + '/public', { maxAge: 86400000 }))
 
+// Login Check
+.use(function(req, res, next) {
+
+	var cookie, match, token, json;
+
+	if (req.method==='POST' && req.path==='/login')
+	{
+		var body = '';
+
+		req.on('data', function(data) {
+			body += data;
+			if (body.length>1000)
+			{
+				req.connection.destroy();
+				res.end();
+			}
+		});
+
+		req.on('end', function() {
+			json = JSON.parse(body);
+
+			workspace.online.login(null, json).then(function(data) {
+				res.send(data);
+			}, function() {
+				res.status(401).end();
+			});
+
+		});
+
+		return;
+
+	} else if (workspace.configuration['online.required'])
+	{
+		cookie = req.get('cookie');
+
+		if ((match = COOKIE_REGEX.exec(cookie)))
+		{
+			token = match[1];
+
+			if (!workspace.online.uid)
+			{
+				return workspace.online.loginToken(token).then(function() {
+					next();
+				}, function() {
+					res.status(401).end();
+				});
+			} else if (token === workspace.online.token)
+				return next();
+		}
+
+		return res.status(401).end();
+	}
+
+	next();
+})
+
+// TODO verify limit
 .use(cxl.bodyParser.json({ limit: Infinity }))
 
 .config(function()
