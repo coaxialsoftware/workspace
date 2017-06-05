@@ -340,12 +340,14 @@ class EditorHeader extends Feature {
 		this.tags = {};
 
 		el.innerHTML = '<div class="close"></div><div class="tags"></div>' +
-			'<span class="modified"></span><span class="title"></span>';
+			'<span class="modified"></span><span class="project"></span>' +
+			'<span class="title"></span>';
 
 		this.$close = el.childNodes[0];
 		this.$tags = el.childNodes[1];
 		this.$changed = el.childNodes[2];
-		this.$title = el.childNodes[3];
+		this.$project = el.childNodes[3];
+		this.$title = el.childNodes[4];
 		this._title = '';
 		this.changed = false;
 	}
@@ -354,6 +356,7 @@ class EditorHeader extends Feature {
 	{
 		this.editor.el.appendChild(this.el);
 		this.editor.listenTo(this.$close, 'click', this.onClose);
+		this.$project.innerHTML = '[' + ide.project.id + '] ';
 	}
 
 	set title(title)

@@ -33,7 +33,7 @@ plugin.extend({
 	onAuth: function(auth)
 	{
 		if (workspace.configuration['online.required'] && !auth)
-			this.closeAll(1000);
+			this.closeAll(4000, 'logout');
 	},
 
 	closeAll: function(reasonCode)

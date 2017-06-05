@@ -74,6 +74,10 @@ class SocketManager {
 			ide.plugins.trigger('socket.ready', this);
 		};
 
+		ws.onclose = function() {
+			me.checkConnection();
+		};
+
 		ws.onerror = function(ev) {
 			if (me.retries>=me.maxRetries)
 			{

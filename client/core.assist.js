@@ -193,7 +193,6 @@ cxl.extend(InlineAssist.prototype, {
 		{
 			this.visibleStart = 0;
 			this.visible = true;
-			//this.copyFont(editor.$content || editor.el);
 			this.el.style.display='block';
 			this.render();
 		}
@@ -354,6 +353,9 @@ cxl.extend(InlineAssist.prototype, {
 	accept: function()
 	{
 		if (this.hints.length===0)
+			return ide.Pass;
+
+		if (this.token && this.selectedValue && this.token.cursorValue===this.selectedValue)
 			return ide.Pass;
 
 		setTimeout(this.doAccept, this.delay);
