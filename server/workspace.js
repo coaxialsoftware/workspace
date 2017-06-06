@@ -195,14 +195,14 @@ class ThemeManager
 	/**
 	 * Use this function to register a new Theme
 	 */
-	add(path, theme)
+	register(path, theme)
 	{
 		return (this.themes[path] = theme);
 	}
 
 	load(path)
 	{
-		var theme = this.themes[path] || this.add(path, new Theme(path));
+		var theme = this.themes[path] || this.register(path, new Theme(path));
 		return theme.source ? Q.resolve(theme) : theme.load();
 	}
 
@@ -211,6 +211,7 @@ class ThemeManager
 workspace.extend({
 
 	Configuration: Configuration,
+	Theme: Theme,
 
 	configuration: new WorkspaceConfiguration(),
 

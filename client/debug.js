@@ -50,6 +50,16 @@ ide.plugins.register('debug', {
 
 	core: true,
 
+	onProjectLoad: function()
+	{
+		window.console.log('Project configuration was updated. Reloading');
+	},
+
+	ready: function()
+	{
+		this.listenTo('project.load', this.onProjectLoad);
+	},
+
 	commands: {
 		'debug.token': {
 			fn: function()

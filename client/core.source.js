@@ -713,6 +713,12 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 
 class SourceFileFeature extends ide.feature.FileFeature {
 
+	render()
+	{
+		// TODO
+		this.read();
+	}
+
 	read(file)
 	{
 		var editor = editor;
@@ -720,11 +726,16 @@ class SourceFileFeature extends ide.feature.FileFeature {
 		file = file || this.editor.file;
 
 		if (file.content instanceof cxl.Promise)
-			file.content.then(function(content) {
+			return file.content.then(function(content) {
 				editor.setValue(content);
 			});
-		else
-			this.editor.setValue(file.content);
+		else if (file.content instanceof Array || file.content instanceof ArrayBuffer)
+		{
+			// TODO
+			file.content = new TextDecoder('utf-8').decode(file.content);
+		}
+
+		this.editor.setValue(file.content);
 	}
 
 }
@@ -807,7 +818,7 @@ class SourceEditor extends ide.FileEditor {
 				lineSeparator: "\n"
 			}, s,
 			{
-				value: this.file.content || '',
+				//value: this.file.content || '',
 				theme: 'workspace',
 				// Disable drag and drop so dragdrop plugin works.
 				dragDrop: false,

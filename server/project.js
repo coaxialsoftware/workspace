@@ -219,11 +219,11 @@ class Project {
 	loadTheme(theme)
 	{
 		if (this.theme)
-			this.stopListening(workspace.plugins, 'themes.reload:' + this.theme.name);
+			this.stopListening(workspace.plugins, 'themes.reload:' + this.theme.path);
 
 		this.log(`Loading theme "${theme.path}"`);
 		this.theme = theme;
-		this.listenTo(workspace.plugins, 'themes.reload:' + this.theme.name,
+		this.listenTo(workspace.plugins, 'themes.reload:' + this.theme.path,
 			this.onThemeReload);
 
 		this.onThemeReload(theme);
