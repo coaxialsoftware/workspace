@@ -155,7 +155,7 @@ module.exports = function(grunt) {
 
 			options: {
 				frameworks: [ 'qunit' ],
-				browsers: [ 'PhantomJS' ],
+				browsers: [ 'ChromeHeadless' ],
 				reporters: [ 'progress', 'coverage' ],
 				background: false,
 				singleRun: true,
@@ -167,7 +167,7 @@ module.exports = function(grunt) {
 
 			client: {
 				plugins: [
-					'karma-qunit', 'karma-coverage', 'karma-phantomjs-launcher'
+					'karma-qunit', 'karma-coverage', 'karma-chrome-launcher'
 				],
 				files: [
 					{ src: [

@@ -33,9 +33,7 @@ class HintTemplate {
 
 	$renderIcon(obj)
 	{
-		var icon = this.iconEl = document.createElement('ide-icon');
-		// TODO Better Icon rendering
-		icon.className = obj.icon;
+		this.iconEl = ide.resources.getIcon(obj.icon);
 	}
 
 	$renderDescription(obj)
@@ -51,13 +49,6 @@ class HintTemplate {
 		title.innerHTML = obj.title;
 	}
 
-	$renderSVGIcon(obj)
-	{
-		// TODO optimize?
-		this.svgIconEl = ide.SVG[obj.svgIcon].cloneNode(true);
-		this.svgIconEl.className.baseVal = 'ide-icon';
-	}
-
 	$renderElements(obj)
 	{
 	var
@@ -66,7 +57,6 @@ class HintTemplate {
 		el.tabIndex = 0;
 		el.className = 'item ' + obj.className;
 
-		if (obj.svgIcon) this.$renderSVGIcon(obj);
 		if (obj.icon) this.$renderIcon(obj);
 		if (obj.description) this.$renderDescription(obj);
 		if (obj.matchStart!==undefined)
@@ -93,8 +83,6 @@ class Hint {
 		this.value = 'value' in p ? p.value : p.title;
 		this.matchStart = p.matchStart;
 		this.matchEnd = p.matchEnd;
-		// TODO Should we show tags?
-		this.tags = p.tags;
 	}
 
 	render()
@@ -195,6 +183,7 @@ class Item extends Hint {
 	 * className
 	 * action
 	 * value
+	 * code
 	 */
 	constructor(p)
 	{
@@ -203,6 +192,7 @@ class Item extends Hint {
 		this.key = p.key;
 		this.action = p.action;
 		this.code = p.code;
+		this.tags = p.tags;
 
 		if (p.enter)
 			this.enter = p.enter;
@@ -518,10 +508,7 @@ InsertFeature.commands = {
 	'insert.line': function() { this.insert.line(); },
 	'insert.tab': function() { this.insert.tab(); },
 	'insert.backspace': function() { this.insert.backspace(); },
-	'insert.del': function() { this.insert.del(); },
-
-	'read': function(file) { this.insert.read(file); },
-	r: 'read'
+	'insert.del': function() { this.insert.del(); }
 };
 
 class IndentFeature extends Feature {
@@ -753,10 +740,7 @@ class Token {
 
 }
 
-class Range {
-
-
-}
+class Range { }
 
 class Editor {
 
@@ -925,6 +909,53 @@ function _start()
 	ide.project.fetch();
 }
 
+function iconEl(id)
+{
+	var el = document.createElement('ide-icon');
+	el.className = id;
+	return el;
+}
+
+var ResourceManager = {
+
+	$icons: {
+		bug: iconEl('bug'),
+		command: iconEl('command'),
+		cog: iconEl('cog'),
+		directory: iconEl('directory'),
+		file: iconEl('file'),
+		git: iconEl('git'),
+		keyword: iconEl('keyword'),
+		property: iconEl('property'),
+		project: iconEl('project'),
+		settings: iconEl('settings'),
+		variable: iconEl('variable'),
+		'variable-global': iconEl('variable-global'),
+		expand: iconEl('expand'),
+		collapse: iconEl('collapse')
+	},
+
+	getIcon: function(id)
+	{
+		return this.$icons[id].cloneNode(true);
+	},
+
+	registerIcon: function(id)
+	{
+		return (this.$icons[id] = iconEl(id));
+	},
+
+	registerSVGIcon: function(id, content, viewbox)
+	{
+		var svg = this.$icons[id] = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+		svg.innerHTML = content;
+		svg.setAttribute('class', 'ide-icon');
+		svg.setAttribute('viewBox', viewbox);
+		return svg;
+	}
+
+};
+
 Object.assign(ide, {
 
 	/** Used by commands to indicate that the command wasn't handled. */
@@ -934,6 +965,7 @@ Object.assign(ide, {
 	Token: Token,
 	Range: Range,
 	HistoryRecord: HistoryRecord,
+	resources: ResourceManager,
 
 	feature: {
 		EditorHeader: EditorHeader,
@@ -1010,16 +1042,7 @@ Object.assign(ide, {
 
 	styles: null,
 
-	/**
-	 * Opens a file.
-	 * @param {object|string|ide.File} options If string it will be treated as target
-	 *
-	 * options.file {ide.File|string} Name of the file relative to project or a File object.
-	 * options.plugin Specify what plugin to use.
-	 *
-	 * @return {Promise}
-	 */
-
+	confirm: cxl.ui.confirm,
 
 	/** Displays notification on right corner */
 	notify: function(message, kls)
@@ -1074,8 +1097,15 @@ function onOpenError(options, e)
 	return Promise.reject(e);
 }
 
-ide.confirm = cxl.ui.confirm;
-
+/**
+ * Opens a file.
+ * @param {object|ide.File} options If string it will be treated as target
+ *
+ * options.file {ide.File|string} Name of the file relative to project or a File object.
+ * options.plugin Specify what plugin to use.
+ *
+ * @return {Promise}
+ */
 ide.open = function(options)
 {
 	if (options instanceof ide.File)

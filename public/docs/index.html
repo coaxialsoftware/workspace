@@ -7,8 +7,7 @@
 <body class="container">
 	<h1>workspace</h1>
 	<p>
-A new IDE concept based on web technologies with a focus on
-extensibility and user experience.
+		A Development Environment in the Cloud
 	</p>
 	
 	<h2>Requirements and Installation</h2>
@@ -26,14 +25,13 @@ extensibility and user experience.
 	<pre><code>
 npm install -g @cxl/workspace
 	</code></pre>
+	
+	<h3>
+		Starting the Application
+	</h3>
 	<p>
-		To install from source (github)
+		Command Line arguments.
 	</p>
-	<pre><code>
-git clone https://github.com/coaxialsoftware/workspace.git
-cd workspace
-npm link
-	</code></pre>
 	
 	<h2>Basic Concepts</h2>
 	
@@ -41,12 +39,18 @@ npm link
 	<p>
 		A Workspace is a collection of projects under the same folder or directory. Workspace settings are stored in the optional<code>workspace.json</code> file. Multiple instances of <code>workspace</code> can be started for different workspaces.
 	</p>
+	<p>
+		Use the <kbd>workspace.settings</kbd> command to edit the workspace settings.
+	</p>
 	<h3>Project</h3>
 	<p>
 		A project is a directory inside a workspace that contains your source code.
 	</p>
 	<p>
-		The command <kbd>:project</kbd> can be used to open existing projects.
+		The command <kbd>:project [path or name]</kbd> can be used to open existing projects.
+	</p>
+	<p>
+		Use the <kbd>project.settings</kbd> command to edit the workspace settings.
 	</p>
 	<p>
 		There are many ways to create a project.
@@ -54,12 +58,19 @@ npm link
 	<h4>
 		Creating a Project from existing sources
 	</h4>
+	<p>
+		To create a project from an existing source, just move the project folder to your current workspace.
+	</p>
 	<h4>
 		Creating a Project from a remote repository
 	</h4>
 	<h4>
 		Creating a Project from scratch
 	</h4>
+	<p>
+		Using the <kbd>:project</kbd> command, you will be prompted to create a new project if it currently does not exist.
+	</p>
+	<pre><code>project newPath</code></pre>
 	<h4>
 		Project Files
 	</h4>
@@ -69,33 +80,18 @@ npm link
 	You can also use <code>project.local.json</code> if you need to override settings from <code>project.json</code> for your local copy. This is helpful when you dont want to check in those settings in your
 		repository.
 	</p>
-	<h3>
-		Settings
-	</h3>
-	<p>
-		For a list of available settings and descriptions use the <kbd>:settings</kbd> command.
-	</p>
+	<h4>
+		Ignore Files
+	</h4>
 	
 	<h3>Commands</h3>
 	<p>
-		Commands
+		Every action in the application has an associated command. Use the <kbd>commands</kbd> command to see a list of available commands for your current editor.
 	</p>
-	<div class="alert alert-info">
-		Use <kbd>:commands</kbd> to see a list of commands.
-	</div>
+	
 	<h3>KeyMap</h3>
 	<p>
 		Keymap states are used to associate keyboard events to commands. You can specify the default keymap using the <code>keymap</code> setting.
-	</p>
-	<p>
-		The <code>ide.keymap.registerState(state, map)</code> function can be used to register a keymap state.
-	</p>
-	<h3>Plugins</h3>
-	<p>
-		Plugins are key components of the IDE.
-	</p>
-	<p>
-		To see the list of available plugins, use the <kbd>:plugins</kbd> command.
 	</p>
 	<h3>
 		Themes
@@ -109,6 +105,127 @@ npm link
 	<p>
 		
 	</p>
+	
+	<h2>
+		Extensions
+	</h2>
+	<p>
+		To see the list of available extensions, use the <kbd>:plugins</kbd> command.
+	</p>
+	<h3>
+		Installing Extensions
+	</h3>
+	<h3>
+		Creating Extensions
+	</h3>
+	<h3>
+		Creating Themes
+	</h3>
+	<h3>
+		Creating Keymaps
+	</h3>
+	<h3>
+		Extension Guidelines
+	</h3>
+	<h2>
+		User Interface
+	</h2>
+	<h3>
+		Command and Search Bar
+	</h3>
+	<h3>
+		Notifications
+	</h3>
+	<h3>
+		Assist Panel
+	</h3>
+	<h3>
+		Editor Header
+	</h3>
+	<h3>
+		List Editors
+	</h3>
+	<h3>
+		Tab Support
+	</h3>
+	<h2>
+		Basic Editing
+	</h2>
+	<h3>
+		Keyboard Shortcuts
+	</h3>
+	<h3>
+		Opening and Saving Files
+	</h3>
+	<h3>
+		Closing the Current Editor
+	</h3>
+	<h3>
+		Search Across Files
+	</h3>
+	<h3>
+		Assist and Inline Assist
+	</h3>
+	<h3>
+		Folding
+	</h3>
+	<h3>
+		Snippets
+	</h3>
+	<h3>
+		File Encoding
+	</h3>
+	<h2>
+		Code Navigation
+	</h2>
+	<h3>
+		Switching between Editors
+	</h3>
+	<h3>
+		Go to Definition
+	</h3>
+	<h3>
+		Go to Implementation
+	</h3>
+	<h3>
+		Go to Symbol
+	</h3>
+	<h3>
+		Editor Hints
+	</h3>
+	<h2>
+		Debugging
+	</h2>
+	<h3>
+		Debugging Commands
+	</h3>
+	<h3>
+		Breakpoints
+	</h3>
+	<h3>
+		Data Inspection
+	</h3>
+	<h3>
+		Extensions
+	</h3>
+	<h2>
+		Version Control
+	</h2>
+	<h3>
+		Extensions
+	</h3>
+	<h2>
+		Accessibility
+	</h2>
+	<h3>
+		Zoom
+	</h3>
+	<h3>
+		High Contrast Theme
+	</h3>
+	<h3>
+		Keyboard Navigation
+	</h3>
 	
 </body>
 </html>

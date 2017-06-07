@@ -25,6 +25,7 @@ function cancelProject()
 
 function onProjectError(e)
 {
+	ide.project.fetching = false;
 	// Project does not exist
 	if (e.status===404)
 	{

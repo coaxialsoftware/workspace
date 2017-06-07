@@ -160,6 +160,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 				this.registerShortcuts(plug);
 		} catch(e)
 		{
+			window.console.error(e);
 			ide.error('Error loading plugin "' + name + '"');
 		}
 	},
@@ -204,15 +205,6 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	registerShortcuts: function(plugin)
 	{
 		ide.keymap.registerKeys(plugin.shortcuts, plugin);
-	},
-
-	registerSVG: function(id, svgContent, viewbox)
-	{
-		var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-		svg.innerHTML = svgContent;
-		svg.setAttribute('viewBox', viewbox);
-
-		return (ide.SVG[id] = svg);
 	},
 
 	/**
