@@ -1,0 +1,12 @@
+{
+	"port": 9004,
+	"debug": true,
+	"theme": "the-matrix",
+	
+	"project": {
+		"ignore": [ ".*"]
+	},
+	
+	"socket.port": 9005,
+	"online.url": "https://cxl-dev.firebaseio.com/workspace"
+}
