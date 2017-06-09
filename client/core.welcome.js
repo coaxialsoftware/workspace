@@ -1,43 +1,6 @@
 
-(function(ide, cxl) {
+(function(ide) {
 "use strict";
-
-class ProjectList extends ide.ListEditor {
-
-	render(p)
-	{
-		p.title = this.command = 'projects';
-		super.render(p);
-		this._loadProjects();
-	}
-
-	_loadProjects()
-	{
-		cxl.ajax.get('/projects').then(this._renderProjects.bind(this));
-	}
-
-	_renderProjects(projects)
-	{
-	var
-		all = Object.values(projects).map(function(p) {
-
-			return new ide.Item({
-				code: p.path,
-				title: p.name || p.path,
-				tags: p.tags,
-				description: p.description,
-				icons: p.icons,
-				enter: function()
-				{
-					ide.run('project', [p.path]);
-				}
-			});
-		})
-	;
-		this.add(cxl.sortBy(all, 'title'));
-	}
-
-}
 
 ide.plugins.register('welcome', new ide.Plugin({
 
@@ -47,11 +10,6 @@ ide.plugins.register('welcome', new ide.Plugin({
 		hello: function()
 		{
 			ide.notify('Hello, ' + ide.project.get('user'));
-		},
-
-		projects: function()
-		{
-			return new ProjectList({ plugin: this });
 		}
 	},
 
@@ -103,4 +61,4 @@ ide.plugins.register('welcome', new ide.Plugin({
 
 }));
 
-})(this.ide, this.cxl);
+})(this.ide);

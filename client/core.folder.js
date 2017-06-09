@@ -390,7 +390,18 @@ class DirectoryFeature extends ide.feature.FileFeature {
 
 }
 
-FileListEditor.features(ide.feature.FileHashFeature, DirectoryFeature);
+class FileListFocusFeature extends ide.feature.FocusFeature {
+
+	set()
+	{
+		super.set();
+
+		if (!this.editor.cursor.current)
+			this.editor.cursor.goStart();
+	}
+}
+
+FileListEditor.features(ide.feature.FileHashFeature, DirectoryFeature, FileListFocusFeature);
 
 var worker = new ide.Worker({
 
@@ -572,7 +583,7 @@ ide.plugins.register('folder', new ide.Plugin({
 	{
 		var file=options.file;
 
-		if (file && file.attributes.directory)
+		if (file && file.mime==='text/directory')
 		{
 			return new ide.FileListEditor({
 				file: file

@@ -166,9 +166,56 @@ ide.Project = cxl.Model.extend({
 
 });
 
+class ProjectList extends ide.ListEditor {
+
+	render(p)
+	{
+		p.title = this.command = 'projects';
+		super.render(p);
+		this._loadProjects();
+	}
+
+	_loadProjects()
+	{
+		cxl.ajax.get('/projects').then(this._renderProjects.bind(this));
+	}
+
+	_renderProjects(projects)
+	{
+	var
+		all = Object.values(projects).map(function(p) {
+
+			return new ide.Item({
+				code: p.path,
+				title: p.name || p.path,
+				tags: p.tags,
+				description: p.description,
+				icons: p.icons,
+				enter: function()
+				{
+					ide.run('project', [p.path]);
+				}
+			});
+		})
+	;
+		this.add(cxl.sortBy(all, 'title'));
+	}
+
+}
+
 ide.plugins.on('assist', function(done) {
 	if (ide.project.id!=='.')
 		done(ide.project.hint);
+});
+
+ide.registerCommand('projects', {
+
+	fn: function()
+	{
+		return new ProjectList({ plugin: this });
+	},
+	description: 'Show current workspace projects'
+
 });
 
 /**

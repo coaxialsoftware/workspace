@@ -20,19 +20,9 @@ var
 	plugin = module.exports = cxl('workspace.file')
 ;
 
+mime.default_type = 'text/plain';
+
 class File {
-
-	constructor(filepath, options)
-	{
-		if (options)
-			cxl.extend(this, options);
-
-		if (this.filename)
-			this.filename = path.normalize(this.filename);
-
-		this.path = filepath;
-		this.mime = File.getMime(this.path);
-	}
 
 	static fromSocket(data)
 	{
@@ -46,15 +36,27 @@ class File {
 		});
 	}
 
-	static getMime(path)
+	static getMime(path, stat)
 	{
 		// TODO add typescript support
-		return mime.lookup(path);
+		return stat && stat.isDirectory() ? 'text/directory' : mime.lookup(path);
+	}
+
+	constructor(filepath, content)
+	{
+		this.path = path.normalize(filepath);
+		this.content = this.originalContent = content;
 	}
 
 	getStat()
 	{
-		return common.stat(this.path).bind(this);
+		return common.stat(this.path).bind(this).then(function(stat) {
+			this.mtime = stat.mtime.getTime();
+			this.directory = stat.isDirectory();
+			this.mime = File.getMime(this.path, stat);
+
+			return stat;
+		});
 	}
 
 	onContent(content)
@@ -71,26 +73,25 @@ class File {
 
 	read()
 	{
-		return this.getStat().then(function(stat) {
-			this.mtime = stat.mtime.getTime();
-			this.directory = stat.isDirectory();
-
+		return this.getStat().then(function() {
 			return (this.directory ?
 				common.list(this.path) :
 				common.readFile(this.path, 'utf8')).bind(this)
 					.then(this.onContent);
-
 		}, function() {
 			this.new = true;
 			this.content = '';
+			this.mime = File.getMime(this.path);
 			return this;
 		});
 	}
 
 	checkChanged()
 	{
-		return this.getStat().then(function(stat) {
-			if (this.mtime !== stat.mtime.getTime())
+		var mtime = this.mtime;
+
+		return this.getStat().then(function() {
+			if (mtime !== this.mtime)
 				return Q.reject("File contents have changed.");
 		}, function(err) {
 			if (err.cause.code!=='ENOENT')
@@ -100,9 +101,8 @@ class File {
 
 	write()
 	{
-		function OnWrite(stat)
+		function OnWrite()
 		{
-			this.mtime = stat.mtime.getTime();
 			this.new = false;
 
 			workspace.plugins.emit('file.write', this);
@@ -160,7 +160,7 @@ plugin.config(function() {
 
 	getPath: function(project, filename)
 	{
-		return path.normalize((project ? project + '/' : '') + filename);
+		return path.normalize(path.join(project, filename||''));
 	},
 
 	getFile: function(filename, body)
@@ -168,33 +168,45 @@ plugin.config(function() {
 		return (new File(filename, body)).read();
 	},
 
-	writeFile: function(filepath, body)
+	writeFile: function(filepath, body, mtime)
 	{
-		return (new File(filepath, body)).write();
+		var file = new File(filepath, body);
+		file.mtime = mtime;
+		return file.write();
 	},
 
 	handleWrite: function(req, res)
 	{
 	var
-		filepath = this.getPath(req.query.p, req.query.n)
+		filepath = this.getPath(req.query.p, req.query.n||'')
 	;
 		if (!req.body)
 			return res.status(400).end();
 
-		this.log(`Writing "${filepath}" (${req.body.content.length})`);
+		this.log(`Writing "${filepath}" (${req.body.length})`);
 
-		common.respond(this, res, this.writeFile(filepath, req.body));
+		common.respond(this, res, this.writeFile(filepath, req.body, +req.query.t)
+			.then(this.sendFile.bind(this, res)));
+	},
+
+	sendFile: function(res, file)
+	{
+		res.setHeader('content-type', file.mime);
+		if (file.mtime)
+			res.setHeader('last-modified', file.mtime);
+		res.setHeader('ws-file-id', file.path);
+		res.send(file.content);
 	}
 })
 
-.route('GET', '/file', function(req, res) {
-var
-	filepath = this.getPath(req.query.p, req.query.n)
-;
+.route('GET', '/file', function(req, res)
+{
+	var filepath = this.getPath(req.query.p, req.query.n);
+
 	this.log(`Reading "${filepath}".`);
 
 	common.respond(
-		this, res, this.getFile(filepath, { project: req.query.p, filename: req.query.n })
+		this, res, this.getFile(filepath).then(this.sendFile.bind(this, res))
 	);
 })
 

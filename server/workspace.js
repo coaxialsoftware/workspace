@@ -439,7 +439,8 @@ workspace.extend({
 })
 
 // TODO verify limit
-.use(cxl.bodyParser.json({ limit: Infinity }))
+.use(cxl.bodyParser.json({ limit: Infinity, type: 'application/json' }))
+.use(cxl.bodyParser.raw({ limit: Infinity, type: 'application/octet-stream'}))
 
 .config(function()
 {

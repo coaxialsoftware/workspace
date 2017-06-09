@@ -4,34 +4,24 @@
 (function(cxl, ide) {
 "use strict";
 
+var
+	CONTENT_TYPE_REGEX = /([\w\d\/\-]+)(?:;\s*charset="?([\w\d\-]+)"?)?/
+;
+
 class File {
 
-	constructor(filename)
+	constructor(filename, content)
 	{
-		if (!filename || (typeof(filename)==='string'))
-		{
-			this.filename = filename;
-			this.content = '';
-			this.attributes = { content: '' };
-		} else
-		{
-			this.filename = filename.filename;
-			this.content = filename.content || '';
-			this.attributes = Object.assign(filename);
-			this.mime = filename.mime;
-
-			if (!this.attributes.content)
-				this.attributes.content = '';
-		}
-
-		this._createHint();
-
+		this.filename = filename;
+		this.originalContent = this.content = content || '';
 		this.subscriber = ide.plugins.on('socket.message.file', this.onMessage, this);
+		this._createHint();
 	}
 
 	onSave()
 	{
-		this.old = false;
+		this.outOfSync = false;
+		ide.notify('File ' + this.id + ' saved.');
 		ide.plugins.trigger('file.write', this);
 	}
 
@@ -41,7 +31,7 @@ class File {
 		separator = this.content.indexOf("\r\n")!==-1 ? 'CRLF' : 'LF',
 		tags = [ separator ]
 	;
-		if (this.attributes.directory)
+		if (this.isDirectory())
 			tags.push('directory');
 		else if (this.mime)
 			tags.push(this.mime);
@@ -51,17 +41,25 @@ class File {
 		});
 	}
 
-	parse(data)
+	isNew()
 	{
-		this.attributes = data;
-		// Get normalized path
-		this.filename = data.filename;
-		this.mime = data.mime;
-		this.content = this.originalContent = data.content;
-		this.id = data.path;
-		this.$fetching = null;
+		return !this.mtime;
+	}
 
-		this._createHint();
+	parse(xhr)
+	{
+		var m = CONTENT_TYPE_REGEX.exec(xhr.getResponseHeader('content-type'));
+
+		this.mime = m[1];
+		this.encoding = m[2];
+		// TODO support other content types
+		this.content = this.originalContent = this.mime==='text/directory' ?
+			JSON.parse(xhr.responseText) : xhr.responseText;
+
+		this.id = xhr.getResponseHeader('ws-file-id');
+		this.mtime = xhr.getResponseHeader('last-modified');
+
+		this.$fetching = null;
 		ide.plugins.trigger('file.parse', this);
 
 		return this;
@@ -69,20 +67,23 @@ class File {
 
 	hasChanged()
 	{
-		return this.content !== this.attributes.content;
+		return this.content !== this.originalContent;
 	}
 
 	setContent(content)
 	{
-		this.content = content;
 		// TODO ? should we fire change and not parse?
-		ide.plugins.trigger('file.parse', this);
+		if (this.content!==content)
+		{
+			this.content = content;
+			ide.plugins.trigger('file.parse', this);
+		}
 	}
 
 	onError(res)
 	{
 	var
-		id = this.id || (this.attributes.project + '/' + this.filename),
+		id = this.id || (ide.project.id + '/' + this.filename),
 		msg = (res && (res.responseJSON && res.responseJSON.error) ||
 			res.responseText) ||
 			(this.saving ? 'Error saving file: ' : 'Error opening file: ') + id
@@ -94,11 +95,11 @@ class File {
 
 	onMessageStat(data)
 	{
-		if (this.attributes.mtime!==data.t)
+		if (this.mtime!==data.t)
 		{
 			if (this.hasChanged())
 			{
-				this.old = true;
+				this.outOfSync = true;
 				ide.warn('File "' + this.id + '" contents could not be updated.');
 			}
 			else
@@ -120,18 +121,23 @@ class File {
 
 	fetch()
 	{
-		var url = this.url();
+		var url = this.$url();
 
 		if (this.$fetching)
 			return this.$fetching;
 
-		return (this.$fetching = cxl.ajax({ url: url })
+		return (this.$fetching = cxl.ajax.xhr({ url: url })
 			.then(this.parse.bind(this), this.onError.bind(this)));
+	}
+
+	isDirectory()
+	{
+		return this.mime === 'text/directory';
 	}
 
 	write(filename, force)
 	{
-		if (this.attributes.directory)
+		if (this.isDirectory())
 			return ide.warn('Cannot write to directory');
 
 		if (filename && this.filename !== filename)
@@ -140,35 +146,31 @@ class File {
 		if (!this.filename)
 			return ide.error('No file name.');
 
-		if (!force && this.old)
+		if (!force && this.outOfSync)
 			return ide.error('File contents have changed.');
-
-		ide.notify('File ' + this.id + ' saved.');
 
 		return this.$save();
 	}
 
 	$save()
 	{
-
-		var url = this.url();
+		var url = this.$url();
 
 		ide.plugins.trigger('file.beforewrite', this);
 
-		this.attributes.content = this.content;
-
-		return cxl.ajax({
+		return cxl.ajax.xhr({
 			url: url,
 			method: this.id ? 'PUT' : 'POST',
-			data: this.attributes
+			contentType: 'application/octet-stream',
+			data: this.content
 		}).then(this.parse.bind(this))
-			.then(this.onSave.bind(this),
-			this.onError.bind(this));
+			.then(this.onSave.bind(this), this.onError.bind(this));
 	}
 
-	url()
+	$url()
 	{
-		var mtime = this.attributes.mtime || Date.now();
+		// TODO remove this and use etag
+		var mtime = this.mtime || Date.now();
 
 		return '/file?p=' + encodeURIComponent(ide.project.id) +
 			'&n=' + encodeURIComponent(this.filename) + '&t=' + mtime;
@@ -177,7 +179,7 @@ class File {
 	diff()
 	{
 	var
-		old = this.attributes.content,
+		old = this.originalContent,
 		cur = this.content,
 		changed = this.diffChanged = this.diffValue !== cur
 	;
@@ -348,7 +350,7 @@ class FileEditorHeader extends ide.feature.EditorHeader {
 		this.changed = changed;
 		this.title = title;
 
-		if (this.editor.file.old)
+		if (this.editor.file.outOfSync)
 			this.setTag('file.old',
 				'<span title="File contents have changed">Out of Sync</span>', 'error');
 	}
@@ -364,7 +366,7 @@ ide.plugins.on('assist', function(done, editor) {
 		if (editor.file instanceof ide.File)
 			done(editor.file.hint);
 
-		if (editor.file.old)
+		if (editor.file.outOfSync)
 			done({ title: 'File contents have changed', code: 'file', className: 'error' });
 	}
 

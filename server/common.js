@@ -7,7 +7,6 @@ var
 	_ = require('lodash'),
 	mime = require('mime'),
 	micromatch = require('micromatch'),
-
 	Watcher = require('./watcher'),
 
 	common
@@ -227,7 +226,8 @@ common = module.exports = {
 		return common.stat(dir + '/' + file).then(function(stat) {
 			return {
 				filename: file,
-				directory: stat.isDirectory()
+				// TODO
+				mime: stat.isDirectory() ? 'text/directory' : mime.lookup(file)
 			};
 		}, function(err) {
 			return {

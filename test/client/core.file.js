@@ -2,156 +2,138 @@
 QUnit.module('File');
 
 QUnit.test('File', function(a) {
-	
+
 	var f = new ide.File('test');
-	
+
 	a.equal(f.filename, 'test');
-	a.ok(f.hint);
 });
 
-QUnit.test('File#url()', function(a) {
-	ide.project.attributes.path = 'test_project';
-	var f= new ide.File('test');
-	
-	a.equal(f.url().indexOf('/file?p=test_project&n=test'), 0);
-});
-
-QUnit.test('File#fetch()', function(a) {
+QUnit.test('File#fetch() - directory', function(a) {
 var
-	f = new ide.File('test'),
-	done = a.async(),
-	ajax = cxl.ajax
+	f = new ide.File('.'),
+	done = a.async()
 ;
-	cxl.ajax = function() {
-		return Promise.resolve({
-			filename: 'test',
-			mime: 'text/plain',
-			content: 'Hello World'
-		});
-	};
-	
+	f.fetch().then(function() {
+		a.equal(f.mime, 'text/directory');
+		a.ok(Array.isArray(f.content));
+		a.ok(!f.new);
+		a.ok(f.mtime);
+		done();
+	});
+});
+
+QUnit.test('File#fetch() - new file', function(a) {
+var
+	f = new ide.File(a.test.testId),
+	done = a.async()
+;
 	f.fetch().then(function() {
 		a.equal(f.mime, 'text/plain');
-		a.equal(f.content, 'Hello World');
-	}).then(done);
-
-	cxl.ajax = ajax;
+		a.equal(f.content, '');
+		a.ok(f.isNew());
+		done();
+	});
 });
 
-QUnit.test('File#write()', function(a) {
+QUnit.test('File#fetch() - existing JSON file', function(a) {
 var
-	f = new ide.File('test'),
-	done = a.async(),
-	ajax = cxl.ajax,
-	request
+	f = new ide.File('workspace.json'),
+	done = a.async()
 ;
-	cxl.ajax = function(p) {
-		request = p;
-		return Promise.resolve({
-			filename: 'test',
-			path: 'test',
-			mime: 'text/plain',
-			content: 'Hello World'
-		});
-	};
-	
-	f.write().then(function() {
-		a.equal(f.id, 'test');
-		a.equal(f.mime, 'text/plain');
-		a.equal(f.content, 'Hello World');
-		a.equal(request.method, 'POST');
-		
-		f.write().then(function() {
-			a.equal(f.id, 'test');
-			a.equal(request.method, 'PUT');
-			cxl.ajax = ajax;
-		}).then(done);
+	f.fetch().then(function() {
+		a.equal(f.mime, 'application/json');
+		a.equal(f.id, 'workspace.json');
+		a.ok(!f.new);
+		a.ok(f.mtime);
+		done();
 	});
-
 });
 
 QUnit.test('File#hasChanged()', function(a) {
 var
-	f = new ide.File('test'),
-	ajax = cxl.ajax,
-	done = a.async()
+	f = new ide.File('File#hasChanged'),
+	done = a.async(),
+	now = Date.now() + a.test.testId
 ;
-	cxl.ajax = function(p) {
-		request = p;
-		return Promise.resolve({
-			filename: 'test',
-			path: 'test',
-			mime: 'text/plain',
-			content: 'Hello'
-		});
-	};
-	
 	a.ok(!f.hasChanged());
 	f.content = 'Hello';
 	a.ok(f.hasChanged());
-	
-	f.write().then(function() {
+	f.content = '';
+	a.ok(!f.hasChanged());
+
+	f.fetch().then(function() {
+		a.ok(!f.hasChanged());
+		a.ok(!f.isDirectory());
+		f.content = now;
+		a.ok(f.hasChanged());
+		return f.write();
+	}).then(function() {
+		a.equal(f.content, now);
 		a.ok(!f.hasChanged());
 	}).then(done);
-	
-	cxl.ajax = ajax;
-	
+});
+
+QUnit.test('File#write() - Existing File', function(a) {
+var
+	f = new ide.File('File#write'),
+	done = a.async(),
+	content = a.test.testId + Date.now(),
+	content2 = Date.now() + a.test.testId
+;
+	f.fetch().then(function() {
+		f.content = content;
+		return f.write();
+	}).then(function() {
+		a.equal(f.id, 'File#write');
+		a.equal(f.mime, 'text/plain');
+		a.equal(f.content, content);
+
+		f.content = content2;
+
+		return f.write();
+	}).then(function() {
+		a.equal(f.id, 'File#write');
+		a.equal(f.content, content2);
+		done();
+	});
 });
 
 QUnit.test('File#onMessageStat()', function(a) {
-	var notify=ide.notify, warn=ide.warn, ajax=cxl.ajax, done=a.async();
-	
-	cxl.ajax = function(p) {
-		request = p;
-		return Promise.resolve({
-			filename: 'test',
-			path: 'test',
-			mime: 'text/plain',
-			content: 'Hello'
-		});
-	};
-	
+var
+	notify=ide.notify,
+	warn=ide.warn,
+	done=a.async(),
+	file = new ide.File('File#onMessageStat')
+;
 	ide.notify = function notify() { notify.called = true; };
 	ide.warn = function warn() { warn.called = true; };
-	
-	ide.open({ file: new ide.File('test') }).then(function(e) {
-		a.ok(ide.workspace.slots.length);
 
-		e.file.onMessageStat({
-			f: 'test', t: Date.now()
-		});
+	file.fetch().then(function(file) {
+		try {
+			file.fetch = function fetch() { fetch.called = true; };
+			file.onMessageStat({
+				f: file.id, t: Date.now()
+			});
 
-		a.ok(ide.notify.called);
-		a.ok(!e.file.hasChanged());
-		
-		e.file.content = 'World';
-		
-		e.file.onMessageStat({
-			f: 'test', t: Date.now()
-		});
-		
-		a.ok(ide.warn.called);
-		a.ok(e.file.old);
-		
-		ide.warn = warn;
-		ide.notify = notify;
-		cxl.ajax = ajax;
-		
-		e.file.content = 'Hello';
-		e.quit();
+			a.ok(ide.notify.called);
+			a.ok(file.fetch.called);
+			a.ok(!file.hasChanged());
+
+			file.content = 'World';
+
+			file.onMessageStat({
+				f: file.id, t: Date.now()
+			});
+
+			a.ok(ide.warn.called);
+			a.ok(file.outOfSync);
+		}
+		finally {
+			ide.warn = warn;
+			ide.notify = notify;
+		}
+
 	}).then(done);
 
 });
 
-/*QUnit.test('Handle opening file fatal error.', function(a) {
-	var f = new ide.File();
-	f.fetch({ error: a.async() });
-	a.ok(f);
-});
-
-QUnit.test('Handle saving file fatal error.', function(a) {
-	var f = new ide.File();
-	f.on('error', a.async());
-	f.save();
-	a.ok(f);
-});*/

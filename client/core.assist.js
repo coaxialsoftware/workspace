@@ -106,7 +106,7 @@ cxl.extend(InlineAssist.prototype, {
 		ide.socket.send('assist.inline', {
 			$: this.version,
 			file: file && file.id,
-			mime: file && file.attributes.mime,
+			mime: file && file.mime,
 			token: token && token.toJSON(),
 			project: ide.project.id
 		});
@@ -463,7 +463,7 @@ var Assist = cxl.View.extend({
 		ide.socket.send('assist', {
 			$: this.version,
 			file: file && file.id,
-			mime: file && file.attributes.mime,
+			mime: file && file.mime,
 			token: token && token.toJSON(),
 			project: ide.project.id,
 			fileChanged: file && file.diffChanged,

@@ -17,7 +17,7 @@ function perf(a, count, maxTime, fn)
 
 QUnit.test('Hint rendering', function(a) {
 
-	perf(a, 10000, 120, function() {
+	perf(a, 10000, 250, function() {
 		var x = new ide.Hint({ title: 'Testing Performance' });
 		x.render();
 	});

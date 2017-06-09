@@ -5,6 +5,8 @@
 
 (function() {
 
+QUnit.config.autostart = false;
+
 window.document.write(
 	'<div style="display:none">' +
 	'<div id="notification"></div>' +
@@ -21,7 +23,7 @@ window.document.write(
 	'<script id="tpl-editor-list" type="text/template"></script>'
 );
 
-var ajax = cxl.ajax, mock=[];
+var ajax = cxl.ajax.xhr, mock=[];
 
 function mockMatch(p, match)
 {
@@ -41,14 +43,21 @@ function mockMatch(p, match)
 	return true;
 }
 
-cxl.ajax = function(p)
+cxl.ajax.xhr = function(p)
 {
 	var r = mock.find(mockMatch.bind(cxl, p));
 
 	if (r)
-		return Promise.resolve(cxl.result(r, 'response'));
+	{
+		var xhr = {
+			responseText: JSON.stringify(cxl.result(r, 'response')),
+			getResponseHeader: function() { return 'application/json'; }
+		};
 
-	return ajax.apply(cxl, arguments);
+		return Promise.resolve(xhr);
+	}
+
+	return ajax.apply(cxl.ajax, arguments);
 };
 
 cxl.ajax.mock = function(rule, response)
@@ -61,14 +70,5 @@ cxl.ajax.mock = function(rule, response)
 		mock.splice(i, 1);
 	};
 };
-
-cxl.ajax.mock({
-	url: /^\/project/
-}, {
-	name: 'workspace-test',
-	'socket.port': 1000,
-	'socket.secure': true
-});
-
 
 })();

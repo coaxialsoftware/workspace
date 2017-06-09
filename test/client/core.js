@@ -74,7 +74,7 @@ QUnit.test('Item', function(a) {
 	a.equal(item.value, 'World');
 	a.equal(item.action, 'test');
 	a.equal(item.key, ':test');
-	a.equal(item.code, 'code');
+	a.equal(item.code, 'Code');
 
 	item = new ide.Item({
 		title: 'Hello'

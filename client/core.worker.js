@@ -114,7 +114,7 @@ ide.WorkerManager.prototype = {
 			$: ide.assist.version,
 			type: 'assist',
 			file: file && file.id,
-			mime: file && file.attributes && file.attributes.mime,
+			mime: file && file.mime,
 			token: token && token.toJSON()
 		},
 		l = this.workers.length, a

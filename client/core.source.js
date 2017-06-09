@@ -914,8 +914,8 @@ ide.defaultEdit = function(options)
 {
 	var file = options.file || new ide.File();
 
-	if (!file.attributes.content)
-		file.attributes.content = '';
+	if (!file.content)
+		file.content = '';
 
 	var editor = new ide.SourceEditor({
 		file: file,
