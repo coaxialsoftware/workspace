@@ -8,5 +8,6 @@
 	},
 	
 	"socket.port": 9005,
-	"online.url": "https://cxl-dev.firebaseio.com/workspace"
+	"online.url": "https://cxl-dev.firebaseio.com/workspace",
+	"online.required": true
 }

@@ -9,7 +9,6 @@
 
 	"dependencies": {
 		"compression": "*",
-		"basic-auth-connect": "*",
 		"mime": "*",
 		"bluebird": "*",
 		"colors": "*",

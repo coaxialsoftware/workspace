@@ -11,12 +11,28 @@ var
 	editorId = 1
 ;
 
-class HintTemplate {
+class Hint {
 
-	render(obj)
+	constructor(p)
 	{
-		this.$renderElements(obj);
-		this.$appendChildren();
+		this.priority = p.priority || 0;
+		this.className = p.className || 'log';
+		this.icon = p.icon;
+		this.svgIcon = p.svgIcon;
+		this.title = p.title;
+		this.description = p.description;
+		this.value = 'value' in p ? p.value : p.title;
+		this.matchStart = p.matchStart;
+		this.matchEnd = p.matchEnd;
+	}
+
+	render()
+	{
+		if (this.el===undefined)
+		{
+			this.$renderElements(this);
+			this.$appendChildren();
+		}
 
 		return this.el;
 	}
@@ -68,34 +84,6 @@ class HintTemplate {
 		if (obj.title) this.$renderTitle(obj);
 	}
 
-}
-
-class Hint {
-
-	constructor(p)
-	{
-		this.priority = p.priority || 0;
-		this.className = p.className || 'log';
-		this.icon = p.icon;
-		this.svgIcon = p.svgIcon;
-		this.title = p.title;
-		this.description = p.description;
-		this.value = 'value' in p ? p.value : p.title;
-		this.matchStart = p.matchStart;
-		this.matchEnd = p.matchEnd;
-	}
-
-	render()
-	{
-		if (this.el===undefined)
-		{
-			this.template = new this.Template();
-			this.el = this.template.render(this);
-		}
-
-		return this.el;
-	}
-
 	destroy()
 	{
 
@@ -103,10 +91,34 @@ class Hint {
 
 }
 
-Hint.prototype.Template = HintTemplate;
+class Item extends Hint {
 
+	/**
+	 * Options:
+	 * key
+	 * className
+	 * action
+	 * value
+	 * code
+	 */
+	constructor(p)
+	{
+		super(p);
 
-class ItemTemplate extends HintTemplate {
+		this.key = p.key;
+		this.action = p.action;
+		this.code = p.code;
+		this.tags = p.tags;
+
+		if (p.enter)
+			this.enter = p.enter;
+
+		if (!this.key && this.action)
+		{
+			var key = ide.keyboard.findKey(this.action);
+			this.key = key ? key : ':' + this.action;
+		}
+	}
 
 	$renderLink(i)
 	{
@@ -174,39 +186,6 @@ class ItemTemplate extends HintTemplate {
 	}
 
 }
-
-class Item extends Hint {
-
-	/**
-	 * Options:
-	 * key
-	 * className
-	 * action
-	 * value
-	 * code
-	 */
-	constructor(p)
-	{
-		super(p);
-
-		this.key = p.key;
-		this.action = p.action;
-		this.code = p.code;
-		this.tags = p.tags;
-
-		if (p.enter)
-			this.enter = p.enter;
-
-		if (!this.key && this.action)
-		{
-			var key = ide.keyboard.findKey(this.action);
-			this.key = key ? key : ':' + this.action;
-		}
-	}
-
-}
-
-Item.prototype.Template = ItemTemplate;
 
 class ComponentItem {
 
@@ -989,7 +968,6 @@ Object.assign(ide, {
 
 	Editor: Editor,
 	ComponentEditor: ComponentEditor,
-	ItemTemplate: ItemTemplate,
 	Item: Item,
 	ComponentItem: ComponentItem,
 	Hint: Hint,

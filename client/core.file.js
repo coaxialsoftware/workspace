@@ -15,7 +15,6 @@ class File {
 		this.filename = filename;
 		this.originalContent = this.content = content || '';
 		this.subscriber = ide.plugins.on('socket.message.file', this.onMessage, this);
-		this._createHint();
 	}
 
 	onSave()
@@ -25,7 +24,13 @@ class File {
 		ide.plugins.trigger('file.write', this);
 	}
 
-	_createHint()
+	get hint()
+	{
+		return this.$hint || (this.$hint = this.$createHint());
+	}
+
+	// TODO move out of here once we add permanent hints
+	$createHint()
 	{
 	var
 		separator = this.content.indexOf("\r\n")!==-1 ? 'CRLF' : 'LF',
@@ -36,7 +41,7 @@ class File {
 		else if (this.mime)
 			tags.push(this.mime);
 
-		this.hint = new ide.Item({
+		return new ide.Item({
 			code: 'file', title: this.filename, tags: tags
 		});
 	}
@@ -46,7 +51,7 @@ class File {
 		return !this.mtime;
 	}
 
-	parse(xhr)
+	$parse(xhr)
 	{
 		var m = CONTENT_TYPE_REGEX.exec(xhr.getResponseHeader('content-type'));
 
@@ -57,9 +62,9 @@ class File {
 			JSON.parse(xhr.responseText) : xhr.responseText;
 
 		this.id = xhr.getResponseHeader('ws-file-id');
-		this.mtime = xhr.getResponseHeader('last-modified');
-
+		this.mtime = +xhr.getResponseHeader('ws-file-mtime');
 		this.$fetching = null;
+
 		ide.plugins.trigger('file.parse', this);
 
 		return this;
@@ -80,7 +85,7 @@ class File {
 		}
 	}
 
-	onError(res)
+	$onError(res)
 	{
 	var
 		id = this.id || (ide.project.id + '/' + this.filename),
@@ -116,9 +121,11 @@ class File {
 	{
 		if (data.stat && data.stat.p===this.id)
 			this.onMessageStat(data.stat);
+
 		ide.plugins.trigger('file.message', this, data);
 	}
 
+	// TODO deprecate this function
 	fetch()
 	{
 		var url = this.$url();
@@ -127,7 +134,12 @@ class File {
 			return this.$fetching;
 
 		return (this.$fetching = cxl.ajax.xhr({ url: url })
-			.then(this.parse.bind(this), this.onError.bind(this)));
+			.then(this.$parse.bind(this), this.$onError.bind(this)));
+	}
+
+	read()
+	{
+		return this.$fetch();
 	}
 
 	isDirectory()
@@ -163,14 +175,14 @@ class File {
 			method: this.id ? 'PUT' : 'POST',
 			contentType: 'application/octet-stream',
 			data: this.content
-		}).then(this.parse.bind(this))
-			.then(this.onSave.bind(this), this.onError.bind(this));
+		}).then(this.$parse.bind(this))
+			.then(this.onSave.bind(this), this.$onError.bind(this));
 	}
 
 	$url()
 	{
 		// TODO remove this and use etag
-		var mtime = this.mtime || Date.now();
+		var mtime = this.mtime || '';
 
 		return '/file?p=' + encodeURIComponent(ide.project.id) +
 			'&n=' + encodeURIComponent(this.filename) + '&t=' + mtime;

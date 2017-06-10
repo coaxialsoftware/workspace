@@ -70,9 +70,8 @@ function getMask(token)
 		token.value.substr(1, token.value.length-2) : token.value;
 }
 
-class CollapsibleItemTemplate extends ide.ItemTemplate {
+class CollapsibleItem extends ide.Item {
 
-	// TODO..
 	toggle(ev, val)
 	{
 		if (ev) ev.stopPropagation();
@@ -100,10 +99,8 @@ class CollapsibleItemTemplate extends ide.ItemTemplate {
 		super.destroy();
 		this.onClickRemove.unsubscribe();
 	}
-}
 
-class CollapsibleItem extends ide.Item { }
-CollapsibleItem.prototype.Template = CollapsibleItemTemplate;
+}
 
 class ListEditorCursor extends ide.feature.CursorFeature {
 

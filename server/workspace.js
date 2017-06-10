@@ -82,6 +82,11 @@ class Configuration {
 	}
 }
 
+var
+	WORKSPACE_JSON_ASSIST = {},
+	PROJECT_JSON_ASSIST = {}
+;
+
 class WorkspaceConfiguration extends Configuration {
 
 	constructor()
@@ -104,6 +109,28 @@ class WorkspaceConfiguration extends Configuration {
 
 		if (this.debug)
 			cxl.enableDebug();
+	}
+
+	/**
+	 * Used for workspace.json assist
+	 */
+	registerSettings(config)
+	{
+		if (Array.isArray(config))
+			return config.forEach(this.registerSettings.bind(this));
+
+		WORKSPACE_JSON_ASSIST[config.name] = config;
+	}
+
+	/**
+	 * Used for project.json assist
+	 */
+	registerProjectSettings(config)
+	{
+		if (Array.isArray(config))
+			return config.forEach(this.registerSettings.bind(this));
+
+		PROJECT_JSON_ASSIST[config.name] = config;
 	}
 
 	onUpdate()

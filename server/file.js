@@ -192,10 +192,15 @@ plugin.config(function() {
 	sendFile: function(res, file)
 	{
 		res.setHeader('content-type', file.mime);
+
+		// TODO use etag
 		if (file.mtime)
-			res.setHeader('last-modified', file.mtime);
+			res.setHeader('ws-file-mtime', file.mtime);
+
 		res.setHeader('ws-file-id', file.path);
-		res.send(file.content);
+
+		return file.content;
+		//res.send(file.content);
 	}
 })
 
