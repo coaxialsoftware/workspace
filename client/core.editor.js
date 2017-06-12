@@ -520,7 +520,15 @@ FileFeature.commands = {
 
 };
 
-class FileHashFeature extends ide.feature.HashFeature {
+class FileHashFeature extends HashFeature {
+
+	render()
+	{
+		// Update hash on file.parse in case file name changes.
+		this.editor.listenTo(ide.plugins, 'file.parse', function() {
+			ide.workspace.update();
+		});
+	}
 
 	get()
 	{

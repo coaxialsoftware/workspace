@@ -117,27 +117,29 @@ ide.plugins.register('online', new ide.Plugin({
 			ide.error('Could not log in.');
 	},
 
-	onAssist: function(done)
-	{
-		if (this.hint)
-			done(this.hint);
-	},
-
 	onProject: function()
 	{
 		var user = ide.project.get('online.username');
 
-		this.hint = user ? new ide.Item({
-			code: 'online',
-			title: user
-		}) : null;
+		if (user)
+		{
+			ide.assist.addPermanentItem(this.hint);
+			this.hint.title = user;
+			this.hint.className = 'success';
+		} else
+		{
+			this.hint.title = '';
+			this.hint.className = 'error';
+			this.hint.remove();
+		}
 	},
 
 	ready: function()
 	{
 		this.listenTo('socket.message.online', this.onMessage);
-		this.listenTo('assist', this.onAssist);
 		this.listenTo('project.load', this.onProject);
+
+		this.hint = new ide.DynamicItem({ code: 'online' });
 
 		this.onProject();
 	}

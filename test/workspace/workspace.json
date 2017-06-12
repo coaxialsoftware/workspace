@@ -4,7 +4,7 @@
 	"theme": "the-matrix",
 	
 	"project": {
-		"ignore": [ ".*"]
+		"ignore": [ ".*" ]
 	},
 	
 	"socket.port": 9005,

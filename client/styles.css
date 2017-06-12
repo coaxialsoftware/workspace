@@ -92,6 +92,8 @@ kbd {
 	padding: 2px 4px;
 }
 
+kbd:empty { padding: 0; }
+
 .pull-right { float: right; }
 .text-right { text-align: right; }
 .hidden { display: none; }
@@ -236,6 +238,7 @@ ide-editor-header > .modified:before { /*content: "\f067";*/ content: "+"; }
 	background-color: transparent !important;
 }
 
+i
 .CodeMirror-scroll {
 	margin-bottom: 0;
 }
@@ -284,6 +287,7 @@ ide-icon.keyword::before { content: "K"; }
 ide-icon.property::before { content: "P"; }
 ide-icon.project::before { content: "\f07b"; }
 ide-icon.settings::before { content: "\f013"; }
+ide-icon.tag::before { content: "\f121"; }
 ide-icon.variable::before { content: "\f1b2"; }
 ide-icon.variable-global::before { content: "G"; }
 ide-icon.expand::before { content: "\f067"; }
@@ -319,6 +323,8 @@ ide-icon.collapse::before { content: "\f068"; }
 	font-size: 14px;
 }
 
+ide-item-description:empty { margin-top: 0; padding: 0; }
+
 ide-scroll-up, ide-scroll-down {
 	display: block; font-family: FontAwesome; text-align: center;
 	border: none; margin-bottom:2px;
@@ -331,16 +337,14 @@ ide-item-tags { float: right; font-size: 0; }
 ide-item-title {
 	clear: both;
 	font-size: inherit; font-weight: normal;
-	margin: 0; padding: 0; line-height: 18px;
+	margin: 2px 0 0 0; padding: 0; line-height: 18px;
 	word-wrap: break-word; display: inline-block;
 	word-break: break-word;
 }
+ide-item-title:empty { display: inline; }
 ide-item-title b { color: #fff; }
 
-.item code {
-	margin-bottom: 2px; display: block;
-	font-size: 10px; text-transform: uppercase;
-}
+.item code { display: block;	font-size: 10px; text-transform: uppercase; }
 .item footer { margin-top: 4px; }
 .item-collapsed .item-detail { display: none; }
 

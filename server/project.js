@@ -334,12 +334,7 @@ class ProjectManager {
 
 	constructor()
 	{
-		/**
-		* List of projects
-		*/
-		var p = this.workspaceProject = new Project('.');
-		p.configuration.ignore = 'workspace.json';
-		this.files = [];
+		this.workspaceProject = new Project('.');
 		this.path = '.';
 		this.projects = {};
 	}
@@ -373,13 +368,14 @@ class ProjectManager {
 
 	getProjectInformation(path)
 	{
-		if (!path.directory || path.filename.indexOf('.')===0 || path.filename==='node_modules')
+		// TODO better directory mime?
+		if ((path.mime !== 'text/directory') ||
+			path.filename.indexOf('.')===0 || path.filename==='node_modules')
 			return;
 
 		if (this.projects[path.filename])
 			return this.projects[path.filename];
 
-		this.files.push(path);
 		this.projects[path.filename] = new Project(path.filename);
 	}
 
@@ -398,6 +394,7 @@ class ProjectManager {
 }
 
 plugin.extend({
+
 	onMessage: function(client, data)
 	{
 		if (!data.path)
@@ -445,10 +442,10 @@ plugin.extend({
 })
 .config(function() {
 	this.server = workspace.server;
-	workspace.projectManager = this.projectManager = new ProjectManager();
 })
 .run(function() {
 
+	workspace.projectManager = this.projectManager = new ProjectManager();
 	workspace.plugins.on('socket.message.project',
 		this.onMessage.bind(this));
 

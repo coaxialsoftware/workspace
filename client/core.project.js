@@ -115,12 +115,11 @@ ide.Project = cxl.Model.extend({
 		if (data['theme.css'])
 			this.loadTheme(data['theme.css']);
 
-		this.hint = new ide.Item({
-			priority: 0,
-			code: 'project',
-			title: data.name || data.path,
-			tags: data.tags
-		});
+		if (!this.hint)
+			this.hint = new ide.DynamicItem({ priority: 0, code: 'project' });
+
+		this.hint.title = data.name || data.path;
+		this.hint.tags = data.tags;
 
 		return data;
 	},
@@ -202,11 +201,6 @@ class ProjectList extends ide.ListEditor {
 	}
 
 }
-
-ide.plugins.on('assist', function(done) {
-	if (ide.project.id!=='.')
-		done(ide.project.hint);
-});
 
 ide.registerCommand('projects', {
 

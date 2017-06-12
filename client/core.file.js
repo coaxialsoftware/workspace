@@ -24,28 +24,6 @@ class File {
 		ide.plugins.trigger('file.write', this);
 	}
 
-	get hint()
-	{
-		return this.$hint || (this.$hint = this.$createHint());
-	}
-
-	// TODO move out of here once we add permanent hints
-	$createHint()
-	{
-	var
-		separator = this.content.indexOf("\r\n")!==-1 ? 'CRLF' : 'LF',
-		tags = [ separator ]
-	;
-		if (this.isDirectory())
-			tags.push('directory');
-		else if (this.mime)
-			tags.push(this.mime);
-
-		return new ide.Item({
-			code: 'file', title: this.filename, tags: tags
-		});
-	}
-
 	isNew()
 	{
 		return !this.mtime;
@@ -223,99 +201,6 @@ class File {
 
 Object.assign(File.prototype, cxl.Events);
 
-class FileFeature {
-
-	constructor(editor, config)
-	{
-		this.editor = editor;
-		editor.file = this.file = config.file;
-		editor.listenTo(ide.plugins, 'file.parse', this.onFileParse.bind(this));
-	}
-
-	// TODO Listening to ide.plugins for this might be dangerous
-	onFileParse(file)
-	{
-		if (file!==this.file)
-			return;
-
-		this.read(file);
-	}
-
-	destroy()
-	{
-		this.editor.file.destroy();
-	}
-
-}
-
-function fileFormatApply(from, to)
-{
-var
-	file = ide.editor.file,
-	content
-;
-	if (file instanceof ide.File)
-	{
-		content = file.content;
-		file.setContent(content.replace(from, to));
-	}
-}
-
-FileFeature.featureName = 'file';
-FileFeature.commands = {
-
-	w: 'write',
-	f: 'file',
-
-	file: function()
-	{
-		ide.notify(ide.editor.file ?
-			ide.editor.file.id || '[No Name]' :
-			'No files open.');
-	},
-
-	save: 'write',
-
-	write: function(filename, force)
-	{
-		this.file.write(filename, force);
-	},
-
-	'w!': function(filename)
-	{
-		this.file.write(filename, true);
-	},
-
-	'fileformat.unix': {
-		description: 'Set the file line end format to "\\n"',
-		fn: function() { fileFormatApply(/\r\n?/g, "\n"); }
-	},
-
-	'fileformat.dos': {
-		description: 'Set the file line end format to "\\r\\n"',
-		fn: function() { fileFormatApply(/\r?\n/g, "\r\n"); }
-	},
-
-	'fileformat.mac': {
-		description: 'Set the file line end format to "\\r"',
-		fn: function() { fileFormatApply(/\r?\n/g, "\r"); }
-	}
-
-};
-
-class FileHashFeature extends ide.feature.HashFeature {
-
-	get()
-	{
-	var
-		editor = this.editor,
-		cmd = editor.command || '',
-		args = editor.arguments ? this.serializeArgs(editor.arguments) :
-			(editor.file.filename || '')
-	;
-		return (cmd ? cmd+':' : '') + args;
-	}
-}
 
 /**
  * Editor with ide.File support
@@ -339,8 +224,6 @@ class FileEditorHeader extends ide.feature.EditorHeader {
 		var update = this.update.bind(this);
 		super.render();
 		this.editor.listenTo(ide.plugins, 'file.parse', update);
-		// TODO This might not be ideal
-		this.editor.listenTo(ide.plugins, 'file.message', update);
 		update();
 	}
 
@@ -369,24 +252,49 @@ class FileEditorHeader extends ide.feature.EditorHeader {
 
 }
 
-FileEditor.features(FileFeature, FileEditorHeader, FileHashFeature);
+FileEditor.features(ide.feature.FileFeature, FileEditorHeader, ide.feature.FileHashFeature);
+
+var fileItem = new ide.DynamicItem({ code: 'file' });
+
+function getTags(file)
+{
+var
+	tags = []
+;
+	if (file.content && file.content.indexOf)
+		tags.push(file.content.indexOf("\r\n")!==-1 ? 'CRLF' : 'LF');
+
+	if (file.isDirectory())
+		tags.push('directory');
+	else if (file.mime)
+		tags.push(file.mime);
+
+	return tags;
+}
 
 ide.plugins.on('assist', function(done, editor) {
 
-	if (editor && editor.file)
-	{
-		if (editor.file instanceof ide.File)
-			done(editor.file.hint);
+	var file = editor && editor.file;
 
-		if (editor.file.outOfSync)
-			done({ title: 'File contents have changed', code: 'file', className: 'error' });
+	if (!file)
+		return;
+
+	if (!fileItem.el)
+		ide.assist.addPermanentItem(fileItem);
+
+	if (fileItem.file !== file)
+	{
+		fileItem.file = file;
+		fileItem.title = file.filename;
+		fileItem.tags = getTags(file);
 	}
+
+	if (file.outOfSync)
+		done({ title: 'File contents have changed', code: 'file', className: 'error' });
 
 });
 
 ide.File = File;
-ide.feature.FileFeature = FileFeature;
-ide.feature.FileHashFeature = FileHashFeature;
 ide.FileEditor = FileEditor;
 
 })(this.cxl, this.ide, this._);

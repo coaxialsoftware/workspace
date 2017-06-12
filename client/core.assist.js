@@ -383,8 +383,10 @@ var Assist = cxl.View.extend({
 	initialize: function()
 	{
 		this.requestHints = cxl.debounce(this._requestHints, this.delay);
-		this.el.innerHTML = '<div class="assist-hints"></div>';
-		this.$hints = this.el.children[0];
+		this.el.innerHTML = '<div class="assist-perm"></div><div class="assist-hints"></div>';
+
+		this.$perm = this.el.children[0];
+		this.$hints = this.el.children[1];
 
 		this.listenTo(this.$hints, 'click', this.onItemClick);
 		//this.listenTo(ide.plugins, 'file.write', this.onToken);
@@ -395,6 +397,15 @@ var Assist = cxl.View.extend({
 		this.listenTo(ide.plugins, 'workspace.remove', this.onOther);
 
 		this.inline = new InlineAssist();
+	},
+
+	/**
+	 * Adds a hint at the top of the assist window that can only be removed
+	 * manually by calling Hint#remove()
+	 */
+	addPermanentItem: function(item)
+	{
+		this.$perm.appendChild(item.render());
 	},
 
 	onItemClick: function()
@@ -431,7 +442,7 @@ var Assist = cxl.View.extend({
 	show: function()
 	{
 		this.el.classList.add('assist-show');
-		this.el.insertBefore(ide.logger.el, this.$hints);
+		this.el.insertBefore(ide.logger.el, this.$perm);
 		this.visible = true;
 		ide.workspace.el.classList.add('assist-show');
 		this._requestHints();
@@ -597,9 +608,14 @@ ide.plugins.register('assist', new ide.Plugin({
 		ide.assist.inline.addHints(data.$, data.hints);
 	},
 
-	ready: function()
+	start: function()
 	{
 		ide.assist = new Assist();
+	},
+
+	ready: function()
+	{
+		ide.assist.addPermanentItem(ide.project.hint);
 
 		this.listenTo('assist', this.onAssist);
 		this.listenTo('socket.message.assist', this.onSocket);
