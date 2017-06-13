@@ -50,146 +50,38 @@ QUnit.test('ide.openTab', function(a) {
 	ide.openTab('test').then(a.async());
 });
 
-QUnit.test('Item', function(a) {
-
-	var item = new ide.Item({});
-
-	a.equal(item.priority, 0);
-
-	item.render();
-
-	a.ok(item.el);
-
-	item = new ide.Item({
-		priority: 10,
-		className: 'error',
-		title: 'Hello',
-		value: 'World',
-		action: 'test',
-		code: 'Code'
-	});
-
-	a.equal(item.priority, 10);
-	a.equal(item.title, 'Hello');
-	a.equal(item.value, 'World');
-	a.equal(item.action, 'test');
-	a.equal(item.key, ':test');
-	a.equal(item.code, 'Code');
-
-	item = new ide.Item({
-		title: 'Hello'
-	});
-
-	a.equal(item.title, 'Hello');
-	a.equal(item.value, 'Hello');
-
-});
-
-QUnit.test('Notification', function(a) {
-
-	var item = new ide.Notification("Hello World", 'error');
-
-	a.equal(item.title, 'Hello World');
-	a.equal(item.className, 'error');
-
-});
-
-/*
-QUnit.test('ide.open - string', function(a) {
-
-	var done = a.async();
-
-	$.mockjax({ url: '/file*', responseText: {
-		filename: 'test',
-		content: 'Hello',
-		mime: ''
-	} });
-
-	ide.open('test').then(function(editor) {
-		a.ok(editor);
-		done();
-	});
-
-});
-QUnit.test('ide.open - plugin', function(a) {
-
-	var done = a.async();
-
-	$.mockjax({ url: '/file*', responseText: {
-		filename: 'test',
-		content: 'Hello',
-		mime: ''
-	} });
+QUnit.test('ide.open() - plugin', function(a) {
+var
+	done = a.async(),
+	file1 = new ide.File(),
+	file2 = new ide.File()
+;
+	file1.mime = 'application/x-test';
+	file2.mime = 'application/x-test2';
 
 	ide.plugins.register('test', {
-		edit: function(o) {
-			a.equal(o.file.get('filename'), 'test');
-			done();
+		open: function(o) {
+			return o.file.mime==='application/x-test' && new ide.Editor({ command: 'test' });
 		}
 	});
 
 	ide.plugins.register('test2', {
 		open: function(o) {
-			a.equal(o.file, 'test');
+			return o.file.mime==='application/x-test2' && new ide.Editor({ command: 'test2' });
 		}
 	});
 
-	ide.open({ file: 'test', plugin: 'test2' });
-	ide.open({ file: 'test', plugin: 'test' });
+	cxl.Promise.all([
+		ide.open({ file: file1 }),
+		ide.open({ file: file2 })
+	]).then(function(r) {
+		a.ok(r[0].command==='test');
+		a.ok(r[1].command==='test2');
+		r[0].quit();
+		r[1].quit();
+		done();
+	});
 
-});*/
-
-QUnit.module('ide.Editor');
-
-QUnit.test('ide.Editor', function(a) {
-var
-	e = new ide.Editor({
-		plugin: { name: 'test' },
-		title: 'test'
-	})
-;
-	a.equal(e.header.title, 'test');
-});
-
-QUnit.test('ide.Editor#blur', function(a) {
-var
-	A = new ide.Editor({
-		plugin: { name: 'test' }
-	}),
-	B = new ide.Editor({
-		plugin: { name: 'test' }
-	})
-;
-	A.focus.set();
-	a.equal(ide.editor, A);
-	B.focus.set();
-	a.equal(ide.editor, B);
-});
-
-
-QUnit.test('ide.Editor#quit', function(a) {
-var
-	e = new ide.Editor({
-		plugin: { name: 'test' }
-	})
-;
-	ide.workspace.slot().setEditor(e);
-	a.equal(ide.workspace.slots.length, 1);
-	ide.workspace.remove(e);
-	a.equal(ide.workspace.slots.length, 0);
-});
-
-QUnit.module('ide.FileEditor');
-
-QUnit.test('ide.FileEditor', function(a) {
-var
-	file = new ide.File(),
-	e = new ide.FileEditor({
-		plugin: { name: 'test' },
-		file: file
-	})
-;
-	a.equal(e.file, file);
 });
 
 /*QUnit.test('ide.Editor#cmd', function(a) {

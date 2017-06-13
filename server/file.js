@@ -139,11 +139,9 @@ plugin.config(function() {
 		common.stat(data.p).bind(this).then(function(stat) {
 			if (stat && stat.mtime.getTime()!==data.t)
 			{
-				this.dbg(`[onMessageStat] File changed: ${data.p}`);
-
 				var response = {
-					path: data.p,
-					mtime: stat.mtime.getTime()
+					p: data.p,
+					t: stat.mtime.getTime()
 				};
 
 				workspace.socket.respond(client, 'file', response);

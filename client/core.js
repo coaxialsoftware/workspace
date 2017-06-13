@@ -56,6 +56,7 @@ var ResourceManager = {
 
 var ide = window.ide = {
 
+	version: '2.6.0',
 	/** Used by commands to indicate that the command wasn't handled. */
 	Pass: {},
 

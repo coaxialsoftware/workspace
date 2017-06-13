@@ -158,7 +158,7 @@ class Item extends Hint {
 	{
 		super.$renderElements(obj);
 
-		if (obj.key) this.$renderKey(obj);
+		if (obj.key || obj.action) this.$renderKey(obj);
 		if (obj.code) this.$renderCode(obj);
 		if (obj.tags) this.$renderTags(obj);
 	}

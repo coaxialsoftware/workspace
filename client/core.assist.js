@@ -35,6 +35,7 @@ var InlineAssist = function() {
 	ide.registerCommand('inlineAssistPrevious', this.previous, this);
 	ide.registerCommand('inlineAssistAccept', this.accept, this);
 	ide.registerCommand('inlineAssistHide', this.hide, this);
+	ide.registerCommand('assist.inlineForce', this.forceRequest, this);
 };
 
 cxl.extend(InlineAssist.prototype, {
@@ -80,13 +81,18 @@ cxl.extend(InlineAssist.prototype, {
 		}
 	},
 
-	_requestHints: function(editor, token)
+	forceRequest: function()
+	{
+		this._requestHints(ide.editor, null, true);
+	},
+
+	_requestHints: function(editor, token, force)
 	{
 		token = token || editor.token && editor.token.current;
 	var
 		file = editor.file instanceof ide.File && editor.file
 	;
-		if (!token || !token.cursorValue)
+		if (!token || (!force && !token.cursorValue))
 			return this.hide();
 
 		this.version++;
@@ -629,8 +635,13 @@ ide.plugins.register('assist', new ide.Plugin({
 
 ide.keymap.registerKeys({
 
+	default: {
+		'mod+space': 'assist.inlineForce'
+	},
+
 	inlineAssist: {
 
+		// TODO change to 'assist.' prefix
 		down: 'inlineAssistNext',
 		up: 'inlineAssistPrevious',
 		enter: 'inlineAssistAccept',

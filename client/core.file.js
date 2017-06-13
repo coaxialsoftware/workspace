@@ -14,7 +14,16 @@ class File {
 	{
 		this.filename = filename;
 		this.originalContent = this.content = content || '';
-		this.subscriber = ide.plugins.on('socket.message.file', this.onMessage, this);
+		this.subscribers = [
+			ide.plugins.on('socket.message.file', this.onMessage, this),
+			ide.plugins.on('socket.ready', this.onSocketReady, this)
+		];
+	}
+
+	onSocketReady()
+	{
+		if (this.id)
+			ide.socket.send('file', { stat: { p: this.id } });
 	}
 
 	onSave()
@@ -53,6 +62,7 @@ class File {
 		return this.content !== this.originalContent;
 	}
 
+	// TODO see if we can remove this function
 	setContent(content)
 	{
 		// TODO ? should we fire change and not parse?
@@ -99,8 +109,6 @@ class File {
 	{
 		if (data.stat && data.stat.p===this.id)
 			this.onMessageStat(data.stat);
-
-		ide.plugins.trigger('file.message', this, data);
 	}
 
 	// TODO deprecate this function
@@ -125,19 +133,25 @@ class File {
 		return this.mime === 'text/directory';
 	}
 
+	$writeError(msg)
+	{
+		ide.error(msg);
+		return cxl.Promise.reject(msg);
+	}
+
 	write(filename, force)
 	{
 		if (this.isDirectory())
-			return ide.warn('Cannot write to directory');
+			return this.$writeError(File.ERROR_WRITE_DIRECTORY);
 
 		if (filename && this.filename !== filename)
 			this.filename = filename;
 
 		if (!this.filename)
-			return ide.error('No file name.');
+			return this.$writeError(File.ERROR_WRITE_NO_FILENAME);
 
 		if (!force && this.outOfSync)
-			return ide.error('File contents have changed.');
+			return this.$writeError(File.ERROR_WRITE_OOS);
 
 		return this.$save();
 	}
@@ -194,13 +208,18 @@ class File {
 
 	destroy()
 	{
-		this.subscriber.unsubscribe();
+		this.subscribers[0].unsubscribe();
+		this.subscribers[1].unsubscribe();
 	}
 
 }
 
-Object.assign(File.prototype, cxl.Events);
+File.ERROR_WRITE_DIRECTORY = 'Cannot write to directory';
+File.ERROR_WRITE_OOS = 'File contents have changed';
+File.ERROR_WRITE_NO_FILENAME = 'No file name' ;
 
+// TODO should we allow events for files?
+// Object.assign(File.prototype, cxl.Events);
 
 /**
  * Editor with ide.File support

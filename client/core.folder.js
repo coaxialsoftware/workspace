@@ -474,8 +474,7 @@ ide.plugins.register('folder', new ide.Plugin({
 		{
 			ch = str[0];
 			str = str.substr(1);
-			if (str.length>0)
-				files = this.find(str, false, ch);
+			files = this.find(str, false, ch);
 		}
 
 		if (files && files.length)

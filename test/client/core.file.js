@@ -16,8 +16,10 @@ var
 	f.fetch().then(function() {
 		a.equal(f.mime, 'text/directory');
 		a.ok(Array.isArray(f.content));
+		a.ok(f.isDirectory());
 		a.ok(!f.new);
 		a.ok(f.mtime);
+		f.destroy();
 		done();
 	});
 });
@@ -31,6 +33,7 @@ var
 		a.equal(f.mime, 'text/plain');
 		a.equal(f.content, '');
 		a.ok(f.isNew());
+		f.destroy();
 		done();
 	});
 });
@@ -45,8 +48,23 @@ var
 		a.equal(f.id, 'workspace.json');
 		a.ok(!f.new);
 		a.ok(f.mtime);
+		f.destroy();
 		done();
 	});
+});
+
+QUnit.test('File#fetch() - Repeated fetching', function(a) {
+var
+	f = new ide.File('workspace.json'),
+	done = a.async()
+;
+	f.fetch();
+	f.fetch().then(function() {
+		a.ok(f.id);
+		f.destroy();
+		done();
+	});
+
 });
 
 QUnit.test('File#hasChanged()', function(a) {
@@ -70,6 +88,7 @@ var
 	}).then(function() {
 		a.equal(f.content, now);
 		a.ok(!f.hasChanged());
+		f.destroy();
 	}).then(done);
 });
 
@@ -94,9 +113,51 @@ var
 	}).then(function() {
 		a.equal(f.id, 'File#write');
 		a.equal(f.content, content2);
+		f.destroy();
 		done();
 	});
 });
+
+QUnit.test('File#write() - Directory', function(a) {
+var
+	f = new ide.File('.'),
+	done = a.async()
+;
+	f.fetch().then(function() {
+		return f.write();
+	}).catch(function(e) {
+		a.equal(e, ide.File.ERROR_WRITE_DIRECTORY);
+		a.ok(f.isDirectory());
+		f.destroy();
+		done();
+	});
+});
+
+QUnit.test('File#write() - No File Name', function(a) {
+var
+	f = new ide.File(''),
+	done = a.async()
+;
+	f.write().catch(function(e) {
+		a.equal(e, ide.File.ERROR_WRITE_NO_FILENAME);
+		f.destroy();
+		done();
+	});
+});
+
+/*QUnit.test('File#onMessageStat() - 2 files', function(a) {
+var
+	f1 = new ide.File('File#onMessageStat'),
+	f2 = new ide.File('File#onMessageStat'),
+	done = a.async()
+;
+	Promise.all([ f1.fetch(), f2.fetch() ]).then(function() {
+		a.ok(f1.id === f2.id);
+		f1.content = a.test.testId;
+	}).then(function() {
+		a.ok(f2.outOfSync);
+	}).then(done);
+});*/
 
 QUnit.test('File#onMessageStat()', function(a) {
 var
@@ -105,11 +166,11 @@ var
 	done=a.async(),
 	file = new ide.File('File#onMessageStat')
 ;
-	ide.notify = function notify() { notify.called = true; };
-	ide.warn = function warn() { warn.called = true; };
-
 	file.fetch().then(function(file) {
 		try {
+			ide.notify = function notify() { notify.called = true; };
+			ide.warn = function warn() { warn.called = true; };
+
 			file.fetch = function fetch() { fetch.called = true; };
 			file.onMessageStat({
 				f: file.id, t: Date.now()
@@ -129,6 +190,7 @@ var
 			a.ok(file.outOfSync);
 		}
 		finally {
+			file.destroy();
 			ide.warn = warn;
 			ide.notify = notify;
 		}
@@ -137,3 +199,16 @@ var
 
 });
 
+QUnit.module('ide.FileEditor');
+
+QUnit.test('ide.FileEditor', function(a) {
+var
+	file = new ide.File(),
+	e = new ide.FileEditor({
+		plugin: { name: 'test' },
+		file: file
+	})
+;
+	a.equal(e.file, file);
+	e.destroy();
+});
