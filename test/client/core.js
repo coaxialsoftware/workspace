@@ -5,12 +5,12 @@ QUnit.test('Initialized', function(a) {
 	a.ok(ide.project);
 });
 
-QUnit.test('ide.warn', function(a) {
+QUnit.test('ide.warn()', function(a) {
 	var h = ide.warn('Hello World');
 	a.equal(h.title, 'Hello World');
 });
 
-QUnit.test('ide.notify limit', function(a) {
+QUnit.test('ide.notify() - limit', function(a) {
 	ide.logger.delay = 0;
 
 	for (var i=0; i<105; i++)
@@ -23,7 +23,7 @@ QUnit.test('ide.notify limit', function(a) {
 	});
 });
 
-QUnit.test('ide.notify ide.Item', function(a) {
+QUnit.test('ide.notify() - ide.Item', function(a) {
 	ide.logger.delay = 0;
 	var item = new ide.Notification({});
 
@@ -36,12 +36,12 @@ QUnit.test('ide.notify ide.Item', function(a) {
 	});
 });
 
-QUnit.test('ide.source', function(a) {
+QUnit.test('ide.source()', function(a) {
 	var res = ide.source('return 10');
 	a.equal(res, 10);
 });
 
-QUnit.test('ide.openTab', function(a) {
+QUnit.test('ide.openTab()', function(a) {
 
 	window.open = function(url) {
 		a.ok(url);
@@ -77,23 +77,21 @@ var
 	]).then(function(r) {
 		a.ok(r[0].command==='test');
 		a.ok(r[1].command==='test2');
-		r[0].quit();
-		r[1].quit();
+		ide.workspace.remove(r[0]);
+		ide.workspace.remove(r[1]);
 		done();
 	});
-
 });
 
-/*QUnit.test('ide.Editor#cmd', function(a) {
-	var e = new ide.Editor({
-		plugin: { name: 'test' },
-		slot: ide.workspace.slot()
+QUnit.module('ide.resources');
+
+QUnit.test('ide.resources.getIcon()', function(a) {
+var
+	icon = ide.resources.getIcon('tag')
+;
+	a.ok(icon);
+	a.throws(function() {
+		ide.resources.getIcon('tagtag');
 	});
+});
 
-	a.equal(e.cmd('hello'), ide.Pass);
-
-	e.commands = { hello: 'world', world: function(p) { return p; } };
-
-	a.equal(e.cmd('hello', [1]), 1);
-	a.equal(e.cmd('world', [2]), 2);
-});*/

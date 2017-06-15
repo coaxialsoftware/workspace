@@ -142,6 +142,7 @@ common = module.exports = {
 	writeFile: Q.promisify(fs.writeFile),
 	stat: Q.promisify(fs.stat),
 	mkdir: Q.promisify(fs.mkdir),
+	unlink: Q.promisify(fs.unlink),
 
 	read: function(filename)
 	{

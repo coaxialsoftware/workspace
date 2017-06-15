@@ -103,7 +103,6 @@ class WorkspaceConfiguration extends Configuration {
 		var inspect = process.execArgv.join('').match(/--inspect(?:=(\d+))?/);
 
 		this.set({
-			user: process.env.USER || process.env.USERNAME,
 			inspect: inspect && (+inspect[1] || 9222)
 		});
 
@@ -178,71 +177,12 @@ cxl.define(WorkspaceConfiguration, {
 
 });
 
-class Theme
-{
-	constructor(p)
-	{
-		this.path = path.isAbsolute(p) ? p :
-			basePath + '/public/theme/' + p + '.css';
-
-		workspace.watch(this.path, this.onWatch.bind(this));
-	}
-
-	onWatch()
-	{
-		this.load().then(function() {
-			workspace.plugins.emit('themes.reload:' + this.path, this);
-		});
-	}
-
-	toJSON()
-	{
-		return this.source;
-	}
-
-	load()
-	{
-		return common.read(this.path).bind(this).then(function(src)
-		{
-			this.source = src.replace(/\n/g,'');
-
-			return this;
-		});
-	}
-
-}
-
-class ThemeManager
-{
-	constructor()
-	{
-		this.themes = {};
-	}
-
-	/**
-	 * Use this function to register a new Theme
-	 */
-	register(path, theme)
-	{
-		return (this.themes[path] = theme);
-	}
-
-	load(path)
-	{
-		var theme = this.themes[path] || this.register(path, new Theme(path));
-		return theme.source ? Q.resolve(theme) : theme.load();
-	}
-
-}
-
 workspace.extend({
 
 	Configuration: Configuration,
-	Theme: Theme,
 
 	configuration: new WorkspaceConfiguration(),
 
-	themes: new ThemeManager(),
 	basePath: basePath,
 	cwd: path.resolve(process.cwd()),
 	common: common,
@@ -414,6 +354,16 @@ workspace.extend({
 
 	var cookie, match, token, json;
 
+	function fail()
+	{
+		res.status(401).end();
+	}
+
+	function tryLogin()
+	{
+		return workspace.online.loginToken(token).then(next, fail);
+	}
+
 	if (req.method==='POST' && req.path==='/login')
 	{
 		var body = '';
@@ -432,10 +382,7 @@ workspace.extend({
 
 			workspace.online.login(null, json).then(function(data) {
 				res.send(data);
-			}, function() {
-				res.status(401).end();
-			});
-
+			}, fail);
 		});
 
 		return;
@@ -448,18 +395,11 @@ workspace.extend({
 		{
 			token = match[1];
 
-			if (!workspace.online.uid)
-			{
-				return workspace.online.loginToken(token).then(function() {
-					next();
-				}, function() {
-					res.status(401).end();
-				});
-			} else if (token === workspace.online.token)
-				return next();
+			return (workspace.online.uid && token === workspace.online.token) ?
+				next() : tryLogin();
 		}
 
-		return res.status(401).end();
+		return fail();
 	}
 
 	next();
@@ -471,6 +411,7 @@ workspace.extend({
 
 .config(function()
 {
+	require('./theme.js');
 	require('./plugins.js');
 
 	this.plugins = new workspace.PluginManager();

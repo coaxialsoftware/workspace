@@ -83,6 +83,8 @@ ide-tag {
 	display: inline-block;
 }
 
+ide-tag:empty { padding:0; }
+
 ide-tag.transparent { background-color: transparent; }
 
 kbd {

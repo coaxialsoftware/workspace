@@ -23,6 +23,7 @@
 	"devDependencies": {
 		"font-awesome": "*",
 		"codemirror": "j5g3/CodeMirror",
+		"highlight.js": "*",
 		"grunt": "*",
 		"grunt-contrib-jshint": "*",
 		"grunt-contrib-concat": "*",

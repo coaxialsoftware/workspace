@@ -99,6 +99,19 @@ class File {
 		});
 	}
 
+	// TODO Use library
+	static delete(path)
+	{
+		return common.unlink(path);
+	}
+
+	delete()
+	{
+		return this.checkChanged().then(function() {
+			return File.delete(this.path);
+		}).then(this.read);
+	}
+
 	write()
 	{
 		function OnWrite()
@@ -198,7 +211,6 @@ plugin.config(function() {
 		res.setHeader('ws-file-id', file.path);
 
 		return file.content;
-		//res.send(file.content);
 	}
 })
 
@@ -210,6 +222,15 @@ plugin.config(function() {
 
 	common.respond(
 		this, res, this.getFile(filepath).then(this.sendFile.bind(this, res))
+	);
+})
+
+.route('DELETE', '/file', function(req, res) {
+	var file = new File(this.getPath(req.query.p, req.query.n));
+	file.mtime = +req.query.t;
+
+	common.respond(
+		this, res, file.delete().then(this.sendFile.bind(this, res))
 	);
 })
 

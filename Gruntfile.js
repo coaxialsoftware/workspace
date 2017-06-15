@@ -44,6 +44,29 @@ module.exports = function(grunt) {
 				dest: 'public/build/ide.css'
 			},
 
+			docs: {
+				src: [
+					'node_modules/highlight.js/lib/highlight.js',
+					'node_modules/highlight.js/lib/languages/bash.js',
+
+					'node_modules/@cxl/cxl/client/cxl.js',
+					'node_modules/@cxl/cxl/client/cxl-rx.js',
+					'node_modules/@cxl/cxl/client/cxl-dom.js',
+					'node_modules/@cxl/cxl/client/cxl-dom-css.js',
+					'node_modules/@cxl/cxl/client/cxl-template.js',
+					'node_modules/@cxl/cxl/client/cxl-ui-theme.js',
+					'node_modules/@cxl/cxl/client/cxl-ui.js'
+				],
+				dest: 'public/docs/docs.js'
+			},
+
+			docsCss: {
+				src: [
+					'node_modules/highlight.js/styles/darcula.css'
+				],
+				dest: 'public/docs/docs.css'
+			},
+
 			test: {
 				src: 'node_modules/jquery-mockjax/dist/jquery.mockjax.js',
 				dest: 'public/build/test.js'

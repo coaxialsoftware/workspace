@@ -106,7 +106,7 @@ var ide = window.ide = {
 
 	styles: null,
 
-	confirm: cxl.ui.confirm,
+	confirm: cxl.ui.confirm.bind(cxl.ui),
 
 	/** Displays notification on right corner */
 	notify: function(message, kls)

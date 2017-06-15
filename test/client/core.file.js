@@ -118,6 +118,21 @@ var
 	});
 });
 
+QUnit.test('File#write() - Empty file', function(a) {
+var
+	f = new ide.File('File#writeEmpty'),
+	done = a.async(),
+	content = ''
+;
+	f.fetch().then(function() {
+		f.content = content;
+		return f.write();
+	}).then(function() {
+		a.equal(f.id, 'File#writeEmpty');
+		a.equal(f.content, content);
+	}).then(done);
+});
+
 QUnit.test('File#write() - Directory', function(a) {
 var
 	f = new ide.File('.'),
@@ -143,6 +158,26 @@ var
 		f.destroy();
 		done();
 	});
+});
+
+QUnit.test('File#delete()', function(a) {
+var
+	f = new ide.File('File#delete'),
+	done = a.async(),
+	content = 'Testing Content'
+;
+	f.fetch().then(function() {
+		f.content = content;
+		return f.write();
+	}).then(function() {
+		a.equal(f.id, 'File#delete');
+		a.equal(f.content, content);
+		return f.delete();
+	}).then(function() {
+		a.equal(f.id, 'File#delete');
+		a.equal(f.content, '');
+		a.ok(f.isNew());
+	}).then(done);
 });
 
 /*QUnit.test('File#onMessageStat() - 2 files', function(a) {

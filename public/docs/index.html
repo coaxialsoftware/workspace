@@ -1,16 +1,37 @@
-<!DOCTYPE html>
-<html>
 <head>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-	<title>workspace - Guide</title>
+	<title>workspace - Help</title>
 </head>
-<body class="container">
-	<h1>workspace</h1>
+<cxl-root>
+	<link rel="stylesheet" href="docs.css" />
+	<style>
+		code { font-family: monospace; padding: 4px 8px; color: #bd4147; background-color: #f7f7f9; }
+		kbd {
+			font-family: monospace; border-radius: 4px; background-color: #2b2b2b; color: #bababa;
+			padding: 2px 8px;
+		}
+		ide-code { font-family: monospace; }
+		kbd::before { content: ":"; }
+	</style>
+	<cxl-header>
+		<cxl-header-nav>
+			<cxl-nav-item>Getting Started</cxl-nav-item>
+			<cxl-nav-item>Basic Concepts</cxl-nav-item>
+			<cxl-nav-item>Extensions</cxl-nav-item>
+			<cxl-nav-item>Basic Editing</cxl-nav-item>
+			<cxl-nav-item>Code Navigation</cxl-nav-item>
+			<cxl-nav-item>Debugging</cxl-nav-item>
+			<cxl-nav-item>Version Control</cxl-nav-item>
+			<cxl-nav-item>Accessibility</cxl-nav-item>
+		</cxl-header-nav>
+		<cxl-header-title>workspace - Help</cxl-header-title>
+	</cxl-header>
+<cxl-content><cxl-container>
+	
 	<p>
 		A Development Environment in the Cloud
 	</p>
 	
-	<h2>Requirements and Installation</h2>
+	<h2>Getting Started</h2>
 	
 	<h3>System Requiremets</h3>
 	<ul>
@@ -22,22 +43,23 @@
 	<p>
 		To install from NPM (stable)
 	</p>
-	<pre><code>
-npm install -g @cxl/workspace
-	</code></pre>
+	<ide-code class="bash">
+$ npm install -g @cxl/workspace
+	</ide-code>
 	
 	<h3>
 		Starting the Application
 	</h3>
-	<p>
-		Command Line arguments.
-	</p>
+	<ide-code class="shell">
+$ cd /your/projects/folder
+$ workspace
+	</ide-code>
 	
 	<h2>Basic Concepts</h2>
 	
 	<h3>Workspace</h3>
 	<p>
-		A Workspace is a collection of projects under the same folder or directory. Workspace settings are stored in the optional<code>workspace.json</code> file. Multiple instances of <code>workspace</code> can be started for different workspaces.
+		A Workspace is a collection of projects under the same folder or directory. Workspace settings are stored in the optional <code>workspace.json</code> file. Multiple instances of <code>workspace</code> can be started for different workspaces.
 	</p>
 	<p>
 		Use the <kbd>workspace.settings</kbd> command to edit the workspace settings.
@@ -50,7 +72,7 @@ npm install -g @cxl/workspace
 		The command <kbd>project [path or name]</kbd> can be used to open existing projects.
 	</p>
 	<p>
-		Use the <kbd>project.settings</kbd> command to edit the workspace settings.
+		Once you open a project, you can use the <kbd>project.settings</kbd> command to edit open the project settings file.
 	</p>
 	<p>
 		There are many ways to create a project.
@@ -70,7 +92,7 @@ npm install -g @cxl/workspace
 	<p>
 		Using the <kbd>project</kbd> command, you will be prompted to create a new project if it currently does not exist.
 	</p>
-	<pre><code>project newPath</code></pre>
+	<ide-code>: project newPath</ide-code>
 	<h4>
 		Project Files
 	</h4>
@@ -83,7 +105,7 @@ npm install -g @cxl/workspace
 	<h4>
 		Ignore Files
 	</h4>
-	
+	<p></p>
 	<h3>Commands</h3>
 	<p>
 		Every action in the application has an associated command. Use the <kbd>commands</kbd> command to see a list of available commands for your current editor.
@@ -92,6 +114,9 @@ npm install -g @cxl/workspace
 	<h3>KeyMap</h3>
 	<p>
 		Keymap states are used to associate keyboard events to commands. You can specify the default keymap using the <code>keymap</code> setting.
+	</p>
+	<p>
+		To see a list of keyboard shortcuts for the current editor use the <code>keymap</code> command.
 	</p>
 	<h3>
 		Themes
@@ -113,19 +138,35 @@ npm install -g @cxl/workspace
 		To see the list of available extensions, use the <kbd>plugins</kbd> command.
 	</p>
 	<h3>
-		Installing Extensions
-	</h3>
-	<h3>
 		Creating Extensions
 	</h3>
+	<p>
+		Extensions are <code>npm</code> packages containing an <code>index.js</code> file and an optional client javascript file.
+	</p>
+	<h3>
+		Installing Extensions
+	</h3>
+	<p>
+		The <kbd>plugins.install @cxl/workspace.pluginName</kbd> can be used to install plugins.
+		Use the <kbd>plugins.uninstall @cxl/workspace.pluginName</kbd> to remove it.
+	</p>
+	<p>
+		To install your own custom or unofficial extensions, you can add an entry to the workspace.json file.
+	</p>
+	<ide-code class="javascript">
+{
+	"plugins": [ "path/to/your/extension/package" ]
+}
+	</ide-code>
 	<h3>
 		Creating Themes
 	</h3>
+	<p>
+		Themes are CSS Files. You can see a list of available themes in the Plugins list.
+		To use your own custom CSS, specify the path in your <code>project.json</code> or <code>workspace.json</code> theme property.
+	</p>
 	<h3>
 		Creating Keymaps
-	</h3>
-	<h3>
-		Extension Guidelines
 	</h3>
 	<h2>
 		User Interface
@@ -226,6 +267,30 @@ npm install -g @cxl/workspace
 	<h3>
 		Keyboard Navigation
 	</h3>
-	
-</body>
-</html>
+</cxl-container></cxl-content>
+	<script>
+		window.module = {
+			set exports(fn) {
+				hljs.registerLanguage('bash', fn);
+			}	
+		};
+	</script>
+	<script src="docs.js"></script>
+	<script>
+		hljs.configure({useBR: true});
+		
+		cxl.component({
+			name: 'ide-code',
+			initialize: function(state)
+			{
+				state.cm = hljs.highlightBlock(this.$native);
+			}
+		});
+		
+		cxl.component({
+			name: 'ide-cmd'
+		});
+		
+		cxl.start();
+	</script>
+</cxl-root>

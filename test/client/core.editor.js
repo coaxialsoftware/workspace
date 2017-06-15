@@ -1,4 +1,4 @@
-
+/*jshint esnext:true*/
 QUnit.module('ide.Editor');
 
 QUnit.test('ide.Editor', function(a) {
@@ -26,7 +26,6 @@ var
 	a.equal(ide.editor, B);
 });
 
-
 QUnit.test('ide.Editor#quit', function(a) {
 var
 	e = new ide.Editor({
@@ -37,4 +36,22 @@ var
 	a.equal(ide.workspace.slots.length, 1);
 	ide.workspace.remove(e);
 	a.equal(ide.workspace.slots.length, 0);
+});
+
+QUnit.test('ide.Editor#cmd', function(a) {
+
+	class TestEditor extends ide.Editor {}
+
+	var e = new TestEditor({ });
+
+	a.equal(e.cmd('hello'), ide.Pass);
+
+	TestEditor.registerCommands({
+		hello: 'world',
+		world: function(p) { return p; }
+	});
+
+	a.equal(e.cmd('hello', [1]), 1);
+	a.equal(e.cmd('world', [2]), 2);
+
 });

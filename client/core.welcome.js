@@ -39,12 +39,8 @@ ide.plugins.register('welcome', new ide.Plugin({
 	{
 	var
 		p = ide.project,
-		user = p.get('user'),
 		project = this.project = p.get('name') || p.get('path')
 	;
-		if (user)
-			ide.warn('Welcome ' + user);
-
 		if (project)
 			window.document.title = project;
 

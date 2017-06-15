@@ -123,6 +123,23 @@ class File {
 			.then(this.$parse.bind(this), this.$onError.bind(this)));
 	}
 
+	delete()
+	{
+		var file = this;
+
+		if (this.isNew())
+			ide.notify('File does not exist');
+
+		function onDelete()
+		{
+			ide.notify('File successfully deleted');
+			return file.fetch();
+		}
+
+		return cxl.ajax.xhr({ url: this.$url(), method: 'DELETE' })
+			.then(onDelete, this.$onError.bind(this));
+	}
+
 	read()
 	{
 		return this.$fetch();
@@ -267,6 +284,8 @@ class FileEditorHeader extends ide.feature.EditorHeader {
 		if (this.editor.file.outOfSync)
 			this.setTag('file.old',
 				'<span title="File contents have changed">Out of Sync</span>', 'error');
+
+		this.setTag('file.new', this.editor.file.isNew() ? 'New' : null);
 	}
 
 }

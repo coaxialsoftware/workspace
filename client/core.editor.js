@@ -498,6 +498,22 @@ FileFeature.commands = {
 		this.file.write(filename, force);
 	},
 
+	delete: {
+		fn: function()
+		{
+			var file = this.file;
+
+			return ide.confirm({
+				title: 'Delete File',
+				message: 'Are you sure?',
+				action: 'Delete'
+			}).then(function() {
+				return file.delete();
+			});
+		},
+		description: 'Delete current editor file'
+	},
+
 	'w!': function(filename)
 	{
 		this.file.write(filename, true);
