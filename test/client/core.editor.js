@@ -1,4 +1,21 @@
 /*jshint esnext:true*/
+
+QUnit.module('ide.feature');
+
+QUnit.test('ide.EditorHeader', function(a) {
+var
+	editor = {},
+	header = new ide.feature.EditorHeader(editor)
+;
+	a.ok(editor.header);
+	header.title = 'Testing Header';
+	a.equal(header.title, 'Testing Header');
+	
+	header.setTag('test', 'TEST');
+	a.ok(header.tags.test);
+	a.equal(header.tags.test.el.innerHTML, 'TEST');
+});
+
 QUnit.module('ide.Editor');
 
 QUnit.test('ide.Editor', function(a) {

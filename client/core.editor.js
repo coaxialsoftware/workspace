@@ -43,7 +43,7 @@ class EditorHeader extends Feature {
 	render()
 	{
 		this.editor.el.appendChild(this.el);
-		this.editor.listenTo(this.$close, 'click', this.onClose);
+		this.editor.listenTo(this.$close, 'click', this.$onClose);
 		this.$project.innerHTML = '[' + ide.project.id + '] ';
 	}
 
@@ -72,13 +72,13 @@ class EditorHeader extends Feature {
 		return this._changed;
 	}
 
-	onClose(ev)
+	$onClose(ev)
 	{
 		ev.preventDefault(); ev.stopPropagation();
 		ide.workspace.remove(this);
 	}
 
-	createTag(id)
+	$createTag(id)
 	{
 		var tag = this.tags[id] = {
 			el: document.createElement('ide-tag')
@@ -94,7 +94,7 @@ class EditorHeader extends Feature {
 		var el = this.tags[id];
 
 		if (!el)
-			el = this.createTag(id);
+			el = this.$createTag(id);
 
 		if (text !== undefined && el.text !== text)
 			el.el.innerHTML = el.text = text;
@@ -440,125 +440,6 @@ class Token {
 
 class Range { }
 
-class FileFeature {
-
-	constructor(editor, config)
-	{
-		this.editor = editor;
-		editor.file = this.file = config.file;
-		editor.listenTo(ide.plugins, 'file.parse', this.onFileParse.bind(this));
-	}
-
-	// TODO Listening to ide.plugins for this might be dangerous
-	onFileParse(file)
-	{
-		if (file!==this.file)
-			return;
-
-		this.read(file);
-	}
-
-	destroy()
-	{
-		this.editor.file.destroy();
-	}
-
-}
-
-function fileFormatApply(from, to)
-{
-var
-	file = ide.editor.file,
-	content
-;
-	if (file instanceof ide.File)
-	{
-		content = file.content;
-		file.setContent(content.replace(from, to));
-	}
-}
-
-FileFeature.featureName = 'file';
-FileFeature.commands = {
-
-	w: 'write',
-	f: 'file',
-
-	file: function()
-	{
-		ide.notify(ide.editor.file ?
-			ide.editor.file.id || '[No Name]' :
-			'No files open.');
-	},
-
-	save: 'write',
-
-	write: function(filename, force)
-	{
-		this.file.write(filename, force);
-	},
-
-	delete: {
-		fn: function()
-		{
-			var file = this.file;
-
-			return ide.confirm({
-				title: 'Delete File',
-				message: 'Are you sure?',
-				action: 'Delete'
-			}).then(function() {
-				return file.delete();
-			});
-		},
-		description: 'Delete current editor file'
-	},
-
-	'w!': function(filename)
-	{
-		this.file.write(filename, true);
-	},
-
-	'fileformat.unix': {
-		description: 'Set the file line end format to "\\n"',
-		fn: function() { fileFormatApply(/\r\n?/g, "\n"); }
-	},
-
-	'fileformat.dos': {
-		description: 'Set the file line end format to "\\r\\n"',
-		fn: function() { fileFormatApply(/\r?\n/g, "\r\n"); }
-	},
-
-	'fileformat.mac': {
-		description: 'Set the file line end format to "\\r"',
-		fn: function() { fileFormatApply(/\r?\n/g, "\r"); }
-	}
-
-};
-
-class FileHashFeature extends HashFeature {
-
-	render()
-	{
-		// Update hash on file.parse in case file name changes.
-		this.editor.listenTo(ide.plugins, 'file.parse', function() {
-			ide.workspace.update();
-		});
-	}
-
-	get()
-	{
-	var
-		editor = this.editor,
-		cmd = editor.command || '',
-		args = editor.arguments ? this.serializeArgs(editor.arguments) :
-			(editor.file.filename || '')
-	;
-		return (cmd ? cmd+':' : '') + args;
-	}
-
-}
-
 class Editor {
 
 	constructor(p)
@@ -709,6 +590,21 @@ class ComponentEditor extends Editor {
 
 }
 
+class BrowserEditor extends Editor {
+
+	render(p)
+	{
+		super.render(p);
+
+		this.$iframe = document.createElement('IFRAME');
+		this.$iframe.className = 'ide-browser';
+		this.$content.appendChild(this.$iframe);
+
+		if (p.url)
+			this.$iframe.src = p.url;
+	}
+
+}
 
 Object.assign(ide, {
 	Feature: Feature,
@@ -716,12 +612,11 @@ Object.assign(ide, {
 	Token: Token,
 	Editor: Editor,
 	Range: Range,
-	ComponentEditor: ComponentEditor
+	ComponentEditor: ComponentEditor,
+	BrowserEditor: BrowserEditor
 });
 
 ide.feature = {
-	FileFeature: FileFeature,
-	FileHashFeature: FileHashFeature,
 	EditorHeader: EditorHeader,
 	CursorFeature: CursorFeature,
 	FocusFeature: FocusFeature,

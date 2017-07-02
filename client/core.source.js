@@ -713,29 +713,15 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 
 class SourceFileFeature extends ide.feature.FileFeature {
 
-	render()
+	parse(encoding)
 	{
-		// TODO
-		this.read();
+		this.encoding = encoding || ide.project.get('editor.encoding');
+		return super.parse(encoding);
 	}
-
-	read(file)
+	
+	update()
 	{
-		var editor = editor;
-
-		file = file || this.editor.file;
-
-		if (file.content instanceof cxl.Promise)
-			return file.content.then(function(content) {
-				editor.setValue(content);
-			});
-		else if (file.content instanceof Array || file.content instanceof ArrayBuffer)
-		{
-			// TODO
-			file.content = new TextDecoder('utf-8').decode(file.content);
-		}
-
-		this.editor.setValue(file.content);
+		this.editor.setValue(this.content);
 	}
 
 }
@@ -801,6 +787,8 @@ class SourceEditor extends ide.FileEditor {
 		ft = this.mode = this._findMode(),
 		s = ide.project.get('editor') || {}
 	;
+		this.encoding = ide.project.get('editor.encoding') || 'utf8';
+		
 		return (this.options = cxl.extend(
 			{
 				tabSize: 4,
@@ -865,6 +853,9 @@ class SourceEditor extends ide.FileEditor {
 		// TODO
 		if (p.startLine)
 			setTimeout(editor.setCursor.bind(editor, p.startLine));
+		
+		if (this.encoding !== ide.project.get('editor.encoding'))
+			this.setTag('editor.encoding', this.encoding);
 
 		this.keymap.handle = this._keymapHandle.bind(this);
 

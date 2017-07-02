@@ -90,7 +90,7 @@ cxl.extend(InlineAssist.prototype, {
 	{
 		token = token || editor.token && editor.token.current;
 	var
-		file = editor.file instanceof ide.File && editor.file
+		file = editor.file
 	;
 		if (!token || (!force && !token.cursorValue))
 			return this.hide();
@@ -111,7 +111,7 @@ cxl.extend(InlineAssist.prototype, {
 
 		ide.socket.send('assist.inline', {
 			$: this.version,
-			file: file && file.id,
+			file: file && file.path,
 			mime: file && file.mime,
 			token: token && token.toJSON(),
 			project: ide.project.id
@@ -395,10 +395,8 @@ var Assist = cxl.View.extend({
 		this.$hints = this.el.children[1];
 
 		this.listenTo(this.$hints, 'click', this.onItemClick);
-		//this.listenTo(ide.plugins, 'file.write', this.onToken);
 		this.listenTo(ide.plugins, 'token', this.onToken);
 		this.listenTo(ide.plugins, 'editor.focus', this.onToken);
-		//this.listenTo(ide.plugins, 'editor.change', this.onToken);
 		this.listenTo(ide.plugins, 'file.write', this.onOther);
 		this.listenTo(ide.plugins, 'workspace.remove', this.onOther);
 
@@ -460,35 +458,43 @@ var Assist = cxl.View.extend({
 		this.version++;
 		this.requestHints.cancel();
 	},
+	
+	_doRequestNow: function(editor, file, token, diff)
+	{
+		ide.socket.send('assist', {
+			$: this.version,
+			file: file && file.path,
+			mime: file && file.mime,
+			token: token && token.toJSON(),
+			project: ide.project.id,
+			fileChanged: file && file.$diff.diffChanged,
+			editor: editor && editor.id,
+			diff: diff
+		});
+
+		this.render();
+	},
 
 	_requestHints: function(editor)
 	{
 		editor = this.editor = editor || ide.editor;
 	var
 		token = editor && editor.token && editor.token.current,
-		file = editor && (editor.file instanceof ide.File) && editor.file,
+		file = editor && editor.file,
 		diff = file && file.diff()
 	;
 		this.version++;
 		this.$hints.innerHTML = '';
 		this.rendered = false;
 		this.hints = [];
-
+		
 		ide.plugins.trigger('assist',
 			this.addHint.bind(this, this.version), editor, token);
-
-		ide.socket.send('assist', {
-			$: this.version,
-			file: file && file.id,
-			mime: file && file.mime,
-			token: token && token.toJSON(),
-			project: ide.project.id,
-			fileChanged: file && file.diffChanged,
-			editor: editor && editor.id,
-			diff: diff
-		});
-
-		this.render();
+		
+		if (diff)
+			diff.then(this._doRequestNow.bind(this, editor, file, token));
+		else
+			this._doRequestNow(editor, file, token);
 	},
 
 	toggle: function()

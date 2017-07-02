@@ -131,7 +131,6 @@ class FileManager {
 	}
 }
 
-
 common = module.exports = {
 
 	FileMatcher: FileMatcher,

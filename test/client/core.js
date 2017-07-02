@@ -1,4 +1,4 @@
-
+/*jshint esnext:true */
 QUnit.module('core');
 
 QUnit.test('Initialized', function(a) {
@@ -95,3 +95,23 @@ var
 	});
 });
 
+QUnit.test('ide.resources.registerIcon()', function(a) {
+var
+	icon = ide.resources.registerIcon('test')
+;
+	a.ok(icon);
+	a.equal(icon.id, 'test');
+	a.ok(icon.element);
+	a.ok(ide.resources.getIcon('test'));
+	icon.destroy();
+	a.throws(() => ide.resources.getIcon('test'));
+});
+
+QUnit.test('ide.resources.registerSVGIcon()', function(a) {
+var
+	icon = ide.resources.registerSVGIcon('test', '', '0,0,0,0')
+;
+	a.ok(icon);
+	a.equal(icon.element.tagName, 'svg');
+	icon.destroy();
+});

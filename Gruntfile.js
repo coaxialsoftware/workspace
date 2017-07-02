@@ -48,6 +48,7 @@ module.exports = function(grunt) {
 				src: [
 					'node_modules/highlight.js/lib/highlight.js',
 					'node_modules/highlight.js/lib/languages/bash.js',
+					'node_modules/highlight.js/lib/languages/javascript.js',
 
 					'node_modules/@cxl/cxl/client/cxl.js',
 					'node_modules/@cxl/cxl/client/cxl-rx.js',
@@ -55,14 +56,15 @@ module.exports = function(grunt) {
 					'node_modules/@cxl/cxl/client/cxl-dom-css.js',
 					'node_modules/@cxl/cxl/client/cxl-template.js',
 					'node_modules/@cxl/cxl/client/cxl-ui-theme.js',
-					'node_modules/@cxl/cxl/client/cxl-ui.js'
+					'node_modules/@cxl/cxl/client/cxl-ui.js',
+					'node_modules/@cxl/cxl/client/cxl-router.js'
 				],
 				dest: 'public/docs/docs.js'
 			},
 
 			docsCss: {
 				src: [
-					'node_modules/highlight.js/styles/darcula.css'
+					'node_modules/highlight.js/styles/zenburn.css'
 				],
 				dest: 'public/docs/docs.css'
 			},

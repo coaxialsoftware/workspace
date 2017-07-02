@@ -1,34 +1,40 @@
 <head>
 	<title>workspace - Help</title>
 </head>
-<cxl-root>
 	<link rel="stylesheet" href="docs.css" />
 	<style>
-		code { font-family: monospace; padding: 4px 8px; color: #bd4147; background-color: #f7f7f9; }
-		kbd {
-			font-family: monospace; border-radius: 4px; background-color: #2b2b2b; color: #bababa;
+		docs-file, code, docs-setting {
+			font-family: monospace; padding: 4px 8px; color: #bd4147; background-color: #f7f7f9;
+		}
+		docs-kbd, docs-cmd {
+			font-family: monospace; border-radius: 4px; background-color: #f4f2f9; color: #0072be;
 			padding: 2px 8px;
 		}
-		ide-code { font-family: monospace; }
-		kbd::before { content: ":"; }
+		docs-code { display: block; font-family: monospace; white-space: pre; }
+		docs-cmd::before { content: ":"; }
 	</style>
+<cxl-root>
 	<cxl-header>
 		<cxl-header-nav>
-			<cxl-nav-item>Getting Started</cxl-nav-item>
-			<cxl-nav-item>Basic Concepts</cxl-nav-item>
-			<cxl-nav-item>Extensions</cxl-nav-item>
-			<cxl-nav-item>Basic Editing</cxl-nav-item>
-			<cxl-nav-item>Code Navigation</cxl-nav-item>
-			<cxl-nav-item>Debugging</cxl-nav-item>
-			<cxl-nav-item>Version Control</cxl-nav-item>
-			<cxl-nav-item>Accessibility</cxl-nav-item>
+			<cxl-nav-item &="route.link(getting-started)">Getting Started</cxl-nav-item>
+			<cxl-nav-item &="route.link(basic-concepts)">Basic Concepts</cxl-nav-item>
+			<cxl-nav-item &="route.link(plugins)">Extensions</cxl-nav-item>
+			<cxl-nav-item &="route.link(ui)">User Interface</cxl-nav-item>
+			<cxl-nav-item &="route.link(basic-editing)">Basic Editing</cxl-nav-item>
+			<cxl-nav-item &="route.link(keyboard)">Keyboard Shortcuts</cxl-nav-item>
+			<!--cxl-nav-item &="route.link(code-navigation)">Code Navigation</cxl-nav-item-->
+			<!--cxl-nav-item &="route.link(debugging)">Debugging</cxl-nav-item-->
+			<!--cxl-nav-item &="route.link(version-control)">Version Control</cxl-nav-item-->
+			<!--cxl-nav-item &="route.link(accessibility)">Accessibility</cxl-nav-item-->
 		</cxl-header-nav>
-		<cxl-header-title>workspace - Help</cxl-header-title>
+		<cxl-header-title>workspace - <cxl-route-title></cxl-route-title></cxl-header-title>
 	</cxl-header>
-<cxl-content><cxl-container>
+<cxl-content><cxl-container &="content"></cxl-container></cxl-content>
+</cxl-root>
 	
+<template id="getting-started">
 	<p>
-		A Development Environment in the Cloud
+		A Development Environment for the Cloud
 	</p>
 	
 	<h2>Getting Started</h2>
@@ -43,179 +49,256 @@
 	<p>
 		To install from NPM (stable)
 	</p>
-	<ide-code class="bash">
+	<docs-code class="bash">
 $ npm install -g @cxl/workspace
-	</ide-code>
+	</docs-code>
 	
 	<h3>
-		Starting the Application
+		Starting the Server
 	</h3>
-	<ide-code class="shell">
+	<docs-code class="shell">
 $ cd /your/projects/folder
 $ workspace
-	</ide-code>
+	</docs-code>
+	<h3>
+		Starting the Client
+	</h3>
+	<p>
+		Go to your favorite browser and enter the server URL and port (ie http://localhost:9001)
+	</p>
 	
+</template>
+	
+<template id="basic-concepts">
 	<h2>Basic Concepts</h2>
 	
 	<h3>Workspace</h3>
 	<p>
 		A Workspace is a collection of projects under the same folder or directory. Workspace settings are stored in the optional <code>workspace.json</code> file. Multiple instances of <code>workspace</code> can be started for different workspaces.
 	</p>
+	<h4>
+		Global Settings
+	</h4>
 	<p>
-		Use the <kbd>workspace.settings</kbd> command to edit the workspace settings.
+		Use the <docs-cmd>workspace.settings</docs-cmd> command to edit the workspace settings.
 	</p>
+	<h4>
+		Default Project Settings
+	</h4>
+	<p>
+		The <code>project</code> setting allows you to define the default settings for all project in the workspace.
+	</p>
+	<docs-code language="javascript">
+{
+	"project": {
+		"plugins": [ "vim" ],
+		"ignore": [ ".*" ]
+	}
+}
+	</docs-code>
 	<h3>Project</h3>
 	<p>
 		A project is a directory inside a workspace that contains your source code.
 	</p>
 	<p>
-		The command <kbd>project [path or name]</kbd> can be used to open existing projects.
+		The command <docs-cmd>project [path or name]</docs-cmd> can be used to open existing projects.
 	</p>
 	<p>
-		Once you open a project, you can use the <kbd>project.settings</kbd> command to edit open the project settings file.
+		Once you open a project, you can use the <docs-cmd>project.settings</docs-cmd> command to edit open the project settings file.
 	</p>
-	<p>
-		There are many ways to create a project.
-	</p>
+
 	<h4>
-		Creating a Project from existing sources
+		Creating a Project from Existing Sources
 	</h4>
 	<p>
 		To create a project from an existing source, just move the project folder to your current workspace.
 	</p>
 	<h4>
-		Creating a Project from a remote repository
-	</h4>
-	<h4>
-		Creating a Project from scratch
+		Creating a Project from Scratch
 	</h4>
 	<p>
-		Using the <kbd>project</kbd> command, you will be prompted to create a new project if it currently does not exist.
+		Using the <docs-cmd>project newPath</docs-cmd> command, you will be prompted to create a new project if it currently does not exist. After the project is created you can start creating files using the <docs-cmd>edit [filename]</docs-cmd> command.
 	</p>
-	<ide-code>: project newPath</ide-code>
 	<h4>
 		Project Files
 	</h4>
 	<p>
 	Project settings are stored in the optional <code>project.json</code> file.
 	This file will override any default settings from <code>workspace.json</code>.
-	You can also use <code>project.local.json</code> if you need to override settings from <code>project.json</code> for your local copy. This is helpful when you dont want to check in those settings in your
-		repository.
+	You can also use <code>project.local.json</code> if you need to override settings for your local copy. This is helpful when you dont want to check in those settings in your repository.
 	</p>
 	<h4>
 		Ignore Files
 	</h4>
+	<p>
+		The <code>ignore</code> setting allows you to ignore files in your project. This helps the file autocomplete feature and improves performance in projects with many files.
+	</p>
+	<docs-code class="javascript">
+{
+	"ignore": [ ".*", "node_modules" ]	
+}
+	</docs-code>
 	<p></p>
 	<h3>Commands</h3>
 	<p>
-		Every action in the application has an associated command. Use the <kbd>commands</kbd> command to see a list of available commands for your current editor.
+		Every action in the application has an associated command. Use the <docs-cmd>commands</docs-cmd> command to see a list of available commands and their respective keyboard shortcuts.
 	</p>
 	
 	<h3>KeyMap</h3>
 	<p>
-		Keymap states are used to associate keyboard events to commands. You can specify the default keymap using the <code>keymap</code> setting.
+		Keymap states are used to associate keyboard events to commands. You can specify the default keymap using the <docs-keymap>keymap</docs-keymap> setting.
 	</p>
 	<p>
-		To see a list of keyboard shortcuts for the current editor use the <code>keymap</code> command.
+		To see a list of keyboard shortcuts for the current editor use the <docs-cmd>keymap</docs-cmd> command.
 	</p>
 	<h3>
 		Themes
 	</h3>
 	<p>
-		Themes are CSS files. They can be specified by using the <code>theme</code> setting. Default templates are in the <code>public/themes</code> folder.
+		Themes are CSS files. The default theme can be specified in the <code>workspace.json</code> file using the <code>theme</code> setting. Projects can also override the default theme by using this setting.
 	</p>
-	<h3>
-		Editors
-	</h3>
-	<p>
-		
-	</p>
+
+</template>
+<template id="plugins">
 	
 	<h2>
 		Extensions
 	</h2>
 	<p>
-		To see the list of available extensions, use the <kbd>plugins</kbd> command.
+		To see the list of available extensions, use the <docs-cmd>plugins</docs-cmd> command.
 	</p>
 	<h3>
 		Creating Extensions
 	</h3>
 	<p>
-		Extensions are <code>npm</code> packages containing an <code>index.js</code> file and an optional client javascript file.
+		Extensions are <code>npm</code> packages containing an <code>index.js</code> file and an optional javascript file to be used by the client.
 	</p>
 	<h3>
 		Installing Extensions
 	</h3>
 	<p>
-		The <kbd>plugins.install @cxl/workspace.pluginName</kbd> can be used to install plugins.
-		Use the <kbd>plugins.uninstall @cxl/workspace.pluginName</kbd> to remove it.
+		The <docs-cmd>plugins.install @cxl/workspace.pluginName</docs-cmd> can be used to install plugins.
+		Use the <docs-cmd>plugins.uninstall @cxl/workspace.pluginName</docs-cmd> to remove it.
 	</p>
 	<p>
-		To install your own custom or unofficial extensions, you can add an entry to the workspace.json file.
+		To install your own custom or unofficial extensions, you can add an entry to the <code></code>workspace.json file.
 	</p>
-	<ide-code class="javascript">
+	<docs-code class="javascript">
 {
 	"plugins": [ "path/to/your/extension/package" ]
 }
-	</ide-code>
+	</docs-code>
+	<h3>
+		Enable Extensions for All Projects
+	</h3>
+	<p>
+		Use the <docs-setting global>project</docs-setting> setting from <docs-file>workspace.json</docs-file> to enable extensions by default for all projects.
+	</p>
+	<docs-code class="javascript">
+{
+	"project": {
+		"plugins": [ "vim", "git" ]
+	}
+}
+	</docs-code>
+	<h3>
+		Enable Extensions by Project
+	</h3>
+	<p>
+		The <docs-setting>plugin</docs-setting> project setting can be used to enable extensions for the current project.
+	</p>
+	<docs-code class="javascript">
+{
+	"plugins": [ "vim", "git" ]
+}
+	</docs-code>
 	<h3>
 		Creating Themes
 	</h3>
 	<p>
-		Themes are CSS Files. You can see a list of available themes in the Plugins list.
-		To use your own custom CSS, specify the path in your <code>project.json</code> or <code>workspace.json</code> theme property.
+		Themes are CSS Files. To use your own custom CSS, specify the path in your <code>project.json</code> or <code>workspace.json</code> theme property.
 	</p>
 	<h3>
 		Creating Keymaps
 	</h3>
+</template>
+<template id="ui">
 	<h2>
 		User Interface
 	</h2>
 	<h3>
-		Command and Search Bar
+		Command Bar
 	</h3>
+	<p>
+		Use the <docs-cmd>ex</docs-cmd> command to enter commands.
+	</p>
+	<h3>
+		Search Bar
+	</h3>
+	<p>
+		Use the <docs-cmd>searchbar</docs-cmd> and <docs-cmd>searchbarReverse</docs-cmd> commands to open the Search Bar.
+	</p>
 	<h3>
 		Notifications
 	</h3>
+	<p>
+		Notifications are shown in the upper right corner of the screen. To see a list of previous log messages use the <docs-cmd>log</docs-cmd> command.
+	</p>
 	<h3>
 		Assist Panel
 	</h3>
+	<p>
+		The assist panel shows information relevant to the current project, editor and token. Use the <docs-cmd>assist</docs-cmd> command to toggle the panel visibility.
+	</p>
 	<h3>
 		Editor Header
 	</h3>
+	<p>
+		The Editor header displays editor information.
+	</p>
 	<h3>
 		List Editors
 	</h3>
+	<p>
+		List editors are used to display list data like directory files, commands or plugins.
+	</p>
 	<h3>
 		Tab Support
 	</h3>
+	<p>
+		Workspace depends on your browser's tab support, to open a file in a new tab use the <docs-cmd>tabe [file/name]</docs-cmd> command.
+	</p>
+</template>
+<template id="basic-editing">
 	<h2>
 		Basic Editing
 	</h2>
 	<h3>
-		Keyboard Shortcuts
-	</h3>
-	<h3>
 		Opening and Saving Files
 	</h3>
+	<p>
+		To open or create a new file use the <docs-cmd>e [file]</docs-cmd> or <docs-cmd>edit [file]</docs-cmd> command. Once you are done editing the file, you can use the <docs-cmd>w</docs-cmd> or <docs-cmd>write</docs-cmd> command to save the file.
+	</p>
 	<h3>
 		Closing the Current Editor
 	</h3>
-	<h3>
-		Search Across Files
-	</h3>
+	<p>
+		Click the <code>x</code> button in the editor header, or use the <docs-cmd>quit</docs-cmd> command.
+	</p>
 	<h3>
 		Assist and Inline Assist
 	</h3>
+	<p>
+		Use the <docs-cmd>assist</docs-cmd> command to toggle the Assist Panel. The <docs-cmd>assist.inlineForce</docs-cmd> command will display the Inline Assist window.
+	</p>
 	<h3>
 		Folding
 	</h3>
 	<h3>
-		Snippets
-	</h3>
-	<h3>
 		File Encoding
 	</h3>
+</template>
+<template id="code-navigation">
 	<h2>
 		Code Navigation
 	</h2>
@@ -234,6 +317,8 @@ $ workspace
 	<h3>
 		Editor Hints
 	</h3>
+</template>
+<template id="debugging">
 	<h2>
 		Debugging
 	</h2>
@@ -249,12 +334,16 @@ $ workspace
 	<h3>
 		Extensions
 	</h3>
+</template>
+<template id="version-control">
 	<h2>
 		Version Control
 	</h2>
 	<h3>
 		Extensions
 	</h3>
+</template>
+<template id="accessibility">
 	<h2>
 		Accessibility
 	</h2>
@@ -267,30 +356,131 @@ $ workspace
 	<h3>
 		Keyboard Navigation
 	</h3>
-</cxl-container></cxl-content>
+</template>
+<template id="keyboard">
+	
+	<h3>Keyboard Shortcuts</h3>
+	<p>
+		Keymap states are used to associate keyboard events to commands. You can specify the default workspace or project keymap using the <docs-setting>keymap</docs-setting> setting.
+	</p>
+	<p>
+		To see a list of keyboard shortcuts for the current editor use the <docs-cmd>keymap</docs-cmd> command.
+	</p>
+</template>
+
 	<script>
-		window.module = {
-			set exports(fn) {
-				hljs.registerLanguage('bash', fn);
-			}	
-		};
+		(function(window) {
+			var module = 'bash';
+			window.module = {
+				set exports(fn) {
+					hljs.registerLanguage(module, fn);
+					module = 'javascript';
+				}	
+			};
+		})(this)
 	</script>
 	<script src="docs.js"></script>
 	<script>
-		hljs.configure({useBR: true});
-		
+		hljs.configure({ tabReplace: '    ' });
 		cxl.component({
-			name: 'ide-code',
+			name: 'docs-code',
 			initialize: function(state)
 			{
+				var node = this.$native.childNodes[0];
+				if (node)
+					node.nodeValue = node.nodeValue.trimLeft();
+				node = this.$native.childNodes[this.$native.childNodes.length-1];
+				if (node)
+					node.nodeValue = node.nodeValue.trimRight();
+				
 				state.cm = hljs.highlightBlock(this.$native);
 			}
 		});
 		
 		cxl.component({
-			name: 'ide-cmd'
+			name: 'docs-cmd',
+			shadow: false
+		});
+		
+		cxl.route({
+			id: 'getting-started',
+			shadow: false,
+			path: '*home',
+			templateId: 'getting-started',
+			title: 'Getting Started'
+		});
+		
+		cxl.route({
+			id: 'basic-editing',
+			path: '/basic-editing',
+			shadow: false,
+			templateId: 'basic-editing',
+			title: 'Basic Editing'
+		});
+		
+		cxl.route({
+			id: 'ui',
+			shadow: false,
+			path: '/ui',
+			templateId: 'ui',
+			title: 'User Interface'
+		});
+		
+		cxl.route({
+			id: 'accessibility',
+			shadow: false,
+			path: '/accessibility',
+			templateId: 'accessibility',
+			title: 'Accessibility'
+		});
+		
+		cxl.route({
+			id: 'debugging',
+			shadow: false,
+			path: '/debugging',
+			templateId: 'debugging',
+			title: 'Debugging'
+		});
+		
+		cxl.route({
+			id: 'code-navigation',
+			shadow: false,
+			path: '/code-navigation',
+			templateId: 'code-navigation',
+			title: 'Code Navigation'
+		});
+		
+		cxl.route({
+			id: 'basic-concepts',
+			shadow: false,
+			path: '/basic-concepts',
+			templateId: 'basic-concepts',
+			title: 'Basic Concepts'
+		});
+		
+		cxl.route({
+			id: 'version-control',
+			shadow: false,
+			path: '/version-control',
+			templateId: 'version-control',
+			title: 'Version Control'
+		});
+		
+		cxl.route({
+			id: 'plugins',
+			shadow: false,
+			path: '/plugins',
+			templateId: 'plugins',
+			title: 'Extensions'
+		});
+		
+		cxl.route({
+			id: 'keyboard',
+			shadow: false,
+			path: '/keyboard',
+			templateId: 'keyboard',
+			title: 'Keyboard Shortcuts'
 		});
 		
 		cxl.start();
 	</script>
-</cxl-root>

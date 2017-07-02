@@ -167,16 +167,22 @@ class Plugin {
 
 	toJSON()
 	{
-		return {
+		var json = {
 			installed: true,
 			id: this.id,
-			name: this.package.name,
-			description: this.package.description,
-			version: this.package.version,
 			npmVersion: this.npmVersion,
 			unofficial: this.unofficial,
 			local: this.local
 		};
+
+		if (this.package)
+		{
+			json.name = this.package.name;
+			json.description = this.package.description;
+			json.version = this.package.version;
+		}
+
+		return json;
 	}
 }
 

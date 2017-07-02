@@ -27,9 +27,10 @@ class ProjectConfiguration extends workspace.Configuration
 
 	constructor(p)
 	{
-		super(_.pick(workspace.configuration,
-			[ 'keymap', 'theme', 'user', 'online.url',
-			  'online.username', 'inspect' ]));
+		super(_.pick(workspace.configuration, [
+			'keymap', 'theme', 'online.url', 'online.username', 'inspect',
+			'path.separator', 'editor.encoding'
+		]));
 
 		this.ignore = [];
 		this.set(workspace.configuration.project);
@@ -336,7 +337,16 @@ class ProjectManager {
 	{
 		this.workspaceProject = new Project('.');
 		this.path = '.';
+		
+		workspace.plugins.on('project.filechange', this.onFileChange.bind(this));
+		
 		this.projects = {};
+	}
+	
+	onFileChange(project)
+	{
+		if (project.path==='.')
+			this.findProjects();
 	}
 
 	getProjectByName(name)

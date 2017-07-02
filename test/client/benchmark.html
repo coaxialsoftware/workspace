@@ -1,0 +1,38 @@
+<html>
+<head>
+	<title>Benchmark Suite</title>
+	<link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.3.3.css" />
+</head>
+<body>
+	<h1 id="qunit-header">Test Suite</h1>
+	<h2 id="qunit-banner"></h2>
+	<h2 id="qunit-userAgent"></h2>
+	<div id="qunit-testrunner-toolbar"></div>
+	<ol id="qunit-tests"></ol>
+	<div id="qunit-testresult"></div>
+	<div id="qunit-fixture"></div>
+	
+	<script src="https://code.jquery.com/qunit/qunit-2.3.3.js"></script>
+	
+	<script>
+QUnit.config.autostart = false;
+	</script>
+	
+	<div style="display:none">
+	<div id="notification"></div>
+	<div id="command" class="command-bar"><input /></div>
+	<div id="search" class="command-bar"><input /></div>
+	<div id="assist"></div>
+	<div id="welcome"></div>
+	<div id="assist-inline"></div>
+	<div id="workspace"></div>
+	</div><style id="styles"></style>
+	
+	<script src="/build/ide.js"></script>
+	<script src="mock.js"></script>
+	
+	<!-- TESTS -->
+	<script src="benchmark.js"></script>
+	
+</body>
+</html>

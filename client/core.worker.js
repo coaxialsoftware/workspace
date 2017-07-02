@@ -69,6 +69,19 @@ ide.Worker.prototype = {
 	buildSource: function(methods)
 	{
 		var result = '', i;
+		
+		if (methods.defs)
+		{
+			result = methods.defs;
+			delete methods.defs;
+		}
+		
+		if (methods.private)
+		{
+			for (i in methods.private)
+				result += methods.private[i].toString();
+			delete methods.private;
+		}
 
 		for (i in methods)
 			result += this.getSource(methods[i], i);
@@ -113,7 +126,7 @@ ide.WorkerManager.prototype = {
 		file = editor && editor.file, msg = {
 			$: ide.assist.version,
 			type: 'assist',
-			file: file && file.id,
+			file: file && file.path,
 			mime: file && file.mime,
 			token: token && token.toJSON()
 		},

@@ -2,7 +2,7 @@
 	"name": "@cxl/workspace",
 	"description": "Javascript Web Editor",
 	"author": "Giancarlo Bellido <giancarlo@coaxialhost.com>",
-	"version": "2.6.0",
+	"version": "2.7.0",
 	"bin": {
 		"workspace": "./bin/workspace.js"
 	},
@@ -17,7 +17,8 @@
 		"micromatch": "*",
 		"firebase": "2",
 		"@cxl/cxl": "2",
-		"npm": "*"
+		"npm": "*",
+		"uglify-es": "*"
 	},
 
 	"devDependencies": {
@@ -34,8 +35,7 @@
 		"qunitjs": "*",
 		"karma-qunit": "*",
 		"karma-coverage": "*",
-		"karma-chrome-launcher": "*",
-		"uglify-es": "*"
+		"karma-chrome-launcher": "*"
 	},
 
 	"files": [ "public", "server", "bin" ],

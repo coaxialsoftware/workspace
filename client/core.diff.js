@@ -35,10 +35,13 @@
  * [[DIFF_DELETE, 'Hello'], [DIFF_INSERT, 'Goodbye'], [DIFF_EQUAL, ' world.']]
  * which means: delete 'Hello', add 'Goodbye' and keep ' world.'
  */
-var DIFF_DELETE = -1;
-var DIFF_INSERT = 1;
-var DIFF_EQUAL = 0;
-
+const
+	DIFF_DELETE = -1,
+	DIFF_INSERT = 1,
+	DIFF_EQUAL = 0,
+	MINL = 5
+;
+	
 /**
  * Find the differences between two texts.  Simplifies the problem by stripping
  * any common prefix or suffix off the texts before diffing.
@@ -46,39 +49,35 @@ var DIFF_EQUAL = 0;
  * @param {string} text2 New string to be diffed.
  * @return {Array} Array of diff tuples.
  */
-function diff_main(text1, text2) {
-  // Check for equality (speedup).
-  if (text1 === text2) {
-    if (text1) {
-      return [[DIFF_EQUAL, text1]];
-    }
-    return [];
-  }
+function diff_main(text1, text2)
+{
+	// Check for equality (speedup).
+	if (text1 === text2)
+		return text1 ? [DIFF_EQUAL, text1] : [];
 
-  // Trim off common prefix (speedup).
-  var commonlength = diff_commonPrefix(text1, text2);
-  var commonprefix = text1.slice(0, commonlength);
-  text1 = text1.slice(commonlength);
-  text2 = text2.slice(commonlength);
+	// Trim off common prefix (speedup).
+	var commonlength = diff_commonPrefix(text1, text2);
+	var commonprefix = text1.slice(0, commonlength);
+	
+	text1 = text1.slice(commonlength);
+	text2 = text2.slice(commonlength);
 
-  // Trim off common suffix (speedup).
-  commonlength = diff_commonSuffix(text1, text2);
-  var commonsuffix = text1.slice(text1.length - commonlength);
-  text1 = text1.slice(0, text1.length - commonlength);
-  text2 = text2.slice(0, text2.length - commonlength);
+	// Trim off common suffix (speedup).
+	commonlength = diff_commonSuffix(text1, text2);
+	var commonsuffix = text1.slice(text1.length - commonlength);
+	text1 = text1.slice(0, text1.length - commonlength);
+	text2 = text2.slice(0, text2.length - commonlength);
 
-  // Compute the diff on the middle block.
-  var diffs = diff_compute_(text1, text2);
+	// Compute the diff on the middle block.
+	var diffs = diff_compute_(text1, text2);
 
-  // Restore the prefix and suffix.
-  if (commonprefix) {
-    diffs.unshift([DIFF_EQUAL, commonprefix]);
-  }
-  if (commonsuffix) {
-    diffs.push([DIFF_EQUAL, commonsuffix]);
-  }
-  diff_cleanupMerge(diffs);
-  return diffs;
+	// Restore the prefix and suffix.
+	if (commonprefix) diffs.unshift(DIFF_EQUAL, commonprefix);
+	if (commonsuffix) diffs.push(DIFF_EQUAL, commonsuffix);
+	
+	diff_cleanupMerge(diffs);
+	
+	return diffs;
 }
 
 
@@ -90,56 +89,47 @@ function diff_main(text1, text2) {
  * @return {Array} Array of diff tuples.
  */
 function diff_compute_(text1, text2) {
-  var diffs;
+	var diffs;
 
-  if (!text1) {
-    // Just add some text (speedup).
-    return [[DIFF_INSERT, text2]];
-  }
+	// Just add some text (speedup).
+	if (!text1) return [DIFF_INSERT, text2];
 
-  if (!text2) {
-    // Just delete some text (speedup).
-    return [[DIFF_DELETE, text1]];
-  }
+	// Just delete some text (speedup).
+	if (!text2) return [DIFF_DELETE, text1];
 
-  var longtext = text1.length > text2.length ? text1 : text2;
-  var shorttext = text1.length > text2.length ? text2 : text1;
-  var i = longtext.indexOf(shorttext);
-  if (i !== -1) {
-    // Shorter text is inside the longer text (speedup).
-    diffs = [[DIFF_INSERT, longtext.slice(0, i)],
-             [DIFF_EQUAL, shorttext],
-             [DIFF_INSERT, longtext.slice(i + shorttext.length)]];
-    // Swap insertions for deletions if diff is reversed.
-    if (text1.length > text2.length) {
-      diffs[0][0] = diffs[2][0] = DIFF_DELETE;
-    }
-    return diffs;
-  }
+var
+	longtext = text1.length > text2.length ? text1 : text2,
+	shorttext = text1.length > text2.length ? text2 : text1,
+	i = longtext.indexOf(shorttext)
+;
+	if (i !== -1) {
+		// Shorter text is inside the longer text (speedup).
+		diffs = [DIFF_INSERT, longtext.slice(0, i),
+				 DIFF_EQUAL, shorttext,
+				 DIFF_INSERT, longtext.slice(i + shorttext.length)];
+		// Swap insertions for deletions if diff is reversed.
+		if (text1.length > text2.length) diffs[0] = diffs[4] = DIFF_DELETE;
+		
+		return diffs;
+	}
 
-  if (shorttext.length === 1) {
-    // Single character string.
-    // After the previous speedup, the character can't be an equality.
-    return [[DIFF_DELETE, text1], [DIFF_INSERT, text2]];
-  }
+	// Single character string.
+	// After the previous speedup, the character can't be an equality.
+	if (shorttext.length === 1)
+		return [DIFF_DELETE, text1, DIFF_INSERT, text2];
 
-  // Check to see if the problem can be split in two.
-  var hm = diff_halfMatch_(text1, text2);
-  if (hm) {
-    // A half-match was found, sort out the return data.
-    var text1_a = hm[0];
-    var text1_b = hm[1];
-    var text2_a = hm[2];
-    var text2_b = hm[3];
-    var mid_common = hm[4];
-    // Send both pairs off for separate processing.
-    var diffs_a = diff_main(text1_a, text2_a);
-    var diffs_b = diff_main(text1_b, text2_b);
-    // Merge the results.
-    return diffs_a.concat([[DIFF_EQUAL, mid_common]], diffs_b);
-  }
+	// Check to see if the problem can be split in two.
+	var hm = diff_halfMatch_(text1, text2);
 
-  return diff_bisect_(text1, text2);
+	if (hm) {
+		// A half-match was found, sort out the return data.
+		// Send both pairs off for separate processing.
+		var diffs_a = diff_main(hm[0], hm[2]), diffs_b = diff_main(hm[1], hm[3]);
+		// Merge the results.
+		return diffs_a.concat([DIFF_EQUAL, hm[4]], diffs_b);
+	}
+
+	return diff_bisect_(text1, text2);
 }
 
 /**
@@ -152,109 +142,104 @@ function diff_compute_(text1, text2) {
  * @private
  */
 function diff_bisect_(text1, text2) {
-  // Cache the text lengths to prevent multiple calls.
-  var text1_length = text1.length;
-  var text2_length = text2.length;
-  var max_d = Math.ceil((text1_length + text2_length) / 2);
-  var v_offset = max_d;
-  var v_length = 2 * max_d;
-  var v1 = new Array(v_length);
-  var v2 = new Array(v_length);
-  // Setting all elements to -1 is faster in Chrome & Firefox than mixing
-  // integers and undefined.
-  for (var x = 0; x < v_length; x++) {
-    v1[x] = -1;
-    v2[x] = -1;
-  }
-  v1[v_offset + 1] = 0;
-  v2[v_offset + 1] = 0;
-  var delta = text1_length - text2_length;
-  // If the total number of characters is odd, then the front path will collide
-  // with the reverse path.
-  var front = (delta % 2 !== 0);
-  // Offsets for start and end of k loop.
-  // Prevents mapping of space beyond the grid.
-  var k1start = 0;
-  var k1end = 0;
-  var k2start = 0;
-  var k2end = 0;
-  var k2_offset, x2, x1, y1, k1_offset;
+const
+	text1_length = text1.length,
+	text2_length = text2.length,
+	max_d = Math.ceil((text1_length + text2_length) / 2),
+	v_offset = max_d,
+	v_length = 2 * max_d,
+	delta = text1_length - text2_length,
+	front = (delta % 2 !== 0),
+	v1 = new Int16Array(v_length),
+	v2 = new Int16Array(v_length)
+;
+	v1[v_offset + 1] = 0;
+	v2[v_offset + 1] = 0;
 	
-  for (var d = 0; d < max_d; d++) {
+	// If the total number of characters is odd, then the front path will collide
+	// with the reverse path.
+	// Offsets for start and end of k loop.
+	// Prevents mapping of space beyond the grid.
+var
+	k1start = 0, k1end = 0, k2start = 0, k2end = 0,
+	k2_offset, x2, x1, y1, k1_offset, d, k1, k2, y2
+;
+	for (d = 0; d < max_d; d++) {
     // Walk the front path one step.
-    for (var k1 = -d + k1start; k1 <= d - k1end; k1 += 2) {
-      k1_offset = v_offset + k1;
-      if (k1 === -d || (k1 !== d && v1[k1_offset - 1] < v1[k1_offset + 1])) {
-        x1 = v1[k1_offset + 1];
-      } else {
-        x1 = v1[k1_offset - 1] + 1;
-      }
-      y1 = x1 - k1;
-      while (x1 < text1_length && y1 < text2_length &&
-             text1[x1] === text2[y1]) {
-        x1++;
-        y1++;
-      }
-      v1[k1_offset] = x1;
-      if (x1 > text1_length) {
-        // Ran off the right of the graph.
-        k1end += 2;
-      } else if (y1 > text2_length) {
-        // Ran off the bottom of the graph.
-        k1start += 2;
-      } else if (front) {
-        k2_offset = v_offset + delta - k1;
-        if (k2_offset >= 0 && k2_offset < v_length && v2[k2_offset] !== -1) {
-          // Mirror x2 onto top-left coordinate system.
-          x2 = text1_length - v2[k2_offset];
-          if (x1 >= x2) {
-            // Overlap detected.
-            return diff_bisectSplit_(text1, text2, x1, y1);
-          }
-        }
-      }
-    }
+		for (k1 = -d + k1start; k1 <= d - k1end; k1 += 2) {
+			k1_offset = v_offset + k1;
+			if (k1 === -d || (k1 !== d && v1[k1_offset - 1] < v1[k1_offset + 1])) {
+				x1 = v1[k1_offset + 1];
+			} else {
+				x1 = v1[k1_offset - 1] + 1;
+			}
+			y1 = x1 - k1;
+			while (x1 < text1_length && y1 < text2_length &&
+				   text1[x1] === text2[y1]) {
+				x1++;
+				y1++;
+			}
+			v1[k1_offset] = x1;
+			if (x1 > text1_length) {
+				// Ran off the right of the graph.
+				k1end += 2;
+			} else if (y1 > text2_length) {
+				// Ran off the bottom of the graph.
+				k1start += 2;
+			} else if (front) {
+				k2_offset = v_offset + delta - k1;
+				if (k2_offset >= 0 && k2_offset < v_length && v2[k2_offset] !== -1) {
+					// Mirror x2 onto top-left coordinate system.
+					x2 = text1_length - v2[k2_offset];
+					if (x1 >= x2) {
+						// Overlap detected.
+						return diff_bisectSplit_(text1, text2, x1, y1);
+					}
+				}
+			}
+		}
 
-    // Walk the reverse path one step.
-    for (var k2 = -d + k2start; k2 <= d - k2end; k2 += 2) {
-      k2_offset = v_offset + k2;
-      if (k2 === -d || (k2 !== d && v2[k2_offset - 1] < v2[k2_offset + 1])) {
-        x2 = v2[k2_offset + 1];
-      } else {
-        x2 = v2[k2_offset - 1] + 1;
-      }
-      var y2 = x2 - k2;
-      while (x2 < text1_length && y2 < text2_length &&
-             text1[text1_length - x2 - 1] ===
-             text2[text2_length - y2 - 1]) {
-        x2++;
-        y2++;
-      }
-      v2[k2_offset] = x2;
-      if (x2 > text1_length) {
-        // Ran off the left of the graph.
-        k2end += 2;
-      } else if (y2 > text2_length) {
-        // Ran off the top of the graph.
-        k2start += 2;
-      } else if (!front) {
-        k1_offset = v_offset + delta - k2;
-        if (k1_offset >= 0 && k1_offset < v_length && v1[k1_offset] !== -1) {
-          x1 = v1[k1_offset];
-          y1 = v_offset + x1 - k1_offset;
-          // Mirror x2 onto top-left coordinate system.
-          x2 = text1_length - x2;
-          if (x1 >= x2) {
-            // Overlap detected.
-            return diff_bisectSplit_(text1, text2, x1, y1);
-          }
-        }
-      }
-    }
-  }
-  // Diff took too long and hit the deadline or
-  // number of diffs equals number of characters, no commonality at all.
-  return [[DIFF_DELETE, text1], [DIFF_INSERT, text2]];
+		// Walk the reverse path one step.
+		for (k2 = -d + k2start; k2 <= d - k2end; k2 += 2) {
+			k2_offset = v_offset + k2;
+			if (k2 === -d || (k2 !== d && v2[k2_offset - 1] < v2[k2_offset + 1])) {
+				x2 = v2[k2_offset + 1];
+			} else {
+				x2 = v2[k2_offset - 1] + 1;
+			}
+			y2 = x2 - k2;
+			while (x2 < text1_length && y2 < text2_length &&
+				   text1[text1_length - x2 - 1] ===
+				   text2[text2_length - y2 - 1]) {
+				x2++;
+				y2++;
+			}
+			v2[k2_offset] = x2;
+			if (x2 > text1_length) {
+				// Ran off the left of the graph.
+				k2end += 2;
+			} else if (y2 > text2_length) {
+				// Ran off the top of the graph.
+				k2start += 2;
+			} else if (!front) {
+				k1_offset = v_offset + delta - k2;
+				if (k1_offset >= 0 && k1_offset < v_length && v1[k1_offset] !== -1) {
+					x1 = v1[k1_offset];
+					y1 = v_offset + x1 - k1_offset;
+					// Mirror x2 onto top-left coordinate system.
+					x2 = text1_length - x2;
+					if (x1 >= x2) {
+						// Overlap detected.
+						return diff_bisectSplit_(text1, text2, x1, y1);
+					}
+				}
+			}
+		}
+	}
+	
+	// Diff took too long and hit the deadline or
+	// number of diffs equals number of characters, no commonality at all.
+	return [DIFF_DELETE, text1, DIFF_INSERT, text2];
 }
 
 
@@ -268,16 +253,16 @@ function diff_bisect_(text1, text2) {
  * @return {Array} Array of diff tuples.
  */
 function diff_bisectSplit_(text1, text2, x, y) {
-  var text1a = text1.slice(0, x);
-  var text2a = text2.slice(0, y);
-  var text1b = text1.slice(x);
-  var text2b = text2.slice(y);
-
-  // Compute both diffs serially.
-  var diffs = diff_main(text1a, text2a);
-  var diffsb = diff_main(text1b, text2b);
-
-  return diffs.concat(diffsb);
+var
+	text1a = text1.slice(0, x),
+	text2a = text2.slice(0, y),
+	text1b = text1.slice(x),
+	text2b = text2.slice(y),
+	// Compute both diffs serially.
+	diffs = diff_main(text1a, text2a),
+	diffsb = diff_main(text1b, text2b)
+;
+	return diffs.concat(diffsb);
 }
 
 
@@ -321,27 +306,29 @@ function diff_commonPrefix(text1, text2) {
  */
 function diff_commonSuffix(text1, text2) {
   // Quick check for common null cases.
-  if (!text1 || !text2 ||
-      text1[text1.length - 1] !== text2[text2.length - 1]) {
-    return 0;
-  }
-  // Binary search.
-  // Performance analysis: http://neil.fraser.name/news/2007/10/09/
-  var pointermin = 0;
-  var pointermax = Math.min(text1.length, text2.length);
-  var pointermid = pointermax;
-  var pointerend = 0;
-  while (pointermin < pointermid) {
-    if (text1.slice(text1.length - pointermid, text1.length - pointerend) ===
-        text2.slice(text2.length - pointermid, text2.length - pointerend)) {
-      pointermin = pointermid;
-      pointerend = pointermin;
-    } else {
-      pointermax = pointermid;
-    }
-    pointermid = Math.floor((pointermax - pointermin) / 2 + pointermin);
-  }
-  return pointermid;
+	if (!text1 || !text2 || text1[text1.length - 1] !== text2[text2.length - 1])
+		return 0;
+		
+	// Binary search.
+	// Performance analysis: http://neil.fraser.name/news/2007/10/09/
+var
+	pointermin = 0,
+	pointermax = Math.min(text1.length, text2.length),
+	pointermid = pointermax,
+	pointerend = 0
+;
+	while (pointermin < pointermid)
+	{
+		if (text1.slice(text1.length - pointermid, text1.length - pointerend) ===
+			text2.slice(text2.length - pointermid, text2.length - pointerend)) {
+			pointermin = pointermid;
+			pointerend = pointermin;
+		} else {
+			pointermax = pointermid;
+		}
+		pointermid = Math.floor((pointermax - pointermin) / 2 + pointermin);
+	}
+	return pointermid;
 }
 
 
@@ -444,158 +431,171 @@ function diff_halfMatch_(text1, text2) {
  * @param {Array} diffs Array of diff tuples.
  */
 function diff_cleanupMerge(diffs) {
-  diffs.push([DIFF_EQUAL, '']);  // Add a dummy entry at the end.
-  var pointer = 0;
-  var count_delete = 0;
-  var count_insert = 0;
-  var text_delete = '';
-  var text_insert = '';
-  var commonlength;
-  while (pointer < diffs.length) {
-    switch (diffs[pointer][0]) {
-      case DIFF_INSERT:
-        count_insert++;
-        text_insert += diffs[pointer][1];
-        pointer++;
-        break;
-      case DIFF_DELETE:
-        count_delete++;
-        text_delete += diffs[pointer][1];
-        pointer++;
-        break;
-      case DIFF_EQUAL:
-        // Upon reaching an equality, check for prior redundancies.
-        if (count_delete + count_insert > 1) {
-          if (count_delete !== 0 && count_insert !== 0) {
-            // Factor out any common prefixies.
-            commonlength = diff_commonPrefix(text_insert, text_delete);
-            if (commonlength !== 0) {
-              if ((pointer - count_delete - count_insert) > 0 &&
-                  diffs[pointer - count_delete - count_insert - 1][0] ===
-                  DIFF_EQUAL) {
-                diffs[pointer - count_delete - count_insert - 1][1] +=
-                    text_insert.slice(0, commonlength);
-              } else {
-                diffs.splice(0, 0, [DIFF_EQUAL,
-                                    text_insert.slice(0, commonlength)]);
-                pointer++;
-              }
-              text_insert = text_insert.slice(commonlength);
-              text_delete = text_delete.slice(commonlength);
-            }
-            // Factor out any common suffixies.
-            commonlength = diff_commonSuffix(text_insert, text_delete);
-            if (commonlength !== 0) {
-              diffs[pointer][1] = text_insert.slice(text_insert.length -
-                  commonlength) + diffs[pointer][1];
-              text_insert = text_insert.slice(0, text_insert.length -
-                  commonlength);
-              text_delete = text_delete.slice(0, text_delete.length -
-                  commonlength);
-            }
-          }
-          // Delete the offending records and add the merged ones.
-          if (count_delete === 0) {
-            diffs.splice(pointer - count_insert,
-                count_delete + count_insert, [DIFF_INSERT, text_insert]);
-          } else if (count_insert === 0) {
-            diffs.splice(pointer - count_delete,
-                count_delete + count_insert, [DIFF_DELETE, text_delete]);
-          } else {
-            diffs.splice(pointer - count_delete - count_insert,
-                count_delete + count_insert, [DIFF_DELETE, text_delete],
-                [DIFF_INSERT, text_insert]);
-          }
-          pointer = pointer - count_delete - count_insert +
-                    (count_delete ? 1 : 0) + (count_insert ? 1 : 0) + 1;
-        } else if (pointer !== 0 && diffs[pointer - 1][0] === DIFF_EQUAL) {
-          // Merge this equality with the previous one.
-          diffs[pointer - 1][1] += diffs[pointer][1];
-          diffs.splice(pointer, 1);
-        } else {
-          pointer++;
-        }
-        count_insert = 0;
-        count_delete = 0;
-        text_delete = '';
-        text_insert = '';
-        break;
-    }
-  }
-  if (diffs[diffs.length - 1][1] === '') {
-    diffs.pop();  // Remove the dummy entry at the end.
-  }
+var
+	pointer = 0,
+	count_delete = 0,
+	count_insert = 0,
+	text_delete = '',
+	text_insert = '',
+	commonlength,
+	countPointer
+;
+	diffs.push(DIFF_EQUAL, '');  // Add a dummy entry at the end.
+	
+	while (pointer < diffs.length) {
+		switch (diffs[pointer]) {
+			case DIFF_INSERT:
+				count_insert++;
+				text_insert += diffs[pointer+1];
+				pointer+=2;
+				break;
+			case DIFF_DELETE:
+				count_delete++;
+				text_delete += diffs[pointer+1];
+				pointer+=2;
+				break;
+			case DIFF_EQUAL:
+				// Upon reaching an equality, check for prior redundancies.
+				if (count_delete + count_insert > 1)
+				{
+					countPointer = (count_delete+count_insert)*2;
+					
+					if (count_delete !== 0 && count_insert !== 0)
+					{
+						// Factor out any common prefixies.
+						commonlength = diff_commonPrefix(text_insert, text_delete);
+						if (commonlength !== 0)
+						{
+							if ((pointer - countPointer) > 0 &&
+								diffs[pointer - countPointer - 2] === DIFF_EQUAL) {
+								diffs[pointer-countPointer-1]+=text_insert.slice(0, commonlength);
+							} else {
+								diffs.splice(0, 0, DIFF_EQUAL, text_insert.slice(0, commonlength));
+								pointer+=2;
+							}
+							text_insert = text_insert.slice(commonlength);
+							text_delete = text_delete.slice(commonlength);
+						}
+						// Factor out any common suffixies.
+						commonlength = diff_commonSuffix(text_insert, text_delete);
+						
+						if (commonlength !== 0) {
+							diffs[pointer+1] = text_insert.slice(text_insert.length -
+																  commonlength) + diffs[pointer+1];
+							text_insert = text_insert.slice(0, text_insert.length - commonlength);
+							text_delete = text_delete.slice(0, text_delete.length - commonlength);
+						}
+					}
+					
+					// Delete the offending records and add the merged ones.
+					if (count_delete === 0) {
+						diffs.splice(pointer - count_insert*2,
+									 countPointer, DIFF_INSERT, text_insert);
+					} else if (count_insert === 0) {
+						diffs.splice(pointer - count_delete*2,
+									 countPointer, DIFF_DELETE, text_delete);
+					} else {
+						// TODO use countPointer
+						diffs.splice(pointer - countPointer, countPointer, DIFF_DELETE, text_delete,
+							DIFF_INSERT, text_insert);
+					}
+					
+					pointer = pointer - (countPointer) +
+						(count_delete ? 2 : 0) + (count_insert ? 2 : 0) + 2;
+					
+				} else if (pointer !== 0 && diffs[pointer - 2] === DIFF_EQUAL) {
+					// Merge this equality with the previous one.
+					diffs[pointer - 1] += diffs[pointer+1];
+					diffs.splice(pointer, 2);
+				} else {
+					pointer+=2;
+				}
+				count_insert = 0;
+				count_delete = 0;
+				text_delete = '';
+				text_insert = '';
+				break;
+		}
+	}
 
-  // Second pass: look for single edits surrounded on both sides by equalities
-  // which can be shifted sideways to eliminate an equality.
-  // e.g: A<ins>BA</ins>C -> <ins>AB</ins>AC
-  var changes = false;
-  pointer = 1;
-  // Intentionally ignore the first and last element (don't need checking).
-  while (pointer < diffs.length - 1) {
-    if (diffs[pointer - 1][0] === DIFF_EQUAL &&
-        diffs[pointer + 1][0] === DIFF_EQUAL) {
-      // This is a single edit surrounded by equalities.
-      if (diffs[pointer][1].slice(diffs[pointer][1].length -
-          diffs[pointer - 1][1].length) === diffs[pointer - 1][1]) {
-        // Shift the edit over the previous equality.
-        diffs[pointer][1] = diffs[pointer - 1][1] +
-            diffs[pointer][1].slice(0, diffs[pointer][1].length -
-                                        diffs[pointer - 1][1].length);
-        diffs[pointer + 1][1] = diffs[pointer - 1][1] + diffs[pointer + 1][1];
-        diffs.splice(pointer - 1, 1);
-        changes = true;
-      } else if (diffs[pointer][1].slice(0, diffs[pointer + 1][1].length) ===
-          diffs[pointer + 1][1]) {
-        // Shift the edit over the next equality.
-        diffs[pointer - 1][1] += diffs[pointer + 1][1];
-        diffs[pointer][1] =
-            diffs[pointer][1].slice(diffs[pointer + 1][1].length) +
-            diffs[pointer + 1][1];
-        diffs.splice(pointer + 1, 1);
-        changes = true;
-      }
-    }
-    pointer++;
-  }
-  // If shifts were made, the diff needs reordering and another shift sweep.
-  if (changes) {
-    diff_cleanupMerge(diffs);
-  }
+	if (diffs[diffs.length - 1] === '')
+	{
+		// TODO Use some other method?
+		diffs.pop();  // Remove the dummy entry at the end.
+		diffs.pop();
+	}
+
+	// Second pass: look for single edits surrounded on both sides by equalities
+	// which can be shifted sideways to eliminate an equality.
+	// e.g: A<ins>BA</ins>C -> <ins>AB</ins>AC
+	var changes = false;
+	
+	pointer = 1;
+	
+	// Intentionally ignore the first and last element (don't need checking).
+	while (pointer < diffs.length - 2)
+	{
+		if (diffs[pointer - 2] === DIFF_EQUAL && diffs[pointer + 2] === DIFF_EQUAL)
+		{
+			// This is a single edit surrounded by equalities.
+			if (diffs[pointer+1].slice(diffs[pointer+1].length -
+				diffs[pointer-1].length) === diffs[pointer-1])
+			{
+				// Shift the edit over the previous equality.
+				diffs[pointer+1] = diffs[pointer-1] +
+					diffs[pointer+1].slice(0, diffs[pointer+1].length - diffs[pointer-1].length);
+				
+				diffs[pointer+2] = diffs[pointer-1] + diffs[pointer+2];
+				diffs.splice(pointer-2, 2);
+				changes = true;
+			} else if (diffs[pointer+1].slice(0, diffs[pointer+3].length) === diffs[pointer+3])
+			{
+				// Shift the edit over the next equality.
+				diffs[pointer-1] += diffs[pointer+3];
+				diffs[pointer+1] = diffs[pointer+1].slice(diffs[pointer+3].length)+diffs[pointer+3];
+				diffs.splice(pointer+2, 2);
+				changes = true;
+			}
+		}
+		pointer+=2;
+	}
+	
+	// If shifts were made, the diff needs reordering and another shift sweep.
+	if (changes) diff_cleanupMerge(diffs);
+}
+	
+function push(result, ch, a, b, c)
+{
+	var l = result.length;
+	
+	if (l && (b < MINL))
+	{
+		result[l-3] += ch + a;
+		result[l-1] += b + c;
+	} else
+		result.push(a, b, c);
 }
 
-ide.diff = function(A, B, minl)
+function diff2(A, B)
 {
 var
 	result=[],
 	d = diff_main(A, B),
 	i, l=0, ch=''
-;
-	minl = minl===undefined ? 5 : minl;
-	
-	function push(a, b, c)
+;	
+	for (i=0; i<d.length; i+=2)
 	{
-		if (result.length && (b < minl))
+		if (d[i]===DIFF_EQUAL)
 		{
-			result[result.length-3] += ch + a;
-			result[result.length-1] += b + c;
-		} else
-			result.push(a, b, c);
-	}
-	
-	for (i=0; i<d.length; i++)
-	{
-		if (d[i][0]===DIFF_EQUAL)
-		{
-			l = d[i][1].length;
-			ch = d[i][1];
+			l = d[i+1].length;
+			ch = d[i+1];
 		}
 		else 
 		{
-			if (d[i][0]===DIFF_DELETE)
-				push('', l, d[i][1].length);
+			if (d[i]===DIFF_DELETE)
+				push(result, ch, '', l, d[i+1].length);
 			else
-				push(d[i][1], l, 0);
+				push(result, ch, d[i+1], l, 0);
 			
 			l = 0;
 			ch = '';
@@ -603,6 +603,13 @@ var
 	}
 
 	return result;
+}
+	
+ide.diff = diff2;
+	
+ide.diffPromise = function(A, B)
+{
+	return ide.diffWorker.promise('diff', [ A, B ]);
 };
 	
 ide.patch = function(A, diff)
@@ -621,5 +628,27 @@ var
 	
 	return result;
 };
+	
+ide.diffWorker = new ide.Worker({
+	
+	diff: function(data)
+	{
+		return diff2(data[0], data[1]);
+	},
+	private: {
+		defs: `const DIFF_DELETE = -1,	DIFF_INSERT = 1, DIFF_EQUAL = 0, MINL=5;`,
+		push: push,
+		diff2: diff2,
+		diff_main: diff_main,
+		diff_halfMatch_: diff_halfMatch_,
+		diff_bisectSplit_: diff_bisectSplit_,
+		diff_bisect_: diff_bisect_,
+		diff_compute_: diff_compute_,
+		diff_cleanupMerge: diff_cleanupMerge,
+		diff_commonPrefix: diff_commonPrefix,
+		diff_commonSuffix: diff_commonSuffix
+	}
+	
+});
 	
 })(this.ide);

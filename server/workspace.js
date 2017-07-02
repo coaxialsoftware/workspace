@@ -91,14 +91,16 @@ class WorkspaceConfiguration extends Configuration {
 
 	constructor()
 	{
-		super();
+		super({
+			'editor.encoding': 'utf8'
+		});
 
 		this.loadFile('~/.workspace.json');
 		this.loadFile('workspace.json');
 
 		if (this['plugins.global']===undefined && !this['plugins.path'])
 			this['plugins.global'] = true;
-
+		
 		// check for v8 inspector support
 		var inspect = process.execArgv.join('').match(/--inspect(?:=(\d+))?/);
 
@@ -173,7 +175,12 @@ cxl.define(WorkspaceConfiguration, {
 	/**
 	 * Default configuration for firebase
  	 */
-	'online.url': 'https://cxl.firebaseio.com/workspace'
+	'online.url': 'https://cxl.firebaseio.com/workspace',
+
+	/**
+	 * Operating System Path separator
+	 */
+	'path.separator': path.sep
 
 });
 

@@ -4,9 +4,8 @@
        url('fonts/fontawesome-webfont.woff') format('woff'), /* Pretty Modern Browsers */
 }
 
-/*
- * core
- */
+html { width: 100%; height: 100%; }
+body * { box-sizing: border-box; }
 body {
 	background-color: #000; padding: 0;
 	font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -18,12 +17,6 @@ body {
 body > ide-login {
 	z-index: 10; position: absolute; left: 0; right: 0; top: 0; bottom: 0;
 	background-color: #000;
-}
-
-body * { box-sizing: border-box; }
-
-html {
-	width: 100%; height: 100%;
 }
 
 h1 {
@@ -66,7 +59,27 @@ pre {
 
 #notification .hint { display: inline-block; }
 
+/*
+ * core.workspace
+ */
+#workspace {
+	position: absolute; 
+	top: 0; left:0; bottom: 0; right: 0;
+	transition: right 0.2s;
+}
 
+#workspace > div { 
+	min-height: 100px;
+	border: 0;
+	color: #eee; 
+	transition: height 0.2s, width 0.2s, left 0.2s, top 0.2s;
+	position: absolute;
+	box-sizing: border-box;
+}
+
+/*
+ * IDE-TAG
+ */
 ide-tag, kbd {
 	border-radius: 2px; 
 	color: #eee; 
@@ -96,36 +109,9 @@ kbd {
 
 kbd:empty { padding: 0; }
 
-.pull-right { float: right; }
-.text-right { text-align: right; }
-.hidden { display: none; }
-
-/*
- * core.workspace
+/**
+ * IDE-EDITOR
  */
-#workspace {
-	position: absolute; 
-	top: 0; left:0; bottom: 0; right: 0;
-	transition: right 0.2s;
-}
-
-#workspace > div { 
-	min-height: 100px;
-	border: 0;
-	color: #eee; 
-	transition: height 0.2s, width 0.2s, left 0.2s, top 0.2s;
-	position: absolute;
-	box-sizing: border-box;
-}
-
-.panel {
-	padding: 12px;
-	outline: 0 solid #eee;
-	overflow: hidden;
-	width: 100%; height: 100%;
-	box-sizing: border-box;
-}
-
 ide-editor-content {
 	position: absolute; top: 24px; left: 0; right: 0; bottom: 0;
 	overflow: hidden; height: auto; display: block;
@@ -183,7 +169,7 @@ ide-editor-header > .modified:before { /*content: "\f067";*/ content: "+"; }
 }
 
 /*
- * core.bar
+ * ide.bar
  */
 .command-bar { 
 	display: none; position: absolute; 
@@ -255,14 +241,11 @@ i
 }
 .CodeMirror-gutter-elt { overflow-y: hidden; }
 
-
 .focus div.CodeMirror-cursors { visibility: visible; }
 div.CodeMirror-cursors { visibility: hidden; }
 
 /*
- *
- * core.folder.js
- * 
+ * IDE-ICON
  */
 ide-icon, .ide-icon {
 	display: inline-block; margin: 0;
@@ -278,7 +261,6 @@ ide-icon:hover, .ide-icon:hover { color: #fff; }
 ide-icon:focus, .ide-icon:focus { color: #fff; outline: 1px solid #ccc; }
 
 /* TODO */
-
 ide-icon.bug::before { content: "\f188"; }
 ide-icon.command::before { content: "\f120"; }
 ide-icon.cog::before { content: "\f013"; }
@@ -295,6 +277,9 @@ ide-icon.variable-global::before { content: "G"; }
 ide-icon.expand::before { content: "\f067"; }
 ide-icon.collapse::before { content: "\f068"; }
 
+/*
+ * IDE-ITEM
+ */
 .item, ide-scroll-up, ide-scroll-down {
 	box-sizing: border-box;
 	transition: width 0.2s, opacity 0.2s, background-color 0.2s;
@@ -475,3 +460,5 @@ cxl-button, cxl-submit { font-size: 12px; line-height: 14px; }
  * Login
  */
 ide-login { color: #eee; }
+
+iframe.ide-browser { border-width: 0; width: 100%; height: 100%; margin: 0; }

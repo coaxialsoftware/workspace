@@ -82,7 +82,6 @@ class Hint {
 
 	destroy()
 	{
-
 	}
 
 }
@@ -179,6 +178,15 @@ class Item extends Hint {
 	{
 		if (this.el && this.el.parentNode)
 			this.el.parentNode.removeChild(this.el);
+	}
+
+	/**
+	 * Search algorithm. Match by title.
+	 * TODO Should we match by description or tags?
+	 */
+	matches(regex)
+	{
+		return regex.test(this.title);
 	}
 
 }
@@ -295,6 +303,19 @@ class ComponentItem {
 		}
 
 		return this.el;
+	}
+
+	matches(regex)
+	{
+		var state = this.component.$state, i, prop;
+
+		for (i in state)
+		{
+			prop = state[i];
+
+			if (typeof(prop)==='string' && regex.test(state[i]))
+				return true;
+		}
 	}
 
 	destroy()

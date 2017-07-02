@@ -149,27 +149,32 @@ ide.run = function(fn, args)
 var
 	result = ide.Pass
 ;
-	if (ide.editor)
+	try {
+		if (ide.editor)
+		{
+			result = ide.editor.cmd(fn, args);
+
+			if (result === ide.Pass)
+				result = tryCmd(ide.editorCommands, fn, args);
+		}
+
+		if (result===ide.Pass)
+			result = tryCmd(ide.commands, fn, args);
+
+		if (result instanceof ide.Editor)
+		{
+			// TODO ?
+			if (!result.command)
+				result.command = fn;
+			if (!result.arguments)
+				result.arguments = args;
+
+			ide.workspace.slot().setEditor(result);
+			result.focus.set();
+		}
+	} catch(e)
 	{
-		result = ide.editor.cmd(fn, args);
-
-		if (result === ide.Pass)
-			result = tryCmd(ide.editorCommands, fn, args);
-	}
-
-	if (result===ide.Pass)
-		result = tryCmd(ide.commands, fn, args);
-
-	if (result instanceof ide.Editor)
-	{
-		// TODO ?
-		if (!result.command)
-			result.command = fn;
-		if (!result.arguments)
-			result.arguments = args;
-
-		ide.workspace.slot().setEditor(result);
-		result.focus.set();
+		ide.error(e);
 	}
 
 	return result;
@@ -232,18 +237,6 @@ ide.plugins.register('core', {
 	core: true,
 
 	editorCommands: {
-
-		ascii: function()
-		{
-		var
-			char = ide.editor.cursor && ide.editor.cursor.value,
-			code = char.charCodeAt(0)
-		;
-			ide.notify({
-				code: 'ascii',
-				title: char + ': ' + code + ' 0x' + code.toString(16) + ' 0' + code.toString(8)
-			});
-		},
 
 		openTab: {
 			fn: function() {
@@ -370,7 +363,7 @@ ide.plugins.register('core', {
 			})
 		;
 			cxl.ajax.get('/plugins').then(function(all) {
-				var a, i, items=[];
+				var a, i, items=[], item;
 
 				if (!all)
 					ide.warn('Could not retrieve plugins from server.');
@@ -378,10 +371,12 @@ ide.plugins.register('core', {
 				for (i in all)
 				{
 					a = all[i];
-					items.push(new ide.PluginComponent(a));
+					item = new ide.PluginComponent(a);
+					item.key = i;
+					items.push(item);
 				}
 
-				l.add(cxl.sortBy(items, 'title'));
+				l.add(cxl.sortBy(items, 'key'));
 			});
 
 			return l;

@@ -2,7 +2,7 @@
 "use strict";
 
 class TokenEditor extends ide.SourceEditor {
-
+	
 	// TODO figure a better way to disable token feature.
 	loadFeatures(p)
 	{
@@ -12,9 +12,6 @@ class TokenEditor extends ide.SourceEditor {
 
 	render(p)
 	{
-		this.file = new ide.File();
-		this.file.mime = 'application/json';
-
 		super.render(p);
 
 		this.listenTo(ide.plugins, 'token', this.onToken);
@@ -64,7 +61,12 @@ ide.plugins.register('debug', {
 		'debug.token': {
 			fn: function()
 			{
-				return new TokenEditor({ plugin: this });
+				var file = new ide.File();
+				file.mime = 'application/json';
+				return new TokenEditor({
+					plugin: this,
+					file: file
+				});
 			},
 			description: 'Show current token',
 			icon: 'bug'
@@ -92,21 +94,18 @@ ide.plugins.register('debug', {
 			// TODO
 			fn: function()
 			{
-			var
-				file = ide.editor && ide.editor.file,
-				diff = file && file.diff && file.diff(),
-				newfile
-			;
-				if (!diff)
-					return;
-
-				newfile = new ide.File({
-					content: JSON.stringify(diff, null, 2)
-				});
+				var newfile = new ide.File();
 
 				ide.open({ file: newfile }).then(function(editor) {
-					editor.listenTo(file, 'change:content', function() {
-						newfile.content = JSON.stringify(file.diff(), null, 2);
+					editor.plugin = this;
+					editor.command = 'debug.diff';
+					editor.listenTo(ide.plugins, 'editor.change', function(e) {
+						if (editor===e)
+							return;
+						
+						var file = e.file;
+						editor.file.content = JSON.stringify(file.diff(), null, 2);
+						editor.file.update();
 					});
 					editor.cmd('insert.disable');
 				});

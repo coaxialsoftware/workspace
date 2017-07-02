@@ -17,14 +17,94 @@ var
 	workspace = require('./workspace'),
 	common = require('./common'),
 
-	plugin = module.exports = cxl('workspace.file')
+	plugin = module.exports = cxl('workspace.file'),
+	ServerResponse = require('./http').ServerResponse
 ;
 
 mime.default_type = 'text/plain';
 
+function getMime(file, stat)
+{
+	// TODO add typescript support
+	return stat && stat.isDirectory ? 'text/directory' : mime.lookup(file);
+}
+
+// TODO see if we can remove this
+class FileStat {
+
+	constructor(stat)
+	{
+		if (stat)
+		{
+			this.atime = stat.atime;
+			this.ctime = stat.ctime;
+			this.mtime = stat.mtime;
+			this.size = stat.size;
+			this.isDirectory = stat.isDirectory();
+			this.isSymbolicLink = stat.isSymbolicLink();
+		} else
+		{
+			this.isDirectory = false;
+			this.isSymbolicLink = false;
+		}
+
+		this.isNew = !stat;
+	}
+
+}
+
 class File {
 
-	static fromSocket(data)
+	/**
+	 * @param filepath Path relative to workspace
+	 */
+	constructor(filepath)
+	{
+		this.path = path.normalize(filepath);
+	}
+
+	/**
+	 * Reads file with optional encoding. If encoding not passed it will return a Buffer
+	 */
+	read(encoding)
+	{
+		return plugin.stat(this.path).then(stat => {
+			this.stat = stat;
+			this.encoding = encoding;
+
+			if (stat.isNew)
+				return '';
+
+			return stat.isDirectory ?
+				common.list(this.path) :
+				common.readFile(this.path, encoding);
+		}).then(content => {
+			this.content = content;
+			this.mime = getMime(this.path, this.stat);
+			return this;
+		});
+	}
+
+	delete()
+	{
+		return common.unlink(this.path).then(this.read.bind(this));
+	}
+
+	write(content)
+	{
+		return common.writeFile(this.path, content).then(this.read.bind(this));
+	}
+
+}
+
+plugin.config(function() {
+
+	this.server = workspace.server;
+	workspace.plugins.on('socket.message.file', this.onMessage.bind(this));
+
+}).extend({
+
+	fromSocket: function(data)
 	{
 		var file = new File(data.id);
 
@@ -34,114 +114,44 @@ class File {
 
 			return file;
 		});
-	}
+	},
 
-	static getMime(path, stat)
+	/**
+	 * @return {FileStat}
+	 */
+	stat: function(path)
 	{
-		// TODO add typescript support
-		return stat && stat.isDirectory() ? 'text/directory' : mime.lookup(path);
-	}
+		return common.stat(path).then(stat => {
+			return new FileStat(stat);
+		}, (err) => {
+			if (err.cause.code==='ENOENT')
+				return new FileStat();
 
-	constructor(filepath, content)
-	{
-		this.path = path.normalize(filepath);
-		this.content = this.originalContent = content;
-	}
-
-	getStat()
-	{
-		return common.stat(this.path).bind(this).then(function(stat) {
-			this.mtime = stat.mtime.getTime();
-			this.directory = stat.isDirectory();
-			this.mime = File.getMime(this.path, stat);
-
-			return stat;
+			return Q.reject(err);
 		});
-	}
+	},
 
-	onContent(content)
+	loadFile: function(filepath, encoding)
 	{
-		this.originalContent = this.content = content;
-		workspace.plugins.emit('file.read', this);
-		return this;
-	}
+		filepath = path.normalize(filepath);
+		var file = new File(filepath);
+		return file.read(encoding);
+	},
 
-	hasChanged()
+	read: function(filepath, encoding)
 	{
-		return this.originalContent!==this.content;
-	}
+		return common.readFile(filepath, encoding);
+	},
 
-	read()
-	{
-		return this.getStat().then(function() {
-			return (this.directory ?
-				common.list(this.path) :
-				common.readFile(this.path, 'utf8')).bind(this)
-					.then(this.onContent);
-		}, function() {
-			this.new = true;
-			this.content = '';
-			this.mime = File.getMime(this.path);
-			return this;
-		});
-	}
-
-	checkChanged()
-	{
-		var mtime = this.mtime;
-
-		return this.getStat().then(function() {
-			if (mtime !== this.mtime)
-				return Q.reject("File contents have changed.");
-		}, function(err) {
-			if (err.cause.code!=='ENOENT')
-				return Q.reject(err);
-		});
-	}
-
-	// TODO Use library
-	static delete(path)
+	delete(path)
 	{
 		return common.unlink(path);
-	}
+	},
 
-	delete()
+	write(path, content)
 	{
-		return this.checkChanged().then(function() {
-			return File.delete(this.path);
-		}).then(this.read);
-	}
-
-	write()
-	{
-		function OnWrite()
-		{
-			this.new = false;
-
-			workspace.plugins.emit('file.write', this);
-			return this;
-		}
-
-		function WriteFile()
-		{
-			workspace.plugins.emit('file.beforewrite', this);
-			return common.writeFile(this.path, this.content);
-		}
-
-		return this.checkChanged().then(WriteFile)
-			.then(this.getStat).then(OnWrite);
-	}
-
-}
-
-workspace.File = File;
-
-plugin.config(function() {
-
-	this.server = workspace.server;
-	workspace.plugins.on('socket.message.file', this.onMessage.bind(this));
-
-}).extend({
+		return common.writeFile(path, content);
+	},
 
 	/**
 	 * data.p    File path.
@@ -149,15 +159,13 @@ plugin.config(function() {
 	 */
 	onMessageStat(client, data)
 	{
-		common.stat(data.p).bind(this).then(function(stat) {
+		this.stat(data.p).then(function(stat) {
 			if (stat && stat.mtime.getTime()!==data.t)
 			{
-				var response = {
+				workspace.socket.respond(client, 'file', {
 					p: data.p,
 					t: stat.mtime.getTime()
-				};
-
-				workspace.socket.respond(client, 'file', response);
+				});
 			}
 		});
 	},
@@ -169,71 +177,72 @@ plugin.config(function() {
 			this.onMessageStat(client, data.stat);
 	},
 
-	getPath: function(project, filename)
+	getFile: function(req)
 	{
-		return path.normalize(path.join(project, filename||''));
+	var
+		project = req.query.p,
+		filename = req.query.n
+	;
+		return this.loadFile(path.join(project, filename||''))
+			.then(function(file) {
+				file.project = project;
+				return file;
+			});
 	},
 
-	getFile: function(filename, body)
+	$checkChanged(mtime, file)
 	{
-		return (new File(filename, body)).read();
-	},
+		if (!file.stat.isNew && mtime !== file.stat.mtime.getTime())
+				return Q.reject("File contents have changed.");
 
-	writeFile: function(filepath, body, mtime)
-	{
-		var file = new File(filepath, body);
-		file.mtime = mtime;
-		return file.write();
+		return file;
 	},
 
 	handleWrite: function(req, res)
 	{
-	var
-		filepath = this.getPath(req.query.p, req.query.n||'')
-	;
 		if (!req.body)
 			return res.status(400).end();
 
-		this.log(`Writing "${filepath}" (${req.body.length})`);
-
-		common.respond(this, res, this.writeFile(filepath, req.body, +req.query.t)
-			.then(this.sendFile.bind(this, res)));
+		ServerResponse.respond(res, this.getFile(req)
+			.then(file => this.$checkChanged(+req.query.t, file))
+			.then(file => {
+				this.log(`Writing "${file.path}" (${req.body.length})`);
+				return file.write(req.body);
+			}).then(file => this.sendFile(res, file))
+		);
 	},
 
 	sendFile: function(res, file)
 	{
+		var stat = file.stat;
+
 		res.setHeader('content-type', file.mime);
+		res.setHeader('ws-file-stat', JSON.stringify(stat));
+		res.setHeader('ws-file-path', file.path);
 
-		// TODO use etag
-		if (file.mtime)
-			res.setHeader('ws-file-mtime', file.mtime);
-
-		res.setHeader('ws-file-id', file.path);
+		// Normalized path relative to project
+		// TODO try to remove this
+		res.setHeader('ws-file-name', path.normalize(path.relative(file.project, file.path)));
 
 		return file.content;
 	}
+
 })
 
 .route('GET', '/file', function(req, res)
 {
-	var filepath = this.getPath(req.query.p, req.query.n);
-
-	this.log(`Reading "${filepath}".`);
-
-	common.respond(
-		this, res, this.getFile(filepath).then(this.sendFile.bind(this, res))
-	);
+	ServerResponse.respond(res, this.getFile(req)
+		.then(this.sendFile.bind(this, res)), this);
 })
 
 .route('DELETE', '/file', function(req, res) {
-	var file = new File(this.getPath(req.query.p, req.query.n));
-	file.mtime = +req.query.t;
 
-	common.respond(
-		this, res, file.delete().then(this.sendFile.bind(this, res))
+	ServerResponse.respond(res, this.getFile(req)
+		.then(this.$checkChanged.bind(this, +req.query.t))
+		.then(file => file.delete())
+		.then(this.sendFile.bind(this, res)), this
 	);
 })
 
 .route('POST', '/file', 'handleWrite')
-
 .route('PUT', '/file', 'handleWrite');

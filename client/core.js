@@ -5,15 +5,31 @@
 
 (function(cxl) {
 "use strict";
-
+	
 function iconEl(id)
 {
 	var el = document.createElement('ide-icon');
 	el.className = id;
 	return el;
 }
+	
+var ResourceManager;
+	
+class Resource
+{
+	constructor(id, element)
+	{
+		this.id = id;
+		this.element = element;
+	}
+	
+	destroy()
+	{
+		delete ResourceManager.$icons[this.id];
+	}
+}
 
-var ResourceManager = {
+ResourceManager = {
 
 	$icons: {
 		bug: iconEl('bug'),
@@ -35,28 +51,35 @@ var ResourceManager = {
 
 	getIcon: function(id)
 	{
-		return this.$icons[id].cloneNode(true);
+		var r = this.$icons[id]; 
+		
+		if (!r)
+			throw new Error('Invalid Icon');
+		
+		return r.cloneNode(true);
 	},
 
 	registerIcon: function(id)
 	{
-		return (this.$icons[id] = iconEl(id));
+		var el = this.$icons[id] = iconEl(id);
+		return new Resource(id, el);
 	},
 
 	registerSVGIcon: function(id, content, viewbox)
 	{
+		// tagName must remain lowercase or it wont load the element
 		var svg = this.$icons[id] = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 		svg.innerHTML = content;
 		svg.setAttribute('class', 'ide-icon');
 		svg.setAttribute('viewBox', viewbox);
-		return svg;
+		return new Resource(id, svg);
 	}
 
 };
 
 var ide = window.ide = {
 
-	version: '2.6.0',
+	version: '2.7.0',
 	/** Used by commands to indicate that the command wasn't handled. */
 	Pass: {},
 
@@ -84,7 +107,7 @@ var ide = window.ide = {
 	error: function(message)
 	{
 		window.console.error(message);
-		return ide.notify(message, 'error');
+		return ide.notify(message.toString(), 'error');
 	},
 
 	source: function(src)
@@ -122,7 +145,7 @@ var ide = window.ide = {
 
 function loadFile(file)
 {
-	return file.content || !file.filename ? Promise.resolve(file) : file.fetch();
+	return file.content || !file.name ? Promise.resolve(file) : file.read();
 }
 
 function findPlugin(options)
@@ -172,6 +195,9 @@ function onOpenError(options, e)
  */
 ide.open = function(options)
 {
+	if (typeof(options) ==='string')
+		options = { file: new ide.File(options) };
+
 	if (options instanceof ide.File)
 		options = { file: options };
 
@@ -179,7 +205,7 @@ ide.open = function(options)
 
 	if (options.file && !(options.file instanceof ide.File))
 		options.file = new ide.File(options.file);
-
+		
 	return (options.file ? loadFile(options.file).then(loadEditor.bind(ide, options)) :
 		Promise.resolve(loadEditor(options))).catch(onOpenError.bind(ide, options));
 };

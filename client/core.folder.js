@@ -214,11 +214,6 @@ class ListEditorCursor extends ide.feature.CursorFeature {
 
 class ListSearchFeature extends ide.feature.SearchFeature {
 
-	_findTest(regex, file)
-	{
-		return regex.test(file.title);
-	}
-
 	search(regex)
 	{
 	var
@@ -228,7 +223,7 @@ class ListSearchFeature extends ide.feature.SearchFeature {
 	;
 		for (; i<files.length; i++)
 			childrenEl[i].style.display =
-				(clear || this._findTest(regex, files[i])) ?
+				(clear || files[i].matches(regex)) ?
 					'block' : 'none';
 	}
 
@@ -314,68 +309,27 @@ class ListEditor extends ide.Editor {
 
 ListEditor.features(ListEditorCursor, ListSearchFeature, ListScrollFeature);
 
-class FileItem extends ide.Item {
-
-	constructor(p)
-	{
-		if (!p.icon)
-			p.icon = p.directory ? 'directory' : 'file';
-
-		super(p);
-
-		this.prefix = p.prefix;
-	}
-
-	enter(shift, mod, editor)
-	{
-	var
-		item = this,
-		title = item.value || item.title,
-		options = {
-			file: (this.prefix ? this.prefix+'/' : '') + title,
-			focus: !shift
-		}
-	;
-		if (item.line)
-			options.line = item.line;
-
-		if (mod)
-			options.target = '_blank';
-
-		ide.open(options);
-
-		if (!shift)
-			ide.workspace.remove(editor);
-	}
-
-}
-
 class FileListEditor extends ListEditor { }
 
 class DirectoryFeature extends ide.feature.FileFeature {
 
-	// TODO see if we can move this to FileFeature
-	render()
-	{
-		this.read(this.editor.file);
-	}
-
-	read(file)
+	parse()
 	{
 	var
-		path = file.filename,
-		prefix = path==='.' ? '' : (path + '/'),
+		file = this.$file,
+		path = file.name,
+		prefix = path==='.' ? '' : path,
 		files = file.content.map(function(f) {
-			return new FileItem({
+			return new ide.FileItem({
 				title: f.filename,
-				directory: f.directory,
+				mime: f.mime,
 				prefix: prefix,
 				className: f.directory ? 'directory' : 'file'
 			});
 		})
 	;
-		files.unshift(new FileItem(
-			{ title: '..', directory: true, prefix: prefix }
+		files.unshift(new ide.FileItem(
+			{ title: '..', mime: 'text/directory', prefix: prefix }
 		));
 
 		if (this.editor.children.length)
@@ -396,6 +350,7 @@ class FileListFocusFeature extends ide.feature.FocusFeature {
 		if (!this.editor.cursor.current)
 			this.editor.cursor.goStart();
 	}
+	
 }
 
 FileListEditor.features(ide.feature.FileHashFeature, DirectoryFeature, FileListFocusFeature);
@@ -550,7 +505,7 @@ ide.plugins.register('folder', new ide.Plugin({
 			;
 				mask = mask || (token && getMask(token)) || '';
 				files = this.find(mask).map(function(val) {
-					return new FileItem({ title: val.title, icon: val.icon });
+					return new ide.FileItem({ title: val.title, icon: val.icon });
 				});
 
 				if (!files)
@@ -591,7 +546,6 @@ ide.plugins.register('folder', new ide.Plugin({
 
 ide.ListEditor = ListEditor;
 ide.FileListEditor = FileListEditor;
-ide.FileItem = FileItem;
 ide.CollapsibleItem = CollapsibleItem;
 
 })(this.ide, this.cxl);

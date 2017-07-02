@@ -5,91 +5,121 @@ QUnit.test('File', function(a) {
 
 	var f = new ide.File('test');
 
-	a.equal(f.filename, 'test');
+	a.equal(f.name, 'test');
 });
 
-QUnit.test('File#fetch() - directory', function(a) {
+QUnit.test('File.joinPath', function(a) {
+
+	a.equal(ide.File.joinPath('hello', 'world'), 'hello/world');
+	
+});
+
+QUnit.test('File#read() - normalize', function(a) {
+var
+	f = new ide.File(ide.File.joinPath('empty-project', '..', 'empty-project', '..')),
+	done = a.async(),
+	id = ide.project.id,
+	promise
+;
+	f.read().then(function() {
+		a.equal(f.name, '.');
+		a.equal(f.path, '.');
+
+		f = new ide.File(ide.File.joinPath('empty-project', '..', 'File#write'));
+		return f.read();
+	}).then(function() {
+		a.equal(f.name, 'File#write');
+		a.equal(f.path, 'File#write');
+
+		try {
+			ide.project.set('path', 'empty-project');
+			f = new ide.File(ide.File.joinPath('..', 'empty-project', 'invalid', '..'));
+			promise = f.read();
+		} finally {
+			ide.project.set('path', id);
+		}
+
+		return promise;
+	}).then(function() {
+		a.equal(f.name, '.');
+		a.equal(f.path, 'empty-project');
+	}).then(done);
+});
+
+QUnit.test('File#read() - directory', function(a) {
 var
 	f = new ide.File('.'),
 	done = a.async()
 ;
-	f.fetch().then(function() {
+	f.read().then(function() {
 		a.equal(f.mime, 'text/directory');
 		a.ok(Array.isArray(f.content));
-		a.ok(f.isDirectory());
+		a.ok(f.stat.isDirectory);
 		a.ok(!f.new);
-		a.ok(f.mtime);
-		f.destroy();
+		a.ok(f.stat.mtime);
+		a.ok(f.stat.atime);
+		a.ok(f.stat.ctime);
 		done();
 	});
 });
 
-QUnit.test('File#fetch() - new file', function(a) {
+QUnit.test('File#read() - new file', function(a) {
 var
 	f = new ide.File(a.test.testId),
 	done = a.async()
 ;
-	f.fetch().then(function() {
+	f.read().then(function() {
 		a.equal(f.mime, 'text/plain');
-		a.equal(f.content, '');
-		a.ok(f.isNew());
-		f.destroy();
-		done();
-	});
-});
-
-QUnit.test('File#fetch() - existing JSON file', function(a) {
-var
-	f = new ide.File('workspace.json'),
-	done = a.async()
-;
-	f.fetch().then(function() {
-		a.equal(f.mime, 'application/json');
-		a.equal(f.id, 'workspace.json');
-		a.ok(!f.new);
-		a.ok(f.mtime);
-		f.destroy();
-		done();
-	});
-});
-
-QUnit.test('File#fetch() - Repeated fetching', function(a) {
-var
-	f = new ide.File('workspace.json'),
-	done = a.async()
-;
-	f.fetch();
-	f.fetch().then(function() {
-		a.ok(f.id);
-		f.destroy();
-		done();
-	});
-
-});
-
-QUnit.test('File#hasChanged()', function(a) {
-var
-	f = new ide.File('File#hasChanged'),
-	done = a.async(),
-	now = Date.now() + a.test.testId
-;
-	a.ok(!f.hasChanged());
-	f.content = 'Hello';
-	a.ok(f.hasChanged());
-	f.content = '';
-	a.ok(!f.hasChanged());
-
-	f.fetch().then(function() {
-		a.ok(!f.hasChanged());
-		a.ok(!f.isDirectory());
-		f.content = now;
-		a.ok(f.hasChanged());
-		return f.write();
+		a.equal(f.content.byteLength, 0);
+		a.ok(f.stat.isNew);
+		return f.read('utf8');
 	}).then(function() {
-		a.equal(f.content, now);
-		a.ok(!f.hasChanged());
-		f.destroy();
-	}).then(done);
+		a.equal(f.encoding, 'utf8');
+		a.equal(f.content, '');
+		done();
+	});
+});
+
+QUnit.test('File#read() - existing JSON file', function(a) {
+var
+	f = new ide.File('workspace.json'),
+	done = a.async()
+;
+	f.read().then(function() {
+		a.equal(f.mime, 'application/json');
+		a.equal(f.path, 'workspace.json');
+		a.ok(!f.stat.isNew);
+		a.ok(f.stat.mtime);
+		done();
+	});
+});
+
+QUnit.test('File#read() - Repeated fetching', function(a) {
+var
+	f = new ide.File('workspace.json'),
+	done = a.async()
+;
+	f.read();
+	f.read().then(function() {
+		a.ok(f.path);
+		done();
+	});
+
+});
+
+QUnit.test('File#write() - Contents have changed', function(a) {
+var
+	f = new ide.File('File#writeHasChanged'),
+	f2 = new ide.File('File#writeHasChanged'),
+	content = a.test.testId + Date.now(),
+	done = a.async()
+;
+	f.read('utf8').then(function() {
+		return f.write(content);
+	}).then(function() {
+		a.equal(f.content, content);
+		return f2.write('Should not write');
+	}).catch(done);
 });
 
 QUnit.test('File#write() - Existing File', function(a) {
@@ -99,21 +129,17 @@ var
 	content = a.test.testId + Date.now(),
 	content2 = Date.now() + a.test.testId
 ;
-	f.fetch().then(function() {
-		f.content = content;
-		return f.write();
+	f.read('utf8').then(function() {
+		return f.write(content);
 	}).then(function() {
-		a.equal(f.id, 'File#write');
+		a.equal(f.path, 'File#write');
 		a.equal(f.mime, 'text/plain');
 		a.equal(f.content, content);
 
-		f.content = content2;
-
-		return f.write();
+		return f.write(content2);
 	}).then(function() {
-		a.equal(f.id, 'File#write');
+		a.equal(f.path, 'File#write');
 		a.equal(f.content, content2);
-		f.destroy();
 		done();
 	});
 });
@@ -124,11 +150,11 @@ var
 	done = a.async(),
 	content = ''
 ;
-	f.fetch().then(function() {
+	f.read('utf8').then(function() {
 		f.content = content;
 		return f.write();
 	}).then(function() {
-		a.equal(f.id, 'File#writeEmpty');
+		a.equal(f.path, 'File#writeEmpty');
 		a.equal(f.content, content);
 	}).then(done);
 });
@@ -138,12 +164,11 @@ var
 	f = new ide.File('.'),
 	done = a.async()
 ;
-	f.fetch().then(function() {
+	f.read().then(function() {
 		return f.write();
 	}).catch(function(e) {
 		a.equal(e, ide.File.ERROR_WRITE_DIRECTORY);
-		a.ok(f.isDirectory());
-		f.destroy();
+		a.ok(f.stat.isDirectory);
 		done();
 	});
 });
@@ -155,7 +180,6 @@ var
 ;
 	f.write().catch(function(e) {
 		a.equal(e, ide.File.ERROR_WRITE_NO_FILENAME);
-		f.destroy();
 		done();
 	});
 });
@@ -166,17 +190,16 @@ var
 	done = a.async(),
 	content = 'Testing Content'
 ;
-	f.fetch().then(function() {
-		f.content = content;
-		return f.write();
+	f.read('utf8').then(function() {
+		return f.write(content);
 	}).then(function() {
-		a.equal(f.id, 'File#delete');
+		a.equal(f.path, 'File#delete');
 		a.equal(f.content, content);
 		return f.delete();
 	}).then(function() {
-		a.equal(f.id, 'File#delete');
-		a.equal(f.content, '');
-		a.ok(f.isNew());
+		a.equal(f.path, 'File#delete');
+		a.equal(f.content.byteLength, 0);
+		a.ok(f.stat.isNew);
 	}).then(done);
 });
 
@@ -194,38 +217,109 @@ var
 	}).then(done);
 });*/
 
-QUnit.test('File#onMessageStat()', function(a) {
+QUnit.module('FileFeature');
+
+QUnit.test('FileFeature#constructor()', function(a) {
+var
+	e = {},
+	options = { encoding: 'latin1' },
+	f = new ide.feature.FileFeature(e, options)
+;
+	a.equal(f.editor, e);
+	a.equal(f.encoding, 'latin1');
+	a.equal(e.file, f);
+	f.destroy();
+});
+
+QUnit.test('FileFeature#render()', function(a) {
+var
+	file = new ide.File('FileFeature#render'),
+	content = a.test.testId + Date.now(),
+	config = { file: file, encoding: 'utf8' },
+	editor = new ide.Editor(config),
+	feature = new ide.feature.FileFeature(editor, config),
+	done = a.async()
+;
+	file.read().then(function() {
+		return file.write(content);
+	}).then(function() {
+		feature.render();
+		a.equal(feature.content, content);
+		a.ok(!feature.hasChanged());
+		editor.destroy();
+	}).then(done);
+});
+
+QUnit.test('FileFeature#hasChanged()', function(a) {
+var
+	file = new ide.File('File#hasChanged'),
+	editor = new ide.Editor({}),
+	options = { file: file, encoding: 'utf8' },
+	feature = new ide.feature.FileFeature(editor, options),
+	done = a.async(),
+	now = Date.now() + a.test.testId
+;
+	feature.render();
+	
+	a.ok(!feature.hasChanged());
+	feature.content = 'Hello';
+	a.ok(feature.hasChanged());
+	feature.content = '';
+	a.ok(!feature.hasChanged());
+
+	file.read().then(function() {
+		a.ok(!feature.hasChanged());
+		a.ok(!feature.stat.isDirectory);
+		feature.content = now;
+		a.ok(feature.hasChanged());
+		return feature.write();
+	}).then(function() {
+		a.equal(feature.content, now);
+		a.ok(!feature.hasChanged());
+		editor.destroy();
+	}).then(done);
+});
+
+QUnit.module('FileSync');
+
+QUnit.test('FileSync#onMessageStat()', function(a) {
 var
 	notify=ide.notify,
 	warn=ide.warn,
-	done=a.async(),
-	file = new ide.File('File#onMessageStat')
+	file = new ide.File('File#hasChanged'),
+	editor = new ide.Editor({}),
+	options = { file: file },
+	feature = new ide.feature.FileFeature(editor, options),
+	done = a.async()
 ;
-	file.fetch().then(function(file) {
+	file.read().then(function(file) {
 		try {
 			ide.notify = function notify() { notify.called = true; };
 			ide.warn = function warn() { warn.called = true; };
 
-			file.fetch = function fetch() { fetch.called = true; };
-			file.onMessageStat({
-				f: file.id, t: Date.now()
+			feature.read = function fetch() { fetch.called = true; };
+			
+			feature.render();
+			
+			feature.$sync.$onMessageStat({
+				f: file.path, t: Date.now()
 			});
 
 			a.ok(ide.notify.called);
-			a.ok(file.fetch.called);
-			a.ok(!file.hasChanged());
+			a.ok(feature.read.called);
+			a.ok(!feature.hasChanged());
 
-			file.content = 'World';
+			feature.content = 'World';
 
-			file.onMessageStat({
-				f: file.id, t: Date.now()
+			feature.$sync.$onMessageStat({
+				f: file.path, t: Date.now()
 			});
 
 			a.ok(ide.warn.called);
-			a.ok(file.outOfSync);
+			a.ok(feature.$sync.outOfSync);
 		}
 		finally {
-			file.destroy();
+			editor.destroy();
 			ide.warn = warn;
 			ide.notify = notify;
 		}
@@ -234,16 +328,16 @@ var
 
 });
 
+
 QUnit.module('ide.FileEditor');
 
-QUnit.test('ide.FileEditor', function(a) {
+QUnit.test('ide.FileEditor - not loaded file', function(a) {
 var
 	file = new ide.File(),
 	e = new ide.FileEditor({
-		plugin: { name: 'test' },
 		file: file
 	})
 ;
-	a.equal(e.file, file);
+	a.equal(e.file.$file, file);
 	e.destroy();
 });
