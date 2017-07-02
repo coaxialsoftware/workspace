@@ -160,7 +160,7 @@ plugin.config(function() {
 	onMessageStat(client, data)
 	{
 		this.stat(data.p).then(function(stat) {
-			if (stat && stat.mtime.getTime()!==data.t)
+			if (stat && !stat.isNew && stat.mtime.getTime()!==data.t)
 			{
 				workspace.socket.respond(client, 'file', {
 					p: data.p,
