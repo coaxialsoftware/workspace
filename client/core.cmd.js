@@ -384,10 +384,17 @@ ide.plugins.register('core', {
 
 		'plugins.install': {
 			fn: function(id) {
+				var not = ide.notify({
+					title: `Installing ${id} extension`,
+					code: 'plugins.install',
+					className: 'success',
+					progress: 0
+				});
+				
 				return cxl.ajax.post('/plugins/install', {
 					project: ide.project.id,
 					id: id
-				});
+				}).then(() => not.remove());
 			},
 			description: 'Install Plugin',
 			args: [ 'plugin' ],
@@ -396,10 +403,16 @@ ide.plugins.register('core', {
 
 		'plugins.uninstall': {
 			fn: function(id) {
+				var not = ide.notify({
+					title: `Uninstalling ${id} extension`,
+					code: 'plugins.uninstall',
+					className: 'success',
+					progress: 0
+				});
 				return cxl.ajax.post('/plugins/uninstall', {
 					project: ide.project.id,
 					id: id
-				});
+				}).then(() => not.remove());
 			},
 			description: 'Uninstall Plugin',
 			args: [ 'plugin' ],

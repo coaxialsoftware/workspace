@@ -216,7 +216,9 @@ workspace.extend({
 	restart: function()
 	{
 		this.log('Restarting Workspace');
-		process.exit(128);
+		setTimeout(function() {
+			process.exit(128);
+		});
 	},
 
 	/**

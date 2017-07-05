@@ -95,7 +95,8 @@ class File {
 	{
 		var url = this.$url();
 		
-		this.encoding = encoding;
+		if (encoding)
+			this.encoding = encoding;
 
 		if (this.$fetching)
 			return this.$fetching;
@@ -226,7 +227,7 @@ class FileEditorHeader extends ide.feature.EditorHeader {
 			this.setTag('file.old',
 				'<span title="File contents have changed">Out of Sync</span>', 'error');
 
-		this.setTag('file.new', this.editor.file.stat.isNew ? 'New' : null);
+		this.setTag('file.new', this.editor.file.stat.isNew ? 'New' : null, 'success');
 		
 		this.setTag('file.encoding',
 			this.editor.file.encoding !== ide.project.get('editor.encoding') ?

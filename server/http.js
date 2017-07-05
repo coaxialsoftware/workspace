@@ -20,7 +20,7 @@ class ServerResponse
 
 	respond(promise)
 	{
-		Promise.resolve(promise)
+		return Promise.resolve(promise)
 			.then(this.$send.bind(this), this.$onError.bind(this));
 	}
 

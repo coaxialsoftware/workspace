@@ -118,8 +118,8 @@ var
 		return f.write(content);
 	}).then(function() {
 		a.equal(f.content, content);
-		return f2.write('Should not write');
-	}).catch(done);
+		return f2.write('Should not write').catch(done);
+	});
 });
 
 QUnit.test('File#write() - Existing File', function(a) {
@@ -198,24 +198,10 @@ var
 		return f.delete();
 	}).then(function() {
 		a.equal(f.path, 'File#delete');
-		a.equal(f.content.byteLength, 0);
+		a.equal(f.content.length, 0);
 		a.ok(f.stat.isNew);
 	}).then(done);
 });
-
-/*QUnit.test('File#onMessageStat() - 2 files', function(a) {
-var
-	f1 = new ide.File('File#onMessageStat'),
-	f2 = new ide.File('File#onMessageStat'),
-	done = a.async()
-;
-	Promise.all([ f1.fetch(), f2.fetch() ]).then(function() {
-		a.ok(f1.id === f2.id);
-		f1.content = a.test.testId;
-	}).then(function() {
-		a.ok(f2.outOfSync);
-	}).then(done);
-});*/
 
 QUnit.module('FileFeature');
 

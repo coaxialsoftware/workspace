@@ -92,7 +92,16 @@ class File {
 
 	write(content)
 	{
-		return common.writeFile(this.path, content).then(this.read.bind(this));
+		this.content = content;
+		workspace.plugins.emit('file.beforewrite', this);
+		//workspace.plugins.emit('file.beforewrite:' + this.path, this);
+		
+		return common.writeFile(this.path, this.content)
+			.then(() => {
+				workspace.plugins.emit('file.write', this);
+				//workspace.plugins.emit('file.write:' + this.path, this);
+				return this.read();
+			});
 	}
 
 }

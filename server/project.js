@@ -206,8 +206,8 @@ class Project {
 		promises.push(this.buildFiles());
 
 		if (this.configuration.theme)
-			promises.push(workspace.themes.load(this.configuration.theme).bind(this)
-				.then(this.loadTheme));
+			promises.push(workspace.themes.load(this.configuration.theme)
+				.then(theme => this.loadTheme(theme)));
 
 		Q.all(promises).bind(this).then(onReady);
 	}

@@ -96,7 +96,7 @@ ide-tag {
 	display: inline-block;
 }
 
-ide-tag:empty { padding:0; }
+ide-tag:empty { padding:0; border:0; box-shadow:none; }
 
 ide-tag.transparent { background-color: transparent; }
 

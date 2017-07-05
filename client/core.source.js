@@ -745,7 +745,7 @@ class SourceEditor extends ide.FileEditor {
 	_findMode()
 	{
 	var
-		filename = this.file.filename,
+		filename = this.file.name,
 		mime = this.file.mime,
 		info = (filename && codeMirror.findModeByFileName(filename)) ||
 			(mime && codeMirror.findModeByMIME(mime)) ||

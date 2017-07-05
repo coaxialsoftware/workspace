@@ -4,12 +4,13 @@ var
 	fs = require('fs'),
 	path = require('path'),
 
-	Q = require('bluebird'),
 	npm = require('npm'),
 	_ = require('lodash'),
 
 	common = require('./common.js'),
 	workspace = global.workspace,
+	ServerResponse = require('./http').ServerResponse,
+	file = require('./file'),
 
 	NPM = {
 
@@ -19,7 +20,7 @@ var
 		args = args || [];
 
 		return this.load(cwd).then(function(npm) {
-			return new Q(function(resolve, reject) {
+			return new Promise(function(resolve, reject) {
 
 				try {
 					cwd = cwd ? path.resolve(cwd) :
@@ -45,7 +46,7 @@ var
 
 	load: function()
 	{
-		return new Q(function(resolve, reject) {
+		return new Promise(function(resolve, reject) {
 			npm.load(function(er, npm) {
 				if (er)
 					return reject(er);
@@ -96,19 +97,22 @@ class Plugin {
 			.replace(/\./g, '-');
 		this.name = mod.name;
 
-		this.ready = Q.props({
-			source: mod.source ? _.result(mod, 'source') :
+		this.ready = Promise.all([
+			// source
+			mod.source ? _.result(mod, 'source') :
 				(mod.sourcePath ? common.read(mod.sourcePath) : ''),
-			pkg: common.load_json(path + '/package.json')
-		}).bind(this).then(function(data) {
-			this.source = data.source;
-			this.package = data.pkg;
+			// package
+			common.load_json(path + '/package.json')
+		]).then(data => {
+			this.source = data[0];
+			this.package = data[1];
 			this.onlineWatch = workspace.online.watch('/plugins/'+this.id, this.onValue, this);
 
 			return this;
 		}, function(e) {
 			this.mod.error(`Failed to load plugin ${this.name}`);
 			this.mod.error(e);
+			return Promise.reject(e);
 		});
 
 		if (mod.sourcePath)
@@ -199,13 +203,11 @@ class PluginManager extends EventEmitter {
 
 	enable(project, id)
 	{
-		console.log(project, id);
 		return Promise.resolve(this.plugins[id].toJSON());
 	}
 
 	disable(project, id)
 	{
-		console.log(project, id);
 		return Promise.resolve(this.plugins[id].toJSON());
 	}
 
@@ -221,7 +223,7 @@ class PluginManager extends EventEmitter {
 				var plugin = me.requireFile(path);
 				return plugin.ready;
 			}).then(function(plugin) {
-				workspace.reload();
+				workspace.restart();
 				return plugin.toJSON();
 			}));
 	}
@@ -242,12 +244,12 @@ class PluginManager extends EventEmitter {
 				delete me.plugins[id];
 			}
 			workspace.dbg(`Successfully uninstalled plugin ${name}`);
-			workspace.reload();
 			return a;
 		}).then(function() {
 			return me.getOnlinePackages().then(function(packages) {
 				var pkg = packages[id];
 				pkg.id = id;
+				workspace.restart();
 				return pkg;
 			});
 		});
@@ -334,7 +336,7 @@ class PluginManager extends EventEmitter {
 			});
 		}
 
-		return Q.all(_.map(me.plugins, 'ready'));
+		return Promise.all(_.map(me.plugins, 'ready'));
 	}
 
 	loadLocalPlugins()
@@ -412,6 +414,27 @@ class PluginManager extends EventEmitter {
 		if (hints.length)
 			done(hints);
 	}
+	
+	loadTests()
+	{
+		var files = [], plugin, fn;
+		
+		function onError(e)
+		{
+			workspace.dbg(e.message);
+		}
+		
+		for (var i in this.plugins)
+		{
+			plugin = this.plugins[i];
+			fn = plugin.path + '/tests.js';
+			files.push(file.read(fn).catch(onError));
+		}
+			
+		return Promise.all(files).then(function(content) {
+			return content.join("\n");
+		}, onError);
+	}
 
 	start()
 	{
@@ -419,7 +442,7 @@ class PluginManager extends EventEmitter {
 
 		workspace.plugins.on('assist.inline', this.onInlineAssist.bind(this));
 
-		return this.loadWorkspacePlugins().bind(this).then(function() {
+		return this.loadWorkspacePlugins().then(() => {
 
 			for (var i in this.plugins)
 				this.plugins[i].start();
@@ -434,29 +457,37 @@ class PluginManager extends EventEmitter {
 }
 
 workspace.route('POST', '/plugins/install', function(req, res) {
-	common.respond(workspace, res, workspace.plugins.install(req.body.id));
+	ServerResponse.respond(res, workspace.plugins.install(req.body.id), this);
 })
 
 .route('POST', '/plugins/uninstall', function(req, res) {
-	common.respond(workspace, res, workspace.plugins.uninstall(req.body.id));
+	ServerResponse.respond(res, workspace.plugins.uninstall(req.body.id), this);
+})
+
+.route('GET', '/plugins/tests', function(req, res, next) {
+	if (!workspace.configuration.debug)
+		next();
+	
+	res.set('content-type', 'text/javascript');
+	ServerResponse.respond(res, workspace.plugins.loadTests(), this);
 })
 
 .route('POST', '/plugins/enable', function(req, res) {
 var
 	p = workspace.projectManager.getProject(req.body.project)
 ;
-	common.respond(workspace, res, workspace.plugins.enable(p, req.body.id));
+	ServerResponse.respond(res, workspace.plugins.enable(p, req.body.name), this);
 })
 
 .route('POST', '/plugins/disable', function(req, res) {
 var
 	p = workspace.projectManager.getProject(req.body.project)
 ;
-	common.respond(workspace, res, workspace.plugins.disable(p, req.body.name));
+	ServerResponse.respond(res, workspace.plugins.disable(p, req.body.name), this);
 })
 
 .route('GET', '/plugins', function(req, res) {
-	common.respond(workspace, res, this.plugins.getPackages());
+	ServerResponse.respond(res, workspace.plugins.getPackages(), this);
 });
 
 workspace.NPM = NPM;
