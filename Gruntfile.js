@@ -21,7 +21,6 @@ module.exports = function(grunt) {
 					'client/core.project.js',
 					'client/core.bar.js',
 					'client/core.source.js',
-					'client/core.online.js',
 					'client/core.welcome.js',
 					'client/core.assist.js'
 				]

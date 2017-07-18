@@ -2,7 +2,7 @@
 	"name": "@cxl/workspace",
 	"description": "Javascript Web Editor",
 	"author": "Giancarlo Bellido <giancarlo@coaxialhost.com>",
-	"version": "2.7.0",
+	"version": "2.7.2",
 	"bin": {
 		"workspace": "./bin/workspace.js"
 	},
@@ -15,7 +15,6 @@
 		"websocket": "*",
 		"lodash": "4",
 		"micromatch": "*",
-		"firebase": "2",
 		"@cxl/cxl": "2",
 		"npm": "*",
 		"uglify-es": "*"

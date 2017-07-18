@@ -88,6 +88,16 @@ ide.plugins.register('debug', {
 			description: 'Inspect node server (must be run with --inspect flag)',
 			icon: 'bug'
 		},
+		
+		'debug.tests': {
+			fn: function() { window.open('/client'); },
+			icon: 'bug'
+		},
+		
+		'debug.benchmark': {
+			fn: function() { window.open('/client/benchmark.html'); },
+			icon: 'bug'
+		},
 
 		'debug.diff': {
 

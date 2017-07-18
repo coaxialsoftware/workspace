@@ -13,6 +13,7 @@ var
 
 	common = require('./common'),
 	workspace = require('./workspace'),
+	ServerResponse = require('./http').ServerResponse,
 
 	plugin = module.exports = cxl('workspace.project')
 ;
@@ -28,7 +29,7 @@ class ProjectConfiguration extends workspace.Configuration
 	constructor(p)
 	{
 		super(_.pick(workspace.configuration, [
-			'keymap', 'theme', 'online.url', 'online.username', 'inspect',
+			'keymap', 'theme', 'inspect',
 			'path.separator', 'editor.encoding'
 		]));
 
@@ -259,19 +260,17 @@ class Project {
 
 	buildSources()
 	{
-		if (this.configuration.plugins)
-		{
-			this.log.dbg('Building plugin sources: ' + this.configuration.plugins);
-			this.configuration.set('plugins.src',
-				workspace.plugins.getSources(this.configuration.plugins));
-		}
+		this.log.dbg('Building plugin sources: ' + this.configuration.plugins);
+		this.configuration.set('plugins.src',
+			workspace.plugins.getSources(this.configuration.plugins));
 	}
 
 	hasPlugin(name)
 	{
-		var p = this.configuration.plugins;
+		return !!workspace.plugins.get(name);
+		/*var p = this.configuration.plugins;
 
-		return p && p.indexOf(name)!==-1;
+		return p && p.indexOf(name)!==-1;*/
 	}
 
 	buildIgnore()
@@ -285,7 +284,7 @@ class Project {
 	doLoad()
 	{
 		this.ignore = new common.FileMatcher();
-		this.buildSources();
+		//this.buildSources();
 
 		workspace.plugins.emit('project.load', this);
 
@@ -316,7 +315,7 @@ class Project {
 		this.log.operation('Loading File Manager', this.loadFiles, this);
 
 		this.listenTo(workspace.plugins, 'workspace.reload', this.reload);
-		this.listenTo(workspace.plugins, 'plugins.source', this.buildSources);
+		//this.listenTo(workspace.plugins, 'plugins.source', this.buildSources);
 
 		return this.doLoad();
 	}
@@ -337,12 +336,12 @@ class ProjectManager {
 	{
 		this.workspaceProject = new Project('.');
 		this.path = '.';
-		
+
 		workspace.plugins.on('project.filechange', this.onFileChange.bind(this));
-		
+
 		this.projects = {};
 	}
-	
+
 	onFileChange(project)
 	{
 		if (project.path==='.')
@@ -471,9 +470,7 @@ plugin.extend({
 
 })
 .route('GET', '/project', function(req, res) {
-	this.projectManager.load(req.query.n).then(function(result) {
-		res.send(result);
-	}, common.sendError(this, res));
+	ServerResponse.respond(res, this.projectManager.load(req.query.n), this);
 })
 .route('POST', '/project', function(req, res) {
 	// Create project ?

@@ -3840,7 +3840,11 @@ cxl.directive('list', {
 });
 
 cxl.pipe('date', function(val) {
-	if (!(val instanceof Date))
+	
+	if (val instanceof cxl.date.DateRange)
+		return val.toString();
+		
+	if (!(val instanceof cxl.date.Date))
 		val = new Date(val);
 
 	return val.toLocaleDateString();
@@ -3871,9 +3875,9 @@ cxl.directive('timer', {
 
 	initialize: function()
 	{
-		this.parameters = this.parameters || 1000;
+		this.interval = this.parameters ?
+			this.component.get(this.parameters) : 1000;
 		this.value = 0;
-		this.resume();
 	},
 
 	destroy: function()
@@ -3886,10 +3890,14 @@ cxl.directive('timer', {
 		this.set(this.value+1);
 	},
 
-	resume: function()
+	digest: function()
 	{
 		this.__interval = setInterval(
-			this.onInterval.bind(this), this.parameters);
+			this.onInterval.bind(this), this.interval);
+		
+		this.digest = null;
+		
+		return this.value;
 	}
 
 });
@@ -4356,9 +4364,11 @@ cxl.component({
 	
 cxl.component({
 	name: 'cxl-loading',
-	template: '<cxl-icon icon="spinner" spin pulse size="64"></cxl-icon>',
+	template: '<cxl-icon &="timer(delay):|show" icon="spinner" spin pulse size="64"></cxl-icon>',
 	shadow: false,
 	styles: { $: { textAlign: 'center', color: css.primary }}
+}, {
+	delay: 300
 });
 	
 cxl.component({

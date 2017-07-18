@@ -20,7 +20,7 @@ var
 	basePath = path.resolve(__dirname + '/../'),
 	workspace = global.workspace = module.exports = cxl('workspace'),
 
-	COOKIE_REGEX = /(?:^|;\s*)workspace=([^;,\s]+)/
+	ServerResponse = require('./http').ServerResponse
 ;
 
 /**
@@ -100,7 +100,7 @@ class WorkspaceConfiguration extends Configuration {
 
 		if (this['plugins.global']===undefined && !this['plugins.path'])
 			this['plugins.global'] = true;
-		
+
 		// check for v8 inspector support
 		var inspect = process.execArgv.join('').match(/--inspect(?:=(\d+))?/);
 
@@ -173,19 +173,27 @@ cxl.define(WorkspaceConfiguration, {
 	'help.url': null,
 
 	/**
-	 * Default configuration for firebase
- 	 */
-	'online.url': 'https://cxl.firebaseio.com/workspace',
-
-	/**
 	 * Operating System Path separator
 	 */
-	'path.separator': path.sep
+	'path.separator': path.sep,
+
+	/**
+	 * URL to get plugin information
+	 */
+	'plugins.url': 'https://cxl.firebaseio.com/workspace/plugins.json'
 
 });
 
+class AuthenticationAgent {
+
+	isAuthenticated() { throw "Not Implemented"; }
+	onRequest(/*req, res, next*/) { throw "Not Implemented"; }
+
+}
+
 workspace.extend({
 
+	AuthenticationAgent: AuthenticationAgent,
 	Configuration: Configuration,
 
 	configuration: new WorkspaceConfiguration(),
@@ -197,21 +205,6 @@ workspace.extend({
 	_: _,
 	Q: Q,
 	micromatch: require('micromatch'),
-
-	__data: null,
-	__dataFile: basePath + '/data.json',
-
-	/**
-	 * Persist data for plugins.
-	 */
-	data: function(plugin, data)
-	{
-		if (arguments.length===1)
-			return this.__data[plugin];
-
-		this.__data[plugin] = data;
-		this.__saveData();
-	},
 
 	restart: function()
 	{
@@ -289,21 +282,6 @@ workspace.extend({
 		return process;
 	},
 
-	__saveData: function()
-	{
-		var me = this;
-
-		if (this.__dataTimeout)
-			clearTimeout(this.__dataTimeout);
-
-		this.__dataTimeout = setTimeout(function() {
-			var data = JSON.stringify(me.__data);
-
-			me.dbg(`Writing data file. ${me.__dataFile} (${Buffer.byteLength(data)} bytes)`);
-			common.writeFile(me.__dataFile, data);
-		});
-	},
-
 	__watches: {},
 
 	watch: function(path, cb)
@@ -346,8 +324,9 @@ workspace.extend({
 		workspace.plugins.emit('workspace.reload');
 	},
 
-	onReady: function()
+	registerAuthenticationAgent(Agent)
 	{
+		this.authenticationAgent = new Agent();
 	}
 
 })
@@ -358,60 +337,17 @@ workspace.extend({
 
 .use(cxl.static(basePath + '/public', { maxAge: 86400000 }))
 
+.route('GET', '/plugins/source', function(req, res) {
+	res.set('content-type', 'application/javascript');
+	ServerResponse.respond(res, workspace.plugins.getSources(), this);
+})
+
 // Login Check
 .use(function(req, res, next) {
-
-	var cookie, match, token, json;
-
-	function fail()
-	{
-		res.status(401).end();
-	}
-
-	function tryLogin()
-	{
-		return workspace.online.loginToken(token).then(next, fail);
-	}
-
-	if (req.method==='POST' && req.path==='/login')
-	{
-		var body = '';
-
-		req.on('data', function(data) {
-			body += data;
-			if (body.length>1000)
-			{
-				req.connection.destroy();
-				res.end();
-			}
-		});
-
-		req.on('end', function() {
-			json = JSON.parse(body);
-
-			workspace.online.login(null, json).then(function(data) {
-				res.send(data);
-			}, fail);
-		});
-
-		return;
-
-	} else if (workspace.configuration['online.required'])
-	{
-		cookie = req.get('cookie');
-
-		if ((match = COOKIE_REGEX.exec(cookie)))
-		{
-			token = match[1];
-
-			return (workspace.online.uid && token === workspace.online.token) ?
-				next() : tryLogin();
-		}
-
-		return fail();
-	}
-
-	next();
+	if (this.authenticationAgent)
+		this.authenticationAgent.onRequest(req, res, next);
+	else
+		next();
 })
 
 // TODO verify limit
@@ -433,8 +369,6 @@ workspace.extend({
 		.then(this.watcher.watchFile.bind(this.watcher, 'workspace.json'),
 			this.log.bind(this, 'No workspace.json found.'));
 
-	this.__data = common.load_json_sync(this.__dataFile) || {};
-
 	process.title = 'workspace:' + this.port;
 
 	// Enable Test path
@@ -447,14 +381,12 @@ workspace.extend({
 	this.dbg(`Serving Files from "${basePath}/public" and "${basePath}/test"`);
 
 	require('./socket').start();
-	require('./online').start();
 	require('./project').start();
 	require('./file').start();
 	require('./assist').start();
 
 	process.on('uncaughtException', this.error.bind(this));
 
-	this.operation('Loading plugins', this.plugins.start.bind(this.plugins))
-		.then(this.onReady.bind(this));
+	this.operation('Loading plugins', this.plugins.start.bind(this.plugins));
 }).start();
 

@@ -30,12 +30,6 @@ plugin.extend({
 		}
 	},
 
-	onAuth: function(auth)
-	{
-		if (workspace.configuration['online.required'] && !auth)
-			this.closeAll(4000, 'logout');
-	},
-
 	closeAll: function(reasonCode)
 	{
 		for (var i in this.clients)
@@ -105,7 +99,6 @@ var
 
 	workspace.plugins.on('project.load', this.onProjectLoad);
 	workspace.plugins.on('workspace.load', this.onProjectLoad);
-	workspace.plugins.on('online.auth', this.onAuth.bind(this));
 	workspace.socket = plugin;
 
 }).run(function() {
@@ -131,7 +124,7 @@ var
 
 	this.ws.on('request', function(request) {
 
-		if (workspace.configuration['online.required'] && !workspace.online.uid)
+		if (workspace.authenticationAgent && !workspace.authenticationAgent.isAuthenticated())
 			return request.reject(401);
 
 		var client = request.accept('workspace', request.origin);

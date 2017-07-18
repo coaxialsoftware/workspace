@@ -3,6 +3,7 @@ var
 	EventEmitter = require('events').EventEmitter,
 	fs = require('fs'),
 	path = require('path'),
+	UglifyJS = require('uglify-es'),
 
 	npm = require('npm'),
 	_ = require('lodash'),
@@ -106,7 +107,6 @@ class Plugin {
 		]).then(data => {
 			this.source = data[0];
 			this.package = data[1];
-			this.onlineWatch = workspace.online.watch('/plugins/'+this.id, this.onValue, this);
 
 			return this;
 		}, function(e) {
@@ -136,8 +136,6 @@ class Plugin {
 
 		if (this.sourceWatch)
 			workspace.unwatch(this.sourceWatch, this.onWatchFn);
-
-		this.onlineWatch.unsubscribe();
 	}
 
 	reload()
@@ -199,6 +197,12 @@ class PluginManager extends EventEmitter {
 	{
 		super();
 		this.plugins = {};
+		this.on('plugins.source', this.resetSources.bind(this));
+	}
+
+	resetSources()
+	{
+		this.cachedSources = null;
 	}
 
 	enable(project, id)
@@ -285,7 +289,11 @@ class PluginManager extends EventEmitter {
 
 	getOnlinePackages()
 	{
-		return workspace.online.get('plugins').catch(function(e) {
+		var url = workspace.configuration['plugins.url'];
+
+		return cxl.request(url).then(function(res) {
+			return JSON.parse(res.body);
+		}, function(e) {
 			workspace.dbg('Could not retrieve plugin list from server');
 			workspace.error(e);
 			return {};
@@ -296,9 +304,9 @@ class PluginManager extends EventEmitter {
 	{
 		var plugins = this.plugins;
 
-		return this.getOnlinePackages().then(function(all) {
+		return this.getOnlinePackages().then(all => {
 
-			this.packages = Object.assign({}, all);
+			this.packages = all;
 
 			_.each(plugins, function(a, k) {
 				if (a)
@@ -349,20 +357,44 @@ class PluginManager extends EventEmitter {
 			}, this);
 	}
 
-	getSources(plugins)
+	compileSources()
 	{
-		var me = this;
-		plugins = plugins || _.keys(this.plugins);
+		return workspace.operation('Compiling Plugin Sources', () => {
+			var result = UglifyJS.minify(this.cachedSources, {
+				compress: false,
+				mangle: true
+			});
 
-		return _.reduce(plugins, function(result, n) {
+			if (result.error)
+				return workspace.error(result.error);
 
-			if (n in me.plugins)
-				result += me.plugins[n].source;
-			else
-				workspace.error(`Plugin "${n}" not found.`);
+			if (result.warnings)
+				result.warnings.forEach(w => workspace.warn(w));
 
-			return result;
-		}, '') + (this.scripts ? this.scripts : '');
+			this.cachedSources = result.code;
+		});
+	}
+
+	getSources()
+	{
+		if (this.cachedSources)
+			return this.cachedSources;
+
+		var result='', i;
+
+		for (i in this.plugins)
+		{
+			if (this.plugins[i].source)
+				result += this.plugins[i].source;
+		}
+
+		if (this.scripts)
+			result += this.scripts;
+
+		if (!workspace.configuration.debug)
+			setImmediate(this.compileSources.bind(this));
+
+		return (this.cachedSources = result);
 	}
 
 	loadScripts(scripts)
@@ -414,23 +446,23 @@ class PluginManager extends EventEmitter {
 		if (hints.length)
 			done(hints);
 	}
-	
+
 	loadTests()
 	{
 		var files = [], plugin, fn;
-		
+
 		function onError(e)
 		{
 			workspace.dbg(e.message);
 		}
-		
+
 		for (var i in this.plugins)
 		{
 			plugin = this.plugins[i];
 			fn = plugin.path + '/tests.js';
 			files.push(file.read(fn).catch(onError));
 		}
-			
+
 		return Promise.all(files).then(function(content) {
 			return content.join("\n");
 		}, onError);
@@ -445,7 +477,15 @@ class PluginManager extends EventEmitter {
 		return this.loadWorkspacePlugins().then(() => {
 
 			for (var i in this.plugins)
-				this.plugins[i].start();
+			{
+				try {
+					this.plugins[i].start();
+				} catch(e)
+				{
+					workspace.error(`Error loading plugin "${i}"`);
+					workspace.error(e);
+				}
+			}
 
 			this.loadScripts(workspace.configuration.scripts);
 
@@ -457,17 +497,19 @@ class PluginManager extends EventEmitter {
 }
 
 workspace.route('POST', '/plugins/install', function(req, res) {
-	ServerResponse.respond(res, workspace.plugins.install(req.body.id), this);
-})
 
-.route('POST', '/plugins/uninstall', function(req, res) {
+	ServerResponse.respond(res, workspace.plugins.install(req.body.id), this);
+
+}).route('POST', '/plugins/uninstall', function(req, res) {
+
 	ServerResponse.respond(res, workspace.plugins.uninstall(req.body.id), this);
+
 })
 
 .route('GET', '/plugins/tests', function(req, res, next) {
 	if (!workspace.configuration.debug)
 		next();
-	
+
 	res.set('content-type', 'text/javascript');
 	ServerResponse.respond(res, workspace.plugins.loadTests(), this);
 })
