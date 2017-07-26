@@ -236,15 +236,11 @@ var PluginComponent = cxl.component({
 <ide-item-tags><cxl-fragment &="repeat(tags)"><ide-tag &="item:text"></ide-tag></cxl-fragment>
 </ide-item-tags><code &="=code:|text"></code><ide-item-title &="=title:|text">
 </ide-item-title><ide-item-description &="=description:|if:|text"></ide-item-description>
-<ide-item-footer>
-<span &="=local:unless">
+<ide-item-footer &="=local:unless">
+<span>
 <cxl-submit &="=installed:unless click:#install =loadInstall:set(submitting)">Install</cxl-submit>
 <cxl-submit &="=installed:if click:#uninstall =loadInstall:set(submitting)">Uninstall</cxl-submit>
 <span>
-<!--span &="=installed:show">
-<cxl-submit &="=enabled:unless click:#enable =loadEnable:set(submitting)">Enable</cxl-submit>
-<cxl-submit &="=enabled:if click:#disable =loadEnable:set(submitting)">Disable</cxl-submit>
-</span-->
 </ide-item-footer></ide-item>`
 }, class {
 
@@ -257,13 +253,10 @@ var PluginComponent = cxl.component({
 	render()
 	{
 	var
-		enabled = ide.project.get('plugins'),
 		tags = this.tags = [],
 		a = this.data
 	;
-		if (enabled && enabled.indexOf(a.id)!==-1)
-			tags.push(a.installed ? 'Enabled' : 'Enabled but Not Installed');
-		else if (a.installed)
+		if (a.installed)
 			tags.push('Installed');
 		if (a.unofficial)
 			tags.push('Unofficial');

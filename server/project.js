@@ -267,7 +267,7 @@ class Project {
 
 	hasPlugin(name)
 	{
-		return !!workspace.plugins.get(name);
+		return name in workspace.plugins.plugins;
 		/*var p = this.configuration.plugins;
 
 		return p && p.indexOf(name)!==-1;*/

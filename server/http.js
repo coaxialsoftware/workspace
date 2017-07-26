@@ -31,8 +31,10 @@ class ServerResponse
 
 	$onError(err)
 	{
+		// TODO
+		var status = err.code==='ENOENT' ? 404 : 500;
 		this.module.error(err);
-		this.res.status(500).send(err);
+		this.res.status(status).send(err);
 	}
 }
 
