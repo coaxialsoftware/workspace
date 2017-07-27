@@ -307,7 +307,7 @@ cxl.extend(KeyMap.prototype, {
 	setState: function(state)
 	{
 		this.state = state;
-		
+
 		if (this.editor)
 			ide.plugins.trigger('editor.keymap', this, this.editor);
 	},
@@ -336,12 +336,13 @@ ide.keymap.handle = function(key, state)
 {
 var
 	handle = KeyMap.prototype.handle,
-	result=false
+	result=false,
+	uiState = this.uiState
 ;
-	if (this.uiState)
+	if (uiState)
 	{
 		result = handle.call(this, key, this.uiState);
-		if (state===this.uiState)
+		if (state===uiState)
 			return result;
 	}
 
@@ -415,7 +416,7 @@ ide.keymap.registerKeys({
 		'shift+mod+enter': 'cursor.enter 1 1',
 		insert: 'insert.toggleOverwrite',
 		'shift+backspace': 'insert.backspace',
-		
+
 		'mod+backspace': 'word.removePrevious',
 		'mod+del': 'word.removeNext',
 		'mod+end': 'cursor.goEnd',
@@ -426,7 +427,7 @@ ide.keymap.registerKeys({
 		'mod+up': 'scroll.up',
 		'mod+pageup': 'scrollScreenUp',
 		'mod+pagedown': 'scrollScreenDown',
-		
+
 		'mod+a': 'selection.selectAll',
 		'mod+d': 'search.next',
 		'mod+f': 'searchbar',
@@ -435,16 +436,16 @@ ide.keymap.registerKeys({
 		'mod+s': 'write',
 		'mod+y': 'history.redo',
 		'mod+z': 'history.undo',
-		
+
 		'mod+[': 'indent.less',
 		'mod+]': 'indent.more',
-		
+
 		'shift+mod+f': 'search.replace',
 		'shift+mod+k': 'line.remove',
 		'shift+mod+r': 'search.replaceRange',
 		'shift+mod+u': 'selection.redo',
 		'shift+mod+z': 'history.redo',
-		
+
 		'tab': 'insert.tab',
 		'shift+tab': 'indent.auto'
 	}

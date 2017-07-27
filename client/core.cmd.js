@@ -390,11 +390,12 @@ ide.plugins.register('core', {
 					className: 'success',
 					progress: 0
 				});
-				
+
 				return cxl.ajax.post('/plugins/install', {
 					project: ide.project.id,
 					id: id
-				}).then(() => not.remove());
+				}).catch(() => ide.error(`Error installing ${id} extension`))
+					.then(() => not.remove());
 			},
 			description: 'Install Plugin',
 			args: [ 'plugin' ],
@@ -412,7 +413,8 @@ ide.plugins.register('core', {
 				return cxl.ajax.post('/plugins/uninstall', {
 					project: ide.project.id,
 					id: id
-				}).then(() => not.remove());
+				}).catch(() => ide.error(`Error installing ${id} extension`))
+					.then(() => not.remove());
 			},
 			description: 'Uninstall Plugin',
 			args: [ 'plugin' ],

@@ -362,7 +362,11 @@ cxl.extend(InlineAssist.prototype, {
 			return ide.Pass;
 
 		if (this.token && this.selectedValue && this.token.cursorValue===this.selectedValue)
-			return ide.Pass;
+		{
+			this.hide();
+			// TODO returning false so it skips the uiState
+			return false;
+		}
 
 		setTimeout(this.doAccept, this.delay);
 	}
@@ -458,7 +462,7 @@ var Assist = cxl.View.extend({
 		this.version++;
 		this.requestHints.cancel();
 	},
-	
+
 	_doRequestNow: function(editor, file, token, diff)
 	{
 		ide.socket.send('assist', {
@@ -487,10 +491,10 @@ var Assist = cxl.View.extend({
 		this.$hints.innerHTML = '';
 		this.rendered = false;
 		this.hints = [];
-		
+
 		ide.plugins.trigger('assist',
 			this.addHint.bind(this, this.version), editor, token);
-		
+
 		if (diff)
 			diff.then(this._doRequestNow.bind(this, editor, file, token));
 		else
