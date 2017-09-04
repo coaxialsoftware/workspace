@@ -5,16 +5,16 @@
 
 (function(cxl) {
 "use strict";
-	
+
 function iconEl(id)
 {
 	var el = document.createElement('ide-icon');
 	el.className = id;
 	return el;
 }
-	
+
 var ResourceManager;
-	
+
 class Resource
 {
 	constructor(id, element)
@@ -22,7 +22,7 @@ class Resource
 		this.id = id;
 		this.element = element;
 	}
-	
+
 	destroy()
 	{
 		delete ResourceManager.$icons[this.id];
@@ -36,6 +36,7 @@ ResourceManager = {
 		command: iconEl('command'),
 		cog: iconEl('cog'),
 		directory: iconEl('directory'),
+		error: iconEl('error'),
 		file: iconEl('file'),
 		git: iconEl('git'),
 		keyword: iconEl('keyword'),
@@ -45,17 +46,18 @@ ResourceManager = {
 		tag: iconEl('tag'),
 		variable: iconEl('variable'),
 		'variable-global': iconEl('variable-global'),
+		value: iconEl('value'),
 		expand: iconEl('expand'),
 		collapse: iconEl('collapse')
 	},
 
 	getIcon: function(id)
 	{
-		var r = this.$icons[id]; 
-		
+		var r = this.$icons[id];
+
 		if (!r)
 			throw new Error('Invalid Icon');
-		
+
 		return r.cloneNode(true);
 	},
 
@@ -205,7 +207,7 @@ ide.open = function(options)
 
 	if (options.file && !(options.file instanceof ide.File))
 		options.file = new ide.File(options.file);
-		
+
 	return (options.file ? loadFile(options.file).then(loadEditor.bind(ide, options)) :
 		Promise.resolve(loadEditor(options))).catch(onOpenError.bind(ide, options));
 };

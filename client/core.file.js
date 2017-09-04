@@ -76,16 +76,17 @@ class File {
 		return this;
 	}
 
-	$onError(res)
+	$onError(xhr)
 	{
 	var
+		res = xhr.response || xhr.statusText || xhr.message,
 		id = this.id || (ide.project.id + '/' + this.name),
 		msg = this.decode(res, 'utf8') ||
 			(this.saving ? 'Error saving file: ' : 'Error opening file: ') + id
 	;
-		ide.error(msg);
+		//ide.error(msg);
 		this.$fetching = null;
-		return Promise.reject(msg);
+		return Promise.reject(new Error(msg));
 	}
 
 	/**
@@ -151,6 +152,7 @@ class FileItem extends ide.Item {
 
 		super(p);
 
+		this.line = p.line;
 		this.prefix = p.prefix;
 	}
 
@@ -341,7 +343,7 @@ class FileDiff {
 			this.diffValue = cur;
 			return (this.lastDiff = ide.diffPromise(old, cur));
 		} else
-			return this.lastDiff;
+			return Promise.resolve(this.lastDiff);
 	}
 
 }
@@ -356,6 +358,7 @@ class FileFeature extends ide.Feature {
 		this.$file = c.file;
 		this.$sync = new FileSync(this);
 		this.$diff = new FileDiff(this);
+		this.editor.$assistData.file = {};
 	}
 
 	get path()
@@ -401,6 +404,18 @@ class FileFeature extends ide.Feature {
 		ide.plugins.trigger('file.parse', this);
 
 		return this.update();
+	}
+
+	assist(data)
+	{
+		data.path = this.$file.path;
+		data.mime = this.$file.mime;
+		data.changed = this.hasChanged();
+
+		return this.diff().then(diff => {
+			data.diffChanged = this.$diff.diffChanged;
+			data.diff = diff;
+		});
 	}
 
 	read(encoding)
@@ -451,17 +466,6 @@ class FileFeature extends ide.Feature {
 	destroy()
 	{
 		this.$sync.destroy();
-	}
-
-	/**
-	 * Serialize file to be read by sockets
-	 */
-	toSocket()
-	{
-		return {
-			id: this.path,
-			diff: this.diff()
-		};
 	}
 
 }
@@ -559,9 +563,9 @@ var
 	return tags;
 }
 
-ide.plugins.on('assist', function(done, editor) {
+ide.plugins.on('assist.extended', function(request) {
 
-	var file = editor && editor.file;
+	var file = request.editor && request.editor.file;
 
 	if (!file)
 		return;
@@ -578,7 +582,8 @@ ide.plugins.on('assist', function(done, editor) {
 
 	// TODO Move to FileSync?
 	if (file.$sync.outOfSync)
-		done({ title: 'File contents have changed', code: 'file', className: 'error' });
+		request.respondExtended({
+			title: 'File contents have changed', code: 'file', className: 'error' });
 
 });
 

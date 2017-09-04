@@ -479,15 +479,15 @@ ide.plugins.register('core', {
 		}
 	},
 
-	onAssistInline: function(done, editor, token)
+	onAssist: function(request)
 	{
-		var hints;
+		var hints, token=request.features.token;
 
-		if (token.type==='command' && token.value)
+		if (token && token.type==='command' && token.value)
+		{
 			hints = this.getAllCommands(token.value);
-
-		if (hints)
-			done(hints);
+			request.respondInline(hints);
+		}
 	},
 
 	getCommand: function(name)
@@ -593,7 +593,7 @@ ide.plugins.register('core', {
 
 	start: function()
 	{
-		ide.plugins.on('assist.inline', this.onAssistInline.bind(this));
+		ide.plugins.on('assist', this.onAssist.bind(this));
 	}
 
 });

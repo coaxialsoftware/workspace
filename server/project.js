@@ -463,11 +463,7 @@ plugin.extend({
 
 })
 .route('GET', '/projects', function(req, res) {
-
-	this.projectManager.findProjects().then(function(p) {
-		res.send(p);
-	}, common.sendError(this, res));
-
+	ServerResponse.respond(res, this.projectManager.findProjects(), this);
 })
 .route('GET', '/project', function(req, res) {
 	ServerResponse.respond(res, this.projectManager.load(req.query.n), this);
@@ -475,7 +471,6 @@ plugin.extend({
 .route('POST', '/project', function(req, res) {
 	// Create project ?
 	var p = req.body.path;
-
-	common.respond(this, res, common.mkdir(p));
+	ServerResponse.respond(res, common.mkdir(p), this);
 })
 ;

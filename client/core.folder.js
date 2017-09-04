@@ -350,7 +350,7 @@ class FileListFocusFeature extends ide.feature.FocusFeature {
 		if (!this.editor.cursor.current)
 			this.editor.cursor.goStart();
 	}
-	
+
 }
 
 FileListEditor.features(ide.feature.FileHashFeature, DirectoryFeature, FileListFocusFeature);
@@ -366,7 +366,7 @@ var worker = new ide.Worker({
 
 	canAssist: function(data)
 	{
-		var token = data.token;
+		var token = data.features.token;
 		return token && (token.type===null || token.type==='string' ||
 			token.type==='string property');
 	},
@@ -374,7 +374,7 @@ var worker = new ide.Worker({
 	assist: function(data)
 	{
 	var
-		token = data.token,
+		token = data.features.token,
 		str = this.getMask(token),
 		regex = str && this.globToRegex(str),
 		files = this.files,
@@ -406,7 +406,7 @@ ide.plugins.register('folder', new ide.Plugin({
 	start: function()
 	{
 		this.listenTo('project.load', this.onProject);
-		this.listenTo('assist.inline', this.onAssistInline);
+		this.listenTo('assist', this.onAssistInline);
 		this.onProject(ide.project);
 	},
 
@@ -415,10 +415,12 @@ ide.plugins.register('folder', new ide.Plugin({
 		worker.post('setFiles', p.attributes.files);
 	},
 
-	onAssistInline: function(done, editor, token)
+	onAssistInline: function(request)
 	{
-		var files, str=token.cursorValue, ch;
-
+	var
+		token = request.features.token,
+		str=token && token.cursorValue, ch, files
+	;
 		if (token.type==='file')
 		{
 			files = this.find(str);
@@ -433,7 +435,7 @@ ide.plugins.register('folder', new ide.Plugin({
 		}
 
 		if (files && files.length)
-			done(files);
+			request.respondInline(files);
 	},
 
 	getFuzzyRegex: function(mask)

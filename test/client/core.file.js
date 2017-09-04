@@ -11,7 +11,7 @@ QUnit.test('File', function(a) {
 QUnit.test('File.joinPath', function(a) {
 
 	a.equal(ide.File.joinPath('hello', 'world'), 'hello/world');
-	
+
 });
 
 QUnit.test('File#read() - normalize', function(a) {
@@ -32,11 +32,11 @@ var
 		a.equal(f.path, 'File#write');
 
 		try {
-			ide.project.set('path', 'empty-project');
+			ide.project.id = 'empty-project';
 			f = new ide.File(ide.File.joinPath('..', 'empty-project', 'invalid', '..'));
 			promise = f.read();
 		} finally {
-			ide.project.set('path', id);
+			ide.project.id = id;
 		}
 
 		return promise;
@@ -207,7 +207,7 @@ QUnit.module('FileFeature');
 
 QUnit.test('FileFeature#constructor()', function(a) {
 var
-	e = {},
+	e = new ide.Editor({}),
 	options = { encoding: 'latin1' },
 	f = new ide.feature.FileFeature(e, options)
 ;
@@ -246,7 +246,7 @@ var
 	now = Date.now() + a.test.testId
 ;
 	feature.render();
-	
+
 	a.ok(!feature.hasChanged());
 	feature.content = 'Hello';
 	a.ok(feature.hasChanged());
@@ -284,9 +284,9 @@ var
 			ide.warn = function warn() { warn.called = true; };
 
 			feature.read = function fetch() { fetch.called = true; };
-			
+
 			feature.render();
-			
+
 			feature.$sync.$onMessageStat({
 				f: file.path, t: Date.now()
 			});

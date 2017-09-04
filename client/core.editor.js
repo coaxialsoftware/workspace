@@ -11,8 +11,11 @@ class Feature {
 
 	constructor(editor)
 	{
+		var name = this.constructor.featureName;
+
 		this.editor = editor;
-		editor[this.constructor.featureName] = this;
+		editor.$assistData[name] = true;
+		editor[name] = this;
 	}
 
 }
@@ -114,7 +117,10 @@ class FocusFeature extends Feature
 {
 	render()
 	{
-		this.editor.listenTo(this.editor.el, 'click', this.set.bind(this));
+		this.editor.listenTo(this.editor.el, 'click', ev => {
+			ev.stopPropagation();
+			this.set();
+		});
 	}
 
 	blur()
@@ -177,9 +183,85 @@ FoldFeature.commands = {
 };
 
 class HintsFeature extends Feature {
+
+	constructor(e)
+	{
+		super(e);
+		this.hints = [];
+	}
+
+	render()
+	{
+		this.editor.listenTo(ide.plugins, 'assist', this.onAssist.bind(this));
+	}
+
+	onAssist(req)
+	{
+		var hints;
+
+		if (req.extended && req.editor===this.editor)
+		{
+			hints = this.getLine(req.editor.cursor.row);
+			req.respondExtended(hints);
+		}
+	}
+
+	setHints(hints, id)
+	{
+		this.clear(id);
+		hints.forEach(this.add.bind(this));
+	}
+
+	clear(code)
+	{
+		this.get(code).forEach(this.remove.bind(this));
+	}
+
+	get(code)
+	{
+		return code===undefined ? this.hints : this.hints.filter(function(h) {
+			return h.code===code;
+		});
+	}
+
+	// TODO add validation in debug module
+	add(hint)
+	{
+		if (!(hint instanceof ide.Item))
+			hint = new ide.Item(hint);
+
+		this.hints.push(hint);
+
+		return hint;
+	}
+
+	remove(hint)
+	{
+		hint.remove();
+		hint.destroy();
+		cxl.pull(this.hints, hint);
+	}
+
+	getLine(line, code)
+	{
+		return this.hints.filter(function(h) {
+			return (code===undefined || h.code===code) && h.range.row === line;
+		});
+	}
+
 }
 
 HintsFeature.featureName = 'hints';
+HintsFeature.commands = {
+	'hints': function(code) {
+	var
+		list = new ide.ListEditor({ }),
+		hints = this.hints.get(code)
+	;
+		list.add(hints);
+		return list;
+	}
+};
 
 class InsertFeature extends Feature {
 
@@ -277,7 +359,8 @@ SelectionFeature.commands = {
 	'selection.begin': function() { this.selection.begin(); },
 	'selection.end': function() { this.selection.end(); },
 	'selection.clear': function() { this.selection.clear(); },
-	'selection.remove': function() { this.selection.remove(); }
+	'selection.remove': function() { this.selection.remove(); },
+	'selection.selectAll': function() { this.selection.selectAll(); }
 };
 
 class LineFeature extends Feature {
@@ -399,7 +482,14 @@ PageFeature.commands = {
 	'page.goDown': function() { this.page.goDown(); }
 };
 
-class TokenFeature extends Feature { }
+class TokenFeature extends Feature {
+
+	/** @abstract */
+	getToken()
+	{
+	}
+
+}
 
 TokenFeature.featureName = 'token';
 
@@ -407,13 +497,20 @@ class RangeFeature extends Feature { }
 
 RangeFeature.featureName = 'range';
 
-class Token {
+class Range {
+	// row
+	// column
+	// endRow
+	// endColumn
+}
+
+class Token extends Range {
 
 	get cursorValue()
 	{
 		// TODO ?
 		return this.$cursorValue===undefined ?
-			(this.$cursorValue=this.value.substr(0, this.cursorColumn-this.column)) :
+			(this.$cursorValue=this.value&&this.value.substr(0, this.cursorColumn-this.column)) :
 			this.$cursorValue
 		;
 	}
@@ -423,9 +520,19 @@ class Token {
 		this.$cursorValue = val;
 	}
 
+	next()
+	{
+		return this.editor.token.getToken(this.endRow, this.endColumn+1);
+	}
+
+	previous()
+	{
+		return this.editor.token.getToken(this.row, this.column);
+	}
+
 	toJSON()
 	{
-		return this.$json || (this.$json={
+		return {
 			row: this.row,
 			column: this.column,
 			cursorColumn: this.column,
@@ -433,12 +540,10 @@ class Token {
 			type: this.type,
 			value: this.value,
 			cursorValue: this.cursorValue
-		});
+		};
 	}
 
 }
-
-class Range { }
 
 class Editor {
 
@@ -448,6 +553,10 @@ class Editor {
 		this.bindings = [];
 		this.plugin = p.plugin;
 		this.el = document.createElement('DIV');
+
+		this.$assistData = {};
+		this.$assistPromises = [];
+
 		// TODO ?
 		this.el.$editor = this;
 		this.keymap = new ide.KeyMap(this);
@@ -509,6 +618,31 @@ class Editor {
 		this.render(p);
 
 		cxl.invokeMap(this.features, 'render');
+	}
+
+	getAssistData()
+	{
+	var
+		features = this.features,
+		data = this.$assistData,
+		promises = this.$assistPromises,
+		result, i, f
+	;
+		promises.length = 0;
+
+		for (i in features)
+		{
+			f = features[i];
+
+			if (f.assist)
+			{
+				result = f.assist(data[i]);
+				if (result)
+					promises.push(result);
+			}
+		}
+
+		return cxl.Promise.all(promises).then(() => data);
 	}
 
 	/**

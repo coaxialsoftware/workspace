@@ -436,7 +436,7 @@ class PluginManager extends EventEmitter {
 
 	onInlineAssist(done, data)
 	{
-		var token = data.token, hints;
+		var token = data.features.token, hints;
 
 		if (token.type!=='plugin')
 			return;

@@ -40,7 +40,7 @@ class FileMatcher {
 
 	build()
 	{
-		if (this.dirty)
+		if (this.dirty && this.files.length)
 		{
 			this.source = '^' +
 				_.map(this.files, function(glob) {
@@ -162,7 +162,7 @@ common = module.exports = {
 		return result;
 	},
 
-	respond: function(module, res, promise)
+/*	respond: function(module, res, promise)
 	{
 		return promise.then(common.send(res),
 			common.sendError(module, res));
@@ -183,7 +183,7 @@ common = module.exports = {
 	send: function(res)
 	{
 		return function(result) { res.send(result); };
-	},
+	},*/
 
 	isDirectory: function(path)
 	{

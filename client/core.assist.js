@@ -5,10 +5,11 @@
 var InlineAssist = function() {
 	this.hints = [];
 	this.el = document.getElementById('assist-inline');
+	this.hintsContainer = document.createElement('DIV');
+	this.el.appendChild(this.hintsContainer);
+
 	this.render = cxl.debounce(this._render);
-	this.requestHints = cxl.debounce(this._requestHints.bind(this), this.delay);
 	this.debouncedHide = cxl.debounce(this.hide, 250);
-	this.cursor = { line: 0, ch: 0 };
 	this.add = this.add.bind(this);
 	this.doAccept = this.doAccept.bind(this);
 
@@ -24,17 +25,16 @@ var InlineAssist = function() {
 	this.scrollUpEl.addEventListener('click', Next.bind(this, true));
 	this.scrollDownEl.addEventListener('click', Next.bind(this, false));
 
-	ide.plugins.on('editor.scroll', this.hide, this);
 	this.el.addEventListener('click', this.onClick.bind(this), true);
 	window.addEventListener('resize', this.hide.bind(this));
 	window.addEventListener('click', this.hide.bind(this));
 
-	ide.plugins.on('token', this.onToken.bind(this));
+	ide.plugins.on('editor.scroll', this.hide, this);
 
-	ide.registerCommand('inlineAssistNext', this.next, this);
-	ide.registerCommand('inlineAssistPrevious', this.previous, this);
-	ide.registerCommand('inlineAssistAccept', this.accept, this);
-	ide.registerCommand('inlineAssistHide', this.hide, this);
+	ide.registerCommand('assist.inlineNext', this.next, this);
+	ide.registerCommand('assist.inlinePrevious', this.previous, this);
+	ide.registerCommand('assist.inlineAccept', this.accept, this);
+	ide.registerCommand('assist.inlineHide', this.hide, this);
 	ide.registerCommand('assist.inlineForce', this.forceRequest, this);
 };
 
@@ -42,26 +42,14 @@ cxl.extend(InlineAssist.prototype, {
 
 	hints: null,
 	visible: false,
-	editor: null,
-	/// Current token
-	token: null,
 	/// Current token position
 	pos: null,
-
-	/// How often to send assist requests
-	delay: 100,
-
-	/// Request version
-	version: 0,
-
 	/// Number of items to show at a time
 	visibleCount: 8,
 	/// Start Item
 	visibleStart: 0,
-
 	/// Selected hint
 	selected: null,
-
 	/// Selected hint value
 	selectedValue: null,
 
@@ -83,56 +71,26 @@ cxl.extend(InlineAssist.prototype, {
 
 	forceRequest: function()
 	{
-		this._requestHints(ide.editor, null, true);
+		ide.assist._requestHints(ide.editor, true);
 	},
 
-	_requestHints: function(editor, token, force)
+	clearHints: function(editor)
 	{
-		token = token || editor.token && editor.token.current;
-	var
-		file = editor.file
-	;
-		if (!token || (!force && !token.cursorValue))
-			return this.hide();
+		if (this.hints.length)
+			this.hints = [];
 
-		this.version++;
-		this.editor = editor;
-		this.token = token;
-		this.hints = [];
 		this.selected = this.selectedValue = null;
 		this.calculateLeft(editor);
 		this.debouncedHide();
 		this.visibleStart = 0;
 
 		ide.keymap.setUIState(null);
-
-		ide.plugins.trigger('assist.inline',
-			this.addHints.bind(this, this.version), editor, token);
-
-		ide.socket.send('assist.inline', {
-			$: this.version,
-			file: file && file.path,
-			mime: file && file.mime,
-			token: token && token.toJSON(),
-			project: ide.project.id
-		});
 	},
 
-	onToken: function(editor, token)
-	{
-		this.cursor.line = token.line;
-		this.cursor.ch = token.start;
-
-		if (editor.insert && !editor.insert.enabled)
-			return this.hide();
-		else
-			this.requestHints(this.editor = editor || ide.editor, token);
-	},
-
-	calculateLeft: function()
+	calculateLeft: function(editor)
 	{
 	var
-		pos = this.pos = this.token && this.token.getCoordinates(),
+		pos = this.pos = editor.token.current.getCoordinates(),
 		// TODO ...
 		bottom = pos.bottom + 200,
 		viewHeight = window.innerHeight
@@ -155,12 +113,9 @@ cxl.extend(InlineAssist.prototype, {
 			this.el.style.transform = this.translateStr = translate;
 	},
 
-	addHints: function(version, hints)
+	addHints: function(hints)
 	{
 		var i = 0, l=hints.length;
-
-		if (version !== this.version || !hints)
-			return;
 
 		for (;i<l;i++)
 			this.add(hints[i]);
@@ -175,12 +130,6 @@ cxl.extend(InlineAssist.prototype, {
 	{
 		hint = hint instanceof ide.Hint ? hint : new ide.Hint(hint);
 		this.hints.push(hint);
-	},
-
-	clear: function()
-	{
-		if (this.hints.length)
-			this.hints = [];
 	},
 
 	copyFont: function(el)
@@ -229,18 +178,17 @@ cxl.extend(InlineAssist.prototype, {
 		else
 			el.classList.remove('selected');
 
-		this.el.appendChild(el);
+		this.hintsContainer.appendChild(el);
 	},
 
 	hide: function()
 	{
-		this.requestHints.cancel();
 		ide.keymap.setUIState(null);
 
 		if (this.visible)
 		{
 			this.el.style.display='none';
-			this.el.innerHTML = '';
+			this.hintsContainer.innerHTML = '';
 			this.visible = false;
 		}
 	},
@@ -262,7 +210,7 @@ cxl.extend(InlineAssist.prototype, {
 	var
 		i = this.visibleStart,
 		l = this.visibleEnd = i + this.visibleCount,
-
+		el = this.hintsContainer,
 		hints
 	;
 		if (l>this.hints.length)
@@ -271,31 +219,31 @@ cxl.extend(InlineAssist.prototype, {
 			return this.hide();
 
 		this.debouncedHide.cancel();
-		this.el.innerHTML = '';
+		el.innerHTML = '';
 
 		hints = this.sort();
 
 		if (this.isDown)
 		{
 			if (this.visibleStart>0)
-				this.el.appendChild(this.scrollUpEl);
+				el.appendChild(this.scrollUpEl);
 
 			for (; i<l; i++)
 				this.renderHint(hints[i], i);
 
 			if (this.visibleEnd<this.hints.length)
-				this.el.appendChild(this.scrollDownEl);
+				el.appendChild(this.scrollDownEl);
 		}
 		else
 		{
 			if (this.visibleEnd<this.hints.length)
-				this.el.appendChild(this.scrollUpEl);
+				el.appendChild(this.scrollUpEl);
 
 			for (l--;l>=i; l--)
 				this.renderHint(hints[l], l);
 
 			if (this.visibleStart>0)
-				this.el.appendChild(this.scrollDownEl);
+				el.appendChild(this.scrollDownEl);
 		}
 
 		this.calculateTop();
@@ -347,7 +295,7 @@ cxl.extend(InlineAssist.prototype, {
 	doAccept: function()
 	{
 	var
-		token = this.token,
+		token = ide.assist.editor.token.current,
 		value = this.selectedValue
 	;
 		if (value && token)
@@ -361,7 +309,7 @@ cxl.extend(InlineAssist.prototype, {
 		if (this.hints.length===0)
 			return ide.Pass;
 
-		if (this.token && this.selectedValue && this.token.cursorValue===this.selectedValue)
+		if (this.selectedValue && ide.assist.editor.token.cursorValue===this.selectedValue)
 		{
 			this.hide();
 			// TODO returning false so it skips the uiState
@@ -373,50 +321,19 @@ cxl.extend(InlineAssist.prototype, {
 
 });
 
-var Assist = cxl.View.extend({
-	el: 'assist',
-	visible: false,
-	delay: 200,
+class AssistPanel {
 
-	/** Current requrest for hints version. */
-	version: 0,
-	/** Current Editor */
-	editor: null,
-	/** Current Token */
-	token: null,
-
-	inline: null,
-
-	$hints: null,
-	hints: null,
-
-	initialize: function()
+	constructor()
 	{
-		this.requestHints = cxl.debounce(this._requestHints, this.delay);
+		this.el = document.getElementById('assist');
 		this.el.innerHTML = '<div class="assist-perm"></div><div class="assist-hints"></div>';
+		this.visible = false;
 
 		this.$perm = this.el.children[0];
 		this.$hints = this.el.children[1];
+	}
 
-		this.listenTo(this.$hints, 'click', this.onItemClick);
-		this.listenTo(ide.plugins, 'token', this.onToken);
-		this.listenTo(ide.plugins, 'editor.focus', this.onToken);
-		this.listenTo(ide.plugins, 'file.write', this.onOther);
-		this.listenTo(ide.plugins, 'workspace.remove', this.onOther);
-
-		this.inline = new InlineAssist();
-	},
-
-	/**
-	 * Adds a hint at the top of the assist window that can only be removed
-	 * manually by calling Hint#remove()
-	 */
-	addPermanentItem: function(item)
-	{
-		this.$perm.appendChild(item.render());
-	},
-
-	onItemClick: function()
+	onItemClick()
 	{
 		if (this.action)
 		{
@@ -425,19 +342,16 @@ var Assist = cxl.View.extend({
 			else
 				ide.commandParser.run(this.action);
 		}
-	},
+	}
 
-	/**
-	 * We use the editor provided, so plugins can override the current editor.
-	 */
-	onToken: function(editor)
+	clearHints()
 	{
-		this.requestHints(editor);
-	},
+		this.$hints.innerHTML = '';
+		this.hints = [];
+		this.rendered = false;
+	}
 
-	onOther: function() { this.requestHints(); },
-
-	hide: function()
+	hide()
 	{
 		document.body.appendChild(ide.logger.el);
 		this.el.classList.remove('assist-show');
@@ -445,89 +359,24 @@ var Assist = cxl.View.extend({
 
 		ide.workspace.el.classList.remove('assist-show');
 		ide.hash.set({ a: false });
-	},
+	}
 
-	show: function()
+	show()
 	{
 		this.el.classList.add('assist-show');
 		this.el.insertBefore(ide.logger.el, this.$perm);
 		this.visible = true;
 		ide.workspace.el.classList.add('assist-show');
-		this._requestHints();
+		ide.assist.requestHints();
 		ide.hash.set({ a: 1 });
-	},
+	}
 
-	cancel: function()
-	{
-		this.version++;
-		this.requestHints.cancel();
-	},
-
-	_doRequestNow: function(editor, file, token, diff)
-	{
-		ide.socket.send('assist', {
-			$: this.version,
-			file: file && file.path,
-			mime: file && file.mime,
-			token: token && token.toJSON(),
-			project: ide.project.id,
-			fileChanged: file && file.$diff.diffChanged,
-			editor: editor && editor.id,
-			diff: diff
-		});
-
-		this.render();
-	},
-
-	_requestHints: function(editor)
-	{
-		editor = this.editor = editor || ide.editor;
-	var
-		token = editor && editor.token && editor.token.current,
-		file = editor && editor.file,
-		diff = file && file.diff()
-	;
-		this.version++;
-		this.$hints.innerHTML = '';
-		this.rendered = false;
-		this.hints = [];
-
-		ide.plugins.trigger('assist',
-			this.addHint.bind(this, this.version), editor, token);
-
-		if (diff)
-			diff.then(this._doRequestNow.bind(this, editor, file, token));
-		else
-			this._doRequestNow(editor, file, token);
-	},
-
-	toggle: function()
+	toggle()
 	{
 		return this.visible ? this.hide() : this.show();
-	},
+	}
 
-	/**
-	 * @param hints {object|array} A Single hint or an array of hints.
-	 */
-	addHint: function(version, hints)
-	{
-		if (version!==this.version || !this.visible || !hints)
-			return;
-
-		if (Array.isArray(hints))
-			hints.forEach(this.addHint.bind(this, version));
-		else
-		{
-			var h = hints instanceof ide.Item ? hints : new ide.Item(hints);
-
-			if (this.rendered)
-				this.renderHint(h);
-			else
-				this.hints.push(h);
-		}
-	},
-
-	sortedLastIndexBy: function(hint)
+	sortedLastIndexBy(hint)
 	{
 		var l = this.hints.length;
 
@@ -538,9 +387,17 @@ var Assist = cxl.View.extend({
 		}
 
 		return 0;
-	},
+	}
 
-	renderHint: function(hint, i)
+	addHint(hint)
+	{
+		if (this.rendered)
+			this.renderHint(hint);
+		else
+			this.hints.push(hint);
+	}
+
+	renderHint(hint, i)
 	{
 		i = i===undefined ? this.sortedLastIndexBy(hint) : i;
 
@@ -553,14 +410,14 @@ var Assist = cxl.View.extend({
 			this.$hints.insertBefore(el, ref.el);
 		} else
 			this.$hints.appendChild(el);
-	},
+	}
 
-	appendHint: function(hint)
+	appendHint(hint)
 	{
 		this.$hints.appendChild(hint.render());
-	},
+	}
 
-	render: function()
+	render()
 	{
 		if (this.hints)
 		{
@@ -571,7 +428,158 @@ var Assist = cxl.View.extend({
 		this.rendered = true;
 	}
 
-});
+}
+
+class AssistRequest
+{
+	constructor(payload)
+	{
+		this.project = ide.project;
+		this.payload = payload;
+	}
+
+	pluginData(plugin, data)
+	{
+		this.payload.plugins[plugin] = data;
+	}
+
+	supportsMime(mime)
+	{
+		return this.features.file && mime.test(this.features.file.mime);
+	}
+
+	supports(feature)
+	{
+		return !!this.features[feature];
+	}
+
+	respondExtended(hints)
+	{
+		ide.assist.onResponseExtended(this.$, hints);
+	}
+
+	respondInline(hints)
+	{
+		ide.assist.onResponseInline(this.$, hints);
+	}
+}
+
+class Assist {
+
+	constructor()
+	{
+		this.delay = 100;
+		this.version = 0;
+		this.assistData = { project: ide.project.id };
+
+		this.requestHints = cxl.debounce(this._requestHints, this.delay);
+
+		this.panel = new AssistPanel();
+		this.inline = new InlineAssist();
+	}
+
+	/**
+	 * Adds a hint at the top of the assist window that can only be removed
+	 * manually by calling Hint#remove()
+	 */
+	addPermanentItem(item)
+	{
+		this.panel.$perm.appendChild(item.render());
+	}
+
+	cancel()
+	{
+		this.version++;
+		this.requestHints.cancel();
+	}
+
+	_doRequestNow(features)
+	{
+	var
+		a = ide.assist,
+		payload = a.assistData,
+		req = new AssistRequest(payload)
+	;
+		req.editor = a.editor;
+		payload.$ = req.$ = a.version;
+		payload.editor = a.editor.id;
+		payload.extended = req.extended = a.panel.visible;
+		payload.features = req.features = features;
+		payload.plugins = {};
+
+		ide.plugins.trigger('assist', req);
+
+		if (req.extended)
+			ide.plugins.trigger('assist.extended', req);
+
+		ide.socket.send('assist', payload);
+
+		a.panel.render();
+	}
+
+	_requestHints(editor, forceInline)
+	{
+		var token;
+
+		editor = this.editor = editor || ide.editor;
+
+		this.version++;
+		this.panel.clearHints();
+
+		if (!editor)
+			return;
+
+		token = editor.token && editor.token.current;
+
+		if (token && (forceInline || token.cursorValue) &&
+			(!editor.insert || editor.insert.enabled))
+			this.inline.clearHints(editor);
+		else
+			this.inline.hide();
+
+		editor.getAssistData().then(this._doRequestNow);
+	}
+
+	onResponseInline(version, hints)
+	{
+		if (version !== ide.assist.version || !hints ||
+			(ide.assist.editor.insert && !ide.assist.editor.insert.enabled))
+			return;
+
+		ide.assist.inline.addHints(hints);
+	}
+
+	/**
+	 * @param hints {object|array} A Single hint or an array of hints.
+	 */
+	onResponseExtended(version, hints)
+	{
+		var me = ide.assist;
+
+		if (version!==me.version || !me.panel.visible || !hints)
+			return;
+
+		if (Array.isArray(hints))
+			hints.forEach(me.onResponseExtended.bind(me, version));
+		else
+		{
+			var h = hints instanceof ide.Item ? hints : new ide.Item(hints);
+			me.panel.addHint(h);
+		}
+	}
+
+	onResponse(data)
+	{
+		if (data.$ !== this.version)
+			return;
+	var
+		feature = this.editor[data.feature],
+		method = feature && feature[data.method]
+	;
+		method.apply(feature, data.params);
+	}
+
+}
 
 ide.plugins.register('assist', new ide.Plugin({
 
@@ -579,17 +587,15 @@ ide.plugins.register('assist', new ide.Plugin({
 
 	commands: {
 		assist: function() {
-			this.openAssist();
+			ide.assist.panel.toggle();
 		}
 	},
 
-	openAssist: function()
+	onAssist: function(request)
 	{
-		ide.assist.toggle();
-	},
+		if (!request.extended)
+			return;
 
-	onAssist: function(done)
-	{
 		var hints = [];
 
 		if (!ide.workspace.slots.length)
@@ -611,22 +617,45 @@ ide.plugins.register('assist', new ide.Plugin({
 			}
 		}
 
-		done(hints);
+		request.respondExtended(hints);
 	},
 
-	onSocket: function(data)
+	onExtended: function(data)
 	{
-		ide.assist.addHint(data.$, data.hints);
+		ide.assist.onResponseExtended(data.$, data.hints);
 	},
 
 	onInline: function(data)
 	{
-		ide.assist.inline.addHints(data.$, data.hints);
+		ide.assist.onResponseInline(data.$, data.hints);
+	},
+
+	onSocket: function(data)
+	{
+		ide.assist.onResponse(data);
 	},
 
 	start: function()
 	{
 		ide.assist = new Assist();
+
+		this.listenTo('token', this.onToken);
+		this.listenTo('editor.focus', this.onToken);
+		this.listenTo('file.write', this.onOther);
+		this.listenTo('workspace.remove', this.onOther);
+	},
+
+	/**
+	 * We use the editor provided, so plugins can override the current editor.
+	 */
+	onToken: function(editor)
+	{
+		ide.assist.requestHints(editor);
+	},
+
+	onOther: function()
+	{
+		ide.assist.requestHints();
 	},
 
 	ready: function()
@@ -636,9 +665,10 @@ ide.plugins.register('assist', new ide.Plugin({
 		this.listenTo('assist', this.onAssist);
 		this.listenTo('socket.message.assist', this.onSocket);
 		this.listenTo('socket.message.assist.inline', this.onInline);
+		this.listenTo('socket.message.assist.extended', this.onExtended);
 
 		if (ide.hash.data.a)
-			ide.assist.show(ide.assist);
+			ide.assist.panel.show();
 	}
 
 }));
@@ -652,11 +682,11 @@ ide.keymap.registerKeys({
 	inlineAssist: {
 
 		// TODO change to 'assist.' prefix
-		down: 'inlineAssistNext',
-		up: 'inlineAssistPrevious',
-		enter: 'inlineAssistAccept',
-		tab: 'inlineAssistAccept',
-		esc: 'inlineAssistHide'
+		down: 'assist.inlineNext',
+		up: 'assist.inlinePrevious',
+		enter: 'assist.inlineAccept',
+		tab: 'assist.inlineAccept',
+		esc: 'assist.inlineHide'
 
 	}
 

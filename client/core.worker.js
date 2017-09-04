@@ -69,13 +69,13 @@ ide.Worker.prototype = {
 	buildSource: function(methods)
 	{
 		var result = '', i;
-		
+
 		if (methods.defs)
 		{
 			result = methods.defs;
 			delete methods.defs;
 		}
-		
+
 		if (methods.private)
 		{
 			for (i in methods.private)
@@ -120,16 +120,10 @@ ide.WorkerManager.prototype = {
 		cxl.pull(this.workers, worker);
 	},
 
-	onAssist: function(done, editor, token)
+	onAssist: function(request)
 	{
 	var
-		file = editor && editor.file, msg = {
-			$: ide.assist.version,
-			type: 'assist',
-			file: file && file.path,
-			mime: file && file.mime,
-			token: token && token.toJSON()
-		},
+		msg = request.payload,
 		l = this.workers.length, a
 	;
 		while (l--)
@@ -139,7 +133,7 @@ ide.WorkerManager.prototype = {
 			if (a.methods.canAssist && !a.methods.canAssist(msg))
 				return;
 			if (a.methods.assist)
-				a.post('assist', msg, done);
+				a.post('assist', msg, request.respondExtended.bind(request));
 		}
 	}
 

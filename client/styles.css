@@ -205,17 +205,8 @@ ide-editor-header > .modified:before { /*content: "\f067";*/ content: "+"; }
  * core.source.js - hints
  *
  */
-.editor-hint-gutter { width: 100%; position: absolute; left: 0; }
-.editor-hint { width: 100%; opacity: 0.5; display: inline-block; box-shadow: none !important; }
-
-.editor-hint:first-child:nth-last-child(2),
-.editor-hint:first-child:nth-last-child(2) ~ div { width: 50%; }
-
-.editor-hint:first-child:nth-last-child(3),
-.editor-hint:first-child:nth-last-child(3) ~ div { width: 33.3%; }
-
-.editor-hint:first-child:nth-last-child(4),
-.editor-hint:first-child:nth-last-child(4) ~ div { width: 25%;}
+.editor-hint-gutter { display: flex; }
+.editor-hint { flex-grow: 1; opacity: 0.5; box-shadow: none !important; }
 
 .CodeMirror {
 	text-rendering: optimizeLegibility;
@@ -266,12 +257,14 @@ ide-icon.command::before { content: "\f120"; }
 ide-icon.cog::before { content: "\f013"; }
 ide-icon.directory::before { content: "\f114"; }
 ide-icon.file::before { content: "\f016"; }
+ide-icon.error::before { content: "\f071"; }
 ide-icon.git::before { content: "\f1d3"; }
 ide-icon.keyword::before { content: "K"; }
 ide-icon.property::before { content: "P"; }
 ide-icon.project::before { content: "\f07b"; }
 ide-icon.settings::before { content: "\f013"; }
 ide-icon.tag::before { content: "\f121"; }
+ide-icon.value::before { content: "V"; }
 ide-icon.variable::before { content: "\f1b2"; }
 ide-icon.variable-global::before { content: "G"; }
 ide-icon.expand::before { content: "\f067"; }
@@ -327,6 +320,7 @@ ide-item-title {
 	margin: 2px 0 0 0; padding: 0; line-height: 18px;
 	word-wrap: break-word; display: inline-block;
 	word-break: break-word;
+	white-space: pre-wrap;
 }
 ide-item-title:empty { display: inline; }
 ide-item-title b { color: #fff; }

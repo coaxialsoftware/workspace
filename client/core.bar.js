@@ -295,6 +295,7 @@ ide.Bar.Command = ide.Bar.extend({
 		this._keys[38] = this.history_up.bind(this);
 		this._keys[40] = this.history_down.bind(this);
 
+		this.$assistData = {};
 		this.cloneEl = window.document.createElement('SPAN');
 		this.cloneEl.className = 'command-bar-width';
 		document.body.appendChild(this.cloneEl);
@@ -330,7 +331,13 @@ ide.Bar.Command = ide.Bar.extend({
 	var
 		result = this.token = new CommandToken(start, end, s)
 	;
+		this.token.current = this.token;
 		return result;
+	},
+
+	getAssistData: function()
+	{
+		return Promise.resolve(this.$assistData);
 	},
 
 	on_change: function()
@@ -340,7 +347,8 @@ ide.Bar.Command = ide.Bar.extend({
 
 		this.selectedHint = null;
 		this.findWord(function(s, start, end) {
-			ide.plugins.trigger('token', this, this.getToken(s, start, end));
+			var t = this.$assistData.token = this.getToken(s, start, end);
+			ide.plugins.trigger('token', this, t);
 		});
 	},
 

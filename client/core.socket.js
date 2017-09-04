@@ -89,7 +89,8 @@ class SocketManager {
 				me.retries++;
 				ide.warn('Could not connect to socket. Retrying (' +
 					me.retries + '/' + me.maxRetries + ')');
-				ide.project.fetch();
+				// Ignore error
+				ide.project.fetch().catch(() => {});
 			}
 		};
 

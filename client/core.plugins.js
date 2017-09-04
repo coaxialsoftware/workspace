@@ -104,16 +104,20 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 
 	reload: function()
 	{
-		if (!this.started || this.source===ide.project.get('plugins.src'))
+		if (!this.started)
 			return;
 
-		cxl.each(this._plugins, function(p) {
-			if (!p.core)
-				p.destroy();
-		});
+		cxl.ajax.get('/plugins/source').then(source => {
+			/* jshint evil:true */
+			cxl.each(this._plugins, function(p) {
+				if (!p.core)
+					p.destroy();
+			});
 
-		this.start();
-		this.ready();
+			(new Function(source)).call();
+			this.start();
+			this.ready();
+		});
 	},
 
 	get: function(name)

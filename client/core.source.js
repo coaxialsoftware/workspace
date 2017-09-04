@@ -12,39 +12,10 @@ codeMirror.defineOption('fatCursor', false, function(cm, val) {
  */
 class SourceHintsFeature extends ide.feature.HintsFeature {
 
-	constructor(e)
-	{
-		super(e);
-		this.hints = {};
-	}
-
 	render()
 	{
+		super.render();
 		this.__cm = this.editor.editor;
-	}
-
-	clear(id)
-	{
-		cxl.invokeMap(this.hints[id], 'remove');
-		this.hints[id] = [];
-	}
-
-	get(id)
-	{
-		return this.hints[id] || (this.hints[id]=[]);
-	}
-
-	filter(hints, line)
-	{
-		return hints.filter(function(h) {
-			return h.line === line;
-		});
-	}
-
-	getLine(id, line)
-	{
-		var hints = this.get(id);
-		return this.filter(hints, line);
 	}
 
 	__createMark(line)
@@ -52,6 +23,7 @@ class SourceHintsFeature extends ide.feature.HintsFeature {
 		var el = document.createElement('DIV');
 
 		this.__cm.setGutterMarker(line, 'editor-hint-gutter', el);
+		el.className = 'editor-hint-gutter';
 
 		return el;
 	}
@@ -64,28 +36,26 @@ class SourceHintsFeature extends ide.feature.HintsFeature {
 			this.__createMark(line, h.handle));
 	}
 
-	__removeHint(el)
+	remove(hint)
 	{
-		this.removeChild(el);
+		// TODO use custom hint class
+		cxl.pull(this.hints, hint);
+		hint.$hintEl.parentNode.removeChild(hint.$hintEl);
 	}
 
-	add(id, hint)
+	add(hint)
 	{
 	var
 		el = document.createElement('DIV'),
-		// Sometimes line will be 0...
-		marker = this.__getMarker(hint.line>0 ? hint.line-1 : 0),
-		hints = this.get(id)
+		line = hint.range.row,
+		marker = this.__getMarker(line)
 	;
 		// Invalid line?
 		if (!marker)
 			return;
 
-		hint.line--;
-		hint.el = el;
-		hint.remove = this.__removeHint.bind(marker, el);
-
-		hints.push(hint);
+		hint = super.add(hint);
+		hint.$hintEl = el;
 
 		el.setAttribute('class', 'editor-hint bg-' + (hint.className || 'info'));
 		el.setAttribute('title', hint.title);
@@ -326,6 +296,11 @@ class SourceSelectionFeature extends ide.feature.SelectionFeature {
 	replace(str)
 	{
 		this.editor.editor.replaceSelection(str);
+	}
+
+	selectAll()
+	{
+		codeMirror.commands.selectAll(this.editor.editor);
 	}
 
 	get current()
@@ -666,6 +641,13 @@ Object.defineProperty(SourceToken.prototype, 'value',
 
 class SourceTokenFeature extends ide.feature.TokenFeature {
 
+	constructor(editor)
+	{
+		super(editor);
+		this.current = new SourceToken(this.editor);
+		editor.$assistData.token = {};
+	}
+
 	render()
 	{
 		this.editor.listenTo(this.editor.editor, 'cursorActivity',
@@ -676,37 +658,49 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 	 * Gets token at pos. If pos is ommited it will return the token
 	 * under the cursor
 	 */
-	getToken(pos)
+	getToken(row, column, result)
 	{
 	var
 		cm = this.editor.editor,
-		token, result
+		token
 	;
-		pos = pos || cm.getCursor();
-		token = cm.getTokenAt(pos, true);
-		result = new SourceToken(this.editor, pos.line, token.start, pos.line,
-			token.end, pos);
+		// TODO replace getTokenAt
+		token = cm.getTokenAt({ line: row, ch: column }, true);
+
+		result = result || new SourceToken(this.editor);
 
 		// Token Value is constant
+		result.row = result.endRow = row;
+		result.column = token.start;
+		result.endColumn = token.end;
 		result.value = token.string;
 		result.type = token.type;
-		result.cursorRow = pos.line;
-		result.cursorColumn = pos.ch;
+		result.cursorRow = row;
+		result.cursorColumn = column;
 		result.cursorValue = token.string.substr(0, result.cursorColumn-token.start);
 		result.$token = token;
 
 		return result;
 	}
 
+	assist(t)
+	{
+		var c = this.current;
+
+		t.row = c.row;
+		t.column = c.column;
+		t.cursorColumn = c.cursorColumn;
+		t.cursorRow = c.cursorRow;
+		t.type = c.type;
+		t.value = c.value;
+		t.cursorValue = c.cursorValue;
+	}
+
 	_onCursorActivity()
 	{
-		var token = this.getToken();
-
-		if (this.current !== token && this.editor===ide.editor)
-		{
-			this.current = token;
-			ide.plugins.trigger('token', this.editor, token);
-		}
+		var pos = this.editor.editor.getCursor();
+		this.getToken(pos.line, pos.ch, this.current);
+		ide.plugins.trigger('token', this.editor, this.current);
 	}
 
 }
@@ -718,7 +712,21 @@ class SourceFileFeature extends ide.feature.FileFeature {
 		this.encoding = encoding || ide.project.get('editor.encoding');
 		return super.parse(encoding);
 	}
-	
+
+	render()
+	{
+		this.editor.listenTo(this.editor.editor, 'change',
+			cxl.debounce(this.onChange.bind(this), 100));
+		super.render();
+	}
+
+	onChange()
+	{
+		this.content = this.editor.editor.getValue();
+		this.editor.header.changed = this.hasChanged();
+		ide.plugins.trigger('file.change', this);
+	}
+
 	update()
 	{
 		this.editor.setValue(this.content);
@@ -788,7 +796,7 @@ class SourceEditor extends ide.FileEditor {
 		s = ide.project.get('editor') || {}
 	;
 		this.encoding = ide.project.get('editor.encoding') || 'utf8';
-		
+
 		return (this.options = cxl.extend(
 			{
 				tabSize: 4,
@@ -853,22 +861,13 @@ class SourceEditor extends ide.FileEditor {
 		// TODO
 		if (p.startLine)
 			setTimeout(editor.setCursor.bind(editor, p.startLine));
-		
+
 		if (this.encoding !== ide.project.get('editor.encoding'))
 			this.setTag('editor.encoding', this.encoding);
 
 		this.keymap.handle = this._keymapHandle.bind(this);
 
-		this.listenTo(editor, 'change', cxl.debounce(this.onChange.bind(this), 100));
 		this.listenTo(ide.plugins, 'workspace.resize', this.resize);
-	}
-
-	onChange()
-	{
-		this.value = this.editor.getValue();
-		this.file.content = this.value;
-		this.header.changed = this.file.hasChanged();
-		ide.plugins.trigger('editor.change', this);
 	}
 
 	resize()

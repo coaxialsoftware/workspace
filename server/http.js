@@ -34,10 +34,11 @@ class ServerResponse
 		// TODO
 		var status = err.code==='ENOENT' ? 404 : 500;
 		this.module.error(err);
+		console.dir(err);
 		this.res.status(status).send(err);
 	}
 }
 
-module.exports = {
+module.exports = workspace.http = {
 	ServerResponse: ServerResponse
 };

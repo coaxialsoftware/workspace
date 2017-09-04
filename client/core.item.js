@@ -10,6 +10,7 @@ class Hint {
 		this.className = p.className || 'log';
 		this.icon = p.icon;
 		this.title = p.title;
+		this.range = p.range;
 		this.description = p.description;
 		this.value = 'value' in p ? p.value : p.title;
 		this.matchStart = p.matchStart;
@@ -78,6 +79,12 @@ class Hint {
 		if (obj.icon) this.$renderIcon(obj);
 		if (obj.description) this.$renderDescription(obj);
 		if (obj.title) this.$renderTitle(obj);
+	}
+
+	remove()
+	{
+		if (this.el && this.el.parentNode)
+			this.el.parentNode.removeChild(this.el);
 	}
 
 	destroy()
@@ -172,12 +179,6 @@ class Item extends Hint {
 		if (this.titleEl) el.appendChild(this.titleEl);
 		if (this.keyEl) el.appendChild(this.keyEl);
 		if (this.descEl) el.appendChild(this.descEl);
-	}
-
-	remove()
-	{
-		if (this.el && this.el.parentNode)
-			this.el.parentNode.removeChild(this.el);
 	}
 
 	/**

@@ -51,28 +51,35 @@ function doLogin()
 	if (loginForm)
 		return;
 
+	ide.editor = null;
 	loginForm = new ide.LoginComponent();
+	loginForm.set('user', null);
 	loginForm.on('auth', onLoginAuth.bind(null, loginForm));
 	document.body.appendChild(loginForm.$native);
 	ide.workspace.el.style.opacity = 0;
 }
 
-ide.Project = cxl.Model.extend({
+ide.Project = class Project {
 
-	idAttribute: 'path',
-
-	url: function()
+	constructor(attributes)
 	{
-		return '/project' + (this.id ? '?n=' + this.id : '');
-	},
-
-	initialize: function()
-	{
+		this.extend(attributes);
 		this.reload = cxl.debounce(this.fetch.bind(this), 500);
 		ide.plugins.on('socket.message.project', this.onMessage, this);
-	},
+	}
 
-	loadTheme: function(css)
+	extend(attributes)
+	{
+		this.attributes = Object.assign({}, attributes);
+		this.id = this.attributes.path;
+	}
+
+	url()
+	{
+		return '/project' + (this.id ? '?n=' + this.id : '');
+	}
+
+	loadTheme(css)
 	{
 		var body = document.body;
 
@@ -82,32 +89,41 @@ ide.Project = cxl.Model.extend({
 		this.themeEl = document.createElement('STYLE');
 		this.themeEl.innerHTML = css;
 		body.appendChild(this.themeEl);
-	},
+	}
 
-	onFatalError: function(e)
+	onFatalError(e)
 	{
 		if (e.status!==401)
 			ide.error('Could not load workspace');
 
 		this.fetching = null;
-	},
+	}
 
-	fetch: function()
+	fetch()
 	{
 		if (this.fetching)
 			return this.fetching;
 
 		if (loginForm)
+		{
+			// Make sure editor is always null on focus
+			// TODO might need to fix focus event on CodeMirror
+			ide.editor = null;
 			return cxl.Promise.reject();
+		}
 
-		var fetch = cxl.Model.prototype.fetch.call(this);
+		return (this.fetching = cxl.ajax.xhr({ url: this.url(), responseType: 'json' })
+			.then(this.parse.bind(this), onProjectError)
+			.then(this.onProject.bind(this), this.onFatalError.bind(this)))
+		;
+	}
 
-		return (this.fetching = fetch.catch(onProjectError)
-			.then(this.onProject.bind(this), this.onFatalError.bind(this)));
-	},
-
-	parse: function(data)
+	parse(xhr)
 	{
+		var data = xhr.response;
+
+		this.extend(data);
+
 		if (data.files)
 			this.set_files(data.files);
 		if (data['ignore.regex'])
@@ -122,9 +138,9 @@ ide.Project = cxl.Model.extend({
 		this.hint.tags = data.tags;
 
 		return data;
-	},
+	}
 
-	onMessage: function(msg)
+	onMessage(msg)
 	{
 		if (!msg) return;
 
@@ -133,9 +149,9 @@ ide.Project = cxl.Model.extend({
 
 		if (msg.notify)
 			ide.notify(msg.notify);
-	},
+	}
 
-	onProject: function()
+	onProject()
 	{
 		this.fetching = null;
 
@@ -149,9 +165,9 @@ ide.Project = cxl.Model.extend({
 		ide.keymap.start();
 		ide.plugins.ready();
 		ide.hash.loadFiles();
-	},
+	}
 
-	set_files: function(files)
+	set_files(files)
 	{
 		this.attributes.files = files;
 		files.forEach(function(f) {
@@ -163,7 +179,18 @@ ide.Project = cxl.Model.extend({
 		});
 	}
 
-});
+	get(a)
+	{
+		return this.attributes[a];
+	}
+
+	set(a, value)
+	{
+		if (this.attributes[a]!==value)
+			this.attributes[a] = value;
+	}
+
+};
 
 class ProjectList extends ide.ListEditor {
 
