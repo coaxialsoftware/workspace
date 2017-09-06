@@ -81,7 +81,6 @@ class Project {
 	{
 		this.path = path;
 		this.clients = [];
-		this.data = {};
 		this.create();
 		this.buildFilesDebounced = _.debounce(this.buildFiles, 250);
 	}
@@ -99,6 +98,7 @@ class Project {
 		this.promises = [];
 		this.loaded = false;
 		this.ready = false;
+		this.fullPath = path.resolve(this.path);
 
 		workspace.plugins.emit('project.create', this, this.configuration);
 

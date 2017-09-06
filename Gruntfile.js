@@ -1,5 +1,7 @@
 module.exports = function(grunt) {
 
+	process.env.CHROME_BIN = 'chromium-browser';
+
 	grunt.initConfig({
 
 		jshint: {
@@ -197,14 +199,24 @@ module.exports = function(grunt) {
 				],
 				files: [
 					{ src: [
-						'test/polyfill.js',
 						'public/build/libs.js',
-						'node_modules/jquery-mockjax/dist/jquery.mockjax.js',
 						'test/client/boot.js',
-						'<%= jshint.client.src %>'
+						'<%= jshint.client.src %>',
+						'test/client/mock.js'
 					]},
-					{ src: 'test/client/core*.js' }
+					{ src: 'test/client/core.js' },
+					{ src: 'test/client/core.item.js' },
+					{ src: 'test/client/core.editor.js' },
+					{ src: 'test/client/core.cmd.js' },
+					{ src: 'test/client/core.folder.js' },
+					{ src: 'test/client/core.file.js' },
+					{ src: 'test/client/core.diff.js' }
 				],
+				proxies: {
+					'/file': 'http://localhost:9004/file',
+					'/project': 'http://localhost:9004/project'
+				},
+
 				preprocessors: {
 					'client/*.js': [ 'coverage' ]
 				}

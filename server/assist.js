@@ -91,6 +91,12 @@ class AssistRequest
 		return feature in this.features;
 	}
 
+	get project()
+	{
+		return this.$project ||
+			(this.$project = workspace.projectManager.getProject(this.projectId));
+	}
+
 	respond(feature, method, data)
 	{
 		if (plugin.version===this.$)
@@ -370,7 +376,7 @@ class LanguageServer extends AssistServer {
 	canAssist(data)
 	{
 	var
-		project = workspace.projectManager.getProject(data.project),
+		project = data.project,
 		file = data.features.file
 	;
 		return file && project.hasPlugin(this.$plugin) &&

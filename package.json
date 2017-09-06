@@ -2,7 +2,7 @@
 	"name": "@cxl/workspace",
 	"description": "Javascript Web Editor",
 	"author": "Giancarlo Bellido <giancarlo@coaxialhost.com>",
-	"version": "2.8.1",
+	"version": "2.9.0",
 	"bin": {
 		"workspace": "./bin/workspace.js"
 	},
@@ -30,7 +30,6 @@
 		"grunt-contrib-copy": "*",
 		"grunt-karma": "*",
 		"karma":"*",
-		"phantomjs-prebuilt": "*",
 		"qunitjs": "*",
 		"karma-qunit": "*",
 		"karma-coverage": "*",
