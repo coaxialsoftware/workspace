@@ -84,7 +84,6 @@ class File {
 		msg = this.decode(res, 'utf8') ||
 			(this.saving ? 'Error saving file: ' : 'Error opening file: ') + id
 	;
-		//ide.error(msg);
 		this.$fetching = null;
 		return Promise.reject(new Error(msg));
 	}
@@ -399,11 +398,17 @@ class FileFeature extends ide.Feature {
 	parse(encoding)
 	{
 		this.encoding = encoding || this.encoding;
-		this.$diff.originalContent = this.content =
-			this.$file.decode(this.$file.content, this.encoding) || '';
-		ide.plugins.trigger('file.parse', this);
 
-		return this.update();
+		var content = this.$diff.originalContent =
+			this.$file.decode(this.$file.content, this.encoding) || '';
+
+		if (this.content !== content)
+		{
+			this.content = content;
+			ide.plugins.trigger('file.parse', this);
+
+			return this.update();
+		}
 	}
 
 	assist(data)

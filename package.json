@@ -10,10 +10,8 @@
 	"dependencies": {
 		"compression": "*",
 		"mime": "*",
-		"bluebird": "*",
 		"colors": "*",
 		"websocket": "*",
-		"lodash": "4",
 		"micromatch": "*",
 		"@cxl/cxl": "2",
 		"npm": "*",

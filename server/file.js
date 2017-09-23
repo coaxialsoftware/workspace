@@ -11,155 +11,24 @@
 
 var
 	path = require('path'),
-	mime = require('mime'),
-	Q = require('bluebird'),
-
-	workspace = require('./workspace'),
-	common = require('./common'),
-
-	plugin = module.exports = cxl('workspace.file'),
-	ServerResponse = require('./http').ServerResponse
+	plugin = module.exports = cxl('workspace.file')
 ;
-
-mime.default_type = 'text/plain';
-
-function getMime(file, stat)
-{
-	// TODO add typescript support
-	return stat && stat.isDirectory ? 'text/directory' : mime.lookup(file);
-}
-
-// TODO see if we can remove this
-class FileStat {
-
-	constructor(stat)
-	{
-		if (stat)
-		{
-			this.atime = stat.atime;
-			this.ctime = stat.ctime;
-			this.mtime = stat.mtime;
-			this.size = stat.size;
-			this.isDirectory = stat.isDirectory();
-			this.isSymbolicLink = stat.isSymbolicLink();
-		} else
-		{
-			this.isDirectory = false;
-			this.isSymbolicLink = false;
-		}
-
-		this.isNew = !stat;
-	}
-
-}
-
-class File {
-
-	/**
-	 * @param filepath Path relative to workspace
-	 */
-	constructor(filepath)
-	{
-		this.path = path.normalize(filepath);
-	}
-
-	/**
-	 * Reads file with optional encoding. If encoding not passed it will return a Buffer
-	 */
-	read(encoding)
-	{
-		return plugin.stat(this.path).then(stat => {
-			this.stat = stat;
-			this.encoding = encoding;
-
-			if (stat.isNew)
-				return '';
-
-			return stat.isDirectory ?
-				common.list(this.path) :
-				common.readFile(this.path, encoding);
-		}).then(content => {
-			this.content = content;
-			this.mime = getMime(this.path, this.stat);
-			return this;
-		});
-	}
-
-	delete()
-	{
-		return common.unlink(this.path).then(this.read.bind(this));
-	}
-
-	write(content)
-	{
-		this.content = content;
-		workspace.plugins.emit('file.beforewrite', this);
-		//workspace.plugins.emit('file.beforewrite:' + this.path, this);
-		
-		return common.writeFile(this.path, this.content)
-			.then(() => {
-				workspace.plugins.emit('file.write', this);
-				//workspace.plugins.emit('file.write:' + this.path, this);
-				return this.read();
-			});
-	}
-
-}
 
 plugin.config(function() {
 
-	this.server = workspace.server;
-	workspace.plugins.on('socket.message.file', this.onMessage.bind(this));
+	this.server = cxl('workspace').server;
+
+}).run(function() {
+
+	ide.plugins.on('socket.message.file', this.onMessage.bind(this));
 
 }).extend({
-
-	fromSocket: function(data)
-	{
-		var file = new File(data.id);
-
-		return file.read().then(function(file) {
-			if (data.diff)
-				common.patch(file.content, data.diff);
-
-			return file;
-		});
-	},
-
-	/**
-	 * @return {FileStat}
-	 */
-	stat: function(path)
-	{
-		return common.stat(path).then(stat => {
-			return new FileStat(stat);
-		}, (err) => {
-			if (err.cause.code==='ENOENT')
-				return new FileStat();
-
-			return Q.reject(err);
-		});
-	},
 
 	loadFile: function(filepath, encoding)
 	{
 		filepath = path.normalize(filepath);
-		var file = new File(filepath);
+		var file = new ide.File(filepath);
 		return file.read(encoding);
-	},
-
-	read: function(filepath, encoding)
-	{
-		return common.readFile(filepath, encoding);
-	},
-
-	delete(path)
-	{
-		return common.unlink(path);
-	},
-
-	write(path, content)
-	{
-		return common.writeFile(path, content);
 	},
 
 	/**
@@ -168,10 +37,10 @@ plugin.config(function() {
 	 */
 	onMessageStat(client, data)
 	{
-		this.stat(data.p).then(function(stat) {
+		ide.File.stat(data.p).then(function(stat) {
 			if (stat && !stat.isNew && stat.mtime.getTime()!==data.t)
 			{
-				workspace.socket.respond(client, 'file', {
+				ide.socket.respond(client, 'file', {
 					p: data.p,
 					t: stat.mtime.getTime()
 				});
@@ -202,7 +71,7 @@ plugin.config(function() {
 	$checkChanged(mtime, file)
 	{
 		if (!file.stat.isNew && mtime !== file.stat.mtime.getTime())
-				return Q.reject("File contents have changed.");
+				return Promise.reject("File contents have changed.");
 
 		return file;
 	},
@@ -212,12 +81,13 @@ plugin.config(function() {
 		if (!req.body)
 			return res.status(400).end();
 
-		ServerResponse.respond(res, this.getFile(req)
+		ide.ServerResponse.respond(res, this.getFile(req)
 			.then(file => this.$checkChanged(+req.query.t, file))
 			.then(file => {
 				this.log(`Writing "${file.path}" (${req.body.length})`);
 				return file.write(req.body);
-			}).then(file => this.sendFile(res, file))
+			}).then(file => this.sendFile(res, file)),
+			this
 		);
 	},
 
@@ -240,13 +110,13 @@ plugin.config(function() {
 
 .route('GET', '/file', function(req, res)
 {
-	ServerResponse.respond(res, this.getFile(req)
+	ide.ServerResponse.respond(res, this.getFile(req)
 		.then(this.sendFile.bind(this, res)), this);
 })
 
 .route('DELETE', '/file', function(req, res) {
 
-	ServerResponse.respond(res, this.getFile(req)
+	ide.ServerResponse.respond(res, this.getFile(req)
 		.then(this.$checkChanged.bind(this, +req.query.t))
 		.then(file => file.delete())
 		.then(this.sendFile.bind(this, res)), this

@@ -294,19 +294,6 @@ ide.Workspace = class Workspace {
 		this.update();
 	}
 
-	/** Iterates through open editors. Return false to stop. */
-	/*each(cb)
-	{
-	var
-		i = 0,
-		slots = this.slots
-	;
-		for (; i<slots.length; i++)
-			if (slots[i].editor && cb.call(this, slots[i].editor, i)=== false)
-				return;
-	}
-	*/
-
 	closeAll()
 	{
 		this.slots.slice(0).forEach(function(slot) {

@@ -12,6 +12,7 @@
 	"latedef": true,
 	"esnext": true,
 	"globals": {
-		"cxl": true
+		"cxl": true,
+		"ide": true
 	}
 }

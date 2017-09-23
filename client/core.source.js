@@ -729,7 +729,13 @@ class SourceFileFeature extends ide.feature.FileFeature {
 
 	update()
 	{
-		this.editor.setValue(this.content);
+	var
+		cm = this.editor.editor,
+		// TODO figure out a way not to scroll
+		cursor = cm.getCursor()
+	;
+		cm.setValue(this.content, false);
+		cm.setCursor(cursor, null, { scroll: false });
 	}
 
 }
@@ -873,19 +879,6 @@ class SourceEditor extends ide.FileEditor {
 	resize()
 	{
 		setTimeout(this.editor.refresh.bind(this.editor), 200);
-	}
-
-	// TODO move this somewhere else?
-	setValue(content)
-	{
-		if (content === this.value)
-			return;
-
-		// TODO figure out a way not to scroll
-		var cursor = this.editor.getCursor();
-
-		this.editor.setValue(content, false);
-		this.editor.setCursor(cursor, null, { scroll: false });
 	}
 
 }

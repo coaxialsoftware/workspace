@@ -6,14 +6,8 @@
 "use strict";
 
 var
-	Q = require('bluebird'),
-	_ = require('lodash'),
 	colors = require('colors/safe'),
 	path = require('path'),
-
-	common = require('./common'),
-	workspace = require('./workspace'),
-	ServerResponse = require('./http').ServerResponse,
 
 	plugin = module.exports = cxl('workspace.project')
 ;
@@ -23,21 +17,25 @@ var
  *
  * Avoid using mutable objects as values to speed up diff algorithm.
  */
-class ProjectConfiguration extends workspace.Configuration
+class ProjectConfiguration extends ide.Configuration
 {
-
 	constructor(p)
 	{
-		super(_.pick(workspace.configuration, [
-			'keymap', 'theme', 'inspect',
-			'path.separator', 'editor.encoding'
-		]));
+		var c = ide.configuration;
+
+		super({
+			keymap: c.keymap,
+			theme: c.theme,
+			inspect: c.inspect,
+			'path.separator': c['path.separator'],
+			'editor.encoding': c['editor.encoding']
+		});
 
 		this.ignore = [];
-		this.set(workspace.configuration.project);
+		this.set(ide.configuration.project);
 		this.set(p);
 
-		this['workspace.version'] = workspace.configuration.version;
+		this['workspace.version'] = ide.configuration.version;
 		this.tags = {
 			workspace: this.loadFile(
 				this.path + '/project.json') && 'workspace'
@@ -50,7 +48,7 @@ class ProjectConfiguration extends workspace.Configuration
 
 }
 
-cxl.define(ProjectConfiguration, {
+Object.assign(ProjectConfiguration.prototype, {
 
 	/**
 	 * Project name
@@ -82,7 +80,7 @@ class Project {
 		this.path = path;
 		this.clients = [];
 		this.create();
-		this.buildFilesDebounced = _.debounce(this.buildFiles, 250);
+		this.buildFilesDebounced = cxl.debounce(this.buildFiles, 250);
 	}
 
 	create()
@@ -100,7 +98,7 @@ class Project {
 		this.ready = false;
 		this.fullPath = path.resolve(this.path);
 
-		workspace.plugins.emit('project.create', this, this.configuration);
+		ide.plugins.emit('project.create', this, this.configuration);
 
 		return this;
 	}
@@ -110,7 +108,7 @@ class Project {
 	 */
 	exec(command, options)
 	{
-		return workspace.exec(command, _.extend({
+		return ide.exec(command, Object.assign({
 			cwd: this.path
 		}, options));
 	}
@@ -136,7 +134,7 @@ class Project {
 	 */
 	broadcast(data, plugin)
 	{
-		workspace.socket.broadcast(plugin || 'project', data, this.clients);
+		ide.socket.broadcast(plugin || 'project', data, this.clients);
 	}
 
 	onSocketClientClose(client)
@@ -160,7 +158,7 @@ class Project {
 			client.on('close', this.onSocketClientClose.bind(this, client));
 
 			if (this.ready && data.$ !== this.configuration.$)
-				workspace.socket.respond(client, 'project', { reload: true });
+				ide.socket.respond(client, 'project', { reload: true });
 		}
 	}
 
@@ -173,8 +171,8 @@ class Project {
 			}, 'file');
 
 			// TODO see if we need to include full path instead
-			workspace.plugins.emit('project.filechange', this, ev, filepath, s);
-			workspace.plugins.emit('project.filechange:' + filepath, this, ev, filepath, s);
+			ide.plugins.emit('project.filechange', this, ev, filepath, s);
+			ide.plugins.emit('project.filechange:' + filepath, this, ev, filepath, s);
 
 			if (filepath==='project.json')
 				this.reload();
@@ -197,8 +195,8 @@ class Project {
 	onTimeout()
 	{
 	var
-		onReady = function() {
-			workspace.plugins.emit('project.ready', this);
+		onReady = () => {
+			ide.plugins.emit('project.ready', this);
 			this.ready = true;
 		},
 		promises = [ ]
@@ -207,10 +205,10 @@ class Project {
 		promises.push(this.buildFiles());
 
 		if (this.configuration.theme)
-			promises.push(workspace.themes.load(this.configuration.theme)
+			promises.push(ide.themes.load(this.configuration.theme)
 				.then(theme => this.loadTheme(theme)));
 
-		Q.all(promises).bind(this).then(onReady);
+		Promise.all(promises).then(onReady);
 	}
 
 	onThemeReload(theme)
@@ -221,11 +219,11 @@ class Project {
 	loadTheme(theme)
 	{
 		if (this.theme)
-			this.stopListening(workspace.plugins, 'themes.reload:' + this.theme.path);
+			this.stopListening(ide.plugins, 'themes.reload:' + this.theme.path);
 
 		this.log(`Loading theme "${theme.path}"`);
 		this.theme = theme;
-		this.listenTo(workspace.plugins, 'themes.reload:' + this.theme.path,
+		this.listenTo(ide.plugins, 'themes.reload:' + this.theme.path,
 			this.onThemeReload);
 
 		this.onThemeReload(theme);
@@ -252,9 +250,9 @@ class Project {
 	{
 		this.log.dbg('Generating Project Files');
 		this.files.ignore = this.ignore.matcher.bind(this.ignore);
-		return this.files.build().bind(this).then(function(result) {
+		return this.files.build().then(result => {
 			this.configuration.set('files',
-				_.sortBy(result, 'filename'));
+				cxl.sortBy(result, 'filename'));
 		});
 	}
 
@@ -262,12 +260,12 @@ class Project {
 	{
 		this.log.dbg('Building plugin sources: ' + this.configuration.plugins);
 		this.configuration.set('plugins.src',
-			workspace.plugins.getSources(this.configuration.plugins));
+			ide.plugins.getSources(this.configuration.plugins));
 	}
 
 	hasPlugin(name)
 	{
-		return name in workspace.plugins.plugins;
+		return name in ide.plugins.plugins;
 		/*var p = this.configuration.plugins;
 
 		return p && p.indexOf(name)!==-1;*/
@@ -283,17 +281,16 @@ class Project {
 
 	doLoad()
 	{
-		this.ignore = new common.FileMatcher();
-		//this.buildSources();
+		this.ignore = new ide.FileMatcher();
 
-		workspace.plugins.emit('project.load', this);
+		ide.plugins.emit('project.load', this);
 
-		return Q.all(this.promises).bind(this).then(this.onResolved);
+		return Promise.all(this.promises).then(this.onResolved.bind(this));
 	}
 
 	loadFiles()
 	{
-		this.files = new common.FileManager({
+		this.files = new ide.FileManager({
 			path: this.path,
 			recursive: this.path!=='.',
 			onEvent: this.onFileEvent.bind(this)
@@ -306,7 +303,7 @@ class Project {
 	load()
 	{
 		if (this.loaded)
-			return Q.resolve(this.configuration);
+			return Promise.resolve(this.configuration);
 
 		this.log = new cxl.Logger(
 			colors.green('workspace.project') +
@@ -314,7 +311,7 @@ class Project {
 
 		this.log.operation('Loading File Manager', this.loadFiles, this);
 
-		this.listenTo(workspace.plugins, 'workspace.reload', this.reload);
+		this.listenTo(ide.plugins, 'workspace.reload', this.reload);
 		//this.listenTo(workspace.plugins, 'plugins.source', this.buildSources);
 
 		return this.doLoad();
@@ -327,7 +324,7 @@ class Project {
 
 }
 
-_.extend(Project.prototype, cxl.EventListener);
+Object.assign(Project.prototype, cxl.EventListener);
 
 
 class ProjectManager {
@@ -337,7 +334,7 @@ class ProjectManager {
 		this.workspaceProject = new Project('.');
 		this.path = '.';
 
-		workspace.plugins.on('project.filechange', this.onFileChange.bind(this));
+		ide.plugins.on('project.filechange', this.onFileChange.bind(this));
 
 		this.projects = {};
 	}
@@ -350,7 +347,9 @@ class ProjectManager {
 
 	getProjectByName(name)
 	{
-		return _.find(this.projects, ['configuration.name', name]);
+		for (var i in this.projects)
+			if (this.projects[i].configuration.name === name)
+				return this.projects[i];
 	}
 
 	getProject(path)
@@ -367,10 +366,10 @@ class ProjectManager {
 		if (!path || path==='.')
 			return this.workspaceProject.load();
 
-		return common.stat(path).bind(this).error(function(e) {
+		return cxl.file.stat(path).catch(e => {
 			var p = this.getProjectByName(path);
-			return p ? (path = p.path) : Q.reject(e);
-		}).then(function() {
+			return p ? (path = p.path) : Promise.reject(e);
+		}).then(() => {
 			return this.getProject(path).load();
 		});
 	}
@@ -390,16 +389,16 @@ class ProjectManager {
 
 	findProjects()
 	{
-		return common.list(this.path)
-			.bind(this)
-			.each(this.getProjectInformation)
-			.then(function() {
-				// TODO Remove '.'
-				var projects = Object.assign({}, this.projects);
-				delete projects['.'];
-				return projects;
-			});
+		return ide.File.list(this.path).then(list => {
+			list.forEach(this.getProjectInformation.bind(this));
+		}).then(function() {
+			// TODO Remove '.'
+			var projects = Object.assign({}, this.projects);
+			delete projects['.'];
+			return projects;
+		});
 	}
+
 }
 
 plugin.extend({
@@ -450,27 +449,27 @@ plugin.extend({
 	}
 })
 .config(function() {
-	this.server = workspace.server;
+	this.server = cxl('workspace').server;
 })
 .run(function() {
 
-	workspace.projectManager = this.projectManager = new ProjectManager();
-	workspace.plugins.on('socket.message.project',
+	ide.projectManager = this.projectManager = new ProjectManager();
+	ide.plugins.on('socket.message.project',
 		this.onMessage.bind(this));
 
-	workspace.plugins.on('assist.inline', this.onAssistInline.bind(this));
-	workspace.plugins.on('workspace.load', this.onLoad.bind(this));
+	ide.plugins.on('assist.inline', this.onAssistInline.bind(this));
+	ide.plugins.on('workspace.load', this.onLoad.bind(this));
 
 })
 .route('GET', '/projects', function(req, res) {
-	ServerResponse.respond(res, this.projectManager.findProjects(), this);
+	ide.ServerResponse.respond(res, this.projectManager.findProjects(), this);
 })
 .route('GET', '/project', function(req, res) {
-	ServerResponse.respond(res, this.projectManager.load(req.query.n), this);
+	ide.ServerResponse.respond(res, this.projectManager.load(req.query.n), this);
 })
 .route('POST', '/project', function(req, res) {
 	// Create project ?
 	var p = req.body.path;
-	ServerResponse.respond(res, common.mkdir(p), this);
+	ide.ServerResponse.respond(res, cxl.file.mkdir(p), this);
 })
 ;

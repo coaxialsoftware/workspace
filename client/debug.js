@@ -2,7 +2,7 @@
 "use strict";
 
 class TokenEditor extends ide.SourceEditor {
-	
+
 	// TODO figure a better way to disable token feature.
 	loadFeatures(p)
 	{
@@ -77,9 +77,15 @@ ide.plugins.register('debug', {
 			{
 			var
 				loc = window.location,
-				url = window.encodeURI(loc.hostname + ':' +
-					ide.project.get('inspect') + '/node')
+				inspect = ide.project.get('inspect'),
+				url
 			;
+				if (!inspect)
+					return ide.warn('Inspect not enabled.');
+
+				url = window.encodeURI(loc.hostname + ':' +
+					ide.project.get('inspect') + '/node');
+
 				window.console.log('chrome-devtools://devtools/remote/serve_file/' +
 					'@521e5b7e2b7cc66b4006a8a54cb9c4e57494a5ef/inspector.ht' +
 					'ml?experiments=true&v8only=true&ws=' + url
@@ -88,12 +94,12 @@ ide.plugins.register('debug', {
 			description: 'Inspect node server (must be run with --inspect flag)',
 			icon: 'bug'
 		},
-		
+
 		'debug.tests': {
 			fn: function() { window.open('/client'); },
 			icon: 'bug'
 		},
-		
+
 		'debug.benchmark': {
 			fn: function() { window.open('/client/benchmark.html'); },
 			icon: 'bug'
@@ -112,7 +118,7 @@ ide.plugins.register('debug', {
 					editor.listenTo(ide.plugins, 'editor.change', function(e) {
 						if (editor===e)
 							return;
-						
+
 						var file = e.file;
 						editor.file.content = JSON.stringify(file.diff(), null, 2);
 						editor.file.update();

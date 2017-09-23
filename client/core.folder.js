@@ -319,15 +319,21 @@ class DirectoryFeature extends ide.feature.FileFeature {
 		file = this.$file,
 		path = file.name,
 		prefix = path==='.' ? '' : path,
-		files = file.content.map(function(f) {
+		files
+	;
+		files = file.content.sort(function(A, B) {
+			return (A.mime==='text/directory' ? -2 : 0) + (B.mime==='text/directory' ? 2 : 0) +
+				(A.filename.toLowerCase() < B.filename.toLowerCase() ? -1 : 1);
+		}).map(function(f) {
 			return new ide.FileItem({
 				title: f.filename,
 				mime: f.mime,
 				prefix: prefix,
 				className: f.directory ? 'directory' : 'file'
 			});
-		})
-	;
+		});
+
+
 		files.unshift(new ide.FileItem(
 			{ title: '..', mime: 'text/directory', prefix: prefix }
 		));
@@ -419,8 +425,13 @@ ide.plugins.register('folder', new ide.Plugin({
 	{
 	var
 		token = request.features.token,
-		str=token && token.cursorValue, ch, files
+		str, ch, files
 	;
+		if (!token)
+			return;
+
+		str = token.cursorValue;
+
 		if (token.type==='file')
 		{
 			files = this.find(str);

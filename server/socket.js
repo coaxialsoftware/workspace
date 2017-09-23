@@ -6,10 +6,10 @@
 var
 	WebSocketServer = require('websocket').server,
 
-	workspace = require('./workspace'),
-
 	plugin = module.exports = cxl('workspace.socket')
 ;
+
+// TODO use class instead of module
 
 plugin.extend({
 
@@ -76,7 +76,7 @@ plugin.extend({
 	createWebSocketServer: function()
 	{
 	var
-		secure = this.secure = workspace.configuration.secure,
+		secure = this.secure = ide.configuration.secure,
 		http = require(secure ? 'https' : 'http'),
 		onRequest = function(req, res) { res.end(); },
 		server = secure ? http.createServer(secure, onRequest) :
@@ -90,16 +90,17 @@ plugin.extend({
 
 }).config(function() {
 var
-	ws = workspace.configuration
+	ws = ide.configuration
 ;
 	this.port = ws['socket.port'] || 9002;
-	this.host = ws['socket.host'] || workspace.host;
+	// TODO add host property for main module?
+	this.host = ws['socket.host'];
 
 	this.clients = { length: 0 };
 
-	workspace.plugins.on('project.load', this.onProjectLoad);
-	workspace.plugins.on('workspace.load', this.onProjectLoad);
-	workspace.socket = plugin;
+	ide.plugins.on('project.load', this.onProjectLoad);
+	ide.plugins.on('workspace.load', this.onProjectLoad);
+	ide.socket = plugin;
 
 }).run(function() {
 
@@ -124,7 +125,7 @@ var
 
 	this.ws.on('request', function(request) {
 
-		if (workspace.authenticationAgent && !workspace.authenticationAgent.isAuthenticated())
+		if (ide.authenticationAgent && !ide.authenticationAgent.isAuthenticated())
 			return request.reject(401);
 
 		var client = request.accept('workspace', request.origin);
@@ -147,11 +148,11 @@ var
 			if (json.plugin==='socket')
 				me.onMessage(client, json.data);
 			else
-				workspace.plugins.emit('socket.message.' + json.plugin,
+				ide.plugins.emit('socket.message.' + json.plugin,
 					client, json.data);
 		});
 
-		workspace.plugins.emit('socket.connect', client);
+		ide.plugins.emit('socket.connect', client);
 	});
 
 });
