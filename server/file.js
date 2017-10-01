@@ -24,11 +24,23 @@ plugin.config(function() {
 
 }).extend({
 
+	canAccess: function(filepath)
+	{
+	var
+		full = path.resolve(filepath),
+		root = ide.cwd
+	;
+		return full.indexOf(root)===0;
+	},
+
 	loadFile: function(filepath, encoding)
 	{
 		filepath = path.normalize(filepath);
 		var file = new ide.File(filepath);
-		return file.read(encoding);
+
+		return this.canAccess(filepath) ?
+			file.read(encoding) :
+			Promise.reject(new ide.Error('File cannot be accessed.', 403));
 	},
 
 	/**

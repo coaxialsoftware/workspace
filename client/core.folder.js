@@ -333,10 +333,10 @@ class DirectoryFeature extends ide.feature.FileFeature {
 			});
 		});
 
-
-		files.unshift(new ide.FileItem(
-			{ title: '..', mime: 'text/directory', prefix: prefix }
-		));
+		if (file.path!=='.')
+			files.unshift(new ide.FileItem(
+				{ title: '..', mime: 'text/directory', prefix: prefix }
+			));
 
 		if (this.editor.children.length)
 			this.editor.reset();

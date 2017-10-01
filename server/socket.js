@@ -125,7 +125,7 @@ var
 
 	this.ws.on('request', function(request) {
 
-		if (ide.authenticationAgent && !ide.authenticationAgent.isAuthenticated())
+		if (ide.authenticationAgent && !ide.authenticationAgent.onSocketRequest(request))
 			return request.reject(401);
 
 		var client = request.accept('workspace', request.origin);

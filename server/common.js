@@ -18,6 +18,17 @@ class AuthenticationAgent {
 
 	isAuthenticated() { throw "Not Implemented"; }
 	onRequest(/*req, res, next*/) { throw "Not Implemented"; }
+	onSocketRequest(/*re*/) { throw "Not Implemented"; }
+
+}
+
+class WorkspaceError extends Error {
+
+	constructor(message, status)
+	{
+		super(message);
+		this.status = status;
+	}
 
 }
 
@@ -252,7 +263,7 @@ class FileWalker {
 
 	constructor(path, ignore)
 	{
-		this.path = path;
+		this.root = path;
 		this.ignore = ignore;
 	}
 
@@ -264,29 +275,31 @@ class FileWalker {
 
 	$recursiveWalk(dir)
 	{
-		fs.readdir(dir, (err, list) => {
+		var fullpath = path.join(this.root, dir);
+
+		fs.readdir(fullpath, (err, list) => {
 			// Ignore Errors
-			if (err) return;
+			if (!err)
+				list.forEach(file => {
 
-			list.forEach(file => {
+					let relfile = path.join(dir, file);
 
-				let relfile = path.join(dir, file);
+					if (!this.ignore || !this.ignore(file))
+					{
+						this.$pending++;
+						fs.stat(path.join(this.root, relfile), (err, stat) => {
+							if (!err)
+							{
+								if (stat.isDirectory())
+									this.$recursiveWalk(relfile);
 
-				if (!this.ignore || !this.ignore(relfile))
-				{
-					this.$pending++;
-					fs.stat(relfile, (err, stat) => {
-						if (err) return;
+								this.$results.push(this.serialize(relfile, stat));
+							}
 
-						if (stat && stat.isDirectory())
-							return this.$recursiveWalk(file);
-
-						this.$results.push(this.serialize(relfile, stat));
-
-						if (!--this.$pending) this.$resolve();
-					});
-				}
-			});
+							if (!--this.$pending) this.$resolve();
+						});
+					}
+				});
 
 			if (!this.$pending) this.$resolve();
 		});
@@ -302,13 +315,18 @@ class FileWalker {
 				resolve(this.$results);
 			};
 			this.$pending = 0;
-			this.$recursiveWalk(this.path);
+			this.$recursiveWalk('');
 		}));
 	}
 
 }
 
 class FileMatcher {
+
+	static isMatch(path, match)
+	{
+		return micromatch.isMatch(path, match);
+	}
 
 	constructor(files)
 	{
@@ -396,16 +414,14 @@ Object.assign(FileWatcher.prototype, {
 
 	trigger: function(id, ev, file, full)
 	{
-		var me = this;
-
 		delete this.events[id];
 
-		fs.stat(full, function(err, s) {
+		fs.stat(full, (err, s) => {
 			if (err)
 				ev = ev==='change' || ev==='rename' ? 'remove' : 'error';
 
-			if (me.onEvent)
-				me.onEvent(ev, file, full, s);
+			if (this.onEvent)
+				this.onEvent(ev, file, full, s);
 
 			this.observers.forEach(o => {
 				if (o.fileId === id)
@@ -528,17 +544,16 @@ class FileManager {
 		this.recursive = p.recursive!==false;
 	}
 
-	onWalk(resolve, reject, err, data)
+	onWalk(resolve, reject, data)
 	{
 		this.building = false;
 
-		if (err)
-			return reject(err);
-
 		// TODO see if we can make it in one pass.
-		this.files = data.forEach(function(f) {
-			f.mime = mime.lookup(f.filename);
+		data.forEach(function(f) {
+			f.mime = f.directory ? 'text/directory' : mime.lookup(f.filename);
 		});
+
+		this.files = data;
 
 		this.watchFiles();
 
@@ -547,12 +562,13 @@ class FileManager {
 
 	build()
 	{
+		var walker = new FileWalker(this.path, this.ignore);
+
 		this.building = true;
 		return new Q((resolve, reject) => {
-
 			var fn = this.onWalk.bind(this, resolve, reject);
 
-			this.walk(this.path, this.ignore, fn, '', !this.recursive);
+			walker.walk().then(fn);
 		});
 	}
 
@@ -726,10 +742,22 @@ class ServerResponse
 		this.res.send(content);
 	}
 
+	$getErrorStatus(err)
+	{
+		if (!err)
+			return 500;
+
+		switch (err.code) {
+		case 'ENOENT': return 404;
+		case 'EACCES': return 403;
+		default: return err.status || 500;
+		}
+
+	}
+
 	$onError(err)
 	{
-		// TODO
-		var status = err.code==='ENOENT' ? 404 : 500;
+		var status = this.$getErrorStatus(err);
 		this.module.error(err);
 		this.res.status(status).send(err);
 	}
@@ -772,7 +800,7 @@ class Theme
 
 	load()
 	{
-		return cxl.file.read(this.path).then(src =>
+		return cxl.file.read(this.path, 'utf8').then(src =>
 		{
 			this.source = src.replace(/\n/g,'');
 			return this;
@@ -939,16 +967,19 @@ module.exports = {
 	AuthenticationAgent: AuthenticationAgent,
 	AssistServer: AssistServer,
 	Configuration: Configuration,
-	FileWalker: FileWalker,
+
 	LanguageServer: LanguageServer,
 	LanguageServerStdIO: LanguageServerStdIO,
 	ServerResponse: ServerResponse,
 	Theme: Theme,
 
+	Error: WorkspaceError,
+
 	File: File,
 	FileWatcher: FileWatcher,
 	FileMatcher: FileMatcher,
 	FileManager: FileManager,
+	FileWalker: FileWalker,
 
 	basePath: path.resolve(__dirname + '/../'),
 	cwd: process.cwd(),

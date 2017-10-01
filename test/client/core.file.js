@@ -314,6 +314,31 @@ var
 
 });
 
+QUnit.module('ide.FileItem');
+
+QUnit.test('ide.FileItem#constructor', function(a) {
+
+	var fileItem = new ide.FileItem({ line: 10, prefix: 'no' });
+
+	a.ok(fileItem.icon);
+	a.equal(fileItem.line, 10);
+	a.equal(fileItem.prefix, 'no');
+
+});
+
+QUnit.test('ide.FileItem#enter', function(a) {
+var
+	fileItem = new ide.FileItem({ line: 10, prefix: 'no' }),
+	open = ide.open
+;
+	ide.open = function(options) {
+		a.equal(options.line, 10);
+	};
+
+	fileItem.enter(true);
+
+	ide.open = open;
+});
 
 QUnit.module('ide.FileEditor');
 

@@ -391,7 +391,7 @@ class ProjectManager {
 	{
 		return ide.File.list(this.path).then(list => {
 			list.forEach(this.getProjectInformation.bind(this));
-		}).then(function() {
+		}).then(() => {
 			// TODO Remove '.'
 			var projects = Object.assign({}, this.projects);
 			delete projects['.'];
@@ -416,13 +416,16 @@ plugin.extend({
 			});
 	},
 
-	onAssistInline: function(done, data)
+	onAssistInline: function(request)
 	{
-		var i, p, result, term, projects=this.projectManager.projects;
-
-		if (data.token && data.token.type==='project' && projects)
+	var
+		projects=this.projectManager.projects,
+		token = request.features.token,
+		i, p, result, term
+	;
+		if (token && token.type==='project' && projects)
 		{
-			term = data.token.value;
+			term = token.value;
 			result = [];
 
 			for (p in projects)
@@ -439,7 +442,7 @@ plugin.extend({
 					});
 			}
 
-			done(result);
+			request.respondInline(result);
 		}
 	},
 
@@ -457,7 +460,7 @@ plugin.extend({
 	ide.plugins.on('socket.message.project',
 		this.onMessage.bind(this));
 
-	ide.plugins.on('assist.inline', this.onAssistInline.bind(this));
+	ide.plugins.on('assist', this.onAssistInline.bind(this));
 	ide.plugins.on('workspace.load', this.onLoad.bind(this));
 
 })

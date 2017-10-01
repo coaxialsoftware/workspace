@@ -344,16 +344,14 @@ class PluginManager extends EventEmitter {
 
 		this.scriptWatchers = scripts.map(function(s) {
 
-			var fn, id;
+			var fn;
 
 			try {
 				plugin.dbg(`Loading script "${s}"`);
 				this.scripts += fs.readFileSync(s, 'utf8');
 
 				fn = this.onScriptsWatch.bind(this);
-				id = ide.fileWatcher.watchFile(s, fn);
-
-				return { unbind: ide.unwatch.bind(ide, id, fn) };
+				return ide.fileWatcher.watchFile(s, fn);
 			} catch(e) {
 				plugin.error(`Could not load script "${s}".`);
 				plugin.dbg(e);
@@ -364,7 +362,7 @@ class PluginManager extends EventEmitter {
 
 	onScriptsWatch()
 	{
-		cxl.invokeMap(this.scriptWatchers, 'unbind');
+		cxl.invokeMap(this.scriptWatchers, 'unsubscribe');
 		this.loadScripts(ide.configuration.scripts);
 		ide.plugins.emit('plugins.source', this.id, this.source);
 	}
@@ -384,7 +382,7 @@ class PluginManager extends EventEmitter {
 
 	loadTests()
 	{
-		var files = [], plugin, fn;
+		var files = [], p, fn;
 
 		function onError(e)
 		{
@@ -393,8 +391,8 @@ class PluginManager extends EventEmitter {
 
 		for (var i in this.plugins)
 		{
-			plugin = this.plugins[i];
-			fn = plugin.path + '/tests.js';
+			p = this.plugins[i];
+			fn = p.path + '/tests.js';
 			files.push(cxl.file.read(fn).catch(onError));
 		}
 

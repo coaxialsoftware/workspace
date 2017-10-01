@@ -99,7 +99,8 @@ module.exports = function(grunt) {
 					'node_modules/codemirror/mode/css/css.js',
 
 					'node_modules/@cxl/cxl/client/cxl.js',
-					'node_modules/@cxl/cxl/client/cxl-rx.js',
+					'node_modules/@cxl/cxl/shared/cxl-util.js',
+					'node_modules/@cxl/cxl/shared/cxl-rx.js',
 					'node_modules/@cxl/cxl/client/cxl-dom.js',
 					'node_modules/@cxl/cxl/client/cxl-dom-css.js',
 					'node_modules/@cxl/cxl/client/cxl-template.js',

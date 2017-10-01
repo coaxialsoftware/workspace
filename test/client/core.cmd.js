@@ -79,7 +79,7 @@ var
 	a.equal(cmd[0].args[1], 'No Spaces');
 	a.equal(cmd[0].args[2].source, 'abc');
 	a.equal(cmd[0].args[3], 'hell`o');
-	
+
 	a.equal(cmd[1].fn, 'world');
 	a.equal(cmd[1].args[0], '10+10');
 	a.equal(cmd[1].args[1], 'No Spaces');
@@ -88,16 +88,16 @@ var
 });
 
 QUnit.test('commandParser.run()', function(a) {
-	
+
 	var done = a.async();
 
 	ide.registerCommand('test', function(n, s) {
 		a.equal(n, 10);
 		a.equal(s, 'hello');
 	});
-	
+
 	ide.commandParser.run('test 10 "hello"');
-	
+
 	ide.registerCommand('test', {
 		fn: function(s, n) {
 			a.equal(n, 10);
@@ -105,7 +105,7 @@ QUnit.test('commandParser.run()', function(a) {
 			done();
 		}
 	});
-	
+
 	ide.commandParser.run('test "hello" 10');
 });
 
@@ -127,3 +127,4 @@ var
 	A.apply(null, [ 10 ]);
 	B.apply(null, [ 'test' ]);
 });
+
