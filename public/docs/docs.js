@@ -1147,6 +1147,502 @@ var cxl = root.cxl = {
 
 })(this, this.Promise);
 
+
+
+Object.assign(cxl, {
+
+	/// Simple debounce function.
+	debounce: function(fn, delay)
+	{
+		var to;
+
+		function Result() {
+			var args = arguments, thisVal = this;
+
+			if (to)
+				clearTimeout(to);
+			to = setTimeout(function() {
+				Result.fn.apply(thisVal, args);
+			}, delay);
+		}
+		Result.fn = fn;
+		Result.cancel = function() {
+			clearTimeout(to);
+		};
+
+		return Result;
+	},
+
+	promiseProperty: function(obj, prop, options)
+	{
+		options = Object.assign({ delay: 50, tries: 10 }, options);
+
+		return new cxl.Promise(function(resolve, reject) {
+		var
+			tries = options.tries,
+			check = function() {
+				if (obj[prop]!==undefined)
+					resolve(obj[prop]);
+				else if (tries--)
+					setTimeout(check, options.delay);
+				else
+					reject();
+			}
+		;
+			check();
+		});
+	},
+
+	extend: function(A)
+	{
+		var a = 1, l=arguments.length, B, i;
+
+		while (a<l)
+		{
+			B = arguments[a++];
+
+			for (i in B)
+				if (B.hasOwnProperty(i))
+					Object.defineProperty(A, i, Object.getOwnPropertyDescriptor(B, i));
+		}
+
+		return A;
+	},
+
+	result: function(obj, path)
+	{
+		var val = obj[path];
+		return typeof(val)==='function' ? val.call(obj) : val;
+	},
+
+	each: function(coll, fn, scope)
+	{
+		if (Array.isArray(coll))
+			return coll.forEach(fn, scope);
+
+		for (var i in coll)
+			fn.call(scope, coll[i], i);
+	},
+
+	map: function(coll, fn, scope)
+	{
+		if (Array.isArray(coll))
+			return coll.map(fn, scope);
+
+		var result = [];
+
+		for (var i in coll)
+			result.push(fn.call(scope, coll[i], i));
+
+		return result;
+	},
+
+	indexOf: function(coll, val)
+	{
+		if (Array.isArray(coll))
+			return coll.indexOf(val);
+
+		for (var index in coll)
+			if (coll[index]===val)
+				return index;
+
+		return -1;
+	},
+
+	/*type: function(A)
+	{
+		var to = typeof(A);
+
+		if (to==='string') return String;
+		if ()
+	},*/
+
+	/**
+	 * Pushes unique values of B into A
+	 */
+	pushUnique: function(A, B)
+	{
+		B.forEach(function(i) {
+			if (A.indexOf(i)===-1)
+				A.push(i);
+		});
+
+		return A;
+	},
+
+	pull: function(coll, val)
+	{
+		var i = cxl.indexOf(coll, val);
+		if (i!==-1)
+		{
+			if (Array.isArray(coll))
+				coll.splice(i, 1);
+			else
+				delete coll[i];
+		}
+	},
+
+	zipObject: function(keys, values)
+	{
+		return keys.reduce(function(result, val, i) {
+			result[val] = values[i];
+			return result;
+		}, {});
+	},
+
+	sortBy: function(array, field)
+	{
+		return array.sort(function(a, b) {
+			return b[field] > a[field] ? -1 : 1;
+		});
+	},
+
+	inherits: function(Child, Parent, p, s)
+	{
+		Child.prototype = Object.create(Parent.prototype);
+
+		cxl.extend(Child.prototype, p);
+
+		if (s)
+			cxl.extend(Child, s);
+
+		Child.prototype.constructor = Child;
+
+		return Child;
+	},
+
+
+	invokeMap: function (array, fn, val)
+	{
+		if (Array.isArray(array))
+			array.forEach(function(a) { if (a[fn]) a[fn](val); });
+		else
+			for (var i in array)
+				if (array[i][fn])
+					array[i][fn](val);
+	}
+
+});
+
+(function(cxl) {
+"use strict";
+
+var
+	rx = cxl.rx = {}
+;
+
+rx.Subscription = function(unsubscribe)
+{
+	var unsubscribed = false;
+	this.unsubscribe = function() {
+		if (!unsubscribed)
+		{
+			unsubscribed = true;
+			unsubscribe();
+		}
+	};
+};
+
+rx.Subscriber = function(observer, error, complete, unsubscribe)
+{
+	if (observer && typeof(observer)!=='function')
+	{
+		error = observer.error;
+		complete = observer.complete;
+		observer = observer.next;
+	}
+
+	this.isUnsubscribed = false;
+	this.__next = observer;
+	this.__error = error;
+	this.__complete = complete;
+	this.__unsubscribe = unsubscribe;
+};
+
+rx.Subscriber.prototype = {
+
+	next: function(val)
+	{
+		if (!this.isUnsubscribed && this.__next)
+			this.__next.call(this, val);
+	},
+
+	error: function(e)
+	{
+		if (!this.isUnsubscribed && this.__error)
+			this.__error.call(this, e);
+		this.unsubscribe();
+	},
+
+	complete: function()
+	{
+		if (!this.isUnsubscribed && this.__complete)
+			this.__complete.call(this);
+		this.unsubscribe();
+	},
+
+	unsubscribe: function() {
+		this.isUnsubscribed = true;
+		if (this.__unsubscribe) this.__unsubscribe();
+	}
+
+};
+
+rx.Observable = function(subscribe)
+{
+	this.__subscribe = subscribe;
+};
+
+rx.Observable.create = function(subscriber)
+{
+	return new rx.Observable(subscriber);
+};
+
+rx.Observable.prototype = {
+
+	subscribe: function(observer, error, complete)
+	{
+	var
+		subscriber = new rx.Subscriber(observer, error, complete)
+	;
+		// TODO safe?
+		subscriber.__unsubscribe = this.__subscribe(subscriber);
+
+		return subscriber;
+	}
+
+};
+
+rx.Subject = function(onSubscribe)
+{
+	this.onSubscribe = onSubscribe;
+};
+
+cxl.inherits(rx.Subject, rx.Observable, {
+
+	__subscribe: function(subscriber)
+	{
+		var subscribers = this.__subscribers || (this.__subscribers=[]);
+
+		subscribers.push(subscriber);
+
+		if (this.onSubscribe)
+			this.onSubscribe(subscriber);
+
+		return function() {
+			var i = subscribers.indexOf(subscriber);
+
+			if (i===-1)
+				throw "Invalid subscriber";
+
+			subscribers.splice(i, 1);
+		};
+	},
+
+	next: function(a) {
+		cxl.invokeMap(this.__subscribers, 'next', a);
+	},
+
+	error: function(e) {
+		cxl.invokeMap(this.__subscribers, 'error', e);
+	},
+
+	complete: function() {
+		cxl.invokeMap(this.__subscribers, 'complete');
+	}
+
+});
+
+cxl.inherits(rx.BehaviorSubject = function(val) {
+	rx.Subject.call(this);
+	this.value = val;
+}, rx.Subject, {
+
+	subscribe: function()
+	{
+		var result = rx.Subject.prototype.subscribe.apply(this, arguments);
+		result.next(this.value);
+		return result;
+	},
+
+	next: function(val)
+	{
+		this.value = val;
+		rx.Subject.prototype.next.call(this, val);
+	}
+
+});
+
+cxl.rx.Collection = function(native) {
+	this.value = native || [];
+};
+
+cxl.inherits(cxl.rx.Collection, cxl.rx.Subject, {
+
+	onSubscribe: function(subscriber)
+	{
+		this.each(function(val, key) {
+			subscriber.next({ event: 'child_added', index: key, item: val });
+		});
+	},
+
+	get length() {
+		return this.value.length;
+	},
+
+	indexOf: function(val)
+	{
+		var i = 0, l=this.length;
+
+		for (;i<l; i++)
+			if (val===this.child(i))
+				return i;
+
+		return -1;
+	},
+
+	remove: function(index)
+	{
+		var val = this.child(index);
+		this.value.splice(index, 1);
+		this.event('child_removed', index, val);
+	},
+
+	event: function(event, index, item, key)
+	{
+		if (this.__subscribers)
+			this.next({ event: event, index: index, item: item, key: key });
+	},
+
+	child: function(key)
+	{
+		return this.value[key];
+	},
+
+	insert: function(val, index)
+	{
+		if (index=== undefined || index===null)
+		{
+			index = this.value.length;
+			this.value.push(val);
+		}
+		else
+			this.value.splice(index, 0, val);
+
+		this.event('child_added', index, this.child(index));
+	},
+
+	empty: function()
+	{
+		// TODO ?
+		while (this.value[0])
+			this.remove(0);
+	},
+
+	each: function(fn, scope)
+	{
+		var i = 0, l=this.length;
+
+		for (;i<l; i++)
+			fn.call(scope, this.child(i), i);
+	},
+
+	map: function(fn, scope)
+	{
+		var result = [];
+
+		this.each(function(val, key) {
+			result.push(fn ? fn.call(scope, val, key) : val);
+		});
+
+		return result;
+	}
+
+});
+
+cxl.rx.ObjectCollection = function(value) {
+	value = value || {};
+	this.$keySeed = 0;
+	this.keys = Object.keys(value);
+	this.object = value;
+
+	cxl.rx.Collection.call(this, Object.values(value));
+};
+
+cxl.inherits(cxl.rx.ObjectCollection, cxl.rx.Collection, {
+
+	onSubscribe: function(subscriber)
+	{
+		this.each(function(val, index) {
+			subscriber.next({
+				event: 'child_added', index: index,
+				item: val, key: this.keys[index]
+			});
+		}, this);
+	},
+
+	remove: function(key)
+	{
+	var
+		// TODO optimize
+		index = this.keys.indexOf(key),
+		item = this.object[key]
+	;
+		if (index===-1)
+			throw new Error("Invalid item key");
+
+		this.keys.splice(index, 1);
+		this.value.splice(index, 1);
+
+		delete this.object[key];
+
+		this.event('child_removed', index, item, key);
+	},
+
+	empty: function()
+	{
+		while (this.keys.length)
+			this.remove(this.keys[0]);
+	},
+
+	// TODO ???
+	randomKey: function()
+	{
+		var key;
+
+		do {
+			key = this.$keySeed++;
+		} while (!(key in this.value));
+
+		return key;
+	},
+
+	insert: function(val, key, nextKey)
+	{
+		var index;
+
+		if (key===undefined || key===null)
+			key = this.randomKey();
+
+		if (nextKey===undefined || nextKey===null)
+		{
+			index = this.keys.indexOf(nextKey);
+
+			if (index===-1)
+				throw new Error("Invalid nextKey");
+		} else
+			index = this.keys.length;
+
+		this.object[key] = val;
+		this.keys[index] = key;
+		this.values[index] = val;
+
+		this.event('child_added', index, val, key);
+	}
+
+});
+
+})(this.cxl || global.cxl);
 /*
  * cxl-dom
  *

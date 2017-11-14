@@ -58,6 +58,7 @@ ide.plugins.register('debug', {
 	},
 
 	commands: {
+
 		'debug.token': {
 			fn: function()
 			{
@@ -77,14 +78,14 @@ ide.plugins.register('debug', {
 			{
 			var
 				loc = window.location,
-				inspect = ide.project.get('inspect'),
+				inspect = ide.project.get('debug.inspect'),
 				url
 			;
 				if (!inspect)
 					return ide.warn('Inspect not enabled.');
 
 				url = window.encodeURI(loc.hostname + ':' +
-					ide.project.get('inspect') + '/node');
+					ide.project.get('debug.inspect') + '/node');
 
 				window.console.log('chrome-devtools://devtools/remote/serve_file/' +
 					'@521e5b7e2b7cc66b4006a8a54cb9c4e57494a5ef/inspector.ht' +

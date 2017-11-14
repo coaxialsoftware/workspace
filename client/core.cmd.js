@@ -169,8 +169,8 @@ var
 			if (!result.arguments)
 				result.arguments = args;
 
-			ide.workspace.slot().setEditor(result);
-			result.focus.set();
+			ide.workspace.slot().attach(result);
+			result.focus();
 		}
 	} catch(e)
 	{
@@ -254,12 +254,12 @@ ide.plugins.register('core', {
 
 		'workspace.next': function()
 		{
-			ide.workspace.next().focus.set();
+			ide.workspace.next().focus();
 		},
 
 		'workspace.previous': function()
 		{
-			ide.workspace.previous().focus.set();
+			ide.workspace.previous().focus();
 		},
 
 		'workspace.swapNext': function()
@@ -333,8 +333,7 @@ ide.plugins.register('core', {
 
 		help: function(topic)
 		{
-			var url = (ide.project.get('help.url') ||
-				'/docs/index.html') + (topic ? '#' + topic : '');
+			var url = ide.project.get('help.url') + (topic ? '#' + topic : '');
 
 			window.open(url);
 		},

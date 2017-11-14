@@ -91,7 +91,7 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 function PluginManager()
 {
 	this._plugins = {};
-	this.on('project.load', this.reload, this);
+	this.on('socket.message.plugins', this.onSocket, this);
 }
 
 cxl.extend(PluginManager.prototype, cxl.Events, {
@@ -101,6 +101,12 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	source: null,
 
 	_plugins: null,
+
+	onSocket: function(data)
+	{
+		if (data.refresh)
+			this.reload();
+	},
 
 	reload: function()
 	{

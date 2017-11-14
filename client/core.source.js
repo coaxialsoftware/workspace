@@ -204,23 +204,6 @@ class SourceCursorFeature extends ide.feature.CursorFeature {
 
 }
 
-class SourceFocusFeature extends ide.feature.FocusFeature {
-
-	render()
-	{
-		this.editor.listenTo(this.editor.editor, 'focus', this.set.bind(this));
-	}
-
-	set()
-	{
-		super.set();
-
-		if (!this.editor.editor.hasFocus())
-			this.editor.editor.focus();
-	}
-
-}
-
 class SourceScrollFeature extends ide.feature.ScrollFeature {
 
 	render()
@@ -748,6 +731,12 @@ class SourceFileFeature extends ide.feature.FileFeature {
  */
 class SourceEditor extends ide.FileEditor {
 
+	$setFocus()
+	{
+		if (!this.editor.hasFocus())
+			this.editor.focus();
+	}
+
 	cmd(fn, args)
 	{
 		if (!isNaN(fn))
@@ -862,7 +851,8 @@ class SourceEditor extends ide.FileEditor {
 		super.render(p);
 	var
 		options = this._getOptions(),
-		editor = this.editor = codeMirror(this.$content, options)
+		editor = this.editor = codeMirror(this.$content, options),
+		onFocus = this.$setFocus.bind(this)
 	;
 		// TODO
 		if (p.startLine)
@@ -874,6 +864,9 @@ class SourceEditor extends ide.FileEditor {
 		this.keymap.handle = this._keymapHandle.bind(this);
 
 		this.listenTo(ide.plugins, 'workspace.resize', this.resize);
+
+		this.listenTo(this.el, 'focus', onFocus);
+		this.listenTo(this.editor, 'focus', onFocus);
 	}
 
 	resize()
@@ -884,7 +877,7 @@ class SourceEditor extends ide.FileEditor {
 }
 
 SourceEditor.features(
-	SourceFocusFeature, SourceHintsFeature, SourceFileFeature,
+	SourceHintsFeature, SourceFileFeature,
 	SourceInsertFeature, SourceCursorFeature, SourceScrollFeature, SourceSelectionFeature,
 	SourceLineFeature, SourceHistoryFeature, SourceWordFeature, SourcePageFeature,
 	SourceTokenFeature, SourceSearchFeature, SourceIndentFeature, SourceFoldFeature,

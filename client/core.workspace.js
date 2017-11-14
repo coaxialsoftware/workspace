@@ -189,16 +189,29 @@ class Slot {
 		ide.workspace.el.appendChild(this.placeholder);
 	}
 
-	setEditor(editor)
+	onFocus(ev)
+	{
+		ev.stopPropagation();
+		ide.workspace.focusEditor(this.editor);
+	}
+
+	attach(editor)
 	{
 		this.editor = editor;
 		editor.slot = this;
 
 		ide.workspace.el.insertBefore(editor.el, this.placeholder);
 		ide.workspace.el.removeChild(this.placeholder);
-
 		ide.workspace.update();
+
+		editor.listenTo(editor.el, 'click', this.onFocus.bind(this));
+
 		ide.plugins.trigger('workspace.add', editor);
+	}
+
+	detach()
+	{
+
 	}
 
 	setPosition(layout)
@@ -225,6 +238,28 @@ ide.Workspace = class Workspace {
 		window.addEventListener('resize', this.update);
 	}
 
+	focusEditor(editor)
+	{
+		if (ide.editor === editor)
+			return;
+
+		if (ide.editor)
+			this.blurEditor(ide.editor);
+
+		ide.editor = editor;
+
+		editor.el.classList.add('focus');
+		editor.el.dispatchEvent(new Event('focus'));
+		ide.plugins.trigger('editor.focus', editor);
+	}
+
+	blurEditor(editor)
+	{
+		ide.editor = null;
+		editor.el.classList.remove('focus');
+		editor.el.dispatchEvent(new Event('blur'));
+	}
+
 	/** Returns a slot(DIV) to place a new editor */
 	slot()
 	{
@@ -243,7 +278,7 @@ ide.Workspace = class Workspace {
 		slots.splice(i, 1);
 
 		if (slots[0] && slots[0].editor)
-			slots[0].editor.focus.set();
+			this.focusEditor(slots[0].editor);
 		else
 			ide.editor = null;
 

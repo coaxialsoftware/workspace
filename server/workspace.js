@@ -16,6 +16,7 @@ var
 	workspace = global.workspace = module.exports = cxl('workspace')
 ;
 
+
 class WorkspaceConfiguration extends ide.Configuration {
 
 	constructor()
@@ -49,7 +50,7 @@ class WorkspaceConfiguration extends ide.Configuration {
 			/**
 			 * Default help URL. Defaults to /docs/index.html
 			 */
-			'help.url': null,
+			'help.url': 'docs/index.html',
 
 			/**
 			 * Operating System Path separator
@@ -71,9 +72,8 @@ class WorkspaceConfiguration extends ide.Configuration {
 		// check for v8 inspector support
 		var inspect = process.execArgv.join('').match(/--inspect(?:=(\d+))?/);
 
-		this.set({
-			inspect: inspect && (+inspect[1] || 9222)
-		});
+		if (inspect)
+			this.set({ 'debug.inspect': +inspect[1] || 9222 });
 
 		if (this.debug)
 			cxl.enableDebug();
@@ -140,7 +140,7 @@ ide.restart = function()
 	workspace.log('Restarting Workspace');
 	setTimeout(function() {
 		process.exit(128);
-	});
+	}, 250);
 };
 
 workspace.createServer()
@@ -156,8 +156,8 @@ workspace.createServer()
 
 // Login Check
 .use(function(req, res, next) {
-	if (this.authenticationAgent)
-		this.authenticationAgent.onRequest(req, res, next);
+	if (ide.authenticationAgent)
+		ide.authenticationAgent.onRequest(req, res, next);
 	else
 		next();
 })
@@ -168,16 +168,17 @@ workspace.createServer()
 
 .config(function()
 {
-	require('./theme');
 	require('./plugins');
 
 	ide.configuration = new WorkspaceConfiguration();
 	ide.fileWatcher = new ide.FileWatcher({
-		onEvent: function(ev, file) {
+		onEvent: function(ev) {
+			var file = ev.filename;
+
 			if (file==='workspace.json')
 				return ide.restart();
 
-			ide.plugins.emit('workspace.watch:' + file, ev, file);
+			ide.plugins.emit('workspace.watch:' + file, ev);
 		}
 	});
 

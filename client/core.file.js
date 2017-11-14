@@ -71,8 +71,6 @@ class File {
 
 		this.$fetching = null;
 
-		ide.plugins.trigger('file.parse', this);
-
 		return this;
 	}
 
@@ -284,6 +282,9 @@ class FileSync {
 
 	$onMessageStat(data)
 	{
+		if (!('t' in data))
+			throw "Invalid Stat Message";
+
 		if (this.$file.stat && this.$file.stat.mtime.getTime()!==data.t)
 		{
 			if (this.$file.hasChanged())
@@ -405,10 +406,10 @@ class FileFeature extends ide.Feature {
 		if (this.content !== content)
 		{
 			this.content = content;
-			ide.plugins.trigger('file.parse', this);
-
-			return this.update();
+			this.update();
 		}
+
+		ide.plugins.trigger('file.parse', this);
 	}
 
 	assist(data)

@@ -167,10 +167,10 @@ function loadEditor(options, file)
 	options.file = file;
 	var editor = findPlugin(options);
 
-	options.slot.setEditor(editor);
+	options.slot.attach(editor);
 
 	if (options.focus!==false)
-		editor.focus.set();
+		ide.workspace.focusEditor(editor);
 
 	return editor;
 }
@@ -199,8 +199,7 @@ ide.open = function(options)
 {
 	if (typeof(options) ==='string')
 		options = { file: new ide.File(options) };
-
-	if (options instanceof ide.File)
+	else if (options instanceof ide.File)
 		options = { file: options };
 
 	options.slot = options.slot || ide.workspace.slot();

@@ -113,43 +113,6 @@ class EditorHeader extends Feature {
 
 EditorHeader.featureName = 'header';
 
-class FocusFeature extends Feature
-{
-	render()
-	{
-		this.editor.listenTo(this.editor.el, 'click', ev => {
-			ev.stopPropagation();
-			this.set();
-		});
-	}
-
-	blur()
-	{
-		ide.editor = null;
-		this.editor.el.classList.remove('focus');
-	}
-
-	/**
-	 * Focus editor. Sets ide.editor.
-	 */
-	set()
-	{
-		if (ide.editor === this.editor)
-			return;
-
-		if (ide.editor)
-			ide.editor.focus.blur();
-
-		ide.editor = this.editor;
-
-		this.editor.el.classList.add('focus');
-		ide.plugins.trigger('editor.focus', this.editor);
-	}
-
-}
-
-FocusFeature.featureName = 'focus';
-
 class CursorFeature extends Feature {}
 
 CursorFeature.featureName = 'cursor';
@@ -660,6 +623,11 @@ class Editor {
 			this.header.title = title;
 	}
 
+	focus()
+	{
+		ide.workspace.focusEditor(this);
+	}
+
 	/**
 	 * Listen to events. Supports addEventListener, and on/off methods.
 	 * Adds subscriber to this.bindings and returns it.
@@ -704,7 +672,7 @@ class Editor {
 
 }
 
-Editor.features(HashFeature, EditorHeader, FocusFeature);
+Editor.features(HashFeature, EditorHeader);
 
 class ComponentEditor extends Editor {
 
@@ -753,7 +721,6 @@ Object.assign(ide, {
 ide.feature = {
 	EditorHeader: EditorHeader,
 	CursorFeature: CursorFeature,
-	FocusFeature: FocusFeature,
 	FoldFeature: FoldFeature,
 	SearchFeature: SearchFeature,
 	HashFeature: HashFeature,

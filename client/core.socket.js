@@ -9,6 +9,8 @@ class SocketManager {
 
 	constructor()
 	{
+		this.id = 1;
+		this.requests = {};
 		this.retries = 0;
 		this.maxRetries = 1;
 
@@ -37,6 +39,21 @@ class SocketManager {
 		}
 		else
 			this.__doSend(plugin, data);
+	}
+
+	notify(plugin, method, params)
+	{
+		this.send(plugin, { method: method, params: params });
+	}
+
+	request(plugin, method, params)
+	{
+		var id = this.id++;
+
+		return new Promise((resolve, reject) => {
+			this.send(plugin, { id: id, method: method, params: params });
+			this.requests[id] = { resolve: resolve, reject: reject };
+		});
 	}
 
 	isConnected()
@@ -95,7 +112,17 @@ class SocketManager {
 		};
 
 		ws.onmessage = function(ev) {
-			var msg = JSON.parse(ev.data);
+		var
+			msg = JSON.parse(ev.data),
+			data = msg.data,
+			id = data.id,
+			request = id && me.requests[id]
+		;
+			if (request)
+			{
+				delete me.requests[id];
+				return data.error ? request.reject(data.error) : request.resolve(data.result);
+			}
 
 			if (msg.error)
 				ide.error({ code: msg.plugin, title: "ERROR: " + msg.error });

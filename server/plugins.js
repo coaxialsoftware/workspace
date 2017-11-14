@@ -48,8 +48,7 @@ class Plugin {
 
 		if (mod.sourcePath)
 		{
-			this.onWatchFn = this.onWatch.bind(this);
-			this.sourceWatch = ide.fileWatcher.observeFile(mod.sourcePath, this.onWatchFn);
+			this.sourceWatch = ide.fileWatcher.observeFile(mod.sourcePath, this.onWatch.bind(this));
 		}
 	}
 
@@ -80,13 +79,13 @@ class Plugin {
 		this.load();
 	}
 
-	onWatch(ev, file)
+	onWatch(ev)
 	{
 		this.mod.dbg(`Plugin ${this.name} source updated.`);
-		cxl.file.read(file).bind(this).then(function(d) {
+		cxl.file.read(ev.fullpath).then(d => {
 			this.source = d;
 			ide.plugins.emit('plugins.source', this.id, this.source);
-		}, function() { this.source = ''; });
+		}, () => this.source = '');
 	}
 
 	onValue(data)
@@ -139,6 +138,7 @@ class PluginManager extends EventEmitter {
 	resetSources()
 	{
 		this.cachedSources = null;
+		this.getSources();
 	}
 
 	enable(project, id)
@@ -292,6 +292,11 @@ class PluginManager extends EventEmitter {
 			}, this);
 	}
 
+	sourcesUpdated()
+	{
+		ide.socket.broadcast('plugins', { refresh: true });
+	}
+
 	compileSources()
 	{
 		return plugin.operation('Compiling Plugin Sources', () => {
@@ -307,6 +312,7 @@ class PluginManager extends EventEmitter {
 				result.warnings.forEach(w => plugin.warn(w));
 
 			this.cachedSources = result.code;
+			this.sourcesUpdated();
 		});
 	}
 
@@ -328,6 +334,8 @@ class PluginManager extends EventEmitter {
 
 		if (!ide.configuration.debug)
 			setImmediate(this.compileSources.bind(this));
+		else
+			this.sourcesUpdated();
 
 		return (this.cachedSources = result);
 	}

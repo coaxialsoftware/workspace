@@ -9,7 +9,10 @@ var
 
 	micromatch = require('micromatch'),
 	mime = require('mime'),
-	npm = require('npm')
+	npm = require('npm'),
+	pty = require('node-pty'),
+
+	cwd = process.cwd()
 ;
 
 mime.default_type = 'text/plain';
@@ -420,15 +423,18 @@ Object.assign(FileWatcher.prototype, {
 			if (err)
 				ev = ev==='change' || ev==='rename' ? 'remove' : 'error';
 
+			var event = {
+				type: ev, filename: file, fullpath: full, stat: s, error: err
+			};
+
 			if (this.onEvent)
-				this.onEvent(ev, file, full, s);
+				this.onEvent(event);
 
 			this.observers.forEach(o => {
-				if (o.fileId === id)
-					o.next(ev);
+				if (o.fileId === full)
+					o.next(event);
 			});
 		});
-
 	},
 
 	onWatch: function(dir, ev, filename)
@@ -469,7 +475,7 @@ Object.assign(FileWatcher.prototype, {
 	observeFile: function(f, subscriber)
 	{
 	var
-		id = this.watchFile(f),
+		id = this.watchFile(path.resolve(f)),
 		subscription = new cxl.rx.Subscriber(subscriber, null, null, () => {
 			this.unwatch(id);
 		})
@@ -572,15 +578,15 @@ class FileManager {
 		});
 	}
 
-	onWatch(ev, filepath, fullpath, stat)
+	onWatch(ev)
 	{
-		this.onEvent(ev, filepath, fullpath, stat);
+		this.onEvent(ev);
 	}
 
 	watchFiles()
 	{
 		var files = this.files.reduce(function(a, f) {
-			if (f.mime==='text/directory');
+			if (f.mime==='text/directory')
 				a.push(f.filename);
 			return a;
 		}, []);
@@ -752,7 +758,6 @@ class ServerResponse
 		case 'EACCES': return 403;
 		default: return err.status || 500;
 		}
-
 	}
 
 	$onError(err)
@@ -761,6 +766,60 @@ class ServerResponse
 		this.module.error(err);
 		this.res.status(status).send(err);
 	}
+}
+
+class StreamResponse {
+
+	constructor(response, stream)
+	{
+		this.response = response;
+		this.subscription = stream.subscribe(this.onStream.bind(this));
+	}
+
+	onData(event)
+	{
+		var res = this.response;
+
+		if (!res.headersSent)
+			// TODO Use status Map
+			res.writeHead(200);
+
+		res.write(event.data);
+	}
+
+	onError(event)
+	{
+		var res = this.response;
+
+		if (!res.headersSent)
+			// TODO Use status Map
+			res.writeHead(500);
+
+		res.write(event.data);
+	}
+
+	onClose()
+	{
+		this.response.end();
+		this.destroy();
+	}
+
+	onStream(event)
+	{
+		switch (event.type)
+		{
+		case 'data': return this.onData(event);
+		case 'error': case 'errordata': return this.onError(event);
+		case 'close': return this.onClose(event);
+		default: throw "Unhandled Stream Event";
+		}
+	}
+
+	destroy()
+	{
+		this.subscription.unsubscribe();
+	}
+
 }
 
 /*class Resource
@@ -782,7 +841,7 @@ class Theme
 	{
 		this.path = path.isAbsolute(p) ? p :
 			ide.basePath + '/public/theme/' + p + '.css';
-
+		this.source = null;
 		this.observer = ide.fileWatcher.observeFile(this.path, this.onWatch.bind(this));
 	}
 
@@ -962,6 +1021,212 @@ class LanguageServer extends AssistServer {
 
 }
 
+class Stream extends cxl.rx.Subject {
+
+}
+
+class ProcessStream extends Stream {
+
+	$event(type, data)
+	{
+		this.next({ type: type, data: data.toString() });
+	}
+
+	$onProcessClose(data)
+	{
+		this.$event('close', data);
+	}
+
+	$onProcessError(data)
+	{
+		this.$event('error', data);
+	}
+
+	$onData(data)
+	{
+		this.$event('data', data);
+	}
+
+	$onErrorData(data)
+	{
+		this.$event('errordata', data);
+	}
+
+	$initializeBindings(process)
+	{
+		process.on('exit', this.$onProcessClose.bind(this));
+		process.on('error', this.$onProcessError.bind(this));
+		this.$out.on('data', this.$onData.bind(this));
+		this.$err.on('data', this.$onErrorData.bind(this));
+	}
+
+	constructor(process)
+	{
+		super();
+		this.$in = process.stdin;
+		this.$out = process.stdout;
+		this.$err = process.stderr;
+		this.$initializeBindings(process);
+	}
+
+	write(data)
+	{
+		this.$in.write(data.key);
+	}
+
+}
+
+/**
+ * A standalone process
+ */
+class Process {
+
+	$spawn(command, parameters, options)
+	{
+		return cp.spawn(command, parameters, options);
+	}
+
+	$createStream(process)
+	{
+		return new ProcessStream(process);
+	}
+
+	spawn(command, parameters, options)
+	{
+		this.command = command;
+		this.options = Object.assign({}, this.constructor.Defaults, options);
+
+		var process = this.$process = this.$spawn(
+			this.command, parameters, this.options
+		);
+
+		this.pid = process.pid;
+		this.stream = this.$createStream(process);
+	}
+
+}
+
+Process.defaults = {
+	cwd: cwd,
+	stdio: [ 'ignore' ]
+};
+
+class TerminalStream extends ProcessStream {
+
+	$initializeBindings(proc)
+	{
+		this.$process = proc;
+		proc.on('data', this.$onData.bind(this));
+		proc.on('exit', this.$onProcessClose.bind(this));
+		proc.on('error', this.$onProcessError.bind(this));
+	}
+
+	write(data)
+	{
+		this.$process.write(data);
+	}
+
+}
+
+class TerminalProcess extends Process {
+
+	$spawn(cmd, params, options)
+	{
+		return pty.spawn(cmd, params, options);
+	}
+
+	$createStream(process)
+	{
+		return new TerminalStream(process);
+	}
+
+	resize(cols, rows)
+	{
+		this.$process.resize(cols, rows);
+	}
+
+}
+
+class ThemeManager
+{
+	constructor()
+	{
+		this.themes = {
+			default: { source: ' ' }
+		};
+	}
+
+	/**
+	 * Use this function to register a new Theme
+	 */
+	register(path, theme)
+	{
+		return (this.themes[path] = theme);
+	}
+
+	load(path)
+	{
+		var theme = this.themes[path] || this.register(path, new Theme(path));
+		return theme.source!==null ? Promise.resolve(theme) : theme.load();
+	}
+
+}
+
+class RPCServer {
+
+	constructor(pluginName)
+	{
+		this.pluginName = pluginName;
+		ide.plugins.on('socket.message.' + pluginName, this.$onSocket.bind(this));
+	}
+
+	notify(method, params, clients)
+	{
+		ide.socket.broadcast(this.pluginName, { method: method, params: params }, clients);
+	}
+
+	$respond(client, id, result)
+	{
+		ide.socket.respond(client, this.pluginName, { id: id, result: result });
+	}
+
+	$onError(client, data, err)
+	{
+		if (data.id)
+			ide.socket.respond(client, this.pluginName, { id: data.id, error: {
+				code: err.code, message: err.message, data: err.data
+			}});
+	}
+
+	$isValidMethod(method)
+	{
+		return method.charAt(0)!=='$';
+	}
+
+	$onSocket(client, data)
+	{
+	var
+		id = data.id,
+		method = data.method,
+		params = data.params,
+		result
+	;
+		if (!this.$isValidMethod(method))
+			return;
+
+		try {
+			result = this[method](params, client);
+		} catch(e)
+		{
+			return this.$onError(client, data, e);
+		}
+
+		if (id)
+			this.$respond(client, id, result);
+	}
+
+}
+
 module.exports = {
 
 	AuthenticationAgent: AuthenticationAgent,
@@ -970,8 +1235,13 @@ module.exports = {
 
 	LanguageServer: LanguageServer,
 	LanguageServerStdIO: LanguageServerStdIO,
+	Process: Process,
+	ProcessStream: ProcessStream,
+	TerminalProcess: TerminalProcess,
 	ServerResponse: ServerResponse,
+	Stream: Stream,
 	Theme: Theme,
+	RPCServer: RPCServer,
 
 	Error: WorkspaceError,
 
@@ -982,7 +1252,13 @@ module.exports = {
 	FileWalker: FileWalker,
 
 	basePath: path.resolve(__dirname + '/../'),
-	cwd: process.cwd(),
+	cwd: cwd,
+	themes: new ThemeManager(),
+
+	http: {
+		ServerResponse: ServerResponse,
+		StreamResponse: StreamResponse
+	},
 
 	NPM: {
 
@@ -1110,6 +1386,8 @@ module.exports = {
 	 * options:
 	 *
 	 * timeout  Default 5 seconds.
+	 * cwd      Working Directory
+	 * plugin   Plugin to use for logging
 	 */
 	exec: function(command, options)
 	{
@@ -1134,43 +1412,6 @@ module.exports = {
 			});
 		});
 	},
-
-	/*shell: function(command, params, cwd, res)
-	{
-		var me = this;
-
-		this.log(command + (params ? ' ' + params.join(' ') : ''));
-
-		var process = cp.spawn(
-			command, params,
-			{ cwd: cwd, detached: true, stdio: [ 'ignore' ] }
-		);
-		process.on('error', this.error.bind(this.log));
-		process.on('close', function(code) {
-			me.log(command + ' returned with status ' + code);
-
-			if (res)
-				res.end();
-		});
-
-		if (res)
-		{
-			process.stdout.on('data', function(data) {
-				if (!res.headersSent)
-					res.writeHead(200);
-				res.write(data);
-			});
-			process.stderr.on('data', function(data) {
-				if (!res.headersSent)
-					res.writeHead(500);
-				res.write(data);
-			});
-		}
-
-		process.unref();
-
-		return process;
-	},*/
 
 	extend: function extend(obj, p)
 	{

@@ -445,6 +445,13 @@ ide-item-footer { margin-top: 8px; display: block; }
 .col-5 { width: 50%; }
 .col-6 { width: 60%; }
 
+.terminal {
+	position: absolute; left: 0; right: 0; bottom: 0; top: 0;	
+}
+.terminal .xterm-viewport {
+	overflow-y: hidden; 
+}
+
 /*
  * cxl-ui styles
  */

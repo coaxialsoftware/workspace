@@ -26,16 +26,17 @@ class ProjectConfiguration extends ide.Configuration
 		super({
 			keymap: c.keymap,
 			theme: c.theme,
-			inspect: c.inspect,
+			'debug.inspect': c['debug.inspect'],
 			'path.separator': c['path.separator'],
-			'editor.encoding': c['editor.encoding']
+			'editor.encoding': c['editor.encoding'],
+			'help.url': c['help.url']
 		});
 
 		this.ignore = [];
-		this.set(ide.configuration.project);
+		this.set(c.project);
 		this.set(p);
 
-		this['workspace.version'] = ide.configuration.version;
+		this['workspace.version'] = c.version;
 		this.tags = {
 			workspace: this.loadFile(
 				this.path + '/project.json') && 'workspace'
@@ -162,34 +163,37 @@ class Project {
 		}
 	}
 
-	onFileEvent(ev, filepath, full, s)
+	onFileEvent(ev)
 	{
-		if (ev==='change')
-		{
-			this.broadcast({
-				stat: { f: filepath, p: full, t: s.mtime.getTime(), d: path.dirname(filepath) }
-			}, 'file');
-
-			// TODO see if we need to include full path instead
-			ide.plugins.emit('project.filechange', this, ev, filepath, s);
-			ide.plugins.emit('project.filechange:' + filepath, this, ev, filepath, s);
-
-			if (filepath==='project.json')
-				this.reload();
-		} else if (ev!=='error')
+		if (ev.type==='change')
 		{
 			this.broadcast({
 				stat: {
-					f: path.dirname(filepath),
-					p: path.dirname(full),
-					t: s && s.mtime.getTime()
+					f: ev.filename, p: ev.fullpath, t: ev.stat.mtime.getTime(),
+					d: path.dirname(ev.filename)
+				}
+			}, 'file');
+
+			// TODO see if we need to include full path instead
+			ide.plugins.emit('project.filechange', this, ev);
+			ide.plugins.emit('project.filechange:' + ev.filename, this, ev);
+
+			if (ev.filename==='project.json')
+				this.reload();
+		} else if (ev.type!=='error')
+		{
+			this.broadcast({
+				stat: {
+					f: path.dirname(ev.filename),
+					p: path.dirname(ev.fullpath),
+					t: ev.stat && ev.stat.mtime.getTime()
 				}
 			}, 'file');
 
 			this.buildFilesDebounced();
 		}
 
-		this.log.dbg(ev + ' ' + filepath);
+		this.log.dbg(ev.type + ' ' + ev.filename);
 	}
 
 	onTimeout()
@@ -331,7 +335,11 @@ class ProjectManager {
 
 	constructor()
 	{
-		this.workspaceProject = new Project('.');
+		var p = this.workspaceProject = new Project('.');
+
+		// Ignore all files
+		p.configuration.ignore = [ '*' ];
+
 		this.path = '.';
 
 		ide.plugins.on('project.filechange', this.onFileChange.bind(this));

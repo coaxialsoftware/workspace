@@ -140,10 +140,8 @@ cxl.extend(InlineAssist.prototype, {
 		this.el.style.fontSize = style.fontSize;
 	},
 
-	show: function(editor)
+	show: function()
 	{
-		editor = this.editor = editor || ide.editor;
-
 		if (!this.visible)
 		{
 			this.visibleStart = 0;
@@ -306,10 +304,12 @@ cxl.extend(InlineAssist.prototype, {
 
 	accept: function()
 	{
+		var token = ide.assist.editor.token.current;
+
 		if (this.hints.length===0)
 			return ide.Pass;
 
-		if (this.selectedValue && ide.assist.editor.token.cursorValue===this.selectedValue)
+		if (this.selectedValue && token.cursorValue===this.selectedValue)
 		{
 			this.hide();
 			// TODO returning false so it skips the uiState

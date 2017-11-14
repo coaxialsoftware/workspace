@@ -166,11 +166,14 @@ ide.Bar = cxl.View.extend({
 		this.on_keyup();
 	},
 
-	replaceRange: function(text, start, end)
+	replaceRange: function(text, start, end, ignore)
 	{
 	var
 		val = this.$input.value
 	;
+		if (ignore)
+			this.ignoreChange = ignore;
+
 		this.$input.value = val.slice(0, start) + text + val.slice(end);
 		this.on_keyup();
 	},
@@ -183,7 +186,7 @@ ide.Bar = cxl.View.extend({
 		ide.assist.cancel();
 
 		if (ide.editor)
-			ide.editor.focus.set();
+			ide.workspace.focusEditor(ide.editor);
 
 		ide.assist.inline.hide();
 
@@ -224,7 +227,7 @@ class CommandToken extends ide.Token {
 
 	replace(val)
 	{
-		ide.commandBar.replaceRange(val, this.column, this.cursorColumn);
+		ide.commandBar.replaceRange(val, this.column, this.cursorColumn, true);
 	}
 
 	getType()
@@ -342,12 +345,13 @@ ide.Bar.Command = ide.Bar.extend({
 
 	on_change: function()
 	{
-		if (this.ignoreChange===true)
-			return (this.ignoreChange = false);
-
-		this.selectedHint = null;
 		this.findWord(function(s, start, end) {
 			var t = this.$assistData.token = this.getToken(s, start, end);
+
+			if (this.ignoreChange===true)
+				return (this.ignoreChange = false);
+
+			this.selectedHint = null;
 			ide.plugins.trigger('token', this, t);
 		});
 	},

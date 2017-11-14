@@ -37,9 +37,9 @@ var
 		plugin: { name: 'test' }
 	})
 ;
-	A.focus.set();
+	ide.workspace.focusEditor(A);
 	a.equal(ide.editor, A);
-	B.focus.set();
+	ide.workspace.focusEditor(B);
 	a.equal(ide.editor, B);
 });
 
@@ -49,7 +49,7 @@ var
 		plugin: { name: 'test' }
 	})
 ;
-	ide.workspace.slot().setEditor(e);
+	ide.workspace.slot().attach(e);
 	a.equal(ide.workspace.slots.length, 1);
 	ide.workspace.remove(e);
 	a.equal(ide.workspace.slots.length, 0);

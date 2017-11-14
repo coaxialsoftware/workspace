@@ -21,6 +21,7 @@
 	"devDependencies": {
 		"font-awesome": "*",
 		"codemirror": "j5g3/CodeMirror",
+		"xterm": "*",
 		"highlight.js": "*",
 		"grunt": "*",
 		"grunt-contrib-jshint": "*",

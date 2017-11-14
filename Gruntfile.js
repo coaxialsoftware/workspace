@@ -39,8 +39,9 @@ module.exports = function(grunt) {
 				src: [
 					'node_modules/codemirror/lib/codemirror.css',
 					'node_modules/codemirror/addon/fold/foldgutter.css',
+					'node_modules/xterm/dist/xterm.css',
 					'client/styles.css',
-					'public/theme/twilight.css'
+					'public/theme/default.css'
 				],
 				dest: 'public/build/ide.css'
 			},
@@ -52,7 +53,8 @@ module.exports = function(grunt) {
 					'node_modules/highlight.js/lib/languages/javascript.js',
 
 					'node_modules/@cxl/cxl/client/cxl.js',
-					'node_modules/@cxl/cxl/client/cxl-rx.js',
+					'node_modules/@cxl/cxl/shared/cxl-util.js',
+					'node_modules/@cxl/cxl/shared/cxl-rx.js',
 					'node_modules/@cxl/cxl/client/cxl-dom.js',
 					'node_modules/@cxl/cxl/client/cxl-dom-css.js',
 					'node_modules/@cxl/cxl/client/cxl-template.js',
@@ -97,6 +99,9 @@ module.exports = function(grunt) {
 					'node_modules/codemirror/mode/xml/xml.js',
 					'node_modules/codemirror/mode/htmlmixed/htmlmixed.js',
 					'node_modules/codemirror/mode/css/css.js',
+
+					'node_modules/xterm/dist/xterm.js',
+					'node_modules/xterm/dist/addons/fit/fit.js',
 
 					'node_modules/@cxl/cxl/client/cxl.js',
 					'node_modules/@cxl/cxl/shared/cxl-util.js',

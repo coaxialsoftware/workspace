@@ -277,6 +277,11 @@ class ListEditor extends ide.Editor {
 		this.ItemClass = p.itemClass || ide.Item;
 
 		this.children = p.children ? this._addElements(p.children, 0) : [];
+
+		this.listenTo(this.el, 'focus', () => {
+			if (!this.cursor.current)
+				this.cursor.goStart();
+		});
 	}
 
 	_addElements(items)
@@ -347,19 +352,7 @@ class DirectoryFeature extends ide.feature.FileFeature {
 
 }
 
-class FileListFocusFeature extends ide.feature.FocusFeature {
-
-	set()
-	{
-		super.set();
-
-		if (!this.editor.cursor.current)
-			this.editor.cursor.goStart();
-	}
-
-}
-
-FileListEditor.features(ide.feature.FileHashFeature, DirectoryFeature, FileListFocusFeature);
+FileListEditor.features(ide.feature.FileHashFeature, DirectoryFeature);
 
 var worker = new ide.Worker({
 
