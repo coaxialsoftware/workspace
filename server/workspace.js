@@ -95,46 +95,6 @@ class WorkspaceConfiguration extends ide.Configuration {
 
 }
 
-	/*checkForUpdates: function()
-	{
-		workspace.NPM.doNpm('view', [['@cxl/workspace', 'version']]).then(version => {
-			console.log(Object.keys(version)[0]);
-		}, (e) => console.log(e));
-	},
-
-	update: function()
-	{
-
-	},
-
-	__watches: {},
-
-	watch: function(path, cb)
-	{
-	var
-		id = this.watcher.watchFile(path),
-		watches = this.__watches[id] || (this.__watches[id]=[])
-	;
-		this.dbg(`Watching File "${id}"`);
-
-		if (cb)
-		{
-			watches.push(cb);
-			ide.plugins.on('workspace.watch:' + id, cb);
-		}
-
-		return id;
-	},
-
-	unwatch: function(id, cb)
-	{
-		workspace.dbg(`Unwatching File "${id}"`);
-		this.fileWatcher.unwatch(id);
-		_.pull(this.__watches, cb);
-		this.plugins.removeListener('workspace.watch:' + id, cb);
-	}
-	*/
-
 ide.restart = function()
 {
 	workspace.log('Restarting Workspace');

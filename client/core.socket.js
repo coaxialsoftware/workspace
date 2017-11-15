@@ -5,6 +5,27 @@
 (function(window, ide, cxl) {
 "use strict";
 
+class RPC {
+
+	constructor(plugin)
+	{
+		this.plugin = plugin;
+		this.subscriber = ide.plugins.on('socket.message.' + plugin.name,
+			this.$onSocket.bind(this));
+	}
+
+	$onSocket()
+	{
+
+	}
+
+	destroy()
+	{
+		this.subscriber.unsubscribe();
+	}
+
+}
+
 class SocketManager {
 
 	constructor()
@@ -142,6 +163,7 @@ class SocketManager {
 
 }
 
+ide.RPC = RPC;
 ide.Socket = SocketManager;
 ide.socket = new SocketManager();
 

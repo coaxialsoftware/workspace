@@ -1,5 +1,5 @@
 
-(function(ide, cxl) {
+(function(ide, cxl, XTerminal) {
 "use strict";
 
 var editorId = 1;
@@ -708,6 +708,32 @@ class BrowserEditor extends Editor {
 
 }
 
+class Terminal extends Editor {
+
+	$onFocus()
+	{
+		this.$onResize();
+		this.$term.focus();
+	}
+
+	$onResize()
+	{
+		this.$term.fit();
+	}
+
+	render(p)
+	{
+		super.render(p);
+
+		var term = this.$term = new XTerminal();
+		term.open(this.$content, { focus: false });
+
+		this.listenTo(this.el, 'focus', this.$onFocus.bind(this));
+		this.listenTo(ide.plugins, 'workspace.resize', this.$onResize.bind(this));
+	}
+
+}
+
 Object.assign(ide, {
 	Feature: Feature,
 	HistoryRecord: HistoryRecord,
@@ -715,7 +741,8 @@ Object.assign(ide, {
 	Editor: Editor,
 	Range: Range,
 	ComponentEditor: ComponentEditor,
-	BrowserEditor: BrowserEditor
+	BrowserEditor: BrowserEditor,
+	Terminal: Terminal
 });
 
 ide.feature = {
@@ -738,4 +765,4 @@ ide.feature = {
 };
 
 
-})(this.ide, this.cxl);
+})(this.ide, this.cxl, this.Terminal);

@@ -105,7 +105,10 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 	onSocket: function(data)
 	{
 		if (data.refresh)
-			this.reload();
+			ide.notify({
+				code: 'core', progress: 0, id: 'plugins',
+				className: 'warn', title: 'Plugins updated. Please refresh'
+			});
 	},
 
 	reload: function()

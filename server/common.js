@@ -273,7 +273,7 @@ class FileWalker {
 	serialize(file, stat)
 	{
 		// TODO make file objects more consistent
-		return { filename: file, directoy: stat.isDirectory() };
+		return { filename: file, directory: stat.isDirectory() };
 	}
 
 	$recursiveWalk(dir)
@@ -1081,6 +1081,12 @@ class ProcessStream extends Stream {
  */
 class Process {
 
+	constructor(command, parameters, options)
+	{
+		if (command)
+			this.spawn(command, parameters, options);
+	}
+
 	$spawn(command, parameters, options)
 	{
 		return cp.spawn(command, parameters, options);
@@ -1089,6 +1095,11 @@ class Process {
 	$createStream(process)
 	{
 		return new ProcessStream(process);
+	}
+
+	get stream()
+	{
+		return this.$stream || (this.$stream = this.$createStream(this.$process));
 	}
 
 	spawn(command, parameters, options)
@@ -1101,7 +1112,6 @@ class Process {
 		);
 
 		this.pid = process.pid;
-		this.stream = this.$createStream(process);
 	}
 
 }
@@ -1381,7 +1391,7 @@ module.exports = {
 	},
 
 	/**
-	 * Executes shell command using child_process.exec. Returns a promise
+	 * Executes shell command using child_process.exec. Returns a Promise
 	 *
 	 * options:
 	 *
