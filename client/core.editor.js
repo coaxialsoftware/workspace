@@ -721,13 +721,27 @@ class Terminal extends Editor {
 		this.$term.fit();
 	}
 
+	$onKey(ev)
+	{
+		if (ev.type === 'keydown')
+		{
+			ide.keyboard.onKeyDown(ev);
+
+			if (ev.defaultPrevented)
+				return false;
+		}
+	}
+
 	render(p)
 	{
 		super.render(p);
 
 		var term = this.$term = new XTerminal();
-		term.open(this.$content, { focus: false });
 
+		term.open(this.$content, { focus: false });
+		term.attachCustomKeyEventHandler(this.$onKey.bind(this));
+
+		this.keymap.setState('terminal');
 		this.listenTo(this.el, 'focus', this.$onFocus.bind(this));
 		this.listenTo(ide.plugins, 'workspace.resize', this.$onResize.bind(this));
 	}

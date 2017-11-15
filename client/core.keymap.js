@@ -257,7 +257,7 @@ cxl.extend(KeyMap.prototype, {
 			this.defaultState || 'default';
 	},
 
-	getHandler: function(map, key)
+	createHandler: function(map, key)
 	{
 	var
 		fn = map[key],
@@ -290,7 +290,7 @@ cxl.extend(KeyMap.prototype, {
 		state = this.states[state] || (this.states[state]={});
 
 		for (key in map)
-			this.registerKey(state, ide.keyboard.normalize(key), this.getHandler(map, key));
+			this.registerKey(state, ide.keyboard.normalize(key), this.createHandler(map, key));
 	},
 
 	registerKeys: function(map)
@@ -312,15 +312,22 @@ cxl.extend(KeyMap.prototype, {
 			ide.plugins.trigger('editor.keymap', this, this.editor);
 	},
 
-	/**
-	 * Handles key in current state, or optional state parameter.
-	 */
-	handle: function(key, state)
+	getHandler: function(key, state)
 	{
 	var
 		map = this.states[state || this.state],
 		fn = map && (map[key] || map.all)
 	;
+		return fn;
+	},
+
+	/**
+	 * Handles key in current state, or optional state parameter.
+	 */
+	handle: function(key, state)
+	{
+		var fn = this.getHandler(key, state);
+
 		return fn ? fn(key) : false;
 	}
 
@@ -448,7 +455,15 @@ ide.keymap.registerKeys({
 
 		'tab': 'insert.tab',
 		'shift+tab': 'indent.auto'
+	},
+
+	terminal: {
+
+		'ctrl+tab': '',
+		'alt+enter': 'ex'
+
 	}
+
 });
 
 ide.KeyMap = KeyMap;

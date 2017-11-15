@@ -736,7 +736,8 @@ class SourceEditor extends ide.FileEditor {
 		if (!this.editor.hasFocus())
 			this.editor.focus();
 
-		ide.workspace.focusEditor(this);
+		if (ide.editor !== this)
+			ide.workspace.focusEditor(this);
 	}
 
 	cmd(fn, args)

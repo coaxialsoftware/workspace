@@ -240,17 +240,21 @@ ide.Workspace = class Workspace {
 
 	focusEditor(editor)
 	{
-		if (ide.editor === editor)
-			return;
+		if (ide.editor !== editor)
+		{
+			if (ide.editor)
+				this.blurEditor(ide.editor);
 
-		if (ide.editor)
-			this.blurEditor(ide.editor);
+			ide.editor = editor;
 
-		ide.editor = editor;
+			editor.el.classList.add('focus');
 
-		editor.el.classList.add('focus');
+			// Dispatch global event only if editor focused changed.
+			ide.plugins.trigger('editor.focus', editor);
+		}
+
+		// Dispatch local focus event so editor can handle it properly
 		editor.el.dispatchEvent(new Event('focus'));
-		ide.plugins.trigger('editor.focus', editor);
 	}
 
 	blurEditor(editor)
