@@ -162,10 +162,9 @@ cxl.extend(KeyboardManager.prototype, {
 	{
 	var
 		keymap = ide.editor && ide.editor.keymap,
-		type = keymap && typeof(keymap),
 		result
 	;
-		if (type==='object')
+		if (keymap)
 			result = this._findKey(keymap, state, action);
 
 		if (!result)
@@ -459,7 +458,6 @@ ide.keymap.registerKeys({
 
 	terminal: {
 
-		'ctrl+tab': '',
 		'alt+enter': 'ex'
 
 	}

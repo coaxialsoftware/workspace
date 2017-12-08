@@ -1,7 +1,7 @@
 /**
  * @license
  * Adapted from fast-diff library.
- * 
+ *
  * This library modifies the diff-patch-match library by Neil Fraser
  * by removing the patch and match functionality and certain advanced
  * options in the diff function. The original license is as follows:
@@ -41,7 +41,7 @@ const
 	DIFF_EQUAL = 0,
 	MINL = 5
 ;
-	
+
 /**
  * Find the differences between two texts.  Simplifies the problem by stripping
  * any common prefix or suffix off the texts before diffing.
@@ -58,7 +58,7 @@ function diff_main(text1, text2)
 	// Trim off common prefix (speedup).
 	var commonlength = diff_commonPrefix(text1, text2);
 	var commonprefix = text1.slice(0, commonlength);
-	
+
 	text1 = text1.slice(commonlength);
 	text2 = text2.slice(commonlength);
 
@@ -74,9 +74,9 @@ function diff_main(text1, text2)
 	// Restore the prefix and suffix.
 	if (commonprefix) diffs.unshift(DIFF_EQUAL, commonprefix);
 	if (commonsuffix) diffs.push(DIFF_EQUAL, commonsuffix);
-	
-	diff_cleanupMerge(diffs);
-	
+
+	//diff_cleanupMerge(diffs);
+
 	return diffs;
 }
 
@@ -109,7 +109,7 @@ var
 				 DIFF_INSERT, longtext.slice(i + shorttext.length)];
 		// Swap insertions for deletions if diff is reversed.
 		if (text1.length > text2.length) diffs[0] = diffs[4] = DIFF_DELETE;
-		
+
 		return diffs;
 	}
 
@@ -155,7 +155,7 @@ const
 ;
 	v1[v_offset + 1] = 0;
 	v2[v_offset + 1] = 0;
-	
+
 	// If the total number of characters is odd, then the front path will collide
 	// with the reverse path.
 	// Offsets for start and end of k loop.
@@ -236,7 +236,7 @@ var
 			}
 		}
 	}
-	
+
 	// Diff took too long and hit the deadline or
 	// number of diffs equals number of characters, no commonality at all.
 	return [DIFF_DELETE, text1, DIFF_INSERT, text2];
@@ -308,7 +308,7 @@ function diff_commonSuffix(text1, text2) {
   // Quick check for common null cases.
 	if (!text1 || !text2 || text1[text1.length - 1] !== text2[text2.length - 1])
 		return 0;
-		
+
 	// Binary search.
 	// Performance analysis: http://neil.fraser.name/news/2007/10/09/
 var
@@ -441,7 +441,7 @@ var
 	countPointer
 ;
 	diffs.push(DIFF_EQUAL, '');  // Add a dummy entry at the end.
-	
+
 	while (pointer < diffs.length) {
 		switch (diffs[pointer]) {
 			case DIFF_INSERT:
@@ -459,7 +459,7 @@ var
 				if (count_delete + count_insert > 1)
 				{
 					countPointer = (count_delete+count_insert)*2;
-					
+
 					if (count_delete !== 0 && count_insert !== 0)
 					{
 						// Factor out any common prefixies.
@@ -478,7 +478,7 @@ var
 						}
 						// Factor out any common suffixies.
 						commonlength = diff_commonSuffix(text_insert, text_delete);
-						
+
 						if (commonlength !== 0) {
 							diffs[pointer+1] = text_insert.slice(text_insert.length -
 																  commonlength) + diffs[pointer+1];
@@ -486,7 +486,7 @@ var
 							text_delete = text_delete.slice(0, text_delete.length - commonlength);
 						}
 					}
-					
+
 					// Delete the offending records and add the merged ones.
 					if (count_delete === 0) {
 						diffs.splice(pointer - count_insert*2,
@@ -499,10 +499,10 @@ var
 						diffs.splice(pointer - countPointer, countPointer, DIFF_DELETE, text_delete,
 							DIFF_INSERT, text_insert);
 					}
-					
+
 					pointer = pointer - (countPointer) +
 						(count_delete ? 2 : 0) + (count_insert ? 2 : 0) + 2;
-					
+
 				} else if (pointer !== 0 && diffs[pointer - 2] === DIFF_EQUAL) {
 					// Merge this equality with the previous one.
 					diffs[pointer - 1] += diffs[pointer+1];
@@ -529,9 +529,9 @@ var
 	// which can be shifted sideways to eliminate an equality.
 	// e.g: A<ins>BA</ins>C -> <ins>AB</ins>AC
 	var changes = false;
-	
+
 	pointer = 1;
-	
+
 	// Intentionally ignore the first and last element (don't need checking).
 	while (pointer < diffs.length - 2)
 	{
@@ -544,7 +544,7 @@ var
 				// Shift the edit over the previous equality.
 				diffs[pointer+1] = diffs[pointer-1] +
 					diffs[pointer+1].slice(0, diffs[pointer+1].length - diffs[pointer-1].length);
-				
+
 				diffs[pointer+2] = diffs[pointer-1] + diffs[pointer+2];
 				diffs.splice(pointer-2, 2);
 				changes = true;
@@ -559,15 +559,15 @@ var
 		}
 		pointer+=2;
 	}
-	
+
 	// If shifts were made, the diff needs reordering and another shift sweep.
 	if (changes) diff_cleanupMerge(diffs);
 }
-	
+
 function push(result, ch, a, b, c)
 {
 	var l = result.length;
-	
+
 	if (l && (b < MINL))
 	{
 		result[l-3] += ch + a;
@@ -582,7 +582,7 @@ var
 	result=[],
 	d = diff_main(A, B),
 	i, l=0, ch=''
-;	
+;
 	for (i=0; i<d.length; i+=2)
 	{
 		if (d[i]===DIFF_EQUAL)
@@ -590,13 +590,13 @@ var
 			l = d[i+1].length;
 			ch = d[i+1];
 		}
-		else 
+		else
 		{
 			if (d[i]===DIFF_DELETE)
 				push(result, ch, '', l, d[i+1].length);
 			else
 				push(result, ch, d[i+1], l, 0);
-			
+
 			l = 0;
 			ch = '';
 		}
@@ -604,14 +604,14 @@ var
 
 	return result;
 }
-	
+
 ide.diff = diff2;
-	
+
 ide.diffPromise = function(A, B)
 {
 	return ide.diffWorker.promise('diff', [ A, B ]);
 };
-	
+
 ide.patch = function(A, diff)
 {
 var
@@ -622,15 +622,15 @@ var
 		result += A.substr(cursor, diff[i+1]) + diff[i];
 		cursor += diff[i+1] + diff[i+2];
 	}
-	
+
 	if (cursor < A.length)
 		result += A.substr(cursor);
-	
+
 	return result;
 };
-	
+
 ide.diffWorker = new ide.Worker({
-	
+
 	diff: function(data)
 	{
 		return diff2(data[0], data[1]);
@@ -648,7 +648,7 @@ ide.diffWorker = new ide.Worker({
 		diff_commonPrefix: diff_commonPrefix,
 		diff_commonSuffix: diff_commonSuffix
 	}
-	
+
 });
-	
+
 })(this.ide);

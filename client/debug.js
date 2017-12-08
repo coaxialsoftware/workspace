@@ -96,6 +96,11 @@ ide.plugins.register('debug', {
 			icon: 'bug'
 		},
 
+		'debug.restart': {
+			fn: function() { },
+			icon: 'bug'
+		},
+
 		'debug.tests': {
 			fn: function() { window.open('/client'); },
 			icon: 'bug'

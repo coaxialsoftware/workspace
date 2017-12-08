@@ -6,13 +6,6 @@
 (function(cxl) {
 "use strict";
 
-function iconEl(id)
-{
-	var el = document.createElement('ide-icon');
-	el.className = id;
-	return el;
-}
-
 var ResourceManager;
 
 class Resource
@@ -31,25 +24,7 @@ class Resource
 
 ResourceManager = {
 
-	$icons: {
-		bug: iconEl('bug'),
-		command: iconEl('command'),
-		cog: iconEl('cog'),
-		directory: iconEl('directory'),
-		error: iconEl('error'),
-		file: iconEl('file'),
-		git: iconEl('git'),
-		keyword: iconEl('keyword'),
-		property: iconEl('property'),
-		project: iconEl('project'),
-		settings: iconEl('settings'),
-		tag: iconEl('tag'),
-		variable: iconEl('variable'),
-		'variable-global': iconEl('variable-global'),
-		value: iconEl('value'),
-		expand: iconEl('expand'),
-		collapse: iconEl('collapse')
-	},
+	$icons: {},
 
 	getIcon: function(id)
 	{
@@ -63,7 +38,9 @@ ResourceManager = {
 
 	registerIcon: function(id)
 	{
-		var el = this.$icons[id] = iconEl(id);
+		var el = this.$icons[id] = document.createElement('ide-icon');
+		el.className = id;
+
 		return new Resource(id, el);
 	},
 
@@ -78,6 +55,10 @@ ResourceManager = {
 	}
 
 };
+
+[ 'bug','command','cog','directory','error','file','git','keyword','property','project',
+	'settings', 'tag', 'variable', 'variable-global', 'value', 'expand', 'collapse'
+].forEach(icon => ResourceManager.registerIcon(icon));
 
 var ide = window.ide = {
 

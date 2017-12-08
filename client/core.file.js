@@ -147,6 +147,9 @@ class FileItem extends ide.Item {
 		if (!p.icon)
 			p.icon = File.getIcon(p.mime);
 
+		if (p.title)
+			p.title = cxl.escape(p.title);
+
 		super(p);
 
 		this.line = p.line;

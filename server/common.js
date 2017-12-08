@@ -1,6 +1,4 @@
 
-"use strict";
-
 var
 	fs = require('fs'),
 	cp = require('child_process'),
@@ -821,19 +819,6 @@ class StreamResponse {
 	}
 
 }
-
-/*class Resource
-{
-	resource(r)
-	{
-		this.$resources = r;
-	}
-
-	destroy()
-	{
-		cxl.invokeMap(this.$resources, 'destroy');
-	}
-}*/
 
 class Theme
 {

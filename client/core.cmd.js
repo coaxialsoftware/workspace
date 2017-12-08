@@ -291,12 +291,19 @@ ide.plugins.register('core', {
 
 	commands: {
 
-		browse: function()
+		browse: function(url)
 		{
-			ide.open({ file: '.' });
+			var BROWSER_REGEX = /^\w:\/\//;
+
+			// TODO should we default to http?
+			if (!BROWSER_REGEX.test(url))
+				url = 'http://' + url;
+
+			return new ide.BrowserEditor({ url: url });
 		},
 
 		commands: {
+
 			fn: function()
 			{
 				var editor = new ide.ListEditor({

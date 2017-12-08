@@ -41,6 +41,7 @@ var InlineAssist = function() {
 cxl.extend(InlineAssist.prototype, {
 
 	hints: null,
+
 	visible: false,
 	/// Current token position
 	pos: null,
@@ -203,6 +204,30 @@ cxl.extend(InlineAssist.prototype, {
 		return (this.hints = this.hints.sort(this.sortFn));
 	},
 
+	_renderDown: function(el, hints, i, l)
+	{
+		if (this.visibleStart>0)
+			el.appendChild(this.scrollUpEl);
+
+		for (; i<l; i++)
+			this.renderHint(hints[i], i);
+
+		if (this.visibleEnd<this.hints.length)
+			el.appendChild(this.scrollDownEl);
+	},
+
+	_renderUp: function(el, hints, i, l)
+	{
+		if (this.visibleEnd<this.hints.length)
+			el.appendChild(this.scrollUpEl);
+
+		for (l--;l>=i; l--)
+			this.renderHint(hints[l], l);
+
+		if (this.visibleStart>0)
+			el.appendChild(this.scrollDownEl);
+	},
+
 	_render: function()
 	{
 	var
@@ -222,27 +247,9 @@ cxl.extend(InlineAssist.prototype, {
 		hints = this.sort();
 
 		if (this.isDown)
-		{
-			if (this.visibleStart>0)
-				el.appendChild(this.scrollUpEl);
-
-			for (; i<l; i++)
-				this.renderHint(hints[i], i);
-
-			if (this.visibleEnd<this.hints.length)
-				el.appendChild(this.scrollDownEl);
-		}
+			this._renderDown(el, hints, i, l);
 		else
-		{
-			if (this.visibleEnd<this.hints.length)
-				el.appendChild(this.scrollUpEl);
-
-			for (l--;l>=i; l--)
-				this.renderHint(hints[l], l);
-
-			if (this.visibleStart>0)
-				el.appendChild(this.scrollDownEl);
-		}
+			this._renderUp(el, hints, i, l);
 
 		this.calculateTop();
 

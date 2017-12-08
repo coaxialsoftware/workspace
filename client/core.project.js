@@ -19,6 +19,7 @@ function cancelProject()
 	ide.error('Error loading project "' + ide.project.id + '"');
 	ide.hash.set({ p: null });
 	ide.project.set('path', '.');
+	ide.project.id = '.';
 
 	return ide.project.fetch();
 }

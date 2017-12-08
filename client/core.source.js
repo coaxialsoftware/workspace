@@ -130,9 +130,19 @@ class SourceCursorFeature extends ide.feature.CursorFeature {
 		return this.editor.editor.getCursor().line;
 	}
 
+	set row(row)
+	{
+		this.editor.editor.setCursor(row);
+	}
+
 	get column()
 	{
 		return this.editor.editor.getCursor().ch;
+	}
+
+	set column(col)
+	{
+		this.editor.editor.setCursor(null, col);
 	}
 
 	goDown()

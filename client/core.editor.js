@@ -53,7 +53,7 @@ class EditorHeader extends Feature {
 	set title(title)
 	{
 		if (this._title!==title)
-			this.$title.innerHTML = this._title = title;
+			this.$title.innerHTML = this._title = cxl.escape(title);
 	}
 
 	get title()
@@ -221,8 +221,46 @@ HintsFeature.commands = {
 		list = new ide.ListEditor({ }),
 		hints = this.hints.get(code)
 	;
-		list.add(hints);
+		list.add(hints.map(h => {
+			return {
+				code: h.code, title: h.title,
+				className: h.className,
+				tags: [ 'Line ' + h.range.row ],
+				enter: () => this.cursor.row = h.range.row
+			};
+		}));
+
 		return list;
+	},
+
+	'hints.next': function(code)
+	{
+	var
+		row = this.cursor.row,
+		next = this.hints.hints.find(function(h) {
+			return (code ? h.code===code : true) && (h.range.row > row);
+		})
+	;
+		if (next)
+			this.cursor.row = next.range.row;
+	},
+
+	'hints.previous': function(code)
+	{
+	var
+		row = this.cursor.row,
+		l = this.hints.hints.length,
+		h
+	;
+		while (l--)
+		{
+			h = this.hints.hints[l];
+			if ((code ? h.code===code : true) && (h.range.row < row))
+			{
+				this.cursor.row = h.range.row;
+				return;
+			}
+		}
 	}
 };
 
@@ -694,6 +732,16 @@ class ComponentEditor extends Editor {
 
 class BrowserEditor extends Editor {
 
+	$updateTitle()
+	{
+		this.header.title = this.url = this.$iframe.src;
+	}
+
+	openURL(url)
+	{
+		this.$iframe.src = url;
+	}
+
 	render(p)
 	{
 		super.render(p);
@@ -702,8 +750,10 @@ class BrowserEditor extends Editor {
 		this.$iframe.className = 'ide-browser';
 		this.$content.appendChild(this.$iframe);
 
+		this.listenTo(this.$iframe, 'load', this.$updateTitle);
+
 		if (p.url)
-			this.$iframe.src = p.url;
+			this.openURL(p.url);
 	}
 
 }
@@ -718,6 +768,7 @@ class Terminal extends Editor {
 
 	$onResize()
 	{
+		this.header.setTag('size', this.$term.cols + 'x' + this.$term.rows);
 		this.$term.fit();
 	}
 
@@ -725,11 +776,22 @@ class Terminal extends Editor {
 	{
 		if (ev.type === 'keydown')
 		{
+			// TODO should we do this?
+			// Allow ctrl+tab and ctrl+shift+tab so we can switch browser tabs easily
+			if (ev.keyCode===9 && ev.ctrlKey)
+				return false;
+
 			ide.keyboard.onKeyDown(ev);
 
+			// If the keyboard module handle the key event, then we return false
 			if (ev.defaultPrevented)
 				return false;
 		}
+	}
+
+	$onTitle(title)
+	{
+		window.console.log(title);
 	}
 
 	render(p)
@@ -743,6 +805,7 @@ class Terminal extends Editor {
 
 		this.keymap.setState('terminal');
 		this.listenTo(this.el, 'focus', this.$onFocus.bind(this));
+		this.listenTo(this.$term, 'title', this.$onTitle.bind(this));
 		this.listenTo(ide.plugins, 'workspace.resize', this.$onResize.bind(this));
 	}
 
