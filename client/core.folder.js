@@ -117,11 +117,7 @@ class ListEditorCursor extends ide.feature.CursorFeature {
 			target = target.parentNode;
 
 		if (target.$item)
-		{
 			target.focus();
-			// TODO see if we need to use another key for alt
-			this.enter(ev.shiftKey, ev.altKey);
-		}
 	}
 
 	get current()
@@ -207,7 +203,7 @@ class ListEditorCursor extends ide.feature.CursorFeature {
 		var c = this.current;
 
 		if (c && c.enter)
-			c.enter(shift, mod, this.editor);
+			c.enter(shift, mod);
 	}
 
 }

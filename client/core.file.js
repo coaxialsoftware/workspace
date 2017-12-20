@@ -24,9 +24,11 @@ class File {
 	/**
 	 * @param name File name relative to project.
 	 */
-	constructor(name)
+	constructor(name, content, mime)
 	{
 		this.name = name;
+		this.content = content;
+		this.mime = mime;
 		this.stat = {};
 	}
 
@@ -54,7 +56,7 @@ class File {
 		if (this.mime==='text/directory')
 			return JSON.parse((new TextDecoder('utf8')).decode(arraybuffer));
 		else
-			return encoding && arraybuffer ?
+			return encoding && arraybuffer && (typeof(arraybuffer) !=='string')?
 				(new TextDecoder(encoding)).decode(arraybuffer) :
 				arraybuffer;
 	}
@@ -156,7 +158,7 @@ class FileItem extends ide.Item {
 		this.prefix = p.prefix;
 	}
 
-	enter(shift, mod, editor)
+	enter(shift, mod)
 	{
 	var
 		item = this,
@@ -173,9 +175,6 @@ class FileItem extends ide.Item {
 			options.target = '_blank';
 
 		ide.open(options);
-
-		if (!shift)
-			ide.workspace.remove(editor);
 	}
 
 }
@@ -492,7 +491,9 @@ FileFeature.commands = {
 
 	save: 'write',
 
-	write: function(filename, force) { this.file.write(filename, force); },
+	write: function(filename, force) {
+		return this.file.write(filename, force);
+	},
 
 	delete: {
 		fn: function() { this.file.delete(); },
@@ -572,7 +573,10 @@ var
 	return tags;
 }
 
-ide.plugins.on('assist.extended', function(request) {
+ide.plugins.on('assist', function(request) {
+
+	if (!request.extended)
+		return;
 
 	var file = request.editor && request.editor.file;
 
@@ -585,7 +589,7 @@ ide.plugins.on('assist.extended', function(request) {
 	if (fileItem.file !== file)
 	{
 		fileItem.file = file;
-		fileItem.title = file.name;
+		fileItem.title = file.name || '';
 		fileItem.tags = getTags(file);
 	}
 

@@ -304,6 +304,35 @@ ide.Bar.Command = ide.Bar.extend({
 		document.body.appendChild(this.cloneEl);
 	},
 
+	waitForPromise(cmd, promise)
+	{
+		var notification = ide.notify({
+			title: cmd,
+			progress: 0
+		});
+
+		promise.then(result => {
+			this.onResult(cmd, result);
+		}, this.onError).then(function() {
+			notification.remove();
+		});
+	},
+
+	onError(err)
+	{
+		ide.error(err);
+	},
+
+	onResult(cmd, result)
+	{
+		if (result===ide.Pass)
+			ide.warn('Unknown Command: ' + cmd);
+		else if (typeof(result)==='string' || result instanceof ide.Item)
+			ide.notify(result);
+		else if (result instanceof Promise)
+			this.waitForPromise(cmd, result);
+	},
+
 	run: function()
 	{
 	var
@@ -323,10 +352,7 @@ ide.Bar.Command = ide.Bar.extend({
 
 		result = cmd ? ide.runParsedCommand(cmd) : ide.Pass;
 
-		if (result===ide.Pass)
-			ide.warn('Unknown Command: ' + val);
-		else if (typeof(result)==='string' || result instanceof ide.Item)
-			ide.notify(result);
+		this.onResult(val, result);
 	},
 
 	getToken: function(s, start, end)

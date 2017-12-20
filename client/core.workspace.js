@@ -26,7 +26,7 @@ class Hash {
 	decode()
 	{
 	var
-		h = '{'+window.location.hash.substr(1)+'}',
+		h = '{'+window.decodeURIComponent(window.location.hash.substr(1))+'}',
 		result
 	;
 		try {

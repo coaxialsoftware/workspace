@@ -61,7 +61,7 @@ cxl.extend(InlineAssist.prototype, {
 		do {
 			hint = el.$hint;
 			el= el.parentNode;
-		} while (!hint || !el);
+		} while (!hint && el);
 
 		if (hint)
 		{
@@ -450,14 +450,9 @@ class AssistRequest
 		this.payload.plugins[plugin] = data;
 	}
 
-	supportsMime(mime)
-	{
-		return this.features.file && mime.test(this.features.file.mime);
-	}
-
 	supports(feature)
 	{
-		return !!this.features[feature];
+		return feature in this.features;
 	}
 
 	respondExtended(hints)
@@ -509,15 +504,12 @@ class Assist {
 	;
 		req.editor = a.editor;
 		payload.$ = req.$ = a.version;
-		payload.editor = a.editor.id;
+		payload.editor = a.editor && a.editor.id;
 		payload.extended = req.extended = a.panel.visible;
 		payload.features = req.features = features;
 		payload.plugins = {};
 
 		ide.plugins.trigger('assist', req);
-
-		if (req.extended)
-			ide.plugins.trigger('assist.extended', req);
 
 		ide.socket.send('assist', payload);
 
@@ -533,18 +525,19 @@ class Assist {
 		this.version++;
 		this.panel.clearHints();
 
-		if (!editor)
-			return;
+		if (editor)
+		{
+			token = editor.token && editor.token.current;
 
-		token = editor.token && editor.token.current;
+			if (token && (forceInline || token.cursorValue) &&
+				(!editor.insert || editor.insert.enabled))
+				this.inline.clearHints(editor);
+			else
+				this.inline.hide();
 
-		if (token && (forceInline || token.cursorValue) &&
-			(!editor.insert || editor.insert.enabled))
-			this.inline.clearHints(editor);
-		else
-			this.inline.hide();
-
-		editor.getAssistData().then(this._doRequestNow);
+			editor.getAssistData().then(this._doRequestNow);
+		} else
+			this._doRequestNow({});
 	}
 
 	onResponseInline(version, hints)

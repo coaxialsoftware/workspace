@@ -90,9 +90,6 @@ var
 	icon = ide.resources.getIcon('tag')
 ;
 	a.ok(icon);
-	a.throws(function() {
-		ide.resources.getIcon('tagtag');
-	});
 });
 
 QUnit.test('ide.resources.registerIcon()', function(a) {
@@ -104,7 +101,7 @@ var
 	a.ok(icon.element);
 	a.ok(ide.resources.getIcon('test'));
 	icon.destroy();
-	a.throws(() => ide.resources.getIcon('test'));
+	a.ok(!ide.resources.$icons.test);
 });
 
 QUnit.test('ide.resources.registerSVGIcon()', function(a) {

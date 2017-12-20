@@ -136,6 +136,9 @@ ide-editor-header {
 	font-size: 16px; color: rgba(255,255,255,0.7);
 }
 ide-editor-header > .modified:before { /*content: "\f067";*/ content: "+"; }
+ide-editor-header > .project { margin-right: 8px; }
+ide-editor-header > .project:before { content: '['; }
+ide-editor-header > .project:after { content: ']'; }
 
 .list ide-editor-content { padding: 8px; }
 

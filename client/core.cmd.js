@@ -477,10 +477,12 @@ ide.plugins.register('core', {
 
 		version: function()
 		{
+			var p = ide.project;
+
 			ide.notify({
 				code: 'version',
-				tags: ['workspace:' + ide.project.get('workspace.version')],
-				title: ide.project.get('name') + ':' + ide.project.get('version')
+				tags: ['workspace:' + p.get('workspace.version')],
+				title: (p.get('name') || p.id) + ' ' + (p.get('version') || '')
 			});
 		}
 	},
@@ -543,7 +545,6 @@ ide.plugins.register('core', {
 				result.push(new ide.Item({
 					key: key, title: i, className: 'cmd',
 					icon: fn.icon,
-					svgIcon: fn.svgIcon,
 					description: fn.description,
 					priority: index,
 					matchStart: search && index, matchEnd: search && (index+len)
@@ -605,9 +606,7 @@ ide.plugins.register('core', {
 });
 
 /**
- * Listen to inline assist events
- * Listen to assist events
- * Lookup best match
+ *
  */
 ide.Command = class Command {
 
@@ -615,17 +614,19 @@ ide.Command = class Command {
 	{
 		var type = typeof(def), description = def.description;
 
-		if (type==='string')
+		if (type==='string' || type==='function')
+			def = { fn: def };
+
+		if (typeof(def.fn)==='string')
 		{
-			this.fn = function() { ide.run(def, arguments); };
-			description = 'Alias of "' + def + '"';
+			this.fn = function() { ide.run(def.fn, arguments); };
+			description = description || 'Alias of "' + def.fn + '"';
 		}
 		else
-			this.fn = type==='function' ? def : def.fn;
+			this.fn = def.fn;
 
-		this.icon = (!def.icon && !def.svgIcon) ? 'command' : def.icon;
+		this.icon = def.icon || (scope && scope.icon) || 'command';
 		this.args = def.args;
-		this.svgIcon = def.svgIcon;
 		this.name = name;
 		this.description = description;
 		this.scope = scope;

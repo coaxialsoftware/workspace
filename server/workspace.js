@@ -11,9 +11,10 @@ var
 
 	cxl = require('@cxl/cxl'),
 
+	pkg = require(__dirname + '/../package.json'),
 	ide = global.ide = require('./common'),
 	// TODO @deprecate
-	workspace = global.workspace = module.exports = cxl('workspace')
+	workspace = global.workspace = ide.module = module.exports = cxl('workspace')
 ;
 
 
@@ -46,6 +47,8 @@ class WorkspaceConfiguration extends ide.Configuration {
 			 * User scripts. Will be added to all projects.
 			 */
 			scripts: null,
+
+			version: pkg.version,
 
 			/**
 			 * Default help URL. Defaults to /docs/index.html

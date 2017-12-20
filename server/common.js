@@ -976,7 +976,8 @@ class LanguageServer extends AssistServer {
 	constructor(pluginName, mimeMatch, fileMatch)
 	{
 		super();
-		ide.plugins.on('assist.inline', this.$onInlineAssist.bind(this));
+
+		ide.plugins.on('assist', this.$onInlineAssist.bind(this));
 
 		this.$plugin = pluginName;
 		this.$mime = mimeMatch;
@@ -989,19 +990,16 @@ class LanguageServer extends AssistServer {
 
 	canAssist(data)
 	{
-	var
-		project = data.project,
-		file = data.features.file
-	;
-		return file && project.hasPlugin(this.$plugin) &&
-			(!this.$mime || this.$mime.test(file.mime)) &&
+		var file = data.features.file;
+
+		return file && (!this.$mime || this.$mime.test(file.mime)) &&
 			(!this.$fileMatch || this.$fileMatch.test(file.path));
 	}
 
-	$onInlineAssist(done, data)
+	$onInlineAssist(request)
 	{
-		if (this.canAssist(data))
-			this.onInlineAssist(done, data);
+		if (this.canAssist(request))
+			this.onInlineAssist(request);
 	}
 
 }
@@ -1389,6 +1387,7 @@ module.exports = {
 		return new Q(function(resolve, reject) {
 			options = Object.assign({
 				timeout: 5000,
+				maxBuffer: 1024 * 500,
 				plugin: ide.module
 			}, options);
 

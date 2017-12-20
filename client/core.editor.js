@@ -47,7 +47,7 @@ class EditorHeader extends Feature {
 	{
 		this.editor.el.appendChild(this.el);
 		this.editor.listenTo(this.$close, 'click', this.$onClose);
-		this.$project.innerHTML = '[' + ide.project.id + '] ';
+		this.$project.innerHTML = ide.project.id;
 	}
 
 	set title(title)
@@ -791,7 +791,8 @@ class Terminal extends Editor {
 
 	$onTitle(title)
 	{
-		window.console.log(title);
+		this.header.title = `shell: ${title}`;
+		this.header.setTag('shell.pid', 'PID ' + this.pid);
 	}
 
 	render(p)

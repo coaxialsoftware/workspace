@@ -28,41 +28,34 @@ ResourceManager = {
 
 	getIcon: function(id)
 	{
-		var r = this.$icons[id];
+		var r = this.$icons[id] || this.registerIcon(id);
 
-		if (!r)
-			throw new Error('Invalid Icon');
-
-		return r.cloneNode(true);
+		return r.element.cloneNode(true);
 	},
 
 	registerIcon: function(id)
 	{
-		var el = this.$icons[id] = document.createElement('ide-icon');
+		var el = document.createElement('ide-icon');
 		el.className = id;
 
-		return new Resource(id, el);
+		return (this.$icons[id] = new Resource(id, el));
 	},
 
 	registerSVGIcon: function(id, content, viewbox)
 	{
 		// tagName must remain lowercase or it wont load the element
-		var svg = this.$icons[id] = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+		var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 		svg.innerHTML = content;
 		svg.setAttribute('class', 'ide-icon');
 		svg.setAttribute('viewBox', viewbox);
-		return new Resource(id, svg);
+
+		return (this.$icons[id] = new Resource(id, svg));
 	}
 
 };
 
-[ 'bug','command','cog','directory','error','file','git','keyword','property','project',
-	'settings', 'tag', 'variable', 'variable-global', 'value', 'expand', 'collapse'
-].forEach(icon => ResourceManager.registerIcon(icon));
-
 var ide = window.ide = {
 
-	version: '2.7.0',
 	/** Used by commands to indicate that the command wasn't handled. */
 	Pass: {},
 

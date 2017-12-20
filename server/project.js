@@ -29,14 +29,14 @@ class ProjectConfiguration extends ide.Configuration
 			'debug.inspect': c['debug.inspect'],
 			'path.separator': c['path.separator'],
 			'editor.encoding': c['editor.encoding'],
-			'help.url': c['help.url']
+			'help.url': c['help.url'],
+			'workspace.version': c.version
 		});
 
 		this.ignore = [];
 		this.set(c.project);
 		this.set(p);
 
-		this['workspace.version'] = c.version;
 		this.tags = {
 			workspace: this.loadFile(
 				this.path + '/project.json') && 'workspace'

@@ -107,7 +107,11 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 		if (data.refresh)
 			ide.notify({
 				code: 'core', progress: 0, id: 'plugins',
-				className: 'warn', title: 'Plugins updated. Please refresh'
+				className: 'warn', title: 'Plugins updated. Please refresh',
+				enter: function()
+				{
+					location.reload();
+				}
 			});
 	},
 
@@ -171,6 +175,7 @@ cxl.extend(PluginManager.prototype, cxl.Events, {
 
 			if (plug.shortcuts)
 				this.registerShortcuts(plug);
+
 		} catch(e)
 		{
 			window.console.error(e);
@@ -248,11 +253,11 @@ var PluginComponent = cxl.component({
 	template: `<ide-item class="item">
 <ide-item-tags><cxl-fragment &="repeat(tags)"><ide-tag &="item:text"></ide-tag></cxl-fragment>
 </ide-item-tags><code &="=code:|text"></code><ide-item-title &="=title:|text">
-</ide-item-title><ide-item-description &="=description:|if:|text"></ide-item-description>
-<ide-item-footer &="=local:unless">
+</ide-item-title><ide-item-description &="=description:|show:|text"></ide-item-description>
+<ide-item-footer &="=local:hide">
 <span>
-<cxl-submit &="=installed:unless click:#install =loadInstall:set(submitting)">Install</cxl-submit>
-<cxl-submit &="=installed:if click:#uninstall =loadInstall:set(submitting)">Uninstall</cxl-submit>
+<cxl-submit &="=installed:hide click:#install =loadInstall:set(submitting)">Install</cxl-submit>
+<cxl-submit &="=installed:show click:#uninstall =loadInstall:set(submitting)">Uninstall</cxl-submit>
 <span>
 </ide-item-footer></ide-item>`
 }, class {
@@ -346,10 +351,12 @@ ide.plugins = new PluginManager();
 ide.PluginComponent = PluginComponent;
 
 cxl.directive('ide.on', {
+
 	initialize: function()
 	{
 		this.listenTo(ide.plugins, this.parameters, this.set);
 	}
+
 });
 
 })(this.ide, this.cxl);

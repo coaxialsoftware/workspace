@@ -1129,7 +1129,7 @@ var cxl = root.cxl = {
 	 */
 	escape: function(str)
 	{
-		return str.replace(cxl.ENTITIES_REGEX, function(e) {
+		return str && str.replace(cxl.ENTITIES_REGEX, function(e) {
 			return cxl.ENTITIES_MAP[e];
 		});
 	},
@@ -1377,7 +1377,7 @@ rx.Subscriber.prototype = {
 	complete: function()
 	{
 		if (!this.isUnsubscribed && this.__complete)
-			this.__complete.call(this);
+			this.__complete();
 		this.unsubscribe();
 	},
 
@@ -1666,8 +1666,8 @@ NodeFactory.prototype = {
 
 	$transclude: function(component, parent)
 	{
-		if (component.$native.firstElementChild)
-			this.traverse(component.$native.firstElementChild, parent);
+		if (component.$native.firstChild)
+			this.traverse(component.$native.firstChild, parent);
 	},
 
 	$attributes: function(component, value)
@@ -1693,22 +1693,20 @@ NodeFactory.prototype = {
 		meta = component.$meta,
 		template = meta.$template
 	;
+		// TODO get rid of decorators, use bindings instead
 		for (var i in this.decorators)
 			if (i in meta)
 				this.decorators[i](component, meta[i]);
-
-		if (meta.bindings)
-			this.$bindings(component, meta.bindings);
 
 		if (meta.beforeDigest)
 			meta.beforeDigest.call(component, controller);
 
 		if (template)
 		{
-			if (meta.shadow===false)
-				template.setContent(component);
-			else
-				template.setShadowContent(component);
+			template.setContent(
+				component,
+				meta.shadow===false ? component.$native : component.$attachShadow().$native
+			);
 		}
 
 		if (meta.ready)
@@ -1754,6 +1752,10 @@ NodeFactory.prototype = {
 
 		if (meta.content)
 			this.$transclude(component, component);
+
+		// TODO see if we can move this to createComponent
+		if (meta.bindings)
+			this.$bindings(component, meta.bindings);
 
 		return component;
 	},
@@ -1911,9 +1913,7 @@ Node.prototype = {
 
 	matches: function(selector)
 	{
-		return selector.split(',').find(function(tag) {
-			return this.tagName===tag.trim().toUpperCase();
-		}, this);
+		return this.$native.matches && this.$native.matches(selector);
 	},
 
 	destroy: function()
@@ -2134,7 +2134,7 @@ cxl.inherits(Element, Node, {
 		var key = this.$doInsert(el, next);
 
 		if (this.$observer)
-			this.$event({ event: 'child_added', item: el, key: key });
+			this.$event({ event: 'child_added', item: el, key: key, next: next });
 	},
 
 	$doRemoveChild: function(child)
@@ -2251,24 +2251,12 @@ Template.prototype = {
 		return new NodeCollection(Array.prototype.slice.call(frag.childNodes, 0));
 	},
 
-	setContent: function(component)
+	setContent: function(component, root)
 	{
-	var
-		clone = this.$content.cloneNode(true),
-		root = component.$native
-	;
+		var clone = this.$content.cloneNode(true);
+
 		factory.traverse(clone, component);
 		root.appendChild(clone);
-	},
-
-	setShadowContent: function(component)
-	{
-	var
-		clone = this.$content.cloneNode(true),
-		root = component.$attachShadow().$native
-	;
-		root.appendChild(clone);
-		factory.traverse(root, component);
 	}
 
 };
@@ -2282,6 +2270,7 @@ function Event(native) {
 	this.target = native.target.$element;
 	this.currentTarget = native.currentTarget.$element;
 	this.stopPropagation = native.stopPropagation.bind(native);
+	this.stopImmediatePropagation = native.stopImmediatePropagation.bind(native);
 	this.preventDefault = native.preventDefault.bind(native);
 	// TODO add more properties and normalize
 	this.key = native.key;
@@ -2340,7 +2329,6 @@ function ShadowRoot(el)
 	this.$createNative(el);
 	this.$host = el;
 	this.$nodes = this.$native.childNodes;
-	this.$native.$element = this;
 }
 
 cxl.inherits(ShadowRoot, Element, {
@@ -2348,6 +2336,7 @@ cxl.inherits(ShadowRoot, Element, {
 	$createNative: function(el)
 	{
 		this.$native = el.$native.attachShadow({mode: 'open'});
+		this.$native.$element = this;
 	},
 
 	get host()
@@ -2632,7 +2621,10 @@ var
 		flexGrow: 'flex-grow',
 		flexDirection: 'flex-direction',
 		justifyContent: 'justify-content',
-		whiteSpace: 'white-space'
+		whiteSpace: 'white-space',
+		userSelect: 'user-select',
+		msUserSelect: '-ms-user-select',
+		mozUserSelect: '-moz-user-select'
 	}
 ;
 
@@ -2662,6 +2654,17 @@ Style.prototype = {
 		this.$value.elevation = x;
 		this.$style.zIndex = x;
 		this.$style.boxShadow = x + 'px ' + x + 'px ' + (3*x)+'px rgba(0,0,0,0.26)';
+	},
+
+	set userSelect(val)
+	{
+		this.$style.userSelect = this.$style.msUserSelect =
+			this.$style.mozUserSelect = this.$value.userSelect = val;
+	},
+
+	get userSelect()
+	{
+		return this.$value.userSelect;
 	},
 
 	set: function(styles)
@@ -2877,8 +2880,37 @@ StyleSheet.prototype = {
 
 };
 
+function RGBA(r, g, b ,a)
+{
+	this.r = r<0 ? 0 : (r>255 ? 255 : r);
+	this.g = g<0 ? 0 : (g>255 ? 255 : g);
+	this.b = b<0 ? 0 : (b>255 ? 255 : b);
+	this.a = a===undefined ? 1 : (a<0 ? 0 : (a>1 ? 1 : a));
+}
+
+RGBA.prototype = {
+
+	darken: function(p)
+	{
+		return new RGBA(this.r-this.r*p, this.g-this.g*p, this.b-this.b*p, this.a);
+	},
+
+	lighten: function(p)
+	{
+		return new RGBA(this.r+this.r*p, this.g+this.g*p, this.b+this.b*p, this.a);
+	},
+
+	toString: function()
+	{
+		return 'rgba(' + (this.r|0) + ',' + (this.g|0) + ',' + (this.b|0) + ',' + this.a+')';
+	}
+
+};
+
+
 Object.assign(cxl.dom, {
 
+	RGBA: RGBA,
 	Style: Style,
 	StyleSheet: StyleSheet,
 
@@ -2888,6 +2920,11 @@ Object.assign(cxl.dom, {
 	{
 		// TODO
 		STYLES.sheet.insertRule('@font-face{font-family:' + fontFamily + ';src:url("' + src + '");}', 0);
+	},
+
+	rgba: function(r, g, b, a)
+	{
+		return new RGBA(r, g, b, a);
 	}
 
 });
@@ -3134,7 +3171,7 @@ cxl.inherits(cxl.DirectiveObservable, cxl.rx.Observable, {
 		if (subscriber instanceof cxl.DirectiveObservable)
 		{
 			error = subscriber.error.bind(subscriber);
-			complete = subscriber.complete.bind(complete);
+			complete = subscriber.complete.bind(subscriber);
 			subscriber = subscriber.next.bind(subscriber);
 		}
 
@@ -3322,52 +3359,6 @@ cxl.pipe('insert', function(value) {
 });
 
 //
-// Marker Directives
-//
-function markerDirective(update)
-{
-	return {
-		initialize: function() {
-			this.marker = cxl.dom.marker('marker');
-		},
-		update: update
-	};
-}
-
-cxl.directive('if', markerDirective(function(val) {
-	if (val)
-	{
-		if (this.marker.parent)
-		{
-			this.marker.parent.insert(this.element, this.marker);
-			this.marker.remove();
-		}
-	}
-	else if (this.element.parent)
-	{
-		this.element.parent.insert(this.marker, this.element);
-		this.element.remove();
-	}
-}));
-
-
-cxl.directive('unless', markerDirective(function(val) {
-	if (val)
-	{
-		if (this.element.parent)
-		{
-			this.element.parent.insert(this.marker, this.element);
-			this.element.remove();
-		}
-	}
-	else if (this.marker.parent)
-	{
-		this.marker.parent.insert(this.element, this.marker);
-		this.marker.remove();
-	}
-}));
-
-//
 // DOM Events
 // If callback passed, return false or a promise to stop event from
 // firing
@@ -3445,6 +3436,9 @@ cxl.directive('focus', cxl.extendClass(EventDirective, {
 	}
 }, null, 'focus'));
 
+/**
+ * TODO Improve spacebar key
+ */
 cxl.directive('keypress', {
 
 	initialize: function()
@@ -3881,10 +3875,10 @@ cxl.directive('list', {
 });
 
 cxl.pipe('date', function(val) {
-	
+
 	if (val instanceof cxl.date.DateRange)
 		return val.toString();
-		
+
 	if (!(val instanceof cxl.date.Date))
 		val = new Date(val);
 
@@ -3935,9 +3929,9 @@ cxl.directive('timer', {
 	{
 		this.__interval = setInterval(
 			this.onInterval.bind(this), this.interval);
-		
+
 		this.digest = null;
-		
+
 		return this.value;
 	}
 
@@ -4060,36 +4054,22 @@ cxl.directive('location', {
 
 (function(cxl) {
 
-function RGBA(r, g, b ,a)
-{
-	this.r = r;
-	this.g = g;
-	this.b = b;
-	this.a = a;
-}
-
 cxl.theme = {
-
-	RGBA: RGBA,
-	rgb: function(r, g, b)
-	{
-		return new RGBA(r, g, b);
-	},
 
 	spacer: 16,
 	navbarHeight: 56,
 	// Animation speed
 	speed: '0.25s',
 
-	primary: '#009688',
+	primary: cxl.dom.rgba(0, 0x96, 0x88),
 	primaryLight: '#52c7b8',
 	primaryDark: '#00675b',
 
-	secondary: '#ff5722',
+	secondary: cxl.dom.rgba(0xff, 0x57, 0x22),
 	secondaryLight: '#ffc947',
 	secondaryDark: '#c66900',
 
-	disabled: 'rgb(224,224,224)',
+	disabled: 'rgba(0,0,0,0.12)',
 	backdrop: 'rgba(0,0,0,0.26)',
 
 	danger: '#ff1744',
@@ -4132,8 +4112,8 @@ cxl.component({
 	name: 'cxl-avatar',
 	attributes: [ 'big', 'src' ],
 	bindings: [ '=big:style(big)' ],
-	template: '<img &="style(image) =src:if:attribute(src)" />' +
-		'<cxl-icon icon="user" &="style(image) =src:unless"></cxl-icon>',
+	template: '<img &="style(image) =src:show:attribute(src)" />' +
+		'<cxl-icon icon="user" &="style(image) =src:hide"></cxl-icon>',
 	styles: {
 		$: {
 			borderWidth: 1, borderStyle: 'solid', borderRadius: 32, borderColor: css.gray,
@@ -4147,25 +4127,74 @@ cxl.component({
 
 cxl.component({
 	name: 'cxl-button',
-	attributes: [ 'disabled', 'primary', 'flat', 'secondary' ],
-	bindings: [ '=disabled:style(disabled) =primary:style(primary) =flat:style(flat) =secondary:style(secondary) =tabindex:attribute(tabindex)' ],
+	attributes: [ 'disabled', 'primary', 'flat', 'secondary', 'pressed' ],
+	bindings: [
+		'=disabled:style(disabled) =primary:style(primary) =flat:style(flat) =pressed:style(pressed)',
+		'=secondary:style(secondary) =tabindex:attribute(tabindex)',
+		'keypress(enter):#onEnterKey on(keyup):#onMouseUp',
+		'keypress( ):#onEnterKey on(mousedown):#onMouseDown',
+		'on(mouseup):#onMouseUp on(mouseout):#onMouseUp on(click):#onClick'
+	],
 	styles: {
 		$: {
 			elevation: 1, paddingTop: 8, paddingBottom: 8, lineHeight: 20, paddingRight: 8,
 			paddingLeft: 8, cursor: 'pointer', display: 'inline-block', textTransform: 'uppercase',
-			borderRadius: 2
+			borderRadius: 2, userSelect: 'none'
 		},
-
-		$focus: { elevation: 3, outline: 0 },
 
 		primary: { backgroundColor: css.primary, color: css.textInverse },
 		secondary: { backgroundColor: css.secondary, color: css.textInverse },
 		disabled: { color: css.textDisabled, backgroundColor: css.disabled },
-		flat: { elevation: 0, color: css.primary, fontWeight: '500' },
-		flat$focus: { elevation: 3 }
+		'disabled.pressed': { elevation: 1 },
+
+		$focus: { outline: 0, backgroundColor: 'rgba(0,0,0,0.12)' },
+		primary$focus: { backgroundColor: css.primary.darken(0.12) },
+		secondary$focus: { backgroundColor: css.secondary.darken(0.12) },
+		disabled$focus: { backgroundColor: css.disabled },
+
+		pressed: { elevation: 3 },
+		flat: { elevation: 0, fontWeight: '500' },
+		flat$focus: { backgroundColor: css.grayLighter },
+		'flat.pressed': { backgroundColor: css.gray },
+		'flat.disabled': { backgroundColor: 'inherit', color: css.textDisabled }
 	}
 }, {
-	tabindex: 0
+	tabindex: 0,
+	pressed: false,
+
+	onClick: function(ev)
+	{
+		if (this.disabled)
+		{
+			ev.stopPropagation();
+			ev.stopImmediatePropagation();
+		}
+	},
+
+	onEnterKey: function()
+	{
+		if (!this.disabled)
+		{
+			this.onMouseDown();
+			this.$component.trigger('click');
+		}
+	},
+
+	onMouseDown: function(ev)
+	{
+		if (!this.disabled)
+			this.pressed = true;
+		else
+		{
+			ev.stopPropagation();
+			ev.stopImmediatePropagation();
+		}
+	},
+
+	onMouseUp: function()
+	{
+		this.pressed = false;
+	}
 });
 
 cxl.component({
@@ -4192,7 +4221,7 @@ cxl.component({
 		big: { fontSize: 24, paddingBottom: 8 }
 	}
 });
-	
+
 cxl.component({
 	name: 'cxl-card-actions',
 	styles: {
@@ -4206,7 +4235,7 @@ cxl.component({
 		$: { fontSize: 16, color: css.textSubtitle, lineHeight: 20, marginTop: 8 }
 	}
 });
-	
+
 cxl.component({
 	name: 'cxl-checkbox',
 	template: '<label>' +
@@ -4223,16 +4252,17 @@ cxl.component({
 		this.value = this[this.checked ? 'true-value' : 'false-value'];
 	}
 });
-	
+
 cxl.component({
 	name: 'cxl-container',
 	styles: {
 		$: { padding: css.spacer },
 		$large: { padding: 2*css.spacer },
+		$xlarge: { width: 72.5*css.spacer, marginLeft: 'auto', marginRight: 'auto' }
 	},
 	shadow: false
 });
-	
+
 cxl.component({
 	name: 'cxl-content',
 	styles: {
@@ -4272,7 +4302,7 @@ cxl.component({
 		$large: { marginLeft: 288 }
 	}
 });
-	
+
 cxl.component({
 	name: 'cxl-form',
 	bindings: [ 'on(validity):#onValidity on(cxl-form.submit):#onSubmit keypress(ENTER):#onSubmit']
@@ -4313,7 +4343,7 @@ cxl.component({
 	}
 });
 
-	
+
 /**
  * Directive for navigation bars. Handles hiding when a new route
  * is activated and when clicking outside box.
@@ -4397,12 +4427,12 @@ cxl.component({
 		$: { padding: 12, paddingLeft: 16, paddingRight: 16 }
 	}
 });
-	
+
 cxl.component({
 	name: 'cxl-label',
 	styles: { $: { fontSize: 12, lineHeight: 16 } }
 });
-	
+
 cxl.component({
 	name: 'cxl-loading',
 	template: '<cxl-icon &="timer(delay):|show" icon="spinner" spin pulse size="64"></cxl-icon>',
@@ -4411,7 +4441,7 @@ cxl.component({
 }, {
 	delay: 300
 });
-	
+
 cxl.component({
 	name: 'cxl-nav-item',
 	template: '<a &="=href:true|set(href) style(link) =active:style(active)">' +
@@ -4431,7 +4461,7 @@ cxl.component({
 	}
 });
 
-	
+
 cxl.component({
 	name: 'cxl-radio',
 	attributes: [ 'name', 'disabled', 'value', 'checked' ],
@@ -4457,7 +4487,7 @@ cxl.component({
 	name: 'cxl-submit',
 	extend: 'cxl-button',
 	attributes: [ 'disabled', 'primary', 'flat', 'secondary', 'icon', 'iconPulse', 'submitting' ],
-	template: '<cxl-icon &="=submitting:if =icon:set(icon) =iconPulse:set(pulse)"></cxl-icon>' +
+	template: '<cxl-icon &="=submitting:show =icon:set(icon) =iconPulse:set(pulse)"></cxl-icon>' +
 		' <span &="content"></span>',
 	bindings: ['click:emit(cxl-form.submit) =submitting:=disabled']
 }, {
@@ -4466,7 +4496,7 @@ cxl.component({
 	icon: 'spinner',
 	iconPulse: true
 });
-	
+
 cxl.component({
 	name: 'cxl-switch',
 	template: '<input type="checkbox" &="style(input) =checked:|attribute(checked) get(checked):=checked:#onChange change(onChange)" />',
@@ -4546,10 +4576,19 @@ cxl.component({
 });
 
 cxl.component({
+	name: 'cxl-error',
+	shadow: false,
+	styles: {
+		$: { color: css.danger, padding: css.spacer }
+	}
+});
+
+cxl.component({
 	name: 'cxl-input',
-	attributes: [ 'value', 'readonly', 'disabled', 'required', 'autofocus', 'touched', 'inverse' ],
+	attributes: [ 'value', 'readonly', 'disabled', 'required', 'autofocus', 'touched', 'inverse', 'name' ],
 	template: '<input &="id(input) =required:attribute(required) =type:|attribute(type)' +
 		' style(input) =value::value =readonly:style(readonly):attribute(readonly)' +
+		' =name:attribute(name)' +
 		' =disabled:attribute(disabled) #isInvalid:style(invalid) =inverse:style(inverse)' +
 		' on(blur):#onBlur:emit(blur) =autofocus:attribute(autofocus) on(focus):#onFocus" />' +
 		'<div &="style(focus) =invalid:style(invalid) =focused:style(expand)"></div>',
@@ -4613,13 +4652,14 @@ cxl.component({
 		this.input.focus();
 	}
 });
-	
+
 cxl.component({
 	name: 'cxl-textarea',
 	extend: 'cxl-input',
 	template: '<div &="id(span) style(input) style(measure)"></div>' +
-		'<textarea &="id(textarea) =type:|attribute(type) =required:attribute(required) style(input) style(textarea) ' +
-		'=value::value value:#calculateHeight =readonly:attribute(readonly) =disabled:attribute(disabled) content" ></textarea>',
+		'<textarea &="id(textarea) =type:|attribute(type) =required:attribute(required)' +
+		' style(input) style(textarea) =value::value value:#calculateHeight' +
+		' =readonly:attribute(readonly) =disabled:attribute(disabled)"></textarea>',
 	styles: {
 		$: { marginBottom: 8, marginTop: css.spacer/2, position: 'relative' },
 		input: {
@@ -4629,7 +4669,7 @@ cxl.component({
 			fontFamily: 'inherit'
 		},
 		textarea: {
-			position: 'absolute', top: 0, left: 0, right: 0, bottom: 0
+			position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, height: '100%'
 		},
 		input$focus: { outline: 0, borderColor: css.primary },
 		//input$hover: { borderBottom: 2, borderStyle: 'solid' },
@@ -4641,6 +4681,15 @@ cxl.component({
 		// TODO move to textarea when inheritance works
 		measure: { opacity: 0, whiteSpace: 'pre-wrap' }
 	},
+
+	initialize: function(state)
+	{
+		var initial = this.$native.innerHTML;
+
+		if (initial)
+			state.value = initial;
+	},
+
 	ready: function(state)
 	{
 		setTimeout(state.calculateHeight.bind(state));
@@ -4649,13 +4698,14 @@ cxl.component({
 }, {
 	// Element Used to Calculate Height
 	span: null,
-	
+
 	calculateHeight: function()
 	{
 		this.span.setContent(this.textarea.get('value') + '&nbsp;');
+		this.$component.trigger('change');
 	}
 });
-	
+
 cxl.component({
 	name: 'cxl-search-input',
 	template: '<cxl-icon icon="search" &="style(icon)"></cxl-icon>' +
@@ -4705,7 +4755,7 @@ cxl.component({
 cxl.component({
 	name: 'cxl-row',
 	styles: {
-		$: { marginLeft: -8, marginRight: -8 },
+		$: { marginLeft: -8, marginRight: -8, flexDirection: 'row' },
 		$small: { display: 'flex' }
 	}
 });
@@ -4749,7 +4799,7 @@ cxl.component({
 				link = link && link[0];
 			}
 
-			html = cxl.html('<span &="=title:if">' +
+			html = cxl.html('<span &="=title:show">' +
 				(link ?
 				 	'<a &="=title:text" href="#' + link + '"></a>' :
 				 	'<x &="=title:text"></x>') +
@@ -4765,7 +4815,7 @@ cxl.component({
 	name: 'cxl-header-menu',
 	bindings: [ 'click:#toggle' ],
 	template: '<cxl-icon icon="ellipsis-v"></cxl-icon>' +
-		'<div &="style(backdrop) click:stop:#toggle =opened:if">' +
+		'<div &="style(backdrop) click:stop:#toggle =opened:show">' +
 		'<cxl-menu dense &="style(menu) content"></cxl-menu></div>',
 	styles: {
 		$: { position: 'fixed', right: 16, top: 16, color: css.textInverse, cursor: 'pointer' },
@@ -4820,7 +4870,7 @@ cxl.component({
 	name: 'cxl-modal-alert',
 	template: '<cxl-modal>' +
 		'<cxl-card-block>' +
-		'<cxl-card-title &="=title:if:text"></cxl-card-title>' +
+		'<cxl-card-title &="=title:show:text"></cxl-card-title>' +
 		'<p &="=message:text"></p></cxl-card-block><cxl-card-block>' +
 		'<cxl-button flat &="=action:text click:#remove:#resolve"></cxl-button></cxl-card-block></cxl-modal>',
 	initialize: function(state) {
@@ -4841,7 +4891,7 @@ cxl.component({
 	name: 'cxl-confirm',
 	template: '<cxl-modal>' +
 		'<cxl-card-block>' +
-		'<cxl-card-title &="=title:if:text"></cxl-card-title>' +
+		'<cxl-card-title &="=title:show:text"></cxl-card-title>' +
 		'<p &="=message:text"></p></cxl-card-block>' +
 		'<cxl-card-block &="style(footer)"><cxl-button flat &="click:#remove:#reject">Cancel</cxl-button> ' +
 		'<cxl-button flat &="=action:text click:#remove:#resolve"></cxl-button></cxl-card-block></cxl-modal>',
@@ -4869,7 +4919,7 @@ cxl.component({
 
 cxl.component({
 	name: 'cxl-multiselect',
-	template: '<cxl-menu &="id(menu) =opened:if content(cxl-option, cxl-optgroup)"></cxl-menu>' +
+	template: '<cxl-menu &="id(menu) =opened:show content(cxl-option, cxl-optgroup)"></cxl-menu>' +
 		'<span &="=label:text"></span>',
 	attributes: [ 'label', 'tabindex', 'disabled', 'selected', 'value' ],
 	bindings: [ 'on(click):#open on(itemSelected):#onItemSelected',
@@ -4986,8 +5036,8 @@ cxl.component({
  */
 cxl.component({
 	name: 'cxl-olddropdown',
-	template: '<cxl-menu-backdrop &="click:#toggle =opened:if"></cxl-menu-backdrop>' +
-		'<cxl-menu &="=opened:if content"></cxl-menu>' +
+	template: '<cxl-menu-backdrop &="click:#toggle =opened:show"></cxl-menu-backdrop>' +
+		'<cxl-menu &="=opened:show content"></cxl-menu>' +
 		'<span &="=label:text"></span>',
 	attributes: [ 'label', 'tabindex', 'disabled', 'align', 'placeholder' ],
 	bindings: [
@@ -5107,7 +5157,7 @@ cxl.component({
 	{
 		if (this.readonly)
 			return;
-		
+
 		var component = this.$component;
 
 		switch (ev.key) {
@@ -5182,7 +5232,7 @@ cxl.component({
 	{
 		if (this.readonly)
 			return;
-		
+
 		this.calculateDimensions();
 		this.opened = true;
 	},
@@ -5228,11 +5278,12 @@ cxl.directive('cxl.profileLink', function(el) {
 
 Object.assign(cxl.ui, {
 
+	theme: cxl.theme,
+
 	alert: function(options)
 	{
 		if (typeof(options)==='string')
 			options = { message: options };
-
 	var
 		modal = cxl.dom('cxl-modal-alert', options)
 	;
