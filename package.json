@@ -9,7 +9,7 @@
 
 	"dependencies": {
 		"compression": "*",
-		"mime": "*",
+		"mime": "2",
 		"colors": "*",
 		"websocket": "*",
 		"micromatch": "*",
@@ -29,7 +29,7 @@
 		"grunt-contrib-copy": "*",
 		"grunt-karma": "*",
 		"karma":"*",
-		"qunitjs": "*",
+		"qunit": "*",
 		"karma-qunit": "*",
 		"karma-coverage": "*",
 		"karma-chrome-launcher": "*"

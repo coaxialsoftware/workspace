@@ -126,7 +126,7 @@ function respondStat(dir, file)
 		return {
 			filename: file,
 			// TODO
-			mime: stat.isDirectory() ? 'text/directory' : mime.lookup(file)
+			mime: stat.isDirectory() ? 'text/directory' : mime.getType(file)
 		};
 	}, function(err) {
 		return {
@@ -141,7 +141,7 @@ class File {
 	static mime(file, stat)
 	{
 		// TODO add typescript support
-		return stat && stat.isDirectory ? 'text/directory' : mime.lookup(file);
+		return stat && stat.isDirectory ? 'text/directory' : mime.getType(file);
 	}
 
 	/**
@@ -554,7 +554,7 @@ class FileManager {
 
 		// TODO see if we can make it in one pass.
 		data.forEach(function(f) {
-			f.mime = f.directory ? 'text/directory' : mime.lookup(f.filename);
+			f.mime = f.directory ? 'text/directory' : mime.getType(f.filename);
 		});
 
 		this.files = data;

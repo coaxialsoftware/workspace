@@ -57,6 +57,8 @@ cxl.ajax.xhr = function(p)
 		return Promise.resolve(xhr);
 	}
 
+	console.log(arguments);
+
 	return ajax.apply(cxl.ajax, arguments);
 };
 

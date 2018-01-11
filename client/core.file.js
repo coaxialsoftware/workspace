@@ -12,7 +12,7 @@ class File {
 
 	static joinPath()
 	{
-		return Array.prototype.join.call(arguments, ide.project.get('path.separator'));
+		return Array.prototype.join.call(arguments, ide.project.get('path.separator') || '/');
 	}
 
 	// TODO

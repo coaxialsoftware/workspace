@@ -214,8 +214,8 @@ module.exports = function(grunt) {
 					{ src: 'test/client/core.item.js' },
 					{ src: 'test/client/core.editor.js' },
 					{ src: 'test/client/core.cmd.js' },
+					{ src: 'test/client/core.file.js'},
 					{ src: 'test/client/core.folder.js' },
-					{ src: 'test/client/core.file.js' },
 					{ src: 'test/client/core.diff.js' }
 				],
 				proxies: {
