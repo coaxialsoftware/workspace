@@ -117,7 +117,10 @@ class ListEditorCursor extends ide.feature.CursorFeature {
 			target = target.parentNode;
 
 		if (target.$item)
+		{
 			target.focus();
+			this.enter(ev.shiftKey, ev.ctrlKey);
+		}
 	}
 
 	get current()

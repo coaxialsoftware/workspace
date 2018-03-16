@@ -167,14 +167,6 @@ class Item extends Hint {
 		if (obj.key || obj.action) this.$renderKey(obj);
 		if (obj.code) this.$renderCode(obj);
 		if (obj.tags) this.$renderTags(obj);
-
-		if (obj.enter)
-			this.el.addEventListener('click', obj.$onClick.bind(this));
-	}
-
-	$onClick(ev)
-	{
-		this.enter(ev.shiftKey, ev.altKey);
 	}
 
 	$appendChildren()

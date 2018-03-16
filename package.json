@@ -2,41 +2,42 @@
 	"name": "@cxl/workspace",
 	"description": "Javascript Web Editor",
 	"author": "Giancarlo Bellido <giancarlo@coaxialhost.com>",
-	"version": "2.9.0",
+	"version": "3.0.0",
 	"bin": {
 		"workspace": "./bin/workspace.js"
 	},
-
 	"dependencies": {
-		"compression": "*",
-		"mime": "2",
-		"colors": "*",
-		"websocket": "*",
-		"micromatch": "*",
 		"@cxl/cxl": "2",
+		"colors": "*",
+		"compression": "*",
+		"micromatch": "^3.1.5",
+		"mime": "^2.2.0",
 		"npm": "*",
-		"uglify-es": "*"
+		"uglify-es": "^3.3.10",
+		"websocket": "*",
+		"node-pty": "*"
 	},
-
 	"devDependencies": {
+		"codemirror": "github:j5g3/CodeMirror",
 		"font-awesome": "*",
-		"codemirror": "j5g3/CodeMirror",
-		"xterm": "*",
-		"highlight.js": "*",
-		"grunt": "*",
-		"grunt-contrib-jshint": "*",
+		"grunt": "^1.0.2",
 		"grunt-contrib-concat": "*",
 		"grunt-contrib-copy": "*",
+		"grunt-contrib-jshint": "*",
 		"grunt-karma": "*",
-		"karma":"*",
-		"qunit": "*",
-		"karma-qunit": "*",
+		"highlight.js": "*",
+		"karma": "*",
+		"karma-chrome-launcher": "*",
 		"karma-coverage": "*",
-		"karma-chrome-launcher": "*"
+		"karma-qunit": "*",
+		"qunit": "*",
+		"xterm": "^2.9.2"
 	},
-
-	"files": [ "public", "server", "bin" ],
-
+	"files": [
+		"public",
+		"server",
+		"bin"
+	],
 	"scripts": {
 		"prepublish": "grunt publish && uglifyjs --compress -o public/build/ide.min.js -- public/build/ide.js",
 		"start": "node bin/workspace.js"

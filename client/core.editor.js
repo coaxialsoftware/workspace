@@ -804,6 +804,7 @@ class Terminal extends Editor {
 		term.open(this.$content, { focus: false });
 		term.attachCustomKeyEventHandler(this.$onKey.bind(this));
 
+		this.$onResize = cxl.debounce(this.$onResize, 100);
 		this.keymap.setState('terminal');
 		this.listenTo(this.el, 'focus', this.$onFocus.bind(this));
 		this.listenTo(this.$term, 'title', this.$onTitle.bind(this));
@@ -843,4 +844,4 @@ ide.feature = {
 };
 
 
-})(this.ide, this.cxl, this.Terminal);
+})(this.ide, this.cxl, this.Terminal, this.fit);

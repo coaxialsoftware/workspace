@@ -88,9 +88,10 @@ class Project {
 	{
 		this.configuration = new ProjectConfiguration({
 			path: this.path,
-			onUpdate: (function() {
-				this.broadcast({ reload: true });
-			}).bind(this)
+			onUpdate: cxl.debounce(() => {
+				if (this.loaded)
+					this.broadcast({ reload: true });
+			}, 100)
 		});
 		// Object used by plugins to store data.
 		this.data = {};

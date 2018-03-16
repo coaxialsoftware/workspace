@@ -1249,14 +1249,6 @@ Object.assign(cxl, {
 		return -1;
 	},
 
-	/*type: function(A)
-	{
-		var to = typeof(A);
-
-		if (to==='string') return String;
-		if ()
-	},*/
-
 	/**
 	 * Pushes unique values of B into A
 	 */
@@ -4208,7 +4200,7 @@ cxl.component({
 	bindings: [ '=inverse:style(inverse)'],
 	styles: {
 		$: { padding: 16 },
-		inverse: { color: css.textInverse }
+		inverse: { backgroundColor: css.primaryDark, color: css.textInverse }
 	}
 });
 

@@ -13,7 +13,10 @@ var
 	cwd = process.cwd()
 ;
 
-mime.default_type = 'text/plain';
+function getMime(path)
+{
+	return mime.getType(path) || 'text/plain';
+}
 
 class AuthenticationAgent {
 
@@ -126,7 +129,7 @@ function respondStat(dir, file)
 		return {
 			filename: file,
 			// TODO
-			mime: stat.isDirectory() ? 'text/directory' : mime.getType(file)
+			mime: stat.isDirectory() ? 'text/directory' : getMime(file)
 		};
 	}, function(err) {
 		return {
@@ -141,7 +144,7 @@ class File {
 	static mime(file, stat)
 	{
 		// TODO add typescript support
-		return stat && stat.isDirectory ? 'text/directory' : mime.getType(file);
+		return stat && stat.isDirectory ? 'text/directory' : getMime(file);
 	}
 
 	/**
@@ -554,7 +557,7 @@ class FileManager {
 
 		// TODO see if we can make it in one pass.
 		data.forEach(function(f) {
-			f.mime = f.directory ? 'text/directory' : mime.getType(f.filename);
+			f.mime = f.directory ? 'text/directory' : getMime(f.filename);
 		});
 
 		this.files = data;
