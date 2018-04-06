@@ -2,20 +2,20 @@
 	"name": "@cxl/workspace",
 	"description": "Javascript Web Editor",
 	"author": "Giancarlo Bellido <giancarlo@coaxialhost.com>",
-	"version": "3.0.0",
+	"version": "3.2.0",
 	"bin": {
 		"workspace": "./bin/workspace.js"
 	},
 	"dependencies": {
-		"@cxl/cxl": "2",
 		"colors": "*",
 		"compression": "*",
 		"micromatch": "^3.1.5",
 		"mime": "^2.2.0",
+		"node-pty-prebuilt": "*",
 		"npm": "*",
 		"uglify-es": "^3.3.10",
 		"websocket": "*",
-		"node-pty": "*"
+		"@cxl/cxl": "*"
 	},
 	"devDependencies": {
 		"codemirror": "github:j5g3/CodeMirror",

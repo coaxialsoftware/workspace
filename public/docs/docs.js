@@ -1640,8 +1640,6 @@ cxl.inherits(cxl.rx.ObjectCollection, cxl.rx.Collection, {
  *
  * Lightweight DOM implementation
  *
- * - No classes
- * - No getAttribute
  */
 (function(cxl) {
 
@@ -2929,11 +2927,13 @@ cxl.dom.globalStyles.$classes.push({ rule: '*', style: new Style(null, {
 })(this.cxl);
 
 (function(cxl) {
+"use strict";
 
-cxl.Undefined = {};
-cxl.Skip = {};
-
-var renderer = {
+const
+	Undefined = {},
+	Skip = {},
+	bindRegex = /\s*([:|])?([^\w]|_)?([^\(:\s>"'=\|]+)(?:\(([^\)]+)\))?(:|\|)?/g,
+	renderer = {
 
 	pipeline: [],
 	raf: null,
@@ -3036,8 +3036,6 @@ Compiler.prototype = {
 		'#': 'call'
 	},
 
-	bindRegex: /\s*([:|])?([^\w]|_)?([^\(:\s>"'=\|]+)(?:\(([^\)]+)\))?(:|\|)?/g,
-
 	getRef: function(shortcut, name, param, el, component)
 	{
 	var
@@ -3109,12 +3107,12 @@ Compiler.prototype = {
 	var
 		parsed, index, previous
 	;
-		this.bindRegex.lastIndex = 0;
-		while ((parsed = this.bindRegex.exec(prop)))
+		bindRegex.lastIndex = 0;
+		while ((parsed = bindRegex.exec(prop)))
 		{
-			index = this.bindRegex.lastIndex;
+			index = bindRegex.lastIndex;
 			previous = this.bindElement(el, parsed, previous, component);
-			this.bindRegex.lastIndex = index;
+			bindRegex.lastIndex = index;
 		}
 	}
 
@@ -3143,7 +3141,7 @@ cxl.inherits(cxl.DirectiveObservable, cxl.rx.Observable, {
 
 	digest: null,
 	bindings: null,
-	value: cxl.Undefined,
+	value: Undefined,
 	subscriber: null,
 	dirty: false,
 
@@ -3224,7 +3222,7 @@ cxl.inherits(cxl.DirectiveObservable, cxl.rx.Observable, {
 		if (this.update)
 			newVal = this.update(val);
 
-		if (newVal===cxl.Skip)
+		if (newVal===Skip)
 			return;
 
 		if (newVal instanceof cxl.Promise)
@@ -4039,6 +4037,11 @@ cxl.directive('location', {
 	{
 		this.bindings = [ cxl.location.subscribe(this.next.bind(this)) ];
 	}
+});
+
+Object.assign(cxl, {
+	Undefined: Undefined,
+	Skip: Skip
 });
 
 })(this.cxl);

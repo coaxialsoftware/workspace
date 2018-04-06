@@ -8,7 +8,7 @@ var
 	micromatch = require('micromatch'),
 	mime = require('mime'),
 	npm = require('npm'),
-	pty = require('node-pty'),
+	pty = require('node-pty-prebuilt'),
 
 	cwd = process.cwd()
 ;

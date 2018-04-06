@@ -9,7 +9,7 @@ var
 	compression = require('compression'),
 	path = require('path'),
 
-	cxl = require('@cxl/cxl'),
+	cxl = global.cxl = require('@cxl/cxl'),
 
 	pkg = require(__dirname + '/../package.json'),
 	ide = global.ide = require('./common'),
