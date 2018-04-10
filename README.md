@@ -17,7 +17,7 @@ The editor main features are:
 Dependencies
 ------------
 
-- node >3.0 and npm.
+- node >9.0 and npm.
 - A modern web browser.
 
 Installation
