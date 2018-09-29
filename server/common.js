@@ -8,10 +8,11 @@ var
 	micromatch = require('micromatch'),
 	mime = require('mime'),
 	npm = require('npm'),
-	pty = require('node-pty-prebuilt'),
 
 	cwd = process.cwd()
 ;
+
+mime.define({ 'application/typescript': [ 'ts' ]}, true);
 
 function getMime(path)
 {
@@ -254,7 +255,7 @@ class File {
 
 		ide.plugins.emit('file.beforewrite', this);
 
-		return cxl.file.write(this.path, this.content)
+		return cxl.file.write(this.path, this.content, { encoding: null })
 			.then(() => {
 				ide.plugins.emit('file.write', this);
 				return this.read();
@@ -1107,42 +1108,6 @@ Process.defaults = {
 	stdio: [ 'ignore' ]
 };
 
-class TerminalStream extends ProcessStream {
-
-	$initializeBindings(proc)
-	{
-		this.$process = proc;
-		proc.on('data', this.$onData.bind(this));
-		proc.on('exit', this.$onProcessClose.bind(this));
-		proc.on('error', this.$onProcessError.bind(this));
-	}
-
-	write(data)
-	{
-		this.$process.write(data);
-	}
-
-}
-
-class TerminalProcess extends Process {
-
-	$spawn(cmd, params, options)
-	{
-		return pty.spawn(cmd, params, options);
-	}
-
-	$createStream(process)
-	{
-		return new TerminalStream(process);
-	}
-
-	resize(cols, rows)
-	{
-		this.$process.resize(cols, rows);
-	}
-
-}
-
 class ThemeManager
 {
 	constructor()
@@ -1233,7 +1198,6 @@ module.exports = {
 	LanguageServerStdIO: LanguageServerStdIO,
 	Process: Process,
 	ProcessStream: ProcessStream,
-	TerminalProcess: TerminalProcess,
 	ServerResponse: ServerResponse,
 	Stream: Stream,
 	Theme: Theme,
@@ -1391,7 +1355,9 @@ module.exports = {
 			options = Object.assign({
 				timeout: 5000,
 				maxBuffer: 1024 * 500,
-				plugin: ide.module
+				plugin: ide.module,
+				uid: process.getuid(),
+				gid: process.getgid()
 			}, options);
 
 			options.plugin.dbg(`${options.cwd ? '[cwd:'+options.cwd+'] ' : '' }exec "${command}"`);

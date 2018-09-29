@@ -105,7 +105,7 @@ class EditorHeader extends Feature {
 		if (kls !== undefined && kls !== el.kls)
 		{
 			el.kls = kls;
-			el.el.className = 'label ' + (kls || '');
+			el.el.className = (kls || '');
 		}
 	}
 

@@ -42,7 +42,7 @@ Plugins
 
 Install plugins using npm.
 
-	npm -g install @cxl/workspace.plugin
+	npm install @cxl/workspace.plugin
 	
 or download it to a folder and:
 

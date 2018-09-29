@@ -271,9 +271,6 @@ class Project {
 	hasPlugin(name)
 	{
 		return name in ide.plugins.plugins;
-		/*var p = this.configuration.plugins;
-
-		return p && p.indexOf(name)!==-1;*/
 	}
 
 	buildIgnore()

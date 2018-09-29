@@ -11,26 +11,15 @@
 		"compression": "*",
 		"micromatch": "^3.1.5",
 		"mime": "^2.2.0",
-		"node-pty-prebuilt": "*",
 		"npm": "*",
 		"uglify-es": "^3.3.10",
 		"websocket": "*",
 		"@cxl/cxl": "*"
 	},
 	"devDependencies": {
+		"@cxl/build": "*",
 		"codemirror": "github:j5g3/CodeMirror",
 		"font-awesome": "*",
-		"grunt": "^1.0.2",
-		"grunt-contrib-concat": "*",
-		"grunt-contrib-copy": "*",
-		"grunt-contrib-jshint": "*",
-		"grunt-karma": "*",
-		"highlight.js": "*",
-		"karma": "*",
-		"karma-chrome-launcher": "*",
-		"karma-coverage": "*",
-		"karma-qunit": "*",
-		"qunit": "*",
 		"xterm": "^2.9.2"
 	},
 	"files": [
@@ -39,7 +28,8 @@
 		"bin"
 	],
 	"scripts": {
-		"prepublish": "grunt publish && uglifyjs --compress -o public/build/ide.min.js -- public/build/ide.js",
+		"build-sources": "node scripts/build.js",
+		"prepublish": "node scripts/build.js minify",
 		"start": "node bin/workspace.js"
 	}
 }

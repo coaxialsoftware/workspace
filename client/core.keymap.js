@@ -238,6 +238,9 @@ function KeyMap(editor)
 {
 	this.editor = editor;
 	this.states = {};
+
+	if (editor && editor.keymap)
+		this.state = editor.keymap;
 }
 
 cxl.extend(KeyMap.prototype, {
@@ -252,8 +255,9 @@ cxl.extend(KeyMap.prototype, {
 
 	start: function()
 	{
-		this.state = (ide.project && ide.project.get('keymap')) ||
-			this.defaultState || 'default';
+		if (!this.state)
+			this.state = (ide.project && ide.project.get('keymap')) ||
+				this.defaultState || 'default';
 	},
 
 	createHandler: function(map, key)

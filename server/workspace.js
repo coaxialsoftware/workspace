@@ -134,6 +134,26 @@ workspace.createServer()
 	require('./plugins');
 
 	ide.configuration = new WorkspaceConfiguration();
+	this.port = ide.configuration.port;
+	process.title = 'workspace:' + this.port;
+
+	// Enable Test path
+	if (ide.configuration.debug)
+		this.use(cxl.static(ide.basePath + '/test', { maxAge: 86400000 }));
+
+	this.secure = ide.configuration.secure;
+})
+.run(function() {
+
+	const config = ide.configuration;
+
+	if (config.gid)
+		process.setgid(config.gid);
+	if (config.uid)
+		process.setuid(config.uid);
+
+	this.dbg(`Process running as ${process.getuid()}:${process.getgid()}`);
+
 	ide.fileWatcher = new ide.FileWatcher({
 		onEvent: function(ev) {
 			var file = ev.filename;
@@ -145,21 +165,10 @@ workspace.createServer()
 		}
 	});
 
-	this.port = ide.configuration.port;
-
 	cxl.file.stat('workspace.json')
 		.then(ide.fileWatcher.watchFile.bind(ide.fileWatcher, 'workspace.json'),
 			this.log.bind(this, 'No workspace.json found.'));
 
-	process.title = 'workspace:' + this.port;
-
-	// Enable Test path
-	if (ide.configuration.debug)
-		this.use(cxl.static(ide.basePath + '/test', { maxAge: 86400000 }));
-
-	this.secure = ide.configuration.secure;
-})
-.run(function() {
 	this.dbg(`Serving Files from "${ide.basePath}/public" and "${ide.basePath}/test"`);
 
 	require('./plugins').start();

@@ -4,7 +4,7 @@
 		"rules": {
 			"client": {
 				"files": "client/*.js",
-				"tasks": "grunt jshint:client concat:client concat:debug"
+				"tasks": "npm run build-sources"
 			},
 			"server": {
 				"files": "server/*.js",

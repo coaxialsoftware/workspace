@@ -461,7 +461,8 @@ class FileFeature extends ide.Feature {
 			this.$file.name = filename;
 
 		if (!force && this.$sync.outOfSync)
-			return this.$writeError(File.ERROR_WRITE_OOS);
+			// TODO accessing private function...
+			return this.$file.$writeError(File.ERROR_WRITE_OOS);
 
 		return this.$file.write(this.content).then(file => {
 			this.parse();
