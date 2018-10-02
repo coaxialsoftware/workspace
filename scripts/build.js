@@ -47,16 +47,18 @@ const
 		'node_modules/xterm/dist/xterm.js',
 		'node_modules/xterm/dist/addons/fit/fit.js',
 
-		'node_modules/@cxl/ui/dist/index.js',
+		'node_modules/@cxl/ui/dist/cxl-ui.js',
+		'node_modules/@cxl/ui/dist/cxl-ui-ajax.js',
+		'node_modules/@cxl/ui/dist/cxl-ui-legacy.js'
 	]
 ;
 
 builder.build({
 
-	outputDir: 'public/build-test',
+	outputDir: 'public/build',
 	targets: [
 		{
-			outputs: 'libs.js',
+			output: 'libs.js',
 			src: [ ...LIBS ]
 		},
 		{

@@ -681,8 +681,11 @@ class Editor {
 
 	destroy()
 	{
-		cxl.invokeMap(this.bindings, 'unsubscribe');
-		cxl.invokeMap(this.features, 'destroy');
+		this.bindings.forEach(b => b.unsubscribe());
+		
+		for (const f of this.features)
+			f.destroy();
+	
 		this.bindings = null;
 		this.features = null;
 	}

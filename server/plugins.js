@@ -2,7 +2,7 @@
 var
 	EventEmitter = require('events').EventEmitter,
 	fs = require('fs'),
-	path = require('path'),
+	path = require('path').posix,
 	UglifyJS = require('uglify-es'),
 
 	plugin = module.exports = cxl('workspace.plugins')
@@ -10,11 +10,11 @@ var
 
 class Plugin {
 
-	constructor(path, local)
+	constructor(pluginPath, local)
 	{
-		this.path = path;
+		this.path = pluginPath;
 		this.local = local;
-		this.resolvedPath = require.resolve(path);
+		this.resolvedPath = require.resolve(path.join(ide.cwd, this.path));
 		this.load();
 	}
 
@@ -22,7 +22,7 @@ class Plugin {
 	{
 	var
 		path = this.path,
-		mod = this.mod = require(path)
+		mod = this.mod = require(this.resolvedPath)
 	;
 		// TODO ...umm
 		this.id = mod.name.replace(/^workspace\./, '')
@@ -265,7 +265,7 @@ class PluginManager extends EventEmitter {
 	var
 		regex = /^workspace\./,
 		dir = ide.configuration['plugins.path'] ||
-			path.join(process.cwd(), 'node_modules', '@cxl'),
+			path.join('node_modules', '@cxl'),
 		data
 	;
 		if (fs.existsSync(dir))
@@ -288,7 +288,7 @@ class PluginManager extends EventEmitter {
 
 		if (plugins)
 			cxl.each(plugins, function(name) {
-				this.requireFile(path.resolve(name), true);
+				this.requireFile(name, true);
 			}, this);
 	}
 

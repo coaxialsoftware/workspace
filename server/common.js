@@ -2,7 +2,7 @@
 var
 	fs = require('fs'),
 	cp = require('child_process'),
-	path = require('path'),
+	path = require('path').posix,
 	Q = Promise,
 
 	micromatch = require('micromatch'),
@@ -477,7 +477,7 @@ Object.assign(FileWatcher.prototype, {
 	observeFile: function(f, subscriber)
 	{
 	var
-		id = this.watchFile(path.resolve(f)),
+		id = this.watchFile(f),
 		subscription = new cxl.rx.Subscriber(subscriber, null, null, () => {
 			this.unwatch(id);
 		})

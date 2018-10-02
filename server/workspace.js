@@ -7,7 +7,6 @@
 
 var
 	compression = require('compression'),
-	path = require('path'),
 
 	cxl = global.cxl = require('@cxl/cxl'),
 
@@ -54,11 +53,6 @@ class WorkspaceConfiguration extends ide.Configuration {
 			 * Default help URL. Defaults to /docs/index.html
 			 */
 			'help.url': 'docs/index.html',
-
-			/**
-			 * Operating System Path separator
-			 */
-			'path.separator': path.sep,
 
 			/**
 			 * URL to get plugin information
@@ -152,7 +146,8 @@ workspace.createServer()
 	if (config.uid)
 		process.setuid(config.uid);
 
-	this.dbg(`Process running as ${process.getuid()}:${process.getgid()}`);
+	if (process.getuid)
+		this.dbg(`Process running as ${process.getuid()}:${process.getgid()}`);
 
 	ide.fileWatcher = new ide.FileWatcher({
 		onEvent: function(ev) {
