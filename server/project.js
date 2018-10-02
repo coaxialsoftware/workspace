@@ -7,7 +7,7 @@
 
 var
 	colors = require('colors/safe'),
-	path = require('path'),
+	path = require('path').posix,
 
 	plugin = module.exports = cxl('workspace.project')
 ;

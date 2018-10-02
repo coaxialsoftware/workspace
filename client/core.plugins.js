@@ -94,8 +94,7 @@ function PluginManager()
 	this.on('socket.message.plugins', this.onSocket, this);
 }
 
-cxl.extend(PluginManager.prototype, cxl.rx.EventEmitter);
-cxl.extend(PluginManager.prototype, {
+cxl.extend(PluginManager.prototype, cxl.rx.EventEmitter, {
 
 	started: false,
 

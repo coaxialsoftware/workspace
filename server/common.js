@@ -1211,7 +1211,8 @@ module.exports = {
 	FileManager: FileManager,
 	FileWalker: FileWalker,
 
-	basePath: path.resolve(__dirname + '/../'),
+	// use require for win32
+	basePath: require('path').resolve(__dirname + '/../'),
 	cwd: cwd,
 	themes: new ThemeManager(),
 

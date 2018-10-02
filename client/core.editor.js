@@ -17,6 +17,10 @@ class Feature {
 		editor.$assistData[name] = true;
 		editor[name] = this;
 	}
+	
+	destroy()
+	{
+	}
 
 }
 
@@ -683,8 +687,8 @@ class Editor {
 	{
 		this.bindings.forEach(b => b.unsubscribe());
 		
-		for (const f of this.features)
-			f.destroy();
+		for (const f in this.features)
+			this.features[f].destroy();
 	
 		this.bindings = null;
 		this.features = null;
