@@ -1,48 +1,19 @@
-
-(function(ide, cxl) {
+((ide, cxl) => {
 "use strict";
 
-ide.Bar = cxl.View.extend({
+class Bar {
 
-	/**
-	 * When a key is pressed and its found here the
-	 * function will be called. Use keys function to
-	 * assign more bindings.
-	 *
-	 * @private
-	 */
-	_keys: null,
-
-	/**
-	 * Previous Value
-	 */
-	_value: '',
-
-	/** @abstract */
-	cancel: function() { },
-
-	run: function() { },
-
-	findWord: function(cb)
+	constructor(el)
 	{
-	var
-		el = this.$input,
-		text,
-		i = el.selectionStart
-	;
-		do {
-			i = el.value.lastIndexOf(' ', i-1);
-		} while (el.value[i-1]==='\\');
+		this.el = el;
 
-		i++;
-
-		text = el.value.substr(i, el.selectionStart-i);
-
-		cb.call(this, text, i, el.selectionStart);
-	},
-
-	initialize: function Bar()
-	{
+		/**
+		 * When a key is pressed and its found here the
+		 * function will be called. Use keys function to
+		 * assign more bindings.
+		 *
+		 * @private
+		 */
 		this._keys = {
 			// TODO Use Key constants
 			27: function() { this.cancel(); this.hide(); },
@@ -63,6 +34,10 @@ ide.Bar = cxl.View.extend({
 			}
 		};
 
+		/**
+		 * Previous Value
+		 */
+		this._value = '';
 		this.$input = this.el.children[0];
 
 		this.listenTo(this.$input, 'keyup', this.on_keyup);
@@ -71,9 +46,38 @@ ide.Bar = cxl.View.extend({
 		this.listenTo(this.$input, 'blur', this.on_blur);
 		// TODO?
 		this.insert.enabled = true;
-	},
+	}
 
-	on_blur: function(ev)
+	listenTo(el, type, fn)
+	{
+		cxl.listenTo(el, type, fn.bind(this));
+	}
+
+	/** @abstract */
+	cancel() { }
+
+	run() { }
+
+	findWord(cb)
+	{
+	var
+		el = this.$input,
+		text,
+		i = el.selectionStart
+	;
+		do {
+			i = el.value.lastIndexOf(' ', i-1);
+		} while (el.value[i-1]==='\\');
+
+		i++;
+
+		text = el.value.substr(i, el.selectionStart-i);
+
+		cb.call(this, text, i, el.selectionStart);
+	}
+
+
+	on_blur(ev)
 	{
 		var rel = ev.relatedTarget, assist = ide.assist.inline.el;
 		// Prevent assist window from hiding
@@ -84,9 +88,9 @@ ide.Bar = cxl.View.extend({
 		}
 		else
 			this.hide();
-	},
+	}
 
-	on_keyup: function(ev)
+	on_keyup(ev)
 	{
 		if (this.$input.value!==this._value)
 		{
@@ -99,14 +103,14 @@ ide.Bar = cxl.View.extend({
 
 		if (ev)
 			ev.stopPropagation();
-	},
+	}
 
-	on_keypress: function(ev)
+	on_keypress(ev)
 	{
 		ev.stopPropagation();
-	},
+	}
 
-	on_key: function(ev)
+	on_key(ev)
 	{
 	var
 		fn = this._keys[ev.keyCode],
@@ -131,14 +135,14 @@ ide.Bar = cxl.View.extend({
 			fn.call(this, ev);
 
 		ev.stopPropagation();
-	},
+	}
 
-	keys: function(k)
+	keys(k)
 	{
 		cxl.extend(this._keys, k);
-	},
+	}
 
-	show: function(val)
+	show(val)
 	{
 		val = val || '';
 		this.$input.value = val;
@@ -149,14 +153,14 @@ ide.Bar = cxl.View.extend({
 
 		this.hidden = false;
 		this.focus();
-	},
+	}
 
-	focus: function()
+	focus()
 	{
 		this.$input.focus();
-	},
+	}
 
-	insert: function(text)
+	insert(text)
 	{
 	var
 		val = this.$input.value,
@@ -164,9 +168,9 @@ ide.Bar = cxl.View.extend({
 	;
 		this.$input.value = val.slice(0, start) + text + val.slice(start);
 		this.on_keyup();
-	},
+	}
 
-	replaceRange: function(text, start, end, ignore)
+	replaceRange(text, start, end, ignore)
 	{
 	var
 		val = this.$input.value
@@ -176,9 +180,9 @@ ide.Bar = cxl.View.extend({
 
 		this.$input.value = val.slice(0, start) + text + val.slice(end);
 		this.on_keyup();
-	},
+	}
 
-	hide: function()
+	hide()
 	{
 		this.el.style.display = 'none';
 		this.hidden = true;
@@ -193,7 +197,7 @@ ide.Bar = cxl.View.extend({
 		return false;
 	}
 
-});
+}
 
 class CommandToken extends ide.Token {
 
@@ -259,17 +263,24 @@ class CommandToken extends ide.Token {
 
 }
 
-ide.Bar.Command = ide.Bar.extend({
+ide.Bar = Bar;
 
-	el: 'command',
+ide.Bar.Command = class extends Bar {
 
-	history: [],
-	history_max: 50,
-	history_index: 0,
-	cloneEl: null,
-	selectedHint: null,
+	constructor()
+	{
+		super(document.getElementById('command'));
 
-	history_up: function(ev)
+		this.history = [];
+		this.history_max = 50;
+		this.history_index = 0;
+		this.cloneEl = null;
+		this.selectedHint = null;
+		this.render();
+	}
+
+
+	history_up(ev)
 	{
 		var val = this.history[this.history_index++];
 
@@ -277,23 +288,23 @@ ide.Bar.Command = ide.Bar.extend({
 			this.$input.value = val;
 
 		ev.preventDefault();
-	},
+	}
 
-	history_add: function(val)
+	history_add(val)
 	{
 		this.history_index = 0;
 		this.history.unshift(val);
-	},
+	}
 
-	history_down: function(ev)
+	history_down(ev)
 	{
 		if (this.history_index>0)
 			this.history_index -= 2;
 
 		this.history_up(ev);
-	},
+	}
 
-	render: function()
+	render()
 	{
 		this._keys[38] = this.history_up.bind(this);
 		this._keys[40] = this.history_down.bind(this);
@@ -302,7 +313,7 @@ ide.Bar.Command = ide.Bar.extend({
 		this.cloneEl = window.document.createElement('SPAN');
 		this.cloneEl.className = 'command-bar-width';
 		document.body.appendChild(this.cloneEl);
-	},
+	}
 
 	waitForPromise(cmd, promise)
 	{
@@ -316,12 +327,12 @@ ide.Bar.Command = ide.Bar.extend({
 		}, this.onError).then(function() {
 			notification.remove();
 		});
-	},
+	}
 
 	onError(err)
 	{
 		ide.error(err);
-	},
+	}
 
 	onResult(cmd, result)
 	{
@@ -331,9 +342,9 @@ ide.Bar.Command = ide.Bar.extend({
 			ide.notify(result);
 		else if (result instanceof Promise)
 			this.waitForPromise(cmd, result);
-	},
+	}
 
-	run: function()
+	run()
 	{
 	var
 		val = this.$input.value,
@@ -353,23 +364,23 @@ ide.Bar.Command = ide.Bar.extend({
 		result = cmd ? ide.runParsedCommand(cmd) : ide.Pass;
 
 		this.onResult(val, result);
-	},
+	}
 
-	getToken: function(s, start, end)
+	getToken(s, start, end)
 	{
 	var
 		result = this.token = new CommandToken(start, end, s)
 	;
 		this.token.current = this.token;
 		return result;
-	},
+	}
 
-	getAssistData: function()
+	getAssistData()
 	{
 		return Promise.resolve(this.$assistData);
-	},
+	}
 
-	on_change: function()
+	on_change()
 	{
 		this.findWord(function(s, start, end) {
 			var t = this.$assistData.token = this.getToken(s, start, end);
@@ -380,9 +391,9 @@ ide.Bar.Command = ide.Bar.extend({
 			this.selectedHint = null;
 			ide.plugins.trigger('token', this, t);
 		});
-	},
+	}
 
-	on_complete: function()
+	on_complete()
 	{
 	var
 		inline = ide.assist.inline,
@@ -402,15 +413,17 @@ ide.Bar.Command = ide.Bar.extend({
 		this.token.cursorColumn = this.token.column + hints[i].value.length;
 	}
 
-});
+};
 
-ide.Bar.Search = ide.Bar.extend({
+ide.Bar.Search = class extends Bar {
 
-	el: 'search',
+	constructor()
+	{
+		super(document.getElementById('search'));
+		this.reverse = false;
+	}
 
-	reverse: false,
-
-	on_change: function(val)
+	on_change(val)
 	{
 	var
 		regex
@@ -421,7 +434,7 @@ ide.Bar.Search = ide.Bar.extend({
 			ide.editor.search.search(regex, this.reverse);
 	}
 
-});
+};
 
 ide.registerCommand('ex', function() {
 	ide.commandBar.show();
@@ -436,4 +449,4 @@ ide.registerCommand('searchbarReverse', function() {
 	ide.searchBar.show();
 });
 
-})(this.ide, this.cxl, this.jQuery);
+})(this.ide, this.cxl);

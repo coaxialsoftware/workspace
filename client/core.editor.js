@@ -17,7 +17,7 @@ class Feature {
 		editor.$assistData[name] = true;
 		editor[name] = this;
 	}
-	
+
 	destroy()
 	{
 	}
@@ -211,7 +211,7 @@ class HintsFeature extends Feature {
 
 	getLine(line, code)
 	{
-		return this.hints.filter(function(h) {
+		return this.hints.filter(h => {
 			return (code===undefined || h.code===code) && h.range.row === line;
 		});
 	}
@@ -647,7 +647,7 @@ class Editor {
 			}
 		}
 
-		return cxl.Promise.all(promises).then(() => data);
+		return Promise.all(promises).then(() => data);
 	}
 
 	/**
@@ -686,10 +686,10 @@ class Editor {
 	destroy()
 	{
 		this.bindings.forEach(b => b.unsubscribe());
-		
+
 		for (const f in this.features)
 			this.features[f].destroy();
-	
+
 		this.bindings = null;
 		this.features = null;
 	}

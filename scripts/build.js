@@ -45,8 +45,9 @@ const
 		'node_modules/codemirror/mode/css/css.js',
 
 		'node_modules/xterm/dist/xterm.js',
-		'node_modules/xterm/dist/addons/fit/fit.js',
-
+		'node_modules/xterm/dist/addons/fit/fit.js'
+	],
+	CXL = [
 		'node_modules/@cxl/ui/dist/cxl-ui.js',
 		'node_modules/@cxl/ui/dist/cxl-ui-ajax.js',
 		'node_modules/@cxl/ui/dist/cxl-ui-legacy.js'
@@ -63,11 +64,17 @@ builder.build({
 		},
 		{
 			output: 'debug.js',
-			src: [ ...SRC, 'client/debug.js' ]
+			src: [
+				'node_modules/@cxl/ui/dist/debug.js',
+				'node_modules/@cxl/ui/dist/cxl-ui-ajax.js',
+				'node_modules/@cxl/ui/dist/cxl-ui-legacy.js',
+				...SRC,
+				'client/debug.js'
+			]
 		},
 		{
 			output: 'ide.js',
-			src: [ ...LIBS, ...SRC],
+			src: [ ...LIBS, ...CXL, ...SRC],
 			minify: 'ide.min.js'
 		}
 	]

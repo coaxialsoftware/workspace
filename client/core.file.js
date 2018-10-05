@@ -114,7 +114,7 @@ class File {
 	$writeError(msg)
 	{
 		ide.error(msg);
-		return cxl.Promise.reject(msg);
+		return Promise.reject(msg);
 	}
 
 	write(content)

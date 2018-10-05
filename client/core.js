@@ -207,8 +207,9 @@ if (document.readyState!=='loading')
 else
 	window.addEventListener('DOMContentLoaded', _start);
 
-window.addEventListener('error', function(msg) {
-	ide.error(msg.message);
-});
+if (!cxl.debug)
+	window.addEventListener('error', function(msg) {
+		ide.error(msg.message);
+	});
 
 })(this.cxl);

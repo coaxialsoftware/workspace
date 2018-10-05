@@ -297,18 +297,12 @@ class ComponentItem {
 
 	render()
 	{
-		if (this.el===undefined)
-		{
-			this.el = this.component.$native;
-			this.el.tabIndex = 0;
-		}
-
-		return this.el;
+		return (this.el = this.component);
 	}
 
 	matches(regex)
 	{
-		var state = this.component.$state, i, prop;
+		var state = this.component.$view.state, i, prop;
 
 		for (i in state)
 		{
@@ -321,8 +315,6 @@ class ComponentItem {
 
 	destroy()
 	{
-		if (this.component)
-			this.component.destroy();
 	}
 
 }

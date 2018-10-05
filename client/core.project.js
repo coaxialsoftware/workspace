@@ -35,7 +35,7 @@ function onProjectError(e)
 	} else if (e.status===401)
 		doLogin();
 
-	return cxl.Promise.reject(e);
+	return Promise.reject(e);
 }
 
 function onLoginAuth(login)
@@ -110,7 +110,7 @@ ide.Project = class Project {
 			// Make sure editor is always null on focus
 			// TODO might need to fix focus event on CodeMirror
 			ide.editor = null;
-			return cxl.Promise.reject();
+			return Promise.reject();
 		}
 
 		return (this.fetching = cxl.ajax.xhr({ url: this.url(), responseType: 'json' })

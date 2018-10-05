@@ -377,7 +377,7 @@ ide.plugins.register('core', {
 				for (i in all)
 				{
 					a = all[i];
-					item = new ide.PluginComponent(a);
+					item = new ide.PluginComponent({ data: a });
 					item.key = i;
 					items.push(item);
 				}

@@ -71,7 +71,7 @@ var
 		}
 	});
 
-	cxl.Promise.all([
+	Promise.all([
 		ide.open({ file: file1 }),
 		ide.open({ file: file2 })
 	]).then(function(r) {
