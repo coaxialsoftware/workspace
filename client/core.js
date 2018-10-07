@@ -3,7 +3,7 @@
  *
  */
 
-(function(cxl) {
+(cxl => {
 "use strict";
 
 var ResourceManager;
@@ -74,19 +74,19 @@ var ide = window.ide = {
 	plugins: null,
 
 	/** Displays alert notification on right corner */
-	warn: function(message)
+	warn(message)
 	{
 		return ide.notify(message, 'warn');
 	},
 
 	/** Displays error notification on right corner */
-	error: function(message)
+	error(message)
 	{
 		window.console.error(message);
 		return ide.notify(message.toString(), 'error');
 	},
 
-	source: function(src)
+	source(src)
 	{
 		/* jshint evil:true */
 		return (new Function(src)).call(window);
@@ -95,7 +95,7 @@ var ide = window.ide = {
 	/**
 	 * Opens file in new tab
 	 */
-	openTab: function(file, target)
+	openTab(file, target)
 	{
 		return Promise.resolve(window.open(
 			'#' + ide.hash.encode({ f: file || false }),
@@ -108,7 +108,7 @@ var ide = window.ide = {
 	confirm: cxl.ui.confirm.bind(cxl.ui),
 
 	/** Displays notification on right corner */
-	notify: function(message, kls)
+	notify(message, kls)
 	{
 	var
 		span = message instanceof ide.Item ? message :

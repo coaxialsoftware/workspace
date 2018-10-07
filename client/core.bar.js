@@ -50,7 +50,7 @@ class Bar {
 
 	listenTo(el, type, fn)
 	{
-		cxl.listenTo(el, type, fn.bind(this));
+		new cxl.EventListener(el, type, fn.bind(this));
 	}
 
 	/** @abstract */

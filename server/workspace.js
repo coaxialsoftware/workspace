@@ -63,8 +63,8 @@ class WorkspaceConfiguration extends ide.Configuration {
 		this.loadFile('~/.workspace.json');
 		this.loadFile('workspace.json');
 
-		if (this['plugins.global']===undefined && !this['plugins.path'])
-			this['plugins.global'] = true;
+		//if (this['plugins.global']===undefined && !this['plugins.path'])
+		//	this['plugins.global'] = true;
 
 		// check for v8 inspector support
 		var inspect = process.execArgv.join('').match(/--inspect(?:=(\d+))?/);

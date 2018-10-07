@@ -370,7 +370,7 @@ class PluginManager extends EventEmitter {
 
 	onScriptsWatch()
 	{
-		cxl.invokeMap(this.scriptWatchers, 'unsubscribe');
+		this.scriptWatchers.forEach(s => s.unsubscribe());
 		this.loadScripts(ide.configuration.scripts);
 		ide.plugins.emit('plugins.source', this.id, this.source);
 	}

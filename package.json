@@ -18,6 +18,7 @@
 	},
 	"devDependencies": {
 		"@cxl/build": "*",
+		"@cxl/ui": "*",
 		"codemirror": "github:j5g3/CodeMirror",
 		"font-awesome": "*",
 		"xterm": "^2.9.2"
@@ -29,7 +30,9 @@
 	],
 	"scripts": {
 		"build-sources": "node scripts/build.js",
-		"prepublish": "node scripts/build.js minify",
+		"build-html": "node scripts/build-html",
+		"build-resources": "node scripts/build-resources",
+		"prepublish": "node scripts/build-html; node scripts/build-resources; node scripts/build.js minify",
 		"start": "node bin/workspace.js"
 	}
 }

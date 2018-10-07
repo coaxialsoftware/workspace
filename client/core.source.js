@@ -1,11 +1,61 @@
-
-(function(ide, cxl, codeMirror) {
+((ide, cxl, codeMirror) => {
 "use strict";
+
+const
+	COMMANDS = codeMirror.commands
+;
 
 codeMirror.defineOption('fatCursor', false, function(cm, val) {
 	cm.display.wrapper.classList.toggle('cm-fat-cursor', val);
 	cm.restartBlink();
 });
+
+class CodeMirrorOptions {
+
+	constructor(mode)
+	{
+		const s = ide.project.get('editor') || {};
+
+		cxl.extend(this,
+			{
+				tabSize: 4,
+				indentWithTabs: true,
+				lineWrapping: true,
+				lineNumbers: true,
+				electricChars: false,
+				styleActiveLine: true,
+				autoCloseTags: true,
+				autoCloseBrackets: true,
+				matchTags: true,
+				matchBrackets: true,
+				foldGutter: true,
+				indentUnit: s.indentWithTabs ? 1 : (s.tabSize || 4),
+				lineSeparator: "\n"
+			}, s,
+			{
+				//value: this.file.content || '',
+				theme: 'workspace',
+				// Disable drag and drop so dragdrop plugin works.
+				dragDrop: false,
+				mode: mode,
+				scrollbarStyle: 'null',
+				gutters: [ "CodeMirror-linenumbers",
+				"CodeMirror-foldgutter",'editor-hint-gutter']
+			}
+		);
+	}
+
+	addEventListener(el, type, cb)
+	{
+		this.$cm.on(el, type, cb);
+	}
+
+	removeEventListener(el, type, cb)
+	{
+		this.$cm.off(el, type, cb);
+	}
+
+}
 
 /**
  * Use to provide Hints capabilities.
@@ -81,17 +131,17 @@ class SourceInsertFeature extends ide.feature.InsertFeature {
 
 	backspace()
 	{
-		codeMirror.commands.delCharBefore(this.editor.editor);
+		COMMANDS.delCharBefore(this.editor.editor);
 	}
 
 	del()
 	{
-		codeMirror.commands.delCharAfter(this.editor.editor);
+		COMMANDS.delCharAfter(this.editor.editor);
 	}
 
 	line()
 	{
-		codeMirror.commands.newlineAndIndent(this.editor.editor);
+		COMMANDS.newlineAndIndent(this.editor.editor);
 	}
 
 	enable()
@@ -147,32 +197,32 @@ class SourceCursorFeature extends ide.feature.CursorFeature {
 
 	goDown()
 	{
-		codeMirror.commands.goLineDown(this.editor.editor);
+		COMMANDS.goLineDown(this.editor.editor);
 	}
 
 	goUp()
 	{
-		codeMirror.commands.goLineUp(this.editor.editor);
+		COMMANDS.goLineUp(this.editor.editor);
 	}
 
 	goBackwards()
 	{
-		codeMirror.commands.goColumnLeft(this.editor.editor);
+		COMMANDS.goColumnLeft(this.editor.editor);
 	}
 
 	goForward()
 	{
-		codeMirror.commands.goColumnRight(this.editor.editor);
+		COMMANDS.goColumnRight(this.editor.editor);
 	}
 
 	goStart()
 	{
-		codeMirror.commands.goDocStart(this.editor.editor);
+		COMMANDS.goDocStart(this.editor.editor);
 	}
 
 	goEnd()
 	{
-		codeMirror.commands.goDocEnd(this.editor.editor);
+		COMMANDS.goDocEnd(this.editor.editor);
 	}
 
 	go(row, column)
@@ -218,7 +268,7 @@ class SourceScrollFeature extends ide.feature.ScrollFeature {
 
 	render()
 	{
-		this.editor.listenTo(this.editor.editor, 'scroll', this._onScroll);
+		this.editor.listenToCM('scroll', this._onScroll);
 	}
 
 	scroll(x, y)
@@ -293,7 +343,7 @@ class SourceSelectionFeature extends ide.feature.SelectionFeature {
 
 	selectAll()
 	{
-		codeMirror.commands.selectAll(this.editor.editor);
+		COMMANDS.selectAll(this.editor.editor);
 	}
 
 	get current()
@@ -401,7 +451,7 @@ class SourceLineFeature extends ide.feature.LineFeature {
 
 	remove()
 	{
-		codeMirror.commands.deleteLine(this.editor.editor);
+		COMMANDS.deleteLine(this.editor.editor);
 	}
 
 	select()
@@ -426,12 +476,12 @@ class SourceLineFeature extends ide.feature.LineFeature {
 
 	goStart()
 	{
-		codeMirror.commands.goLineStart(this.editor.editor);
+		COMMANDS.goLineStart(this.editor.editor);
 	}
 
 	goEnd()
 	{
-		codeMirror.commands.goLineEnd(this.editor.editor);
+		COMMANDS.goLineEnd(this.editor.editor);
 	}
 
 }
@@ -454,22 +504,22 @@ class SourceWordFeature extends ide.feature.WordFeature {
 
 	goNext()
 	{
-		codeMirror.commands.goGroupRight(this.editor.editor);
+		COMMANDS.goGroupRight(this.editor.editor);
 	}
 
 	goPrevious()
 	{
-		codeMirror.commands.goGroupLeft(this.editor.editor);
+		COMMANDS.goGroupLeft(this.editor.editor);
 	}
 
 	removeNext()
 	{
-		codeMirror.commands.delGroupAfter(this.editor.editor);
+		COMMANDS.delGroupAfter(this.editor.editor);
 	}
 
 	removePrevious()
 	{
-		codeMirror.commands.delGroupBefore(this.editor.editor);
+		COMMANDS.delGroupBefore(this.editor.editor);
 	}
 
 }
@@ -480,12 +530,12 @@ class SourcePageFeature extends ide.feature.PageFeature {
 
 	goUp()
 	{
-		codeMirror.commands.goPageUp(this.editor.editor);
+		COMMANDS.goPageUp(this.editor.editor);
 	}
 
 	goDown()
 	{
-		codeMirror.commands.goPageDown(this.editor.editor);
+		COMMANDS.goPageDown(this.editor.editor);
 	}
 
 }
@@ -494,17 +544,17 @@ class SourceIndentFeature extends ide.feature.IndentFeature {
 
 	more()
 	{
-		codeMirror.commands.indentMore(this.editor.editor);
+		COMMANDS.indentMore(this.editor.editor);
 	}
 
 	less()
 	{
-		codeMirror.commands.indentLess(this.editor.editor);
+		COMMANDS.indentLess(this.editor.editor);
 	}
 
 	auto()
 	{
-		codeMirror.commands.indentAuto(this.editor.editor);
+		COMMANDS.indentAuto(this.editor.editor);
 	}
 
 }
@@ -524,17 +574,17 @@ class SourceFoldFeature extends ide.feature.FoldFeature {
 
 	toggle()
 	{
-		codeMirror.commands.toggleFold(this.editor.editor);
+		COMMANDS.toggleFold(this.editor.editor);
 	}
 
 	open()
 	{
-		codeMirror.commands.unfold(this.editor.editor);
+		COMMANDS.unfold(this.editor.editor);
 	}
 
 	close()
 	{
-		codeMirror.commands.fold(this.editor.editor);
+		COMMANDS.fold(this.editor.editor);
 	}
 
 }
@@ -643,7 +693,7 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 
 	render()
 	{
-		this.editor.listenTo(this.editor.editor, 'cursorActivity',
+		this.editor.listenToCM('cursorActivity',
 			this._onCursorActivity.bind(this));
 	}
 
@@ -708,7 +758,7 @@ class SourceFileFeature extends ide.feature.FileFeature {
 
 	render()
 	{
-		this.editor.listenTo(this.editor.editor, 'change',
+		this.editor.listenToCM('change',
 			cxl.debounce(this.onChange.bind(this), 100));
 		super.render();
 	}
@@ -797,43 +847,6 @@ class SourceEditor extends ide.FileEditor {
 		return info.mime || mode;
 	}
 
-	_getOptions()
-	{
-	var
-		ft = this.mode = this._findMode(),
-		s = ide.project.get('editor') || {}
-	;
-		this.encoding = ide.project.get('editor.encoding') || 'utf8';
-
-		return (this.options = cxl.extend(
-			{
-				tabSize: 4,
-				indentWithTabs: true,
-				lineWrapping: true,
-				lineNumbers: true,
-				electricChars: false,
-				styleActiveLine: true,
-				autoCloseTags: true,
-				autoCloseBrackets: true,
-				matchTags: true,
-				matchBrackets: true,
-				foldGutter: true,
-				indentUnit: s.indentWithTabs ? 1 : (s.tabSize || 4),
-				lineSeparator: "\n"
-			}, s,
-			{
-				//value: this.file.content || '',
-				theme: 'workspace',
-				// Disable drag and drop so dragdrop plugin works.
-				dragDrop: false,
-				mode: ft,
-				scrollbarStyle: 'null',
-				gutters: [ "CodeMirror-linenumbers",
-				"CodeMirror-foldgutter",'editor-hint-gutter']
-			}
-		));
-	}
-
 	/**
 	 * Override keymap handle function to use codemirror plugin keymaps.
 	 * TODO see if we can replace some plugins to avoid using this method.
@@ -859,14 +872,25 @@ class SourceEditor extends ide.FileEditor {
 		return false;
 	}
 
+	listenToCM(ev, cb)
+	{
+		const fn = cb.bind(this);
+		this.editor.on(ev, fn);
+		const s = { destroy: this.editor.off.bind(this.editor, ev, fn) };
+		this.bindings.push(s);
+		return s;
+	}
+
 	render(p)
 	{
 		super.render(p);
 	var
-		options = this._getOptions(),
+		ft = this.mode = this._findMode(),
+		options = this.options = new CodeMirrorOptions(ft),
 		editor = this.editor = codeMirror(this.$content, options),
 		onFocus = this.$setFocus.bind(this)
 	;
+		this.encoding = ide.project.get('editor.encoding') || 'utf8';
 		// TODO
 		if (p.startLine)
 			setTimeout(editor.setCursor.bind(editor, p.startLine));
@@ -879,7 +903,7 @@ class SourceEditor extends ide.FileEditor {
 		this.listenTo(ide.plugins, 'workspace.resize', this.resize);
 
 		this.listenTo(this.el, 'focus', onFocus);
-		this.listenTo(this.editor, 'focus', onFocus);
+		this.listenToCM('focus', onFocus);
 	}
 
 	resize()

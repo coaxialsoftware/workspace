@@ -87,7 +87,7 @@ ide.Worker.prototype = {
 			result += this.getSource(methods[i], i);
 
 		result += 'onmessage=function(ev) { try { var data=ev.data;' +
-		'data.result=self[data.method](data.data);}catch(e){data.error=e.message;}' +
+		'data.result=self[data.method](data.data);}catch(e){data.error=e;}' +
 		'postMessage(data);}';
 
 		return result;

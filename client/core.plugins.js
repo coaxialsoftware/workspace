@@ -1,5 +1,4 @@
-
-(function(ide, cxl) {
+((ide, cxl) => {
 "use strict";
 
 /**
@@ -53,7 +52,7 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 	},
 
 	/**
-	 * Register resources to be destroy when reloading.
+	 * Register resources to be destroyed when reloading.
 	 */
 	resources: function()
 	{
@@ -72,7 +71,7 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 
 	listenToElement: function(el, name, fn)
 	{
-		this.resources(cxl.listenTo(el, name, fn));
+		this.resources(new cxl.EventListener(el, name, fn));
 	},
 
 	/**
@@ -80,9 +79,7 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 	 */
 	destroy: function()
 	{
-		// TODO...
-		cxl.invokeMap(this.__resources, 'unsubscribe');
-		cxl.invokeMap(this.__resources, 'destroy');
+		this.__resources.forEach(r => (r.unsubscribe || r.destroy)());
 		ide.plugins.unregister(this);
 	}
 

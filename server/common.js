@@ -605,7 +605,6 @@ class FileManager {
 	}
 }
 
-
 class AssistServer {
 
 	static CanAssistMime(mimeRegex) {
@@ -1012,11 +1011,21 @@ class Stream extends cxl.rx.Subject {
 
 }
 
+class StreamEvent {
+
+	constructor(type, data)
+	{
+		this.type = type;
+		this.data = data;
+	}
+
+}
+
 class ProcessStream extends Stream {
 
 	$event(type, data)
 	{
-		this.next({ type: type, data: data.toString() });
+		this.next(new StreamEvent(type, data.toString()));
 	}
 
 	$onProcessClose(data)
@@ -1350,7 +1359,7 @@ module.exports = {
 	 * cwd      Working Directory
 	 * plugin   Plugin to use for logging
 	 */
-	exec: function(command, options)
+	exec(command, options)
 	{
 		return new Q(function(resolve, reject) {
 			options = Object.assign({
@@ -1377,7 +1386,7 @@ module.exports = {
 		});
 	},
 
-	extend: function extend(obj, p)
+	extend(obj, p)
 	{
 		var c, val;
 
@@ -1400,7 +1409,7 @@ module.exports = {
 				else
 					c.push(val);
 			} else if (c && typeof(c)==='object' && val && typeof(val)==='object')
-				extend(c, val);
+				this.extend(c, val);
 			else
 				obj[i] = p[i];
 		}

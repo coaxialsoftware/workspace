@@ -85,7 +85,8 @@ class CollapsibleItem extends ide.Item {
 
 		this.collapseEl = document.createElement('ide-icon');
 		this.toggle(null, obj.collapsed);
-		this.onClickRemove = cxl.listenTo(this.collapseEl, 'click', this.toggle.bind(this));
+		this.onClickRemove = new cxl.EventListener(
+			this.collapseEl, 'click', this.toggle.bind(this));
 	}
 
 	$appendChildren()
@@ -298,7 +299,7 @@ class ListEditor extends ide.Editor {
 
 	reset()
 	{
-		cxl.invokeMap(this.children, 'destroy');
+		this.children.forEach(c => c.destroy());
 		this.children = [];
 		this.$list.innerHTML = '';
 	}

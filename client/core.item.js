@@ -1,5 +1,5 @@
 
-(function(ide) {
+((ide, cxl) => {
 "use strict";
 
 class Hint {

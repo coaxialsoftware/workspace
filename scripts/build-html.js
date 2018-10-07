@@ -31,7 +31,7 @@ builder.build({
 		{
 			output: 'index.html',
 			src: [
-				'client/html/index.html', 'public/build/ide.css',
+				'client/html/index.html', ...CSS,
 				'client/html/body.html', 'client/html/templates.html'
 			]
 		}

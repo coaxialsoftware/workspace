@@ -57,7 +57,7 @@ class EditorHeader extends Feature {
 	set title(title)
 	{
 		if (this._title!==title)
-			this.$title.innerHTML = this._title = cxl.escape(title);
+			this.$title.innerHTML = title;
 	}
 
 	get title()
@@ -670,13 +670,9 @@ class Editor {
 		ide.workspace.focusEditor(this);
 	}
 
-	/**
-	 * Listen to events. Supports addEventListener, and on/off methods.
-	 * Adds subscriber to this.bindings and returns it.
-	 */
 	listenTo(el, event, cb)
 	{
-		var s = cxl.listenTo(el, event, cb.bind(this));
+		const s = new cxl.EventListener(el, event, cb.bind(this));
 
 		this.bindings.push(s);
 
@@ -685,7 +681,7 @@ class Editor {
 
 	destroy()
 	{
-		this.bindings.forEach(b => b.unsubscribe());
+		this.bindings.forEach(b => (b.unsubscribe || b.destroy)());
 
 		for (const f in this.features)
 			this.features[f].destroy();

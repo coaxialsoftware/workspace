@@ -26,10 +26,12 @@
  * limitations under the License.
  */
 
-(function(ide) {
+(ide => {
 "use strict";
 /* jshint maxdepth: 5 */
 
+function diff(a, b)
+{
 /**
  * The data structure representing a diff is an array of tuples:
  * [[DIFF_DELETE, 'Hello'], [DIFF_INSERT, 'Goodbye'], [DIFF_EQUAL, ' world.']]
@@ -605,7 +607,10 @@ var
 	return result;
 }
 
-ide.diff = diff2;
+	return diff2(a, b);
+}
+
+ide.diff = diff;
 
 ide.diffPromise = function(A, B)
 {
@@ -633,20 +638,10 @@ ide.diffWorker = new ide.Worker({
 
 	diff: function(data)
 	{
-		return diff2(data[0], data[1]);
+		return diff(data[0], data[1]);
 	},
 	private: {
-		defs: `const DIFF_DELETE = -1,	DIFF_INSERT = 1, DIFF_EQUAL = 0, MINL=5;`,
-		push: push,
-		diff2: diff2,
-		diff_main: diff_main,
-		diff_halfMatch_: diff_halfMatch_,
-		diff_bisectSplit_: diff_bisectSplit_,
-		diff_bisect_: diff_bisect_,
-		diff_compute_: diff_compute_,
-		diff_cleanupMerge: diff_cleanupMerge,
-		diff_commonPrefix: diff_commonPrefix,
-		diff_commonSuffix: diff_commonSuffix
+		diff: diff
 	}
 
 });
