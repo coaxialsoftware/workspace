@@ -21,6 +21,7 @@
 		"@cxl/ui": "*",
 		"codemirror": "github:j5g3/CodeMirror",
 		"font-awesome": "*",
+		"qunit": "^2.6.2",
 		"xterm": "^2.9.2"
 	},
 	"files": [

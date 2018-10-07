@@ -30,7 +30,7 @@
 "use strict";
 /* jshint maxdepth: 5 */
 
-function diff(a, b)
+function doDiff(a, b)
 {
 /**
  * The data structure representing a diff is an array of tuples:
@@ -610,7 +610,7 @@ var
 	return diff2(a, b);
 }
 
-ide.diff = diff;
+ide.diff = doDiff;
 
 ide.diffPromise = function(A, B)
 {
@@ -638,10 +638,10 @@ ide.diffWorker = new ide.Worker({
 
 	diff: function(data)
 	{
-		return diff(data[0], data[1]);
+		return doDiff(data[0], data[1]);
 	},
 	private: {
-		diff: diff
+		doDiff: doDiff
 	}
 
 });

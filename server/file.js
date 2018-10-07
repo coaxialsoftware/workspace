@@ -10,7 +10,7 @@
 "use strict";
 
 var
-	path = require('path'),
+	path = require('path').posix,
 	plugin = module.exports = cxl('workspace.file')
 ;
 

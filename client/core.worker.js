@@ -102,25 +102,25 @@ ide.Worker.prototype = {
 
 };
 
-ide.WorkerManager = function()
-{
-	this.workers = [];
-	ide.plugins.on('assist', this.onAssist.bind(this));
-};
+class WorkerManager {
 
-ide.WorkerManager.prototype = {
+	constructor()
+	{
+		this.workers = [];
+		ide.plugins.on('assist', this.onAssist.bind(this));
+	}
 
-	register: function(worker)
+	register(worker)
 	{
 		this.workers.push(worker);
-	},
+	}
 
-	unregister: function(worker)
+	unregister(worker)
 	{
 		cxl.pull(this.workers, worker);
-	},
+	}
 
-	onAssist: function(request)
+	onAssist(request)
 	{
 	var
 		msg = request.payload,
@@ -137,8 +137,8 @@ ide.WorkerManager.prototype = {
 		}
 	}
 
-};
+}
 
-ide.workerManager = new ide.WorkerManager();
+ide.workerManager = new WorkerManager();
 
 })(this.ide, this.cxl);

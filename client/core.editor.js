@@ -24,6 +24,10 @@ class Feature {
 
 }
 
+XTerminal.prototype.addEventListener = XTerminal.prototype.on;
+XTerminal.prototype.removeEventListener = XTerminal.prototype.off;
+
+
 class EditorHeader extends Feature {
 
 	constructor(e)

@@ -161,7 +161,7 @@ class FileItem extends ide.Item {
 		item = this,
 		title = item.value || item.title,
 		options = {
-			file: (this.prefix ? this.prefix+ ide.project.get('path.separator') : '') + title,
+			file: (this.prefix ? this.prefix + '/' : '') + title,
 			focus: !shift
 		}
 	;
