@@ -61,7 +61,7 @@ class EditorHeader extends Feature {
 	set title(title)
 	{
 		if (this._title!==title)
-			this.$title.innerHTML = title;
+			this.$title.innerHTML = this._title = title;
 	}
 
 	get title()

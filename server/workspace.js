@@ -134,7 +134,10 @@ workspace.createServer()
 
 	// Enable Test path
 	if (ide.configuration.debug)
+	{
 		this.use(cxl.static(ide.basePath + '/test', { maxAge: 86400000 }));
+		this.use(cxl.static(ide.basePath + '/node_modules/qunit/qunit', { maxAge: 86400000 }));
+	}
 
 	this.secure = ide.configuration.secure;
 })
