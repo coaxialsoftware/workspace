@@ -7,7 +7,6 @@ const
 
 codeMirror.defineOption('fatCursor', false, function(cm, val) {
 	cm.display.wrapper.classList.toggle('cm-fat-cursor', val);
-	cm.restartBlink();
 });
 
 class CodeMirrorOptions {
@@ -16,7 +15,7 @@ class CodeMirrorOptions {
 	{
 		const s = ide.project.get('editor') || {};
 
-		cxl.extend(this,
+		Object.assign(this,
 			{
 				tabSize: 4,
 				indentWithTabs: true,

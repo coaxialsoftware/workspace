@@ -118,6 +118,10 @@ ide-editor-content {
 	overflow: hidden; height: auto; display: block;
 }
 
+ide-editor-content > .CodeMirror {
+	position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+}
+
 .focus ide-editor-header {
 	background-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.95);
 }

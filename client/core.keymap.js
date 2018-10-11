@@ -32,7 +32,7 @@ function KeyboardManager()
 	for (i=65; i<91; ++i)
 		_MAP[i] = String.fromCharCode(i).toLowerCase();
 
-	window.addEventListener('keydown', this.onKeyDown.bind(this));
+	window.addEventListener('keydown', this.onKeyDown.bind(this), true);
 
 	this.MODREPLACE = /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'meta+' : 'ctrl+';
 }
@@ -120,6 +120,10 @@ cxl.extend(KeyboardManager.prototype, {
 
 	onKeyDown: function(ev)
 	{
+		if (this.disabled)
+			return;
+
+		ev.stopPropagation();
 	var
 		t = Date.now(),
 		k = this.getKeyId(ev),
@@ -139,7 +143,6 @@ cxl.extend(KeyboardManager.prototype, {
 			if (this.handleKey(seq.join(' '))!==false)
 			{
 				ev.preventDefault();
-				ev.stopPropagation();
 				t = 0;
 				break;
 			}

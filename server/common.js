@@ -1202,16 +1202,6 @@ module.exports = {
 	AuthenticationAgent: AuthenticationAgent,
 	AssistServer: AssistServer,
 	Configuration: Configuration,
-
-	LanguageServer: LanguageServer,
-	LanguageServerStdIO: LanguageServerStdIO,
-	Process: Process,
-	ProcessStream: ProcessStream,
-	ServerResponse: ServerResponse,
-	Stream: Stream,
-	Theme: Theme,
-	RPCServer: RPCServer,
-
 	Error: WorkspaceError,
 
 	File: File,
@@ -1219,6 +1209,15 @@ module.exports = {
 	FileMatcher: FileMatcher,
 	FileManager: FileManager,
 	FileWalker: FileWalker,
+
+	LanguageServer: LanguageServer,
+	LanguageServerStdIO: LanguageServerStdIO,
+	Process: Process,
+	ProcessStream: ProcessStream,
+	RPCServer: RPCServer,
+	ServerResponse: ServerResponse,
+	Stream: Stream,
+	Theme: Theme,
 
 	// use require for win32
 	basePath: require('path').resolve(__dirname + '/../'),
@@ -1365,9 +1364,7 @@ module.exports = {
 			options = Object.assign({
 				timeout: 5000,
 				maxBuffer: 1024 * 500,
-				plugin: ide.module,
-				uid: process.getuid(),
-				gid: process.getgid()
+				plugin: ide.module
 			}, options);
 
 			options.plugin.dbg(`${options.cwd ? '[cwd:'+options.cwd+'] ' : '' }exec "${command}"`);

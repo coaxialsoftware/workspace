@@ -151,6 +151,7 @@ class Bar {
 		if (val.length)
 			this.$input.setSelectionRange(val.length, val.length);
 
+		ide.keyboard.disabled = true;
 		this.hidden = false;
 		this.focus();
 	}
@@ -191,6 +192,8 @@ class Bar {
 
 		if (ide.editor)
 			ide.workspace.focusEditor(ide.editor);
+
+		ide.keyboard.disabled=false;
 
 		ide.assist.inline.hide();
 

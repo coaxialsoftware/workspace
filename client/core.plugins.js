@@ -6,39 +6,37 @@
  * Main Plugin class for all plugins.
  *
  */
-ide.Plugin = function Plugin(p)
+class Plugin
 {
-	cxl.extend(this, p);
-	this.__resources = [];
-};
-
-cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
+	constructor(p)
+	{
+		cxl.extend(this, p);
+		this.__resources = [];
+	}
 
 	/** @type {string} Plugin Name */
-	name: null,
+	//name: null,
 
 	/** If key is pressed, invoke function will be called. */
-	shortcuts: null,
+	//shortcuts: null,
 	/** Editor Commands */
-	editorCommands: null,
+	//editorCommands: null,
 	/// Object of commands to add to ide.commands
-	commands: null,
+	//commands: null,
 
 	/// Runs when all plugins are initialized @type {function}
-	ready: null,
-
-	__resources: null,
+	//ready: null,
 
 	/**
 	 * Starts Plugin when all other plugins are loaded.
 	 * @param settings Settings specified in the project. The name of the plugin will be used.
 	 */
-	start: function() { },
+	start() { }
 
 	/**
 	 * Saves or retrieves local storage data
 	 */
-	data: function(prop, value)
+	data(prop, value)
 	{
 		prop = 'ide.plugin.' + this.name + '.' + prop;
 
@@ -49,41 +47,41 @@ cxl.extend(ide.Plugin.prototype, { /** @lends ide.Plugin# */
 			window.localStorage[prop] = value;
 		else
 			delete(window.localStorage[prop]);
-	},
+	}
 
 	/**
 	 * Register resources to be destroyed when reloading.
 	 */
-	resources: function()
+	resources()
 	{
 		for (var i=0; i<arguments.length;i++)
 			this.__resources.push(arguments[i]);
-	},
+	}
 
 	/**
 	 * Adds event handler.
 	 */
-	listenTo: function(name, fn)
+	listenTo(name, fn)
 	{
 		this.resources(ide.plugins.on(name, fn, this));
 		return this;
-	},
+	}
 
-	listenToElement: function(el, name, fn)
+	listenToElement(el, name, fn)
 	{
 		this.resources(new cxl.EventListener(el, name, fn));
-	},
+	}
 
 	/**
 	 * Unbinds all event handlers and destroys plugin
 	 */
-	destroy: function()
+	destroy()
 	{
 		this.__resources.forEach(r => (r.unsubscribe || r.destroy)());
 		ide.plugins.unregister(this);
 	}
 
-});
+}
 
 class PluginManager extends cxl.rx.EventEmitter
 {
@@ -340,6 +338,7 @@ var PluginComponent = cxl.component({
  * @type {ide.PluginManager}
  */
 ide.plugins = new PluginManager();
+ide.Plugin = Plugin;
 ide.PluginComponent = PluginComponent;
 
 cxl.directive('ide.on', {

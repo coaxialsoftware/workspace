@@ -25,7 +25,6 @@ const
 	LIBS = [
 		'node_modules/codemirror/lib/codemirror.js',
 		'node_modules/codemirror/addon/search/searchcursor.js',
-		'node_modules/codemirror/addon/search/find.js',
 		'node_modules/codemirror/addon/fold/xml-fold.js',
 		'node_modules/codemirror/addon/edit/matchbrackets.js',
 		'node_modules/codemirror/addon/edit/matchtags.js',
@@ -44,6 +43,7 @@ const
 		'node_modules/codemirror/mode/htmlmixed/htmlmixed.js',
 		'node_modules/codemirror/mode/css/css.js',
 
+		'client/cm.find.js',
 		'node_modules/xterm/dist/xterm.js',
 		'node_modules/xterm/dist/addons/fit/fit.js'
 	],
