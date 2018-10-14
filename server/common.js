@@ -10,6 +10,7 @@ const
 	npm = require('npm'),
 
 	FileWatch = require('@cxl/filewatch').FileWatch,
+	DirectoryWatch = require('@cxl/filewatch').DirectoryWatch,
 
 	cwd = process.cwd()
 ;
@@ -389,146 +390,28 @@ class FileMatcher {
 	}
 }
 
-function FileWatcher(options)
+class FileManagerWatcher
 {
-	Object.assign(this, options);
-
-	if (typeof(this.paths)==='string')
-		this.paths = [ path ];
-
-	this.watchers = {};
-	this.events = {};
-	this.observers = [];
-
-	if (this.base)
-		this.watchPath('.');
-
-	if (this.paths)
-		this.paths.forEach(this.watchPath.bind(this));
-}
-
-Object.assign(FileWatcher.prototype, {
-
-	/** @required */
-	paths: null,
-	delay: 250,
-	ignore: null,
-	watchers: null,
-	events: null,
-	base: null,
-
-	onEvent: null,
-
-	trigger: function(id, ev, file, full)
+	constructor(p)
 	{
-		delete this.events[id];
+		this.$watchers = p.paths.map(dir =>
+			DirectoryWatch.create(dir).subscribe(ev => {
+				const rel = path.relative(p.base, ev.path);
 
-		fs.stat(full, (err, s) => {
-			if (err)
-				ev = ev==='change' || ev==='rename' ? 'remove' : 'error';
-
-			var event = {
-				type: ev, filename: file, fullpath: full, stat: s, error: err
-			};
-
-			if (this.onEvent)
-				this.onEvent(event);
-
-			this.observers.forEach(o => {
-				if (o.fileId === full)
-					o.next(event);
-			});
-		});
-	},
-
-	onWatch: function(dir, ev, filename)
-	{
-		if (!filename)
-			return;
-	var
-		full = path.join(dir, filename),
-		rel = this.base ? path.relative(this.base, full) : full,
-		id = ev + ' ' + rel,
-		timeout = this.events[id]
-	;
-		if (this.ignore && this.ignore(rel))
-			return;
-		if (timeout !== undefined)
-			clearTimeout(timeout);
-
-		this.events[id] = setTimeout(
-			this.trigger.bind(this, id, ev, rel, full), this.delay);
-	},
-
-	onError: function()
-	{
-		console.log(arguments);
-	},
-
-	reset: function()
-	{
-		cxl.invokeMap(this.watchers, 'close');
-		this.watchers = {};
-	},
-
-	getId: function(p)
-	{
-		return this.base ? path.join(this.base, p) : p;
-	},
-
-	watchFile: function(f)
-	{
-	var
-		full = path.normalize(f),
-		id = this.getId(full),
-		dir = path.dirname(id)
-	;
-		return this._doWatch(id, dir);
-	},
-
-	isWatching: function(file)
-	{
-		var id = this.getId(path.normalize(file));
-
-		return !!this.watchers[id];
-	},
-
-	unwatch: function(id)
-	{
-		if (this.watchers[id])
-		{
-			this.watchers[id].close();
-			delete this.watchers[id];
-		}
-	},
-
-	_doWatch: function(id, dir)
-	{
-		if (this.watchers[id])
-		{
-			return id;
-		}
-
-		try {
-			var w = fs.watch(id);
-			w.on('change', this.onWatch.bind(this, dir));
-			w.on('error', this.onError.bind(this, dir));
-
-			this.watchers[id] = w;
-			return id;
-		} catch(e) {
-			console.error(e);
-		}
-	},
-
-	watchPath: function(p)
-	{
-		var id = this.getId(p);
-
-		return this._doWatch(id, id);
+				if (!(p.ignore && p.ignore(rel)))
+				{
+					ev.relativePath = rel;
+					p.onWatch(ev);
+				}
+			})
+		);
 	}
 
-});
+	destroy()
+	{
+		this.$watchers.forEach(w => w.unsubscribe());
+	}
+}
 
 class FileManager {
 
@@ -568,27 +451,24 @@ class FileManager {
 		});
 	}
 
-	onWatch(ev)
-	{
-		this.onEvent(ev);
-	}
-
 	watchFiles()
 	{
-		var files = this.files.reduce(function(a, f) {
+		const files = this.files.reduce(function(a, f) {
 			if (f.mime==='text/directory')
 				a.push(f.filename);
 			return a;
 		}, []);
 
-		if (this.watcher)
-			this.watcher.reset();
+		files.push(this.path);
 
-		this.watcher = new FileWatcher({
+		if (this.watcher)
+			this.watcher.destroy();
+
+		this.watcher = new FileManagerWatcher({
 			base: this.path,
 			ignore: this.ignore,
 			paths: files,
-			onEvent: this.onWatch.bind(this)
+			onWatch: this.onEvent.bind(this)
 		});
 	}
 }
@@ -1194,8 +1074,8 @@ module.exports = {
 
 	File: File,
 	FileWatch: FileWatch,
-	/** @deprecated Use FileWatch instead. */
-	FileWatcher: FileWatcher,
+	DirectoryWatch: DirectoryWatch,
+
 	FileMatcher: FileMatcher,
 	FileManager: FileManager,
 	FileWalker: FileWalker,

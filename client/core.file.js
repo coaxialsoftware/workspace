@@ -1,7 +1,7 @@
 /**
  * workspace.file
  */
-(function(cxl, ide) {
+((cxl, ide) => {
 "use strict";
 
 var
@@ -304,7 +304,7 @@ class FileSync {
 
 	$onMessage(data)
 	{
-		if (data.stat && data.stat.p===this.$file.path)
+		if (data.stat && data.stat.f===this.$file.path)
 			this.$onMessageStat(data.stat);
 	}
 
@@ -615,4 +615,4 @@ Object.assign(ide.feature, {
 
 
 
-})(this.cxl, this.ide, this._);
+})(this.cxl, this.ide);

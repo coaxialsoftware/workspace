@@ -170,23 +170,22 @@ class Project {
 		{
 			this.broadcast({
 				stat: {
-					f: ev.filename, p: ev.fullpath, t: ev.stat.mtime.getTime(),
-					d: path.dirname(ev.filename)
+					f: ev.path, t: ev.stat.mtime.getTime()
+					//d: path.dirname(ev.filename)
 				}
 			}, 'file');
 
 			// TODO see if we need to include full path instead
 			ide.plugins.emit('project.filechange', this, ev);
-			ide.plugins.emit('project.filechange:' + ev.filename, this, ev);
+			ide.plugins.emit('project.filechange:' + ev.path, this, ev);
 
-			if (ev.filename==='project.json')
+			if (ev.relativePath==='project.json')
 				this.reload();
 		} else if (ev.type!=='error')
 		{
 			this.broadcast({
 				stat: {
-					f: path.dirname(ev.filename),
-					p: path.dirname(ev.fullpath),
+					f: ev.path,
 					t: ev.stat && ev.stat.mtime.getTime()
 				}
 			}, 'file');
@@ -194,7 +193,7 @@ class Project {
 			this.buildFilesDebounced();
 		}
 
-		this.log.dbg(ev.type + ' ' + ev.filename);
+		this.log.dbg(ev.type + ' ' + ev.path);
 	}
 
 	onTimeout()
