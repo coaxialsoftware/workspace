@@ -67,7 +67,7 @@ plugin.config(function() {
 			this.onMessageStat(client, data.stat);
 	},
 
-	getFile: function(req)
+	getFile(req)
 	{
 	var
 		project = req.query.p,
@@ -88,7 +88,7 @@ plugin.config(function() {
 		return file;
 	},
 
-	handleWrite: function(req, res)
+	handleWrite(req, res)
 	{
 		if (!req.body)
 			return res.status(400).end();
@@ -103,7 +103,7 @@ plugin.config(function() {
 		);
 	},
 
-	sendFile: function(res, file)
+	sendFile(res, file)
 	{
 		var stat = file.stat;
 

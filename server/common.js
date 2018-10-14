@@ -1,5 +1,5 @@
 
-var
+const
 	fs = require('fs'),
 	cp = require('child_process'),
 	path = require('path').posix,
@@ -8,6 +8,8 @@ var
 	micromatch = require('micromatch'),
 	mime = require('mime'),
 	npm = require('npm'),
+
+	FileWatch = require('@cxl/filewatch').FileWatch,
 
 	cwd = process.cwd()
 ;
@@ -474,20 +476,6 @@ Object.assign(FileWatcher.prototype, {
 		return this.base ? path.join(this.base, p) : p;
 	},
 
-	observeFile: function(f, subscriber)
-	{
-	var
-		id = this.watchFile(f),
-		subscription = new cxl.rx.Subscriber(subscriber, null, null, () => {
-			this.unwatch(id);
-		})
-	;
-		subscription.fileId = id;
-		this.observers.push(subscription);
-
-		return subscription;
-	},
-
 	watchFile: function(f)
 	{
 	var
@@ -830,7 +818,7 @@ class Theme
 		this.path = path.isAbsolute(p) ? p :
 			ide.basePath + '/public/theme/' + p + '.css';
 		this.source = null;
-		this.observer = ide.fileWatcher.observeFile(this.path, this.onWatch.bind(this));
+		this.observer = new FileWatch(this.path).subscribe(this.onWatch.bind(this));
 	}
 
 	onWatch()
@@ -1205,6 +1193,8 @@ module.exports = {
 	Error: WorkspaceError,
 
 	File: File,
+	FileWatch: FileWatch,
+	/** @deprecated Use FileWatch instead. */
 	FileWatcher: FileWatcher,
 	FileMatcher: FileMatcher,
 	FileManager: FileManager,

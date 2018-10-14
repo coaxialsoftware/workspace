@@ -777,7 +777,7 @@ class SourceFileFeature extends ide.feature.FileFeature {
 		cursor = cm.getCursor()
 	;
 		cm.setValue(this.content, false);
-		cm.setCursor(cursor, null, { scroll: false });
+		cm.setCursor(cursor, null, { scroll: true });
 	}
 
 }

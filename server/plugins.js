@@ -5,6 +5,7 @@ var
 	path = require('path').posix,
 	UglifyJS = require('uglify-es'),
 
+	FileWatch = require('@cxl/filewatch').FileWatch,
 	plugin = module.exports = cxl('workspace.plugins')
 ;
 
@@ -48,7 +49,7 @@ class Plugin {
 
 		if (mod.sourcePath)
 		{
-			this.sourceWatch = ide.fileWatcher.observeFile(mod.sourcePath, this.onWatch.bind(this));
+			this.sourceWatch = FileWatch.create(mod.sourcePath).subscribe(this.onWatch.bind(this));
 		}
 	}
 
@@ -79,10 +80,10 @@ class Plugin {
 		this.load();
 	}
 
-	onWatch(ev)
+	onWatch()
 	{
 		this.mod.dbg(`Plugin ${this.name} source updated.`);
-		cxl.file.read(ev.fullpath).then(d => {
+		cxl.file.read(this.mod.sourcePath).then(d => {
 			this.source = d;
 			ide.plugins.emit('plugins.source', this.id, this.source);
 		}, () => this.source = '');
@@ -351,15 +352,12 @@ class PluginManager extends EventEmitter {
 		this.scripts = '';
 
 		this.scriptWatchers = scripts.map(function(s) {
-
-			var fn;
-
 			try {
 				plugin.dbg(`Loading script "${s}"`);
 				this.scripts += fs.readFileSync(s, 'utf8');
 
-				fn = this.onScriptsWatch.bind(this);
-				return ide.fileWatcher.watchFile(s, fn);
+				const fn = this.onScriptsWatch.bind(this);
+				return FileWatch.create(s).subscribe(fn);
 			} catch(e) {
 				plugin.error(`Could not load script "${s}".`);
 				plugin.dbg(e);

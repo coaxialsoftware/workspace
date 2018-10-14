@@ -4,11 +4,11 @@
 		"rules": {
 			"client": {
 				"files": "client/*.js",
-				"tasks": "npm run build-sources"
+				"tasks": "node scripts/build"
 			},
 			"html": {
 				"files": [ "client/html/*.html", "public/build/ide.css" ],
-				"tasks": "npm run build-html"
+				"tasks": "node scripts/build-html"
 			}
 		}
 	}

@@ -12,6 +12,7 @@ var
 
 	pkg = require(__dirname + '/../package.json'),
 	ide = global.ide = require('./common'),
+
 	// TODO @deprecate
 	workspace = global.workspace = ide.module = module.exports = cxl('workspace')
 ;
@@ -153,20 +154,7 @@ workspace.createServer()
 	if (process.getuid)
 		this.dbg(`Process running as ${process.getuid()}:${process.getgid()}`);
 
-	ide.fileWatcher = new ide.FileWatcher({
-		onEvent: function(ev) {
-			var file = ev.filename;
-
-			if (file==='workspace.json')
-				return ide.restart();
-
-			ide.plugins.emit('workspace.watch:' + file, ev);
-		}
-	});
-
-	cxl.file.stat('workspace.json')
-		.then(ide.fileWatcher.watchFile.bind(ide.fileWatcher, 'workspace.json'),
-			this.log.bind(this, 'No workspace.json found.'));
+	ide.FileWatch.create('workspace.json').subscribe(ide.restart.bind(ide));
 
 	this.dbg(`Serving Files from "${ide.basePath}/public" and "${ide.basePath}/test"`);
 

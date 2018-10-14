@@ -14,7 +14,9 @@
 		"npm": "*",
 		"uglify-es": "^3.3.10",
 		"websocket": "*",
-		"@cxl/cxl": "*"
+		"@cxl/cxl": "*",
+		"@cxl/rx": "*",
+		"@cxl/filewatch": "*"
 	},
 	"devDependencies": {
 		"@cxl/build": "*",

@@ -606,9 +606,13 @@ Object.assign(ide, {
 	FileItem: FileItem
 });
 
-ide.feature.FileFeature = FileFeature;
-ide.feature.FileHashFeature = FileHashFeature;
-ide.feature.FileEditorHeader = FileEditorHeader;
-ide.feature.FileForatFeature = FileFormatFeature;
+Object.assign(ide.feature, {
+	FileFeature: FileFeature,
+	FileHashFeature: FileHashFeature,
+	FileEditorHeader: FileEditorHeader,
+	FileForatFeature: FileFormatFeature
+});
+
+
 
 })(this.cxl, this.ide, this._);
