@@ -278,14 +278,17 @@ class FileWalker {
 	serialize(file, stat)
 	{
 		// TODO make file objects more consistent
-		return { filename: path.relative(this.root, file), directory: stat.isDirectory() };
+		return {
+			filename: file,
+			mime: stat.isDirectory() ? 'text/directory' : getMime(file)
+		};
 	}
 
 	$recursiveWalk(dir)
 	{
 		this.$pending++;
 
-		fs.readdir(dir, (err, list) => {
+		fs.readdir(this.root + '/' + dir, (err, list) => {
 			// Ignore Errors
 			if (!err)
 				list.forEach(file => {
@@ -295,7 +298,7 @@ class FileWalker {
 					if (!(this.ignore && this.ignore(file)))
 					{
 						this.$pending++;
-						fs.stat(relfile, (err, stat) => {
+						fs.stat(this.root + '/' + relfile, (err, stat) => {
 							if (!err)
 							{
 								if (stat.isDirectory())
@@ -320,14 +323,14 @@ class FileWalker {
 	walk()
 	{
 		// TODO add reject condition
-		return this.$promise || (this.$promise = new Promise((resolve) => {
+		return this.$promise || (this.$promise = new Promise(resolve => {
 			this.$results = [];
 			this.$resolve = function() {
 				this.$promise = null;
 				resolve(this.$results);
 			};
 			this.$pending = 0;
-			this.$recursiveWalk(this.root);
+			this.$recursiveWalk('');
 		}));
 	}
 
@@ -430,14 +433,7 @@ class FileManager {
 	onWalk(resolve, reject, data)
 	{
 		this.building = false;
-
-		// TODO see if we can make it in one pass.
-		data.forEach(function(f) {
-			f.mime = f.directory ? 'text/directory' : getMime(f.filename);
-		});
-
 		this.files = data;
-
 		this.watchFiles();
 
 		resolve(data);
