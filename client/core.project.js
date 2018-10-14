@@ -2,7 +2,7 @@
  * workspace.project
  */
 
-(function(cxl, ide) {
+((cxl, ide) => {
 "use strict";
 
 var loginForm;
@@ -264,7 +264,5 @@ ide.registerCommand('project.settings', {
 	},
 	icon: 'cog'
 });
-
-
 
 })(this.cxl, this.ide);

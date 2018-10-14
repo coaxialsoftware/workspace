@@ -100,7 +100,6 @@ ide.restart = function()
 		process.exit(128);
 	}, 250);
 };
-console.log(ide.basePath, __dirname);
 
 workspace.createServer()
 

@@ -278,39 +278,43 @@ class FileWalker {
 	serialize(file, stat)
 	{
 		// TODO make file objects more consistent
-		return { filename: file, directory: stat.isDirectory() };
+		return { filename: path.relative(this.root, file), directory: stat.isDirectory() };
 	}
 
 	$recursiveWalk(dir)
 	{
-		var fullpath = path.join(this.root, dir);
+		this.$pending++;
 
-		fs.readdir(fullpath, (err, list) => {
+		fs.readdir(dir, (err, list) => {
 			// Ignore Errors
 			if (!err)
 				list.forEach(file => {
 
 					let relfile = path.join(dir, file);
 
-					if (!this.ignore || !this.ignore(file))
+					if (!(this.ignore && this.ignore(file)))
 					{
 						this.$pending++;
-						fs.stat(path.join(this.root, relfile), (err, stat) => {
+						fs.stat(relfile, (err, stat) => {
 							if (!err)
 							{
 								if (stat.isDirectory())
 									this.$recursiveWalk(relfile);
 
 								this.$results.push(this.serialize(relfile, stat));
-							}
+							} else
+								console.log('Error ', relfile, err);
 
-							if (!--this.$pending) this.$resolve();
+							if (--this.$pending===0) this.$resolve();
 						});
 					}
 				});
+			else
+				console.log('Error ', dir, err);
 
-			if (!this.$pending) this.$resolve();
+			if (--this.$pending===0) this.$resolve();
 		});
+
 	}
 
 	walk()
@@ -323,7 +327,7 @@ class FileWalker {
 				resolve(this.$results);
 			};
 			this.$pending = 0;
-			this.$recursiveWalk('');
+			this.$recursiveWalk(this.root);
 		}));
 	}
 
@@ -453,9 +457,9 @@ class FileManager {
 
 	watchFiles()
 	{
-		const files = this.files.reduce(function(a, f) {
+		const files = this.files.reduce((a, f) => {
 			if (f.mime==='text/directory')
-				a.push(f.filename);
+				a.push(this.path + '/' + f.filename);
 			return a;
 		}, []);
 
