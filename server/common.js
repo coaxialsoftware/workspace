@@ -1164,7 +1164,7 @@ module.exports = {
 	// TODO move to shared
 	assist: {
 
-		match: function(term, cursorValue, prefix)
+		match(term, cursorValue, prefix)
 		{
 			var index = term.indexOf(cursorValue);
 
@@ -1177,7 +1177,7 @@ module.exports = {
 				};
 		},
 
-		findObject: function(obj, cursorValue, fn)
+		findObject(obj, cursorValue, fn)
 		{
 			var i, result=[], match;
 
@@ -1193,7 +1193,7 @@ module.exports = {
 			return result;
 		},
 
-		findArray: function(array, cursorValue, fn)
+		findArray(array, cursorValue, fn)
 		{
 			var i=0, l=array.length, result=[], match, value=cursorValue.trimLeft(), prefix;
 

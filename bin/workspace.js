@@ -33,5 +33,3 @@ function start()
 
 	child = c;
 }
-
-

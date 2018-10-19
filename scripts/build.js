@@ -76,6 +76,16 @@ builder.build({
 			output: 'ide.js',
 			src: [ ...LIBS, ...CXL, ...SRC],
 			minify: 'ide.min.js'
+		},
+		{
+			output: 'docs.js',
+			src: [
+				'node_modules/@cxl/ui/dist/cxl-ui.js',
+				'node_modules/@cxl/ui/dist/cxl-ui-ajax.js',
+				'node_modules/@cxl/ui/dist/cxl-router.js',
+				'node_modules/@cxl/docs/dist/docs.js'
+			],
+			minify: 'docs.min.js'
 		}
 	]
 

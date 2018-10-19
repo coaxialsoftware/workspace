@@ -21,6 +21,7 @@
 	"devDependencies": {
 		"@cxl/build": "*",
 		"@cxl/ui": "*",
+		"@cxl/docs": "*",
 		"codemirror": "^5.40.2",
 		"font-awesome": "*",
 		"qunit": "^2.6.2",

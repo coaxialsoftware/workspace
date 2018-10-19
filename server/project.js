@@ -61,7 +61,6 @@ Object.assign(ProjectConfiguration.prototype, {
 	 */
 	path: null,
 
-
 	/**
 	 * Project version.
 	 */
@@ -171,13 +170,10 @@ class Project {
 			this.broadcast({
 				stat: {
 					f: ev.path, t: ev.stat.mtime.getTime()
-					//d: path.dirname(ev.filename)
 				}
 			}, 'file');
 
-			// TODO see if we need to include full path instead
 			ide.plugins.emit('project.filechange', this, ev);
-			ide.plugins.emit('project.filechange:' + ev.path, this, ev);
 
 			if (ev.relativePath==='project.json')
 				this.reload();
@@ -203,7 +199,7 @@ class Project {
 			ide.plugins.emit('project.ready', this);
 			this.ready = true;
 		},
-		promises = [ ]
+		promises = []
 	;
 		this.buildIgnore();
 		promises.push(this.buildFiles());
@@ -311,9 +307,7 @@ class Project {
 			` ${colors.yellow(this.path)}`);
 
 		this.log.operation('Loading File Manager', this.loadFiles, this);
-
 		this.listenTo(ide.plugins, 'workspace.reload', this.reload);
-		//this.listenTo(workspace.plugins, 'plugins.source', this.buildSources);
 
 		return this.doLoad();
 	}
@@ -327,12 +321,11 @@ class Project {
 
 Object.assign(Project.prototype, cxl.EventListener);
 
-
 class ProjectManager {
 
 	constructor()
 	{
-		var p = this.workspaceProject = new Project('.');
+		const p = this.workspaceProject = new Project('.');
 
 		// Ignore all files
 		p.configuration.ignore = [ '*' ];
