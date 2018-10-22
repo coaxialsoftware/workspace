@@ -54,9 +54,9 @@ function doLogin()
 
 	ide.editor = null;
 	loginForm = new ide.LoginComponent();
-	loginForm.set('user', null);
-	loginForm.on('auth', onLoginAuth.bind(null, loginForm));
-	document.body.appendChild(loginForm.$native);
+	loginForm.user = null;
+	loginForm.addEventListener('auth', onLoginAuth.bind(null, loginForm));
+	document.body.appendChild(loginForm);
 	ide.workspace.el.style.opacity = 0;
 }
 
