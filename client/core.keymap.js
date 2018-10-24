@@ -1,8 +1,4 @@
-/**
- *
- */
-
-(function (ide, cxl) {
+((ide, cxl) => {
 "use strict";
 
 /**
@@ -32,6 +28,7 @@ function KeyboardManager()
 	for (i=65; i<91; ++i)
 		_MAP[i] = String.fromCharCode(i).toLowerCase();
 
+	// Make sure keydown is handled first, before the editor
 	window.addEventListener('keydown', this.onKeyDown.bind(this), true);
 
 	this.MODREPLACE = /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'meta+' : 'ctrl+';
@@ -123,7 +120,6 @@ cxl.extend(KeyboardManager.prototype, {
 		if (this.disabled)
 			return;
 
-		ev.stopPropagation();
 	var
 		t = Date.now(),
 		k = this.getKeyId(ev),
@@ -142,6 +138,7 @@ cxl.extend(KeyboardManager.prototype, {
 		do {
 			if (this.handleKey(seq.join(' '))!==false)
 			{
+				ev.stopPropagation();
 				ev.preventDefault();
 				t = 0;
 				break;
@@ -464,9 +461,7 @@ ide.keymap.registerKeys({
 	},
 
 	terminal: {
-
 		'alt+enter': 'ex'
-
 	}
 
 });

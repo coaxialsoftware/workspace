@@ -343,10 +343,10 @@ ide.PluginComponent = PluginComponent;
 
 cxl.directive('ide.on', {
 
-	connected()
+	connect()
 	{
 		this.bindings = [
-			ide.plugins.on(this.parameters, this.set.bind(this))
+			ide.plugins.on(this.parameter, this.set.bind(this))
 		];
 	}
 

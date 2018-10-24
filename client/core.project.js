@@ -1,7 +1,3 @@
-/**
- * workspace.project
- */
-
 ((cxl, ide) => {
 "use strict";
 
@@ -38,11 +34,11 @@ function onProjectError(e)
 	return Promise.reject(e);
 }
 
-function onLoginAuth(login)
+function onLoginAuth()
 {
+	ide.keyboard.disabled = false;
+	cxl.dom.remove(loginForm);
 	loginForm = null;
-	login.remove();
-	login.destroy();
 	ide.workspace.el.style.opacity = 1;
 	ide.project.fetch();
 }
@@ -52,10 +48,12 @@ function doLogin()
 	if (loginForm)
 		return;
 
-	ide.editor = null;
-	loginForm = new ide.LoginComponent();
-	loginForm.user = null;
+	loginForm = cxl.dom('ide-login-container');
 	loginForm.addEventListener('auth', onLoginAuth.bind(null, loginForm));
+
+	ide.keyboard.disabled = true;
+	loginForm.appendChild(cxl.dom('ide-login', { user: null }));
+
 	document.body.appendChild(loginForm);
 	ide.workspace.el.style.opacity = 0;
 }
@@ -104,14 +102,6 @@ ide.Project = class Project {
 	{
 		if (this.fetching)
 			return this.fetching;
-
-		if (loginForm)
-		{
-			// Make sure editor is always null on focus
-			// TODO might need to fix focus event on CodeMirror
-			ide.editor = null;
-			return Promise.reject();
-		}
 
 		return (this.fetching = cxl.ajax.xhr({ url: this.url(), responseType: 'json' })
 			.then(this.parse.bind(this), onProjectError)
@@ -232,7 +222,7 @@ class ProjectList extends ide.ListEditor {
 
 ide.registerCommand('projects', {
 
-	fn: function()
+	fn()
 	{
 		return new ProjectList({ plugin: this });
 	},
@@ -244,7 +234,7 @@ ide.registerCommand('projects', {
  * Open project by path
  */
 ide.registerCommand('project', {
-	fn: function(name) {
+	fn(name) {
 		var hash = '#' + ide.hash.encode({ p: name || null, f: null });
 		if (ide.project.id!=='.' || ide.workspace.slots.length)
 			window.open(hash);
@@ -259,7 +249,7 @@ ide.registerCommand('project', {
 });
 
 ide.registerCommand('project.settings', {
-	fn: function() {
+	fn() {
 		ide.open({ file: 'project.json' });
 	},
 	icon: 'cog'

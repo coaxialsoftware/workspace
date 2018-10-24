@@ -1,5 +1,5 @@
 
-(function(ide, cxl, XTerminal) {
+((ide, cxl, XTerminal) => {
 "use strict";
 
 var editorId = 1;
@@ -55,7 +55,7 @@ class EditorHeader extends Feature {
 	{
 		this.editor.el.appendChild(this.el);
 		this.editor.listenTo(this.$close, 'click', this.$onClose);
-		this.$project.innerHTML = ide.project.id;
+		this.$project.innerHTML = ide.project.id || '';
 	}
 
 	set title(title)
@@ -725,14 +725,14 @@ class ComponentEditor extends Editor {
 	{
 		super.render(p);
 
-		this.$component = p.component(p);
-		this.$content.appendChild(this.$component.$native);
+		this.$component = this.$component || p.component();
+		this.$content.appendChild(this.$component);
 	}
 
 	destroy()
 	{
 		super.destroy();
-		this.$component.destroy();
+		cxl.dom.remove(this.$component);
 	}
 
 }
@@ -806,7 +806,7 @@ class Terminal extends Editor {
 	{
 		super.render(p);
 
-		var term = this.$term = new XTerminal();
+		const term = this.$term = new XTerminal();
 
 		term.open(this.$content, { focus: false });
 		term.attachCustomKeyEventHandler(this.$onKey.bind(this));

@@ -898,6 +898,9 @@ class SourceEditor extends ide.FileEditor {
 			this.setTag('editor.encoding', this.encoding);
 
 		this.keymap.handle = this._keymapHandle.bind(this);
+		editor.on('keydown', (cm, ev) => {
+			ev.codemirrorIgnore = true;
+		});
 
 		this.listenTo(ide.plugins, 'workspace.resize', this.resize);
 

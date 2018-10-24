@@ -7,21 +7,21 @@
 		"workspace": "./bin/workspace.js"
 	},
 	"dependencies": {
+		"@cxl/cxl": "^2.2.0",
+		"@cxl/filewatch": "*",
+		"@cxl/rx": "*",
 		"colors": "*",
-		"compression": "*",
+		"compression": "^1.7.3",
 		"micromatch": "^3.1.5",
 		"mime": "^2.2.0",
 		"npm": "*",
 		"uglify-es": "^3.3.10",
-		"websocket": "*",
-		"@cxl/cxl": "*",
-		"@cxl/rx": "*",
-		"@cxl/filewatch": "*"
+		"websocket": "*"
 	},
 	"devDependencies": {
 		"@cxl/build": "*",
-		"@cxl/ui": "*",
 		"@cxl/docs": "*",
+		"@cxl/ui": "*",
 		"codemirror": "^5.40.2",
 		"font-awesome": "*",
 		"qunit": "^2.6.2",

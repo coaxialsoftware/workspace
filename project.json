@@ -7,7 +7,7 @@
 				"tasks": "node scripts/build"
 			},
 			"html": {
-				"files": [ "client/html/*.html", "public/build/ide.css" ],
+				"files": [ "client/styles.css", "client/html/*.html" ],
 				"tasks": "node scripts/build-html"
 			}
 		}
