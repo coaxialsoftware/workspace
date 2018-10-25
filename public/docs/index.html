@@ -1,42 +1,4 @@
-<head>
-	<title>workspace - Help</title>
-</head>
-	<link rel="stylesheet" href="docs.css" />
-	<style>
-		docs-file, code, docs-setting {
-			font-family: monospace; padding: 4px 8px; color: #bd4147; background-color: #f7f7f9;
-		}
-		docs-kbd, docs-cmd {
-			font-family: monospace; border-radius: 4px; background-color: #f4f2f9; color: #0072be;
-			padding: 2px 8px;
-		}
-		docs-code { display: block; font-family: monospace; white-space: pre; }
-		docs-cmd::before { content: ":"; }
-	</style>
-<cxl-root>
-	<cxl-header>
-		<cxl-header-nav>
-			<cxl-nav-item &="route.link(getting-started)">Getting Started</cxl-nav-item>
-			<cxl-nav-item &="route.link(basic-concepts)">Basic Concepts</cxl-nav-item>
-			<cxl-nav-item &="route.link(plugins)">Extensions</cxl-nav-item>
-			<cxl-nav-item &="route.link(ui)">User Interface</cxl-nav-item>
-			<cxl-nav-item &="route.link(basic-editing)">Basic Editing</cxl-nav-item>
-			<cxl-nav-item &="route.link(keyboard)">Keyboard Shortcuts</cxl-nav-item>
-			<!--cxl-nav-item &="route.link(code-navigation)">Code Navigation</cxl-nav-item-->
-			<!--cxl-nav-item &="route.link(debugging)">Debugging</cxl-nav-item-->
-			<!--cxl-nav-item &="route.link(version-control)">Version Control</cxl-nav-item-->
-			<!--cxl-nav-item &="route.link(accessibility)">Accessibility</cxl-nav-item-->
-		</cxl-header-nav>
-		<cxl-header-title>workspace - <cxl-route-title></cxl-route-title></cxl-header-title>
-	</cxl-header>
-<cxl-content><cxl-container &="content"></cxl-container></cxl-content>
-</cxl-root>
-	
 <template id="getting-started">
-	<p>
-		A Development Environment for the Cloud
-	</p>
-	
 	<h2>Getting Started</h2>
 	
 	<h3>System Requiremets</h3>
@@ -368,44 +330,15 @@ $ workspace
 	</p>
 </template>
 
-	<script>
-		(function(window) {
-			var module = 'bash';
-			window.module = {
-				set exports(fn) {
-					hljs.registerLanguage(module, fn);
-					module = 'javascript';
-				}	
-			};
-		})(this)
-	</script>
 	<script src="../build/docs.js"></script>
 	<script>
-		//hljs.configure({ tabReplace: '    ' });
 		cxl.component({
-			name: 'docs-code',
-			initialize: function(state)
-			{
-				var node = this.$native.childNodes[0];
-				if (node)
-					node.nodeValue = node.nodeValue.trimLeft();
-				node = this.$native.childNodes[this.$native.childNodes.length-1];
-				if (node)
-					node.nodeValue = node.nodeValue.trimRight();
-				
-				state.cm = hljs.highlightBlock(this.$native);
-			}
-		});
-		
-		cxl.component({
-			name: 'docs-cmd',
-			shadow: false
+			name: 'docs-cmd'
 		});
 		
 		cxl.route({
 			id: 'getting-started',
-			shadow: false,
-			path: '*home',
+			defaultRoute: true,
 			templateId: 'getting-started',
 			title: 'Getting Started'
 		});
@@ -413,14 +346,12 @@ $ workspace
 		cxl.route({
 			id: 'basic-editing',
 			path: '/basic-editing',
-			shadow: false,
 			templateId: 'basic-editing',
 			title: 'Basic Editing'
 		});
 		
 		cxl.route({
 			id: 'ui',
-			shadow: false,
 			path: '/ui',
 			templateId: 'ui',
 			title: 'User Interface'
@@ -428,7 +359,6 @@ $ workspace
 		
 		cxl.route({
 			id: 'accessibility',
-			shadow: false,
 			path: '/accessibility',
 			templateId: 'accessibility',
 			title: 'Accessibility'
@@ -436,7 +366,6 @@ $ workspace
 		
 		cxl.route({
 			id: 'debugging',
-			shadow: false,
 			path: '/debugging',
 			templateId: 'debugging',
 			title: 'Debugging'
@@ -444,7 +373,6 @@ $ workspace
 		
 		cxl.route({
 			id: 'code-navigation',
-			shadow: false,
 			path: '/code-navigation',
 			templateId: 'code-navigation',
 			title: 'Code Navigation'
@@ -452,7 +380,6 @@ $ workspace
 		
 		cxl.route({
 			id: 'basic-concepts',
-			shadow: false,
 			path: '/basic-concepts',
 			templateId: 'basic-concepts',
 			title: 'Basic Concepts'
@@ -460,7 +387,6 @@ $ workspace
 		
 		cxl.route({
 			id: 'version-control',
-			shadow: false,
 			path: '/version-control',
 			templateId: 'version-control',
 			title: 'Version Control'
@@ -468,7 +394,6 @@ $ workspace
 		
 		cxl.route({
 			id: 'plugins',
-			shadow: false,
 			path: '/plugins',
 			templateId: 'plugins',
 			title: 'Extensions'
@@ -476,11 +401,26 @@ $ workspace
 		
 		cxl.route({
 			id: 'keyboard',
-			shadow: false,
 			path: '/keyboard',
 			templateId: 'keyboard',
 			title: 'Keyboard Shortcuts'
 		});
 		
-		cxl.start();
-	</script>
+cxl.component({
+	name: 'ide-docs',
+	template: `
+<cxl-router-app>
+	<cxl-block>
+		<cxl-t h6>@cxl/workspace</cxl-t>
+	</cxl-block>
+	<cxl-item &="route.link(getting-started)">Getting Started</cxl-item>
+	<cxl-item &="route.link(basic-concepts)">Basic Concepts</cxl-item>
+	<cxl-item &="route.link(plugins)">Extensions</cxl-item>
+	<cxl-item &="route.link(ui)">User Interface</cxl-item>
+	<cxl-item &="route.link(basic-editing)">Basic Editing</cxl-item>
+	<cxl-item &="route.link(keyboard)">Keyboard Shortcuts</cxl-item>
+</cxl-router-app>
+	`
+});
+</script>
+<ide-docs></ide-docs>
