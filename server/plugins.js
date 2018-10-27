@@ -276,7 +276,7 @@ class PluginManager extends EventEmitter {
 
 			data.forEach(d => {
 				if (regex.test(d))
-					this.requireFile(path.resolve(dir, d));
+					this.requireFile(path.join(dir, d));
 			});
 		}
 

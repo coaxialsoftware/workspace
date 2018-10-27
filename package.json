@@ -2,7 +2,7 @@
 	"name": "@cxl/workspace",
 	"description": "Javascript Web Editor",
 	"author": "Giancarlo Bellido <giancarlo@coaxialhost.com>",
-	"version": "3.3.0",
+	"version": "3.3.3",
 	"bin": {
 		"workspace": "./bin/workspace.js"
 	},
@@ -16,7 +16,7 @@
 		"mime": "^2.2.0",
 		"npm": "*",
 		"uglify-es": "^3.3.10",
-		"websocket": "*"
+		"websocket": "1.0.26"
 	},
 	"devDependencies": {
 		"@cxl/build": "*",

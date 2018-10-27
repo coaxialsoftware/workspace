@@ -401,17 +401,21 @@ class FileManagerWatcher
 {
 	constructor(p)
 	{
-		this.$watchers = p.paths.map(dir =>
-			DirectoryWatch.create(dir).subscribe(ev => {
-				const rel = path.relative(p.base, ev.path);
+		this.$watchers = p.paths.map(dir => {
+			try {
+				DirectoryWatch.create(dir).subscribe(ev => {
+					const rel = path.relative(p.base, ev.path);
 
-				if (!(p.ignore && p.ignore(rel)))
-				{
-					ev.relativePath = rel;
-					p.onWatch(ev);
-				}
-			})
-		);
+					if (!(p.ignore && p.ignore(rel)))
+					{
+						ev.relativePath = rel;
+						p.onWatch(ev);
+					}
+				});
+			} catch (e) {
+				ide.module.dbg(e);
+			}
+		});
 	}
 
 	destroy()

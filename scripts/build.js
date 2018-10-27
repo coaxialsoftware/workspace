@@ -4,6 +4,7 @@ const
 
 	SRC = [
 		'client/core.js',
+		c => `ide.version="${c.package.version}";`,
 		'client/core.item.js',
 		'client/core.editor.js',
 		'client/core.plugins.js',
