@@ -177,6 +177,9 @@ class Project {
 
 			if (ev.relativePath==='project.json')
 				this.reload();
+			else if (!this.files.includes(ev.relativePath))
+				this.buildFilesDebounced();
+
 		} else if (ev.type!=='error')
 		{
 			this.broadcast({

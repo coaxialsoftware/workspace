@@ -403,7 +403,7 @@ class FileManagerWatcher
 	{
 		this.$watchers = p.paths.map(dir => {
 			try {
-				DirectoryWatch.create(dir).subscribe(ev => {
+				return DirectoryWatch.create(dir).subscribe(ev => {
 					const rel = path.relative(p.base, ev.path);
 
 					if (!(p.ignore && p.ignore(rel)))
@@ -453,6 +453,11 @@ class FileManager {
 
 			walker.walk().then(fn);
 		});
+	}
+
+	includes(path)
+	{
+		return this.files.includes(path);
 	}
 
 	watchFiles()

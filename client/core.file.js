@@ -201,6 +201,7 @@ class FileEditorHeader extends ide.feature.EditorHeader {
 		var update = this.update.bind(this);
 		super.render();
 		this.editor.listenTo(ide.plugins, 'file.parse', update);
+		this.editor.listenTo(ide.plugins, 'file.error', update);
 		update();
 	}
 
@@ -281,14 +282,13 @@ class FileSync {
 
 	$onMessageStat(data)
 	{
-		if (!('t' in data))
-			throw "Invalid Stat Message";
-
 		if (this.$file.stat && this.$file.stat.mtime.getTime()!==data.t)
 		{
-			if (this.$file.hasChanged())
+			// Do not update if file was removed in the server or if it has local modifications
+			if (!data.t || this.$file.hasChanged())
 			{
 				this.outOfSync = true;
+				ide.plugins.trigger('file.error', this.$file);
 				ide.warn('File "' + this.$file.name + '" contents could not be updated.');
 			}
 			else
@@ -463,7 +463,7 @@ class FileFeature extends ide.Feature {
 
 		return this.$file.write(this.content).then(file => {
 			this.parse();
-			this.outOfSync = false;
+			this.$sync.outOfSync = false;
 			ide.notify('File ' + file.name + ' saved.');
 			ide.plugins.trigger('file.write', this);
 		});
