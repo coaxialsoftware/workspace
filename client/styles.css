@@ -126,6 +126,12 @@ ide-editor-content > .CodeMirror {
 	background-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.95);
 }
 
+ide-editor-header {
+	line-height: 24px; display: flex;
+	overflow: hidden; white-space: nowrap; margin: 0; padding: 0 8px;
+	font-size: 16px; color: rgba(255,255,255,0.7);
+}
+
 ide-editor-header > .close {
 	padding-top: 0; color: rgba(255,255,255,0.5);
 	float: right; cursor: pointer; margin-left: 8px;
@@ -133,13 +139,10 @@ ide-editor-header > .close {
 ide-editor-header > .close:before {
 	font-family: FontAwesome; content: "\f00d";
 }
+
+ide-editor-header > .title { flex-grow: 1; flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; }
 ide-editor-header > .close:hover { color: rgba(255,255,255,0.9); }
 ide-editor-header > .tags { margin-top: -2px; float: right; box-shadow: none; }
-ide-editor-header {
-	line-height: 24px; display: block;
-	overflow: hidden; white-space: nowrap; margin: 0; padding: 0 8px;
-	font-size: 16px; color: rgba(255,255,255,0.7);
-}
 ide-editor-header > .modified:before { /*content: "\f067";*/ content: "+"; }
 ide-editor-header > .project { margin-right: 8px; }
 ide-editor-header > .project:before { content: '['; }
