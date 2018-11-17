@@ -457,7 +457,7 @@ class FileManager {
 
 	includes(path)
 	{
-		return this.files.includes(path);
+		return !!this.files.find(f => f.filename===path);
 	}
 
 	watchFiles()

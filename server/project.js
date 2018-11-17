@@ -118,9 +118,9 @@ class Project {
 	/**
 	 * Adds promises to be resolved on Project load.
 	 */
-	resolve()
+	resolve(promise)
 	{
-		this.promises.push.apply(this.promises, arguments);
+		this.promises.push(promise.catch(err => this.log.error(err)));
 	}
 
 	/**
@@ -178,6 +178,7 @@ class Project {
 
 			if (ev.relativePath==='project.json')
 				this.reload();
+			// Handle files added
 			else if (!this.files.includes(ev.relativePath))
 				this.buildFilesDebounced();
 

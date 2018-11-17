@@ -1,11 +1,11 @@
 
-var
-	EventEmitter = require('events').EventEmitter,
+const
 	fs = require('fs'),
 	path = require('path').posix,
 	UglifyJS = require('uglify-es'),
 
 	FileWatch = require('@cxl/filewatch').FileWatch,
+	EventEmitter = require('@cxl/rx').EventEmitter,
 	plugin = module.exports = cxl('workspace.plugins')
 ;
 
@@ -134,6 +134,12 @@ class PluginManager extends EventEmitter {
 		super();
 		this.plugins = {};
 		this.on('plugins.source', this.resetSources.bind(this));
+		this.on('error', this.handleError.bind(this));
+	}
+
+	handleError(err)
+	{
+		plugin.warn(err);
 	}
 
 	resetSources()
