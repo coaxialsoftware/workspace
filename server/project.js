@@ -118,9 +118,9 @@ class Project {
 	/**
 	 * Adds promises to be resolved on Project load.
 	 */
-	resolve(promise)
+	resolve()
 	{
-		this.promises.push(promise);
+		this.promises.push.apply(this.promises, arguments);
 	}
 
 	/**

@@ -1,5 +1,5 @@
 
-((ide, cxl) => {
+(ide => {
 "use strict";
 
 class Hint {
@@ -400,4 +400,4 @@ Object.assign(ide, {
 	Hint: Hint
 });
 
-})(this.ide, this.cxl);
+})(this.ide);
