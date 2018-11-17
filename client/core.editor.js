@@ -38,15 +38,17 @@ class EditorHeader extends Feature {
 
 		this.tags = {};
 
-		el.innerHTML = '<div class="close"></div><div class="tags"></div>' +
-			'<span class="modified"></span><span class="project"></span>' +
-			'<span class="title"></span>';
+		el.innerHTML = '<div class="project"></div>' +
+			'<div class="modified"></div>' +
+			'<div class="title"></div>' +
+			'<div class="tags"></div>' +
+			'<div class="close"></div>';
 
-		this.$close = el.childNodes[0];
-		this.$tags = el.childNodes[1];
-		this.$changed = el.childNodes[2];
-		this.$project = el.childNodes[3];
-		this.$title = el.childNodes[4];
+		this.$close = el.childNodes[4];
+		this.$tags = el.childNodes[3];
+		this.$changed = el.childNodes[1];
+		this.$project = el.childNodes[0];
+		this.$title = el.childNodes[2];
 		this._title = '';
 		this.changed = false;
 	}
@@ -61,7 +63,7 @@ class EditorHeader extends Feature {
 	set title(title)
 	{
 		if (this._title!==title)
-			this.$title.innerHTML = this._title = title;
+			this.$title.title = this.$title.innerHTML = this._title = title;
 	}
 
 	get title()
