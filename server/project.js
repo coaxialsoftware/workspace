@@ -78,6 +78,7 @@ class Project {
 	constructor(path)
 	{
 		this.path = path;
+		this.resources = new ide.ResourceManager();
 		this.clients = [];
 		this.create();
 		this.buildFilesDebounced = cxl.debounce(this.buildFiles, 250);
@@ -246,6 +247,7 @@ class Project {
 	reload()
 	{
 		this.log('Reloading project.');
+		this.destroy();
 		this.create().doLoad();
 	}
 
@@ -318,6 +320,11 @@ class Project {
 	toJSON()
 	{
 		return this.configuration;
+	}
+
+	destroy()
+	{
+		this.resources.destroy();
 	}
 
 }

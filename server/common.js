@@ -1074,6 +1074,25 @@ class RPCServer {
 
 }
 
+class ResourceManager {
+
+	constructor()
+	{
+		this.resources = [];
+	}
+
+	add()
+	{
+		this.resources.push.apply(this.resources, arguments);
+	}
+
+	destroy()
+	{
+		this.resources.forEach(r => r.destroy ? r.destroy() : r.unsubscribe());
+	}
+
+}
+
 module.exports = {
 
 	AuthenticationAgent: AuthenticationAgent,
@@ -1094,6 +1113,7 @@ module.exports = {
 	Process: Process,
 	ProcessStream: ProcessStream,
 	RPCServer: RPCServer,
+	ResourceManager: ResourceManager,
 	ServerResponse: ServerResponse,
 	Stream: Stream,
 	Theme: Theme,
