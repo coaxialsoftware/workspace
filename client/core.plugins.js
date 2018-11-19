@@ -182,8 +182,12 @@ class PluginManager extends cxl.rx.EventEmitter
 		this.each(function(plug) {
 			if (this.started && plug.core)
 				return;
-			if (plug.ready)
-				plug.ready();
+			try {
+				if (plug.ready)
+					plug.ready();
+			} catch(e) {
+				window.console.error(e);
+			}
 		});
 
 		this.started = true;

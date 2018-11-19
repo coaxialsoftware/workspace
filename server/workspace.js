@@ -68,7 +68,7 @@ class WorkspaceConfiguration extends ide.Configuration {
 		const inspect = process.execArgv.join('').match(/--inspect(?:=(\d+))?/);
 
 		if (inspect)
-			this.set({ 'debug.inspect': +inspect[1] || 9222 });
+			this.$set({ 'debug.inspect': +inspect[1] || 9222 });
 
 		if (this.debug)
 			cxl.enableDebug();

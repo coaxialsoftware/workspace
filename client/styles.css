@@ -265,6 +265,7 @@ ide-icon:hover, .ide-icon:hover { color: #fff; }
 ide-icon:focus, .ide-icon:focus { color: #fff; outline: 1px solid #ccc; }
 
 /* TODO */
+ide-icon.branch::before { content: "\f126"; }
 ide-icon.bug::before { content: "\f188"; }
 ide-icon.command::before { content: "\f120"; }
 ide-icon.cog::before { content: "\f013"; }

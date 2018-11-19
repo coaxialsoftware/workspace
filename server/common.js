@@ -57,17 +57,21 @@ class Configuration {
 		}, 500);
 
 		if (defaults)
-			this.set(defaults);
+			this.$set(defaults);
 	}
 
-	// TODO add checks in debug module
-	set(key, value)
+	$set(key, value)
 	{
 		if (typeof(key)==='object')
 			Object.assign(this, key);
 		else
 			this[key] = value;
+	}
 
+	// TODO add checks in debug module
+	set(key, value)
+	{
+		this.$set(key, value);
 		return this.update();
 	}
 
@@ -94,7 +98,7 @@ class Configuration {
 		}
 
 		if (obj)
-			this.extend(obj);
+			ide.extend(this, obj);
 		else if (required)
 			throw `Could not read JSON file ${fn}`;
 
@@ -269,10 +273,11 @@ class File {
 
 class FileWalker {
 
-	constructor(path, ignore)
+	constructor(path, ignore, recursive)
 	{
 		this.root = path;
 		this.ignore = ignore;
+		this.recursive = recursive;
 	}
 
 	serialize(file, stat)
@@ -301,7 +306,7 @@ class FileWalker {
 						fs.stat(this.root + '/' + relfile, (err, stat) => {
 							if (!err)
 							{
-								if (stat.isDirectory())
+								if (this.recursive && stat.isDirectory())
 									this.$recursiveWalk(relfile);
 
 								this.$results.push(this.serialize(relfile, stat));
@@ -345,7 +350,8 @@ class FileMatcher {
 
 	constructor(files)
 	{
-		this.files = [];
+		this.$patterns = [];
+		this.dirty = true;
 
 		if (files)
 			this.push(files);
@@ -355,31 +361,29 @@ class FileMatcher {
 	{
 		if (Array.isArray(files))
 			files.forEach(this.push, this);
-		else if (this.files.indexOf(files)===-1)
+		else if (!this.$patterns.includes(files))
 		{
-			this.files.push(files);
+			this.$patterns.push(files);
 			this.dirty = true;
 		}
 	}
 
-	matcher(path)
-	{
-		return micromatch.any(path, this.files);
-	}
-
 	build()
 	{
-		if (this.dirty && this.files.length)
+		if (this.dirty)
 		{
+			this.matcher = path => micromatch.some(path, this.$patterns);
+
 			this.source = '^' +
-				this.files.map(function(glob) {
+				this.$patterns.map(function(glob) {
 				try {
-					var regex = micromatch.makeRe(glob).source;
+					const regex = micromatch.makeRe(glob).source;
 					return regex.substr(1, regex.length-2);
 				} catch(e) {
 					this.error(`Invalid ignore parameter: "${glob}"`);
 				}
 			}, this).join('|');
+
 			this.dirty = false;
 		}
 
@@ -426,32 +430,24 @@ class FileManagerWatcher
 
 class FileManager {
 
-	constructor(p)
+	constructor(path)
 	{
-		this.path = p.path;
-		this.ignore = p.ignore;
-		this.onEvent = p.onEvent;
-		this.recursive = p.recursive!==false;
-	}
-
-	onWalk(resolve, reject, data)
-	{
-		this.building = false;
-		this.files = data;
-		this.watchFiles();
-
-		resolve(data);
+		this.path = path;
 	}
 
 	build()
 	{
-		var walker = new FileWalker(this.path, this.ignore);
-
+	const
+		walker = new FileWalker(this.path,
+			this.$ignore.matcher.bind(this.$ignore), this.recursive)
+	;
 		this.building = true;
-		return new Q((resolve, reject) => {
-			var fn = this.onWalk.bind(this, resolve, reject);
+		return walker.walk().then(data => {
+			this.building = false;
+			this.files = data;
+			this.watchFiles();
 
-			walker.walk().then(fn);
+			return data;
 		});
 	}
 
@@ -475,7 +471,7 @@ class FileManager {
 
 		this.watcher = new FileManagerWatcher({
 			base: this.path,
-			ignore: this.ignore,
+			ignore: this.$ignore.matcher.bind(this.$ignore),
 			paths: files,
 			onWatch: this.onEvent.bind(this)
 		});

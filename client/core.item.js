@@ -9,7 +9,7 @@ class Hint {
 		this.priority = p.priority || 0;
 		this.className = p.className || 'log';
 		this.icon = p.icon;
-		this.title = p.title;
+		this.title = p.title || '';
 		this.range = p.range;
 		this.description = p.description;
 		this.value = 'value' in p ? p.value : p.title;

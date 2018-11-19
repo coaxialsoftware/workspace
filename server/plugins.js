@@ -139,7 +139,7 @@ class PluginManager extends EventEmitter {
 
 	handleError(err)
 	{
-		plugin.warn(err);
+		plugin.error(err);
 	}
 
 	resetSources()
