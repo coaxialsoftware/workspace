@@ -433,13 +433,14 @@ class FileManager {
 	constructor(path)
 	{
 		this.path = path;
+		this.recursive = true;
 	}
 
 	build()
 	{
 	const
 		walker = new FileWalker(this.path,
-			this.$ignore.matcher.bind(this.$ignore), this.recursive)
+			this.$ignore.matcher, this.recursive)
 	;
 		this.building = true;
 		return walker.walk().then(data => {
@@ -471,7 +472,7 @@ class FileManager {
 
 		this.watcher = new FileManagerWatcher({
 			base: this.path,
-			ignore: this.$ignore.matcher.bind(this.$ignore),
+			ignore: this.$ignore.matcher,
 			paths: files,
 			onWatch: this.onEvent.bind(this)
 		});
