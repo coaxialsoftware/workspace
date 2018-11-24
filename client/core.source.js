@@ -407,11 +407,6 @@ class SourceHistoryFeature extends ide.feature.HistoryFeature {
 
 class SourceLineFeature extends ide.feature.LineFeature {
 
-	get columnStart()
-	{
-		return 0;
-	}
-
 	get columnEnd()
 	{
 	var
@@ -430,10 +425,6 @@ class SourceLineFeature extends ide.feature.LineFeature {
 	get rowEnd()
 	{
 		return this.editor.editor.getCursor('head').line;
-	}
-
-	get current()
-	{
 	}
 
 	get value()
@@ -610,14 +601,11 @@ class SourceRange extends ide.Token {
 
 	replace(text)
 	{
-		// TODO optimize
-		var cursor = this.editor.editor.getCursor();
 		this.editor.editor.replaceRange(text,
 			{ line: this.row, ch: this.column },
 			{ line: this.endRow, ch: this.endColumn },
 			'range.replace'
 		);
-		this.editor.editor.setCursor(cursor);
 	}
 
 	getCoordinates()
@@ -653,30 +641,9 @@ class SourceSearchFeature extends ide.feature.SearchFeature {
 		}
 	}
 
-	// TODO
-	searchReplaceRange(pattern, str, from, to)
-	{
-		from = from || { line: 0, ch: 0 };
-		to = to || { line: this.editor.lastLine() };
-		this.editor.replace(pattern, str, {
-			from: from, to: to, separator: this.options.lineSeparator
-		});
-	}
-
 }
 
-class SourceToken extends SourceRange {
-
-	replace(text)
-	{
-		this.editor.editor.replaceRange(text,
-			{ line: this.row, ch: this.column },
-			{ line: this.endRow, ch: this.endColumn },
-			'range.replace'
-		);
-	}
-
-}
+class SourceToken extends SourceRange { }
 
 Object.defineProperty(SourceToken.prototype, 'value',
 	{ writable: true, enumerable: true, value: null });
@@ -746,6 +713,17 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 	}
 
 }
+
+class DocumentFeature extends ide.Feature {
+
+	getRange()
+	{
+		return this.editor.range.create(0, 0, this.editor.editor.doc.lastLine());
+	}
+
+}
+
+DocumentFeature.featureName = 'document';
 
 class SourceFileFeature extends ide.feature.FileFeature {
 
@@ -916,7 +894,7 @@ class SourceEditor extends ide.FileEditor {
 }
 
 SourceEditor.features(
-	SourceHintsFeature, SourceFileFeature,
+	SourceHintsFeature, SourceFileFeature, DocumentFeature,
 	SourceInsertFeature, SourceCursorFeature, SourceScrollFeature, SourceSelectionFeature,
 	SourceLineFeature, SourceHistoryFeature, SourceWordFeature, SourcePageFeature,
 	SourceTokenFeature, SourceSearchFeature, SourceIndentFeature, SourceFoldFeature,

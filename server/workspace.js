@@ -61,6 +61,11 @@ class WorkspaceConfiguration extends ide.Configuration {
 			'plugins.url': 'https://cxl.firebaseio.com/workspace/plugins.json'
 		});
 
+		this.exposedSettings = [
+			'keymap', 'theme', 'debug.inspect', 'path.separator', 'editor.encoding',
+			'help.url', 'workspace.version'
+		];
+
 		this.loadFile('~/.workspace.json');
 		this.loadFile('workspace.json');
 
@@ -86,6 +91,12 @@ class WorkspaceConfiguration extends ide.Configuration {
 		} catch(e) {
 			workspace.dbg(e);
 		}
+	}
+
+	registerSetting(setting)
+	{
+		if (setting.exposed)
+			this.exposedSettings.push(setting.name);
 	}
 
 }
@@ -140,6 +151,8 @@ workspace.createServer()
 })
 .run(function() {
 
+	process.on('uncaughtException', this.error.bind(this));
+
 	const config = ide.configuration;
 
 	if (config.gid)
@@ -160,8 +173,6 @@ workspace.createServer()
 	require('./file').start();
 	require('./assist').start();
 
-	process.on('uncaughtException', this.error.bind(this));
 
 	this.operation('Loading plugins', ide.plugins.start.bind(ide.plugins));
 }).start();
-

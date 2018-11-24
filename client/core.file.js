@@ -153,6 +153,14 @@ class FileItem extends ide.Item {
 
 		this.line = p.line;
 		this.prefix = p.prefix;
+
+		if (p.open)
+			this.open = p.open;
+	}
+
+	open(options)
+	{
+		ide.open(options);
 	}
 
 	enter(shift, mod)
@@ -171,7 +179,7 @@ class FileItem extends ide.Item {
 		if (mod)
 			options.target = '_blank';
 
-		ide.open(options);
+		this.open(options);
 	}
 
 }
@@ -450,6 +458,12 @@ class FileFeature extends ide.Feature {
 		}).then(file => {
 			ide.notify(`File ${file.name} successfully deleted`);
 		});
+	}
+
+	replace(filename)
+	{
+		this.$file.name = filename;
+		return this.read();
 	}
 
 	write(filename, force)

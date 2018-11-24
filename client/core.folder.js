@@ -1,5 +1,5 @@
 
-(function(ide, cxl) {
+((ide, cxl)=>{
 "use strict";
 
 function globToRegex(glob) {
@@ -324,24 +324,27 @@ class DirectoryFeature extends ide.feature.FileFeature {
 		file = this.$file,
 		path = file.name,
 		prefix = path==='.' ? '' : path,
+		open = options => this.replace(options.file),
 		files
 	;
-		files = file.content.sort(function(A, B) {
-			return (A.mime==='text/directory' ? -2 : 0) + (B.mime==='text/directory' ? 2 : 0) +
-				(A.filename.toLowerCase() < B.filename.toLowerCase() ? -1 : 1);
-		}).map(function(f) {
+		function getItem(f)
+		{
 			return new ide.FileItem({
 				title: f.filename,
 				mime: f.mime,
 				prefix: prefix,
-				className: f.directory ? 'directory' : 'file'
+				className: f.directory ? 'directory' : 'file',
+				open: f.mime==='text/directory' ? open : null
 			});
-		});
+		}
+
+		files = file.content.sort(function(A, B) {
+			return (A.mime==='text/directory' ? -2 : 0) + (B.mime==='text/directory' ? 2 : 0) +
+				(A.filename.toLowerCase() < B.filename.toLowerCase() ? -1 : 1);
+		}).map(f => getItem(f));
 
 		if (file.path!=='.')
-			files.unshift(new ide.FileItem(
-				{ title: '..', mime: 'text/directory', prefix: prefix }
-			));
+			files.unshift(getItem({ filename: '..', mime: 'text/directory' }));
 
 		if (this.editor.children.length)
 			this.editor.reset();
@@ -402,19 +405,19 @@ ide.plugins.register('folder', new ide.Plugin({
 
 	core: true,
 
-	start: function()
+	start()
 	{
 		this.listenTo('project.load', this.onProject);
 		this.listenTo('assist', this.onAssistInline);
 		this.onProject(ide.project);
 	},
 
-	onProject: function(p)
+	onProject(p)
 	{
 		worker.post('setFiles', p.attributes.files);
 	},
 
-	onAssistInline: function(request)
+	onAssistInline(request)
 	{
 	var
 		token = request.features.token,
@@ -442,7 +445,7 @@ ide.plugins.register('folder', new ide.Plugin({
 			request.respondInline(files);
 	},
 
-	getFuzzyRegex: function(mask)
+	getFuzzyRegex(mask)
 	{
 		var regex;
 
@@ -458,7 +461,7 @@ ide.plugins.register('folder', new ide.Plugin({
 		return regex;
 	},
 
-	find: function(mask, fuzzy, enclose)
+	find(mask, fuzzy, enclose)
 	{
 	var
 		regex = fuzzy ? this.getFuzzyRegex(mask) : globToRegex(mask),

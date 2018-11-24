@@ -341,19 +341,29 @@ HashFeature.featureName = 'hash';
 
 class SearchFeature extends Feature {
 
-	replace(val, replace)
+	// search(pattern, str, options)
+
+	replaceNext(val, replace)
 	{
-		var range = this.search(val);
+		const range = this.search(val);
 		return range && range.replace(replace);
+	}
+
+	replaceRange(search, replace, range)
+	{
+		range = range || this.editor.document.getRange();
+		const newLine = range.value.replace(search, replace);
+		range.replace(newLine);
 	}
 
 }
 
 SearchFeature.featureName = 'search';
 SearchFeature.commands = {
-	'search.next': function(val) { this.search.search(val); },
-	'search.previous': function(val) { this.search.search(val, true); },
-	'search.replace': function(val, replace) { this.search.replace(val, replace); },
+	'search.next'(val) { this.search.search(val); },
+	'search.previous'(val) { this.search.search(val, true); },
+	'search.replaceNext'(val, replace) { this.search.replaceNext(val, replace); },
+	'search.replace'(val, replace) { this.search.replaceRange(val, replace); },
 	'search': 'search.next'
 };
 
@@ -367,14 +377,30 @@ class SelectionFeature extends Feature {
 
 SelectionFeature.featureName = 'selection';
 SelectionFeature.commands = {
-	'selection.begin': function() { this.selection.begin(); },
-	'selection.end': function() { this.selection.end(); },
-	'selection.clear': function() { this.selection.clear(); },
-	'selection.remove': function() { this.selection.remove(); },
-	'selection.selectAll': function() { this.selection.selectAll(); }
+	'selection.begin'() { this.selection.begin(); },
+	'selection.end'() { this.selection.end(); },
+	'selection.clear'() { this.selection.clear(); },
+	'selection.remove'() { this.selection.remove(); },
+	'selection.selectAll'() { this.selection.selectAll(); }
 };
 
 class LineFeature extends Feature {
+
+	get columnStart()
+	{
+		return 0;
+	}
+
+	get current()
+	{
+		return this.editor.range.create(
+			this.rowStart, this.columnStart, this.rowEnd, this.columnEnd);
+	}
+
+	get value()
+	{
+		return this.current.value;
+	}
 
 	select()
 	{
@@ -498,6 +524,11 @@ class TokenFeature extends Feature {
 	/** @abstract */
 	getToken()
 	{
+	}
+
+	get value()
+	{
+		return this.current && this.current.value;
 	}
 
 }

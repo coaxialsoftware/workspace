@@ -1,5 +1,5 @@
 
-(function(ide, cxl) {
+((ide, cxl) => {
 "use strict";
 
 function sandbox(a) {
@@ -16,13 +16,13 @@ function CommandParser() {}
 
 cxl.extend(CommandParser.prototype, {
 
-	error: function(state, msg)
+	error(state, msg)
 	{
 		if (!state.silent)
 			throw new Error("Column " + state.i + ': ' + msg);
 	},
 
-	parseUntil: function(args, state, end, fn)
+	parseUntil(args, state, end, fn)
 	{
 		end.lastIndex = state.i;
 		var pos = end.exec(args), i = state.i, result;
@@ -45,44 +45,44 @@ cxl.extend(CommandParser.prototype, {
 		}
 	},
 
-	parseString: function(args, state)
+	parseString(args, state)
 	{
 		this.parseUntil(args, state, /([^\\]")/g, JSON.parse);
 	},
 
-	parseRegex: function(args, state)
+	parseRegex(args, state)
 	{
 		this.parseUntil(args, state, /([^\\]\/[gimy]*)/g, sandbox);
 	},
 
-	parseJS: function(args, state)
+	parseJS(args, state)
 	{
 		state.i++;
 		this.parseUntil(args, state, /([^\\])`/g, sandbox);
 		state.i++;
 	},
 
-	parsePath: function(args, state)
+	parsePath(args, state)
 	{
 		this.parseUntil(args, state, /[^\\]([\s;])|$/g, function(a) {
 			return a.replace(/\\ /g, ' ');
 		});
 	},
 
-	parseCmd: function(args, state)
+	parseCmd(args, state)
 	{
-		this.parseUntil(args, state, /[\s;]|$/g, null);
+		this.parseUntil(args, state, /[\s;\/]|$/g, null);
 		this.ignoreSpace(args, state);
 		return state.result[0];
 	},
 
-	ignoreSpace: function(args, state)
+	ignoreSpace(args, state)
 	{
 		while (/\s/.test(args[state.i]))
 			state.i++;
 	},
 
-	parseArguments: function(args, state)
+	parseArguments(args, state)
 	{
 		state.result = [];
 
@@ -101,7 +101,7 @@ cxl.extend(CommandParser.prototype, {
 		return state.result.length ? state.result : null;
 	},
 
-	parse: function(src, silent)
+	parse(src, silent)
 	{
 	var
 		state = { i: 0, result: [], end: src.length, silent: silent },
@@ -123,7 +123,7 @@ cxl.extend(CommandParser.prototype, {
 	},
 
 	/** Parses and executes command. */
-	run: function(src)
+	run(src)
 	{
 		var cmd = this.parse(src);
 		return ide.runParsedCommand(cmd);

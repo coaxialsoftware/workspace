@@ -107,6 +107,17 @@ class Configuration {
 
 }
 
+class Setting {
+
+	constructor(name, options)
+	{
+		this.name = name;
+		this.exposed = options.exposed;
+		this.help = options.help;
+	}
+
+}
+
 class FileStat {
 
 	constructor(stat)
@@ -1112,6 +1123,7 @@ module.exports = {
 	RPCServer: RPCServer,
 	ResourceManager: ResourceManager,
 	ServerResponse: ServerResponse,
+	Setting: Setting,
 	Stream: Stream,
 	Theme: Theme,
 

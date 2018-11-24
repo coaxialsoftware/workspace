@@ -20,16 +20,9 @@ class ProjectConfiguration extends ide.Configuration
 	constructor(p)
 	{
 		var c = ide.configuration;
+		super();
 
-		super({
-			keymap: c.keymap,
-			theme: c.theme,
-			'debug.inspect': c['debug.inspect'],
-			'path.separator': c['path.separator'],
-			'editor.encoding': c['editor.encoding'],
-			'help.url': c['help.url'],
-			'workspace.version': c.version
-		});
+		c.exposedSettings.forEach(s => this.$set(s, c[s]));
 
 		this.ignore = [];
 		this.$set(c.project);
@@ -369,8 +362,6 @@ class ProjectManager {
 
 	constructor()
 	{
-		const p = this.workspaceProject = new Project('.');
-		p.load();
 		this.path = '.';
 		ide.plugins.on('project.filechange', this.onFileChange.bind(this));
 		this.projects = {};
@@ -424,6 +415,9 @@ class ProjectManager {
 
 	findProjects()
 	{
+		const p = this.workspaceProject = new Project('.');
+		p.load();
+
 		this.workspaceProject.log.dbg('Building project list');
 
 		return ide.File.list(this.path).then(list => {

@@ -73,7 +73,7 @@ cxl.extend(KeyboardManager.prototype, {
 		54: '^', 55: '&', 56: '*', 57: '('
 	},
 
-	getChar: function(ev)
+	getChar(ev)
 	{
 	var
 		key = ev.keyCode || ev.which,
@@ -95,7 +95,7 @@ cxl.extend(KeyboardManager.prototype, {
 		return ch;
 	},
 
-	getKeyId: function(ev)
+	getKeyId(ev)
 	{
 	var
 		ch = this.getChar(ev),
@@ -115,7 +115,7 @@ cxl.extend(KeyboardManager.prototype, {
 		return result ? result+'+'+ch : ch;
 	},
 
-	onKeyDown: function(ev)
+	onKeyDown(ev)
 	{
 		if (this.disabled)
 			return;
@@ -149,7 +149,7 @@ cxl.extend(KeyboardManager.prototype, {
 		this.t = t;
 	},
 
-	_findKey: function(keymap, state, action)
+	_findKey(keymap, state, action)
 	{
 		state = state || keymap.getState();
 
@@ -158,7 +158,7 @@ cxl.extend(KeyboardManager.prototype, {
 				return i;
 	},
 
-	findKey: function(action, state)
+	findKey(action, state)
 	{
 	var
 		keymap = ide.editor && ide.editor.keymap,
@@ -177,7 +177,7 @@ cxl.extend(KeyboardManager.prototype, {
 	 * Handles Key. First checks if there is a keymap defined for the
 	 * current editor.
 	 */
-	handleKey: function(key)
+	handleKey(key)
 	{
 	var
 		keymap = ide.editor && ide.editor.keymap,
@@ -193,7 +193,7 @@ cxl.extend(KeyboardManager.prototype, {
 		return result===ide.Pass ? false : result;
 	},
 
-	parseKey: function(key)
+	parseKey(key)
 	{
 	var
 		sequence = key.replace(/mod\+/g, this.MODREPLACE).split(' '),
@@ -220,7 +220,7 @@ cxl.extend(KeyboardManager.prototype, {
 		return sequence;
 	},
 
-	normalize: function(key)
+	normalize(key)
 	{
 	var
 		sequence = this.parseKey(key),
@@ -253,14 +253,14 @@ cxl.extend(KeyMap.prototype, {
 	 */
 	states: null,
 
-	start: function()
+	start()
 	{
 		if (!this.state)
 			this.state = (ide.project && ide.project.get('keymap')) ||
 				this.defaultState || 'default';
 	},
 
-	createHandler: function(map, key)
+	createHandler(map, key)
 	{
 	var
 		fn = map[key],
@@ -280,12 +280,12 @@ cxl.extend(KeyMap.prototype, {
 		return handler;
 	},
 
-	registerKey: function(state, key, handler)
+	registerKey(state, key, handler)
 	{
 		state[key] = handler;
 	},
 
-	registerState: function(state, map)
+	registerState(state, map)
 	{
 	var
 		key
@@ -296,18 +296,18 @@ cxl.extend(KeyMap.prototype, {
 			this.registerKey(state, ide.keyboard.normalize(key), this.createHandler(map, key));
 	},
 
-	registerKeys: function(map)
+	registerKeys(map)
 	{
 		for (var state in map)
 			this.registerState(state, map[state]);
 	},
 
-	getState: function(state)
+	getState(state)
 	{
 		return this.states[state || this.state];
 	},
 
-	setState: function(state)
+	setState(state)
 	{
 		this.state = state;
 
@@ -315,7 +315,7 @@ cxl.extend(KeyMap.prototype, {
 			ide.plugins.trigger('editor.keymap', this, this.editor);
 	},
 
-	getHandler: function(key, state)
+	getHandler(key, state)
 	{
 	var
 		map = this.states[state || this.state],
@@ -327,7 +327,7 @@ cxl.extend(KeyMap.prototype, {
 	/**
 	 * Handles key in current state, or optional state parameter.
 	 */
-	handle: function(key, state)
+	handle(key, state)
 	{
 		var fn = this.getHandler(key, state);
 

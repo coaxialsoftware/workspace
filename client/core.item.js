@@ -380,7 +380,7 @@ class Logger {
 			this.active[span.id] = span;
 		}
 
-		var el = span.render();
+		const el = span.render();
 
 		this.el.insertBefore(el, this.el.firstChild);
 

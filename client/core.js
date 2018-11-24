@@ -110,10 +110,9 @@ var ide = window.ide = {
 	/** Displays notification on right corner */
 	notify(message, kls)
 	{
-	var
-		span = message instanceof ide.Item ? message :
-			new ide.Notification(message, kls)
-	;
+		const span = message instanceof ide.Item ? message :
+			new ide.Notification(message, kls);
+
 		return ide.logger.notify(span);
 	}
 

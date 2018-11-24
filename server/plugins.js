@@ -48,9 +48,16 @@ class Plugin {
 		});
 
 		if (mod.sourcePath)
-		{
 			this.sourceWatch = FileWatch.create(mod.sourcePath).subscribe(this.onWatch.bind(this));
-		}
+
+		if (mod.settings)
+			this.registerSettings(mod.settings);
+	}
+
+	registerSettings(settings)
+	{
+		for (var i in settings)
+			ide.configuration.registerSetting(new ide.Setting(i, settings[i]));
 	}
 
 	start()

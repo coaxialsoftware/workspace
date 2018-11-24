@@ -251,7 +251,7 @@ var PluginComponent = cxl.component({
 	template: `
 <link rel="stylesheet" href="styles.css" />
 <ide-item class="item">
-<ide-item-tags><cxl-fragment &="each(tags):repeat"><ide-tag &="item:text"></ide-tag></cxl-fragment>
+<ide-item-tags><template &="each(tags):repeat"><ide-tag &="item:text"></ide-tag></template>
 </ide-item-tags><code &="=code:text"></code><ide-item-title &="=title:|text">
 </ide-item-title><ide-item-description &="=description:show:text"></ide-item-description>
 <ide-item-footer &="=local:hide">
@@ -285,7 +285,7 @@ var PluginComponent = cxl.component({
 
 		tags.push(a.version);
 
-		this.code = a.id;
+		this.code = a.id + ' ' + a.version;
 		this.title = a.name;
 		this.description = a.description;
 		this.installed = a.installed;
