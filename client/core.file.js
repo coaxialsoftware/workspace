@@ -1,12 +1,19 @@
-/**
- * workspace.file
- */
 ((cxl, ide) => {
 "use strict";
 
-var
-	CONTENT_TYPE_REGEX = /([\w\d\/\-]+)(?:;\s*charset="?([\w\d\-]+)"?)?/
+const
+	CONTENT_TYPE_REGEX = /([\w\d\/\-]+)(?:;\s*charset="?([\w\d\-]+)"?)?/,
+	ICON_PROVIDERS = []
 ;
+
+function findIconByProvider(file) {
+	for (let provider of ICON_PROVIDERS)
+	{
+		let result = provider(file);
+		if (result)
+			return result;
+	}
+}
 
 class File {
 
@@ -15,10 +22,13 @@ class File {
 		return Array.prototype.join.call(arguments, ide.project.get('path.separator') || '/');
 	}
 
-	// TODO
-	static getIcon(mime)
+	static registerIconProvider(fn) {
+		ICON_PROVIDERS.unshift(fn);
+	}
+
+	static getIcon(file)
 	{
-		return mime==='text/directory' ? 'directory' : 'file';
+		return findIconByProvider(file) || (file.mime==='text/directory' ? 'directory' : 'file');
 	}
 
 	/**
@@ -147,7 +157,11 @@ class FileItem extends ide.Item {
 	constructor(p)
 	{
 		if (!p.icon)
-			p.icon = File.getIcon(p.mime);
+		{
+			// TODO ugh...
+			p.name = p.title;
+			p.icon = File.getIcon(p);
+		}
 
 		super(p);
 

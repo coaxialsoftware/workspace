@@ -189,6 +189,9 @@ class ProjectFileManager extends ide.FileManager
 
 	load()
 	{
+		if (this.project.path==='.')
+			return;
+
 		this.buildIgnore();
 		return this.buildFiles();
 	}

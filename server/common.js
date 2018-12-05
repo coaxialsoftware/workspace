@@ -487,6 +487,8 @@ class FileManager {
 			paths: files,
 			onWatch: this.onEvent.bind(this)
 		});
+
+		this.log.dbg(`Watching ${files.length} directories. ${FileWatch.getCount()} Total`);
 	}
 }
 

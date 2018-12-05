@@ -100,12 +100,8 @@ class PluginManager extends cxl.rx.EventEmitter
 	{
 		if (data.refresh)
 			ide.notify({
-				code: 'core', progress: 0, id: 'plugins',
-				className: 'warn', title: 'Plugins updated. Please refresh',
-				enter: function()
-				{
-					location.reload();
-				}
+				code: 'core', // progress: 0, id: 'plugins',
+				className: 'warn', title: 'Plugins updated. Please refresh'
 			});
 	}
 

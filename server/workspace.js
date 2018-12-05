@@ -173,6 +173,5 @@ workspace.createServer()
 	require('./file').start();
 	require('./assist').start();
 
-
 	this.operation('Loading plugins', ide.plugins.start.bind(ide.plugins));
 }).start();

@@ -43,6 +43,7 @@ const
 		'node_modules/codemirror/mode/xml/xml.js',
 		'node_modules/codemirror/mode/htmlmixed/htmlmixed.js',
 		'node_modules/codemirror/mode/css/css.js',
+		'node_modules/codemirror/addon/mode/simple.js',
 
 		'client/cm.find.js',
 		'node_modules/xterm/dist/xterm.js',
@@ -50,9 +51,8 @@ const
 	],
 	CXL = [
 		'node_modules/@cxl/ui/dist/cxl-ui.js',
-		'node_modules/@cxl/ui/dist/cxl-ui-beta.js',
-		'node_modules/@cxl/ui/dist/cxl-ui-ajax.js',
-		'node_modules/@cxl/ui/dist/cxl-ui-legacy.js'
+		'node_modules/@cxl/ui/dist/cxl-ui-alpha.js',
+		'node_modules/@cxl/ui/dist/cxl-ui-ajax.js'
 	]
 ;
 
@@ -69,7 +69,6 @@ builder.build({
 			src: [
 				'node_modules/@cxl/ui/dist/debug.js',
 				'node_modules/@cxl/ui/dist/cxl-ui-ajax.js',
-				'node_modules/@cxl/ui/dist/cxl-ui-legacy.js',
 				...SRC,
 				'client/debug.js'
 			]
@@ -84,7 +83,7 @@ builder.build({
 			src: [
 				'node_modules/@cxl/ui/dist/cxl-ui.js',
 				'node_modules/@cxl/ui/dist/cxl-ui-icons.js',
-				'node_modules/@cxl/ui/dist/cxl-ui-beta.js',
+				'node_modules/@cxl/ui/dist/cxl-ui-alpha.js',
 				'node_modules/@cxl/ui/dist/cxl-ui-ajax.js',
 				'node_modules/@cxl/ui/dist/cxl-router.js',
 				'node_modules/@cxl/docs/dist/docs.js'

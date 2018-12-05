@@ -659,7 +659,9 @@ class Editor {
 
 		this.render(p);
 
-		cxl.invokeMap(this.features, 'render');
+		for (i in this.features)
+			if (this.features[i].render)
+				this.features[i].render();
 	}
 
 	getAssistData()

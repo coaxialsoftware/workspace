@@ -1,4 +1,4 @@
-(function(ide) {
+(ide => {
 "use strict";
 
 class TokenEditor extends ide.SourceEditor {
@@ -47,12 +47,12 @@ ide.plugins.register('debug', {
 
 	core: true,
 
-	onProjectLoad: function()
+	onProjectLoad()
 	{
-		window.console.log('Project configuration was updated. Reloading');
+		window.console.log('Project configuration was updated.');
 	},
 
-	ready: function()
+	ready()
 	{
 		this.listenTo('project.load', this.onProjectLoad);
 	},
@@ -60,7 +60,7 @@ ide.plugins.register('debug', {
 	commands: {
 
 		'debug.token': {
-			fn: function()
+			fn()
 			{
 				var file = new ide.File();
 				file.mime = 'application/json';
@@ -73,8 +73,15 @@ ide.plugins.register('debug', {
 			icon: 'bug'
 		},
 
+		'debug.stats': {
+			fn()
+			{
+			},
+			icon: 'bug'
+		},
+
 		'debug.inspect': {
-			fn: function()
+			fn()
 			{
 			var
 				loc = window.location,
@@ -96,25 +103,19 @@ ide.plugins.register('debug', {
 			icon: 'bug'
 		},
 
-		'debug.restart': {
-			fn: function() { },
-			icon: 'bug'
-		},
-
 		'debug.tests': {
-			fn: function() { window.open('/client'); },
+			fn() { window.open('/client'); },
 			icon: 'bug'
 		},
 
 		'debug.benchmark': {
-			fn: function() { window.open('/client/benchmark.html'); },
+			fn() { window.open('/client/benchmark.html'); },
 			icon: 'bug'
 		},
 
 		'debug.diff': {
 
-			// TODO
-			fn: function()
+			fn()
 			{
 				var newfile = new ide.File();
 
