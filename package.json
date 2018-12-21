@@ -19,10 +19,11 @@
 		"websocket": "1.0.26"
 	},
 	"devDependencies": {
+		"@cxl/ajax": "0.0.1",
 		"@cxl/build": "*",
 		"@cxl/docs": "*",
 		"@cxl/ui": "*",
-		"codemirror": "^5.40.2",
+		"codemirror": "^5.42.0",
 		"font-awesome": "*",
 		"qunit": "^2.6.2",
 		"xterm": "^2.9.2"

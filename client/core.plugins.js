@@ -46,7 +46,7 @@ class Plugin
 		if (value!==undefined)
 			window.localStorage[prop] = value;
 		else
-			delete(window.localStorage[prop]);
+			window.localStorage.removeItem(prop);
 	}
 
 	/**

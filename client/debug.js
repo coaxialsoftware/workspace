@@ -1,6 +1,11 @@
 (ide => {
 "use strict";
 
+const
+	trigger = ide.plugins.trigger,
+	events$ = new cxl.rx.BehaviorSubject()
+;
+
 class TokenEditor extends ide.SourceEditor {
 
 	// TODO figure a better way to disable token feature.
@@ -33,6 +38,29 @@ class TokenEditor extends ide.SourceEditor {
 
 }
 
+
+ide.plugins.trigger = function(type, a, b, c) {
+	events$.next({
+		type: type, a: a, b: b, c: c
+	});
+	return trigger.call(this, type, a, b, c);
+};
+
+class DebugEvents extends ide.ListEditor {
+
+	render(p)
+	{
+		super.render(p);
+
+		this.bindings.push(
+			events$.subscribe(ev => {
+				this.add([{ title: ev.type }]);
+			})
+		);
+	}
+
+}
+
 var loadPlugin = ide.plugins.loadPlugin;
 
 ide.plugins.loadPlugin = function(plug, name) {
@@ -45,6 +73,7 @@ ide.plugins.loadPlugin = function(plug, name) {
 
 ide.plugins.register('debug', {
 
+	icon: 'bug',
 	core: true,
 
 	onProjectLoad()
@@ -106,6 +135,16 @@ ide.plugins.register('debug', {
 		'debug.tests': {
 			fn() { window.open('/client'); },
 			icon: 'bug'
+		},
+
+		'debug.events': {
+			fn() {
+				const editor = new DebugEvents({
+					command: 'debug.events'
+				});
+
+				return editor;
+			}
 		},
 
 		'debug.benchmark': {

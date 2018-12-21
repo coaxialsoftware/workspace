@@ -1,12 +1,12 @@
 
-(function(ide) {
+(ide => {
 "use strict";
 
 ide.plugins.register('welcome', new ide.Plugin({
 
 	core: true,
 
-	onChange: function()
+	onChange()
 	{
 		if (ide.workspace.slots.length===0)
 		{
@@ -20,16 +20,15 @@ ide.plugins.register('welcome', new ide.Plugin({
 		}
 	},
 
-	renderTemplate: function()
+	renderTemplate()
 	{
-		return '<h1 id="title">workspace<small> ' +
-			ide.project.get('workspace.version') + '</small></h1>' +
-			'<p>Type <kbd>' + this.exKey + '</kbd> to enter commands or <kbd>' +
-			this.assistKey + '</kbd> for the assist window.</p><h2 id="subtitle">' +
-			this.project + '</h2>';
+		return `<h1 id="title">workspace<small>${ide.version}</small></h1>
+			<p>Type <kbd>${this.exKey}</kbd> to enter commands or <kbd>
+			${this.assistKey}</kbd> for the assist window.</p><h2 id="subtitle">
+			${this.project}</h2>`;
 	},
 
-	ready: function()
+	ready()
 	{
 	var
 		p = ide.project,

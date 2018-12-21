@@ -52,7 +52,7 @@ const
 	CXL = [
 		'node_modules/@cxl/ui/dist/cxl-ui.js',
 		'node_modules/@cxl/ui/dist/cxl-ui-alpha.js',
-		'node_modules/@cxl/ui/dist/cxl-ui-ajax.js'
+		'node_modules/@cxl/ajax/index.js'
 	]
 ;
 
@@ -68,7 +68,7 @@ builder.build({
 			output: 'debug.js',
 			src: [
 				'node_modules/@cxl/ui/dist/debug.js',
-				'node_modules/@cxl/ui/dist/cxl-ui-ajax.js',
+				'node_modules/@cxl/ajax/index.js',
 				...SRC,
 				'client/debug.js'
 			]
@@ -82,9 +82,9 @@ builder.build({
 			output: 'docs.js',
 			src: [
 				'node_modules/@cxl/ui/dist/cxl-ui.js',
-				'node_modules/@cxl/ui/dist/cxl-ui-icons.js',
+				'node_modules/@cxl/ui/dist/icons.js',
 				'node_modules/@cxl/ui/dist/cxl-ui-alpha.js',
-				'node_modules/@cxl/ui/dist/cxl-ui-ajax.js',
+				'node_modules/@cxl/ajax/index.js',
 				'node_modules/@cxl/ui/dist/cxl-router.js',
 				'node_modules/@cxl/docs/dist/docs.js'
 			]

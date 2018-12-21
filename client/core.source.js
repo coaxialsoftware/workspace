@@ -125,7 +125,9 @@ class SourceInsertFeature extends ide.feature.InsertFeature {
 
 	tab()
 	{
-		this.editor.editor.execCommand('defaultTab');
+		// TODO
+		this.editor.editor.execCommand(this.editor.options.indentWithTabs ?
+			'insertTab' : 'insertSoftTab');
 	}
 
 	backspace()

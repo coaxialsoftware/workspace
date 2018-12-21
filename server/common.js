@@ -271,9 +271,10 @@ class File {
 	{
 		this.content = content;
 
-		ide.plugins.emit('file.beforewrite', this);
+		const resolve = ide.plugins.emit('file.beforewrite', this);
 
-		return cxl.file.write(this.path, this.content, { encoding: null })
+		return Promise.resolve(resolve)
+			.then(() => cxl.file.write(this.path, this.content, { encoding: null }))
 			.then(() => {
 				ide.plugins.emit('file.write', this);
 				return this.read();
