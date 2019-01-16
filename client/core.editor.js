@@ -26,6 +26,7 @@ class Feature {
 
 XTerminal.prototype.addEventListener = XTerminal.prototype.on;
 XTerminal.prototype.removeEventListener = XTerminal.prototype.off;
+XTerminal.applyAddon(window.fit);
 
 
 class EditorHeader extends Feature {
@@ -809,10 +810,25 @@ class Terminal extends Editor {
 		this.$term.focus();
 	}
 
+	$initTerminal(term)
+	{
+		// TODO add settings support
+		term.open(this.$content, { focus: false });
+		term.attachCustomKeyEventHandler(this.$onKey.bind(this));
+
+		this.$onResize = cxl.debounce(this.$onResize, 100);
+		this.listenTo(ide.plugins, 'workspace.resize', this.$onResize.bind(this));
+	}
+
 	$onResize()
 	{
-		this.header.setTag('size', this.$term.cols + 'x' + this.$term.rows);
-		this.$term.fit();
+		if (this.$term.element)
+		{
+			this.header.setTag('size', this.$term.cols + 'x' + this.$term.rows);
+			// Force geometry update
+			this.$term.resize(this.$term.cols, this.$term.rows);
+			this.$term.fit();
+		}
 	}
 
 	$onKey(ev)
@@ -842,16 +858,13 @@ class Terminal extends Editor {
 	{
 		super.render(p);
 
-		const term = this.$term = new XTerminal();
+		const term = this.$term = new XTerminal({ focus: false, fontSize: 16 });
 
-		term.open(this.$content, { focus: false });
-		term.attachCustomKeyEventHandler(this.$onKey.bind(this));
+		setTimeout(() => this.$initTerminal(term));
 
-		this.$onResize = cxl.debounce(this.$onResize, 100);
 		this.keymap.setState('terminal');
 		this.listenTo(this.el, 'focus', this.$onFocus.bind(this));
 		this.listenTo(this.$term, 'title', this.$onTitle.bind(this));
-		this.listenTo(ide.plugins, 'workspace.resize', this.$onResize.bind(this));
 	}
 
 }
