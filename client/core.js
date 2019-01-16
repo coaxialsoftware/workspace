@@ -186,8 +186,12 @@ ide.open = function(options)
 
 function _start()
 {
+	if (ide.ready)
+		return;
+
 	cxl.dom.root = document.body;
 
+	ide.ready = true;
 	ide.logger = new ide.Logger();
 	ide.workspace = new ide.Workspace();
 	ide.hash = new ide.Hash();
@@ -199,12 +203,15 @@ function _start()
 	ide.commandBar = new ide.Bar.Command();
 
 	ide.project.fetch();
+
+	//window.addEventListener('load', _start);
 }
 
 if (document.readyState!=='loading')
 	window.setTimeout(_start);
 else
 	window.addEventListener('DOMContentLoaded', _start);
+
 
 if (!cxl.debug)
 	window.addEventListener('error', function(msg) {

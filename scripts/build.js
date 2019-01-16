@@ -50,8 +50,7 @@ const
 		'node_modules/xterm/dist/addons/fit/fit.js'
 	],
 	CXL = [
-		'node_modules/@cxl/ui/dist/cxl-ui.js',
-		'node_modules/@cxl/ui/dist/cxl-ui-alpha.js',
+		'node_modules/@cxl/ui/index.js',
 		'node_modules/@cxl/ajax/index.js'
 	]
 ;
@@ -67,7 +66,7 @@ builder.build({
 		{
 			output: 'debug.js',
 			src: [
-				'node_modules/@cxl/ui/dist/debug.js',
+				'node_modules/@cxl/ui/debug.js',
 				'node_modules/@cxl/ajax/index.js',
 				...SRC,
 				'client/debug.js'
@@ -81,11 +80,10 @@ builder.build({
 		{
 			output: 'docs.js',
 			src: [
-				'node_modules/@cxl/ui/dist/cxl-ui.js',
-				'node_modules/@cxl/ui/dist/icons.js',
-				'node_modules/@cxl/ui/dist/cxl-ui-alpha.js',
+				'node_modules/@cxl/ui/index.js',
+				'node_modules/@cxl/ui/icons.js',
 				'node_modules/@cxl/ajax/index.js',
-				'node_modules/@cxl/ui/dist/cxl-router.js',
+				'node_modules/@cxl/ui/router.js',
 				'node_modules/@cxl/docs/dist/docs.js'
 			]
 		}

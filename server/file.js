@@ -53,8 +53,10 @@ plugin.config(function() {
 			if (stat && !stat.isNew && stat.mtime.getTime()!==data.t)
 			{
 				ide.socket.respond(client, 'file', {
-					p: data.p,
-					t: stat.mtime.getTime()
+					stat: {
+						p: data.p,
+						t: stat.mtime.getTime()
+					}
 				});
 			}
 		});

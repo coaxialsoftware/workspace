@@ -747,6 +747,7 @@ class Editor {
 	 */
 	quit()
 	{
+		ide.workspace.remove(ide.editor);
 		this.destroy();
 	}
 

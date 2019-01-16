@@ -94,6 +94,8 @@ class PluginManager extends cxl.rx.EventEmitter
 		this.source = null;
 
 		this.on('socket.message.plugins', this.onSocket, this);
+		// TODO should we keep this here?
+		window.addEventListener('focus', ev => this.emit('workspace.focus', ev));
 	}
 
 	onSocket(data)

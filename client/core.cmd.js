@@ -442,24 +442,29 @@ ide.plugins.register('core', {
 		'quitForce': 'q!',
 
 		/// Quit Vim. This fails when changes have been made.
-		q: function()
+		q()
 		{
-			if (ide.editor)
-				ide.workspace.remove(ide.editor);
-			else
-				window.close();
+			const editor = ide.editor;
+
+			if (!editor)
+				return window.close();
+
+			const msg = editor.quit();
+
+			if (msg && window.confirm(msg))
+				editor.quit(true);
 		},
 
-		qa: function()
+		qa()
 		{
 			ide.workspace.closeAll();
 		},
 
 		/// Quit always, without writing.
-		"q!": function()
+		"q!"()
 		{
 			if (ide.editor)
-				ide.workspace.remove(ide.editor, true);
+				ide.editor.quit(true);
 			else
 				window.close();
 		},

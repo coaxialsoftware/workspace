@@ -130,7 +130,7 @@ ide.Layout = {
 	// Layout Breakpoints
 	SMALL: 544,
 
-	Vertical: function(child)
+	Vertical(child)
 	{
 	var
 		h = (100 / child.length)
@@ -140,7 +140,7 @@ ide.Layout = {
 		});
 	},
 
-	Smart: function(child)
+	Smart(child)
 	{
 	var
 		i=0,
@@ -235,6 +235,7 @@ ide.Workspace = class Workspace {
 		this.slots = [];
 		this.layout = ide.Layout.Smart;
 		this.update = cxl.debounce(this._update.bind(this));
+		this.unloading = false;
 		window.addEventListener('resize', this.update);
 	}
 
@@ -296,24 +297,16 @@ ide.Workspace = class Workspace {
 		ide.plugins.trigger('workspace.remove', this.editor);
 	}
 
-	// TODO does it make sense to have this here?
-	remove(editor, force)
+	remove(editor)
 	{
-		var msg = editor.quit(force);
-
-		if (msg)
-		{
-			if (window.confirm(msg))
-				editor.quit(true);
-			else
-				return;
-		}
-
 		this.doRemove(editor);
 	}
 
 	_update()
 	{
+		if (this.unloading)
+			return;
+
 		var layout = this.layout(this.slots);
 
 		ide.workspace.slots.forEach(function(slot, i)
@@ -381,7 +374,8 @@ ide.Workspace = class Workspace {
 ide.Hash = Hash;
 
 window.addEventListener('beforeunload', function(ev) {
-	var i=0, slots=ide.workspace.slots, msg;
+	var i=0, slots=ide.workspace.slots.slice(0), msg;
+	ide.workspace.unloading = true;
 
 	for (; i<slots.length; i++)
 	{
@@ -393,6 +387,8 @@ window.addEventListener('beforeunload', function(ev) {
 			return msg;
 		}
 	}
+
+	ide.ready = false;
 });
 
 })(this.ide, this.cxl);

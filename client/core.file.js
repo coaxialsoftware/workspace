@@ -292,14 +292,20 @@ class FileSync {
 		this.$file = file;
 		this.$bindings = [
 			ide.plugins.on('socket.message.file', this.$onMessage.bind(this)),
-			ide.plugins.on('socket.ready', this.$onSocketReady.bind(this))
+			ide.plugins.on('socket.ready', this.$onSocketReady.bind(this)),
+			ide.plugins.on('workspace.focus', this.$sendStat.bind(this))
 		];
+	}
+
+	$sendStat()
+	{
+		if (this.$file.path)
+			ide.socket.send('file', { stat: { p: this.$file.path } });
 	}
 
 	$onSocketReady()
 	{
-		if (this.$file.path)
-			ide.socket.send('file', { stat: { p: this.$file.path } });
+		this.$sendStat();
 	}
 
 	$onMessageStat(data)
@@ -326,7 +332,7 @@ class FileSync {
 
 	$onMessage(data)
 	{
-		if (data.stat && data.stat.f===this.$file.path)
+		if (data.stat && data.stat.p===this.$file.path)
 			this.$onMessageStat(data.stat);
 	}
 
