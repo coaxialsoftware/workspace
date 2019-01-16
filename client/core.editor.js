@@ -813,7 +813,7 @@ class Terminal extends Editor {
 	$initTerminal(term)
 	{
 		// TODO add settings support
-		term.open(this.$content, { focus: false });
+		term.open(this.$content);
 		term.attachCustomKeyEventHandler(this.$onKey.bind(this));
 
 		this.$onResize = cxl.debounce(this.$onResize, 100);
