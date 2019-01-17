@@ -858,7 +858,11 @@ class Terminal extends Editor {
 	{
 		super.render(p);
 
-		const term = this.$term = new XTerminal({ focus: false, fontSize: 16 });
+		const term = this.$term = new XTerminal({
+			allowTransparency: true,
+			fontSize: 16,
+			theme: { background: 'transparent' }
+		});
 
 		setTimeout(() => this.$initTerminal(term));
 
