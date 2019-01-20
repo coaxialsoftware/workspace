@@ -204,7 +204,9 @@ function _start()
 
 	ide.project.fetch();
 
-	//window.addEventListener('load', _start);
+	window.addEventListener('load', () => {
+		ide.notify({ title: 'LOAD EVENT', progress: 0 });
+	});
 }
 
 if (document.readyState!=='loading')

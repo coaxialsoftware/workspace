@@ -51,6 +51,7 @@ const
 	],
 	CXL = [
 		'node_modules/@cxl/ui/index.js',
+		'node_modules/@cxl/ui/validation.js',
 		'node_modules/@cxl/ajax/index.js'
 	]
 ;
@@ -67,6 +68,7 @@ builder.build({
 			output: 'debug.js',
 			src: [
 				'node_modules/@cxl/ui/debug.js',
+				'node_modules/@cxl/ui/validation.js',
 				'node_modules/@cxl/ajax/index.js',
 				...SRC,
 				'client/debug.js'
