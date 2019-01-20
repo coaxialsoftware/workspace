@@ -203,10 +203,6 @@ function _start()
 	ide.commandBar = new ide.Bar.Command();
 
 	ide.project.fetch();
-
-	window.addEventListener('load', () => {
-		ide.notify({ title: 'LOAD EVENT', progress: 0 });
-	});
 }
 
 if (document.readyState!=='loading')
