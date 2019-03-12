@@ -97,6 +97,11 @@ class WorkspaceConfiguration extends ide.Configuration {
 	{
 		if (setting.exposed)
 			this.exposedSettings.push(setting.name);
+
+		if (('defaultValue' in setting) && !(setting.name in this))
+			this.$set(setting.name, setting.defaultValue);
+
+		return this[setting.name];
 	}
 
 }

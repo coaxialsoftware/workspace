@@ -186,9 +186,6 @@ ide.open = function(options)
 
 function _start()
 {
-	if (ide.ready)
-		return;
-
 	cxl.dom.root = document.body;
 
 	ide.ready = true;

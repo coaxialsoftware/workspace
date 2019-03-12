@@ -16,6 +16,7 @@ const
 ;
 
 mime.define({ 'application/typescript': [ 'ts' ]}, true);
+mime.define({ 'application/x-python': [ 'py' ]}, true);
 
 function getMime(path)
 {
@@ -1281,7 +1282,7 @@ module.exports = {
 			options.plugin.dbg(`${options.cwd ? '[cwd:'+options.cwd+'] ' : '' }exec "${command}"`);
 
 			cp.exec(command, options, function(err, stdout, stderr) {
-				if (err && err.code!==0)
+				if (err && !options.ignoreError && err.code!==0)
 				{
 					options.plugin.error(err);
 					options.plugin.dbg(stderr);

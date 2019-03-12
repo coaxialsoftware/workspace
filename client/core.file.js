@@ -73,7 +73,7 @@ class File {
 
 	$parse(xhr)
 	{
-		var m = CONTENT_TYPE_REGEX.exec(xhr.getResponseHeader('content-type'));
+		const m = CONTENT_TYPE_REGEX.exec(xhr.getResponseHeader('content-type'));
 
 		this.mime = m[1];
 		this.content = this.decode(xhr.response, this.encoding);

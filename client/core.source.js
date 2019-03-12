@@ -113,6 +113,7 @@ class SourceHintsFeature extends ide.feature.HintsFeature {
 		marker.appendChild(el);
 	}
 
+
 }
 
 class SourceInsertFeature extends ide.feature.InsertFeature {
@@ -751,13 +752,18 @@ class SourceFileFeature extends ide.feature.FileFeature {
 
 	update()
 	{
-	var
+	const
 		cm = this.editor.editor,
+		doc = cm.doc,
 		// TODO figure out a way not to scroll
 		cursor = cm.getCursor()
 	;
-		cm.setValue(this.content, false);
-		cm.setCursor(cursor, null, { scroll: true });
+		//doc.cm = null;
+		//cm.setValue(this.content);
+		//doc.cm = cm;
+		cm.replaceRange(this.content, { line: 0, ch: 0 },
+			{ line: doc.size, ch: cm.getLine(doc.size-1) });
+		cm.setCursor(cursor, null, { scroll: false });
 	}
 
 }
