@@ -755,12 +755,8 @@ class SourceFileFeature extends ide.feature.FileFeature {
 	const
 		cm = this.editor.editor,
 		doc = cm.doc,
-		// TODO figure out a way not to scroll
 		cursor = cm.getCursor()
 	;
-		//doc.cm = null;
-		//cm.setValue(this.content);
-		//doc.cm = cm;
 		cm.replaceRange(this.content, { line: 0, ch: 0 },
 			{ line: doc.size, ch: cm.getLine(doc.size-1) });
 		cm.setCursor(cursor, null, { scroll: false });
