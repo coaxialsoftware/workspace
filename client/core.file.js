@@ -48,7 +48,7 @@ class File {
 		// TODO remove this and use etag
 		mtime = this.stat && this.stat.mtime ? '&t=' + this.stat.mtime.getTime() : ''
 	;
-		return '/file?p=' + encodeURIComponent(ide.project.id) + '&n=' +
+		return 'file?p=' + encodeURIComponent(ide.project.id) + '&n=' +
 			encodeURIComponent(this.name) + mtime;
 	}
 
@@ -198,20 +198,28 @@ class FileItem extends ide.Item {
 
 }
 
-// TODO should we allow events for files?
-// Object.assign(File.prototype, cxl.Events);
-
 /**
  * Editor with ide.File support
  */
 class FileEditor extends ide.Editor {
 
+	canQuit()
+	{
+		if (this.file.hasChanged())
+			return 'File has changed. Are you sure?';
+	}
+
 	quit(force)
 	{
-		if (!force && this.file.hasChanged())
-			return 'File has changed. Are you sure?';
+		if (!force)
+		{
+			const msg = this.canQuit();
 
-		super.quit(force);
+			if (msg && !window.confirm(msg))
+				return;
+		}
+
+		return super.quit(force);
 	}
 
 }
@@ -310,22 +318,24 @@ class FileSync {
 
 	$onMessageStat(data)
 	{
-		if (this.$file.stat && this.$file.stat.mtime.getTime()!==data.t)
+		const file = this.$file;
+
+		if (file.stat && file.stat.mtime.getTime()!==data.t)
 		{
 			// Do not update if file was removed in the server or if it has local modifications
-			if (!data.t || this.$file.hasChanged())
+			if (!data.t || file.hasChanged())
 			{
 				this.outOfSync = true;
-				ide.plugins.trigger('file.error', this.$file);
-				ide.warn('File "' + this.$file.name + '" contents could not be updated.');
+				ide.plugins.trigger('file.error', file);
+				ide.warn('File "' + file.name + '" contents could not be updated.');
 			}
 			else
 			{
 				// TODO do we need this check?
-				if (!this.$file.$fetching)
-					ide.notify('File "' + data.f + '" was updated.');
+				if (!file.$fetching)
+					ide.notify('File "' + file.name + '" was updated.');
 
-				this.$file.read();
+				file.read();
 			}
 		}
 	}

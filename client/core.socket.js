@@ -95,14 +95,15 @@ class SocketManager {
 		me = this,
 		ws
 	;
-		this.config = cxl.extend({
+		this.config = {
 			host: doc.location.hostname,
-			port: config['socket.port']
-		});
+			port: config['socket.port'],
+			proxy: config['socket.proxy']
+		};
 
 		ws = this.ws = new window.WebSocket(
 			(config['socket.secure'] ? 'wss://' : 'ws://') +
-			this.config.host + ':' + this.config.port, 'workspace');
+			(this.config.proxy || (this.config.host + ':' + this.config.port)), 'workspace');
 
 		ws.onopen = function() {
 			me.retries = 0;
@@ -110,10 +111,6 @@ class SocketManager {
 				path: config.path, $: config.$
 			});
 			ide.plugins.trigger('socket.ready', this);
-		};
-
-		ws.onclose = function() {
-			me.checkConnection();
 		};
 
 		ws.onerror = function(ev) {

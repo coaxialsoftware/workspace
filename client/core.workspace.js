@@ -373,25 +373,16 @@ ide.Workspace = class Workspace {
 
 ide.Hash = Hash;
 
-window.addEventListener('freeze', () => {
-	ide.workspace.frozen = true;
-});
-
-window.addEventListener('resume', () => {
-	ide.workspace.frozen = false;
-});
-
 window.addEventListener('beforeunload', function(ev) {
-
-	if (ide.workspace.frozen)
-		return;
 
 	var i=0, slots=ide.workspace.slots.slice(0), msg;
 	ide.workspace.unloading = true;
 
 	for (; i<slots.length; i++)
 	{
-		msg = slots[i].editor.quit();
+		const editor = slots[i].editor;
+
+		msg = editor.canQuit && editor.canQuit();
 
 		if (typeof(msg)==='string')
 		{

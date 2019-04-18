@@ -13,8 +13,10 @@ class CodeMirrorOptions {
 
 	constructor(mode)
 	{
-		const s = ide.project.get('editor') || {};
-
+	const
+		s = ide.project.get('editor') || {},
+		modeOptions = ide.project.get('source.' + mode)
+	;
 		Object.assign(this,
 			{
 				tabSize: 4,
@@ -29,10 +31,10 @@ class CodeMirrorOptions {
 				matchBrackets: true,
 				foldGutter: true,
 				indentUnit: s.indentWithTabs ? 1 : (s.tabSize || 4),
-				lineSeparator: "\n"
-			}, s,
+				lineSeparator: "\n",
+				smartIndent: false
+			}, s, modeOptions,
 			{
-				//value: this.file.content || '',
 				theme: 'workspace',
 				// Disable drag and drop so dragdrop plugin works.
 				dragDrop: false,

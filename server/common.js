@@ -1146,7 +1146,7 @@ module.exports = {
 		/** Calls npm and returns a promise with the result */
 		doNpm(cmd, args, cwd)
 		{
-			args = args || [];
+			args = args || [ ];
 
 			return this.load(cwd).then(function(npm) {
 				return new Promise(function(resolve, reject) {
@@ -1172,7 +1172,7 @@ module.exports = {
 			});
 		},
 
-		load: function()
+		load()
 		{
 			return new Promise(function(resolve, reject) {
 				npm.load(function(er, npm) {
@@ -1189,14 +1189,12 @@ module.exports = {
 			});
 		},
 
-		install: function(module)
+		install(module)
 		{
-			return this.doNpm('install', [ [ module ] ]).then(function(a) {
-				return a[0][1];
-			});
+			return this.doNpm('install', [ [ module ] ]).then(a => a[0][1]);
 		},
 
-		uninstall: function(module)
+		uninstall(module)
 		{
 			return this.doNpm('uninstall', [ [ module ] ]);
 		}

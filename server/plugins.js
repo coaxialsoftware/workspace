@@ -6,8 +6,33 @@ const
 
 	FileWatch = require('@cxl/filewatch').FileWatch,
 	EventEmitter = require('@cxl/rx').EventEmitter,
-	plugin = module.exports = cxl('workspace.plugins')
+	plugin = module.exports = cxl('workspace.plugins'),
+	NPM = ide.NPM
 ;
+
+class PluginPackage {
+
+	constructor()
+	{
+		var json = {
+			installed: true,
+			id: this.id,
+			npmVersion: this.npmVersion,
+			unofficial: this.unofficial,
+			local: this.local
+		};
+
+		if (this.package)
+		{
+			json.name = this.package.name;
+			json.description = this.package.description;
+			json.version = this.package.version;
+		}
+
+		return json;
+	}
+
+}
 
 class Plugin {
 
@@ -78,7 +103,7 @@ class Plugin {
 
 	update()
 	{
-		return ide.NPM.update(this.name);
+		return NPM.update(this.name);
 	}
 
 	reload()
@@ -94,20 +119,6 @@ class Plugin {
 			this.source = d;
 			ide.plugins.emit('plugins.source', this.id, this.source);
 		}, () => this.source = '');
-	}
-
-	onValue(data)
-	{
-		if (!data)
-		{
-			this.unofficial = true;
-			return this.mod.dbg('Plugin not in main repository.');
-		}
-
-		this.npmVersion = data.version;
-
-		if (data.version !== this.package.version)
-			this.mod.dbg(`New version ${data.version} available!`);
 	}
 
 	toJSON()
@@ -170,15 +181,13 @@ class PluginManager extends EventEmitter {
 	 */
 	install(id)
 	{
-		var me = this, name = '@cxl/workspace.' + id;
+		const name = '@cxl/workspace.' + id;
 
-		return plugin.operation(`Installing plugin ${name}`, ide.NPM.install(name)
-			.then(function(path) {
-				var plugin = me.requireFile(path);
-				return plugin.ready;
-			}).then(function(plugin) {
+		return plugin.operation(`Installing plugin ${name}`, NPM.install(name)
+			.then(path => require(path + '/package.json'))
+			.then(plugin => {
 				ide.restart();
-				return plugin.toJSON();
+				return plugin;
 			}));
 	}
 
@@ -191,12 +200,10 @@ class PluginManager extends EventEmitter {
 	;
 		plugin.dbg(`Uninstalling plugin ${name}`);
 
-		return ide.NPM.uninstall(name).then(function(a) {
+		return NPM.uninstall(name).then(function(a) {
 			if (p)
-			{
-				plugin.unload();
 				delete me.plugins[id];
-			}
+
 			plugin.dbg(`Successfully uninstalled plugin ${name}`);
 			return a;
 		}).then(function() {
@@ -239,15 +246,24 @@ class PluginManager extends EventEmitter {
 
 	getOnlinePackages()
 	{
-		var url = ide.configuration['plugins.url'];
+		return ide.exec('npm search --json -l =cxl "@cxl/workspace."')
+			.then(data => JSON.parse(data), () => {
+				plugin.dbg('Could not retrieve plugin list from server');
+				return {};
+			}).then(all => {
+				const result = {};
 
-		return cxl.net.request(url).then(function(res) {
-			return JSON.parse(res.body);
-		}, function(e) {
-			plugin.dbg('Could not retrieve plugin list from server');
-			plugin.error(e);
-			return {};
-		});
+				all.forEach(pkg => {
+					if (pkg.name.indexOf('@cxl/workspace.')===0)
+					{
+						result[pkg.name.slice(15)] = pkg;
+						pkg.npmVersion = pkg.version;
+					}
+				});
+
+				return result;
+			})
+		;
 	}
 
 	getPackages()
@@ -260,14 +276,21 @@ class PluginManager extends EventEmitter {
 
 			cxl.each(plugins, function(a, k) {
 				if (a)
-					all[k] = a;
+				{
+					if (k in all)
+						Object.assign(all[k], {
+							version: a.package.version,
+							local: a.local,
+							installed: true
+						});
+					else
+						all[k] = Object.assign({}, a.toJSON(), {
+							unofficial: true,
+							local: a.local
+						});
+				}
 				else
 					plugin.error(`package.json not found for plugin "${k}"`);
-			});
-
-			// TODO ?
-			cxl.each(all, function(a, k) {
-				a.id = k;
 			});
 
 			return all;

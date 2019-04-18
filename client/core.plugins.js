@@ -102,7 +102,7 @@ class PluginManager extends cxl.rx.EventEmitter
 	{
 		if (data.refresh)
 			ide.notify({
-				code: 'core', // progress: 0, id: 'plugins',
+				code: 'core',
 				className: 'warn', title: 'Plugins updated. Please refresh'
 			});
 	}
@@ -112,7 +112,7 @@ class PluginManager extends cxl.rx.EventEmitter
 		if (!this.started)
 			return;
 
-		cxl.ajax.get('/plugins/source').then(source => {
+		cxl.ajax.get('plugins/source').then(source => {
 			/* jshint evil:true */
 			cxl.each(this._plugins, function(p) {
 				if (!p.core)
@@ -241,6 +241,11 @@ class PluginManager extends cxl.rx.EventEmitter
 
 }
 
+function versionToFloat(ver)
+{
+	const n = ver.split('.');
+	return n[0]*100000 + n[1]*1000 + n[2];
+}
 
 var PluginComponent = cxl.component({
 	name: 'ide-plugin-item',
@@ -249,7 +254,7 @@ var PluginComponent = cxl.component({
 	template: `
 <link rel="stylesheet" href="styles.css" />
 <ide-item class="item">
-<ide-item-tags><template &="each(tags):repeat"><ide-tag &="item:text"></ide-tag></template>
+<ide-item-tags><template &="=tags:each:repeat"><ide-tag &="item:text"></ide-tag></template>
 </ide-item-tags><code &="=code:text"></code><ide-item-title &="=title:|text">
 </ide-item-title><ide-item-description &="=description:show:text"></ide-item-description>
 <ide-item-footer &="=local:hide">
@@ -264,7 +269,9 @@ var PluginComponent = cxl.component({
 	{
 	var
 		tags = this.tags = [],
-		a = this.data
+		a = this.data,
+		version = versionToFloat(a.version),
+		npmVersion
 	;
 		if (a.installed)
 			tags.push('Installed');
@@ -275,19 +282,18 @@ var PluginComponent = cxl.component({
 
 		if (a.npmVersion)
 		{
-			if (a.version<a.npmVersion)
+			npmVersion = versionToFloat(a.npmVersion);
+
+			if (version<npmVersion)
 				tags.push('Update Available');
-			else if (a.version>a.npmVersion)
+			else if (version>npmVersion)
 				tags.push('NPM: ' + a.npmVersion);
 		}
 
-		tags.push(a.version);
-
-		this.code = a.id + ' ' + a.version;
-		this.title = a.name;
+		this.code = a.name.slice(15);
+		this.title = a.name + ' ' + a.version;
 		this.description = a.description;
 		this.installed = a.installed;
-		this.enabled = a.enabled;
 		this.version = a.version;
 	}
 
@@ -300,12 +306,10 @@ var PluginComponent = cxl.component({
 			id: this.code
 		}).then(function(res) {
 			me.data = res;
-			me.render();
 		}, function(er) {
 			ide.error(er);
 		}).then(function() {
-			// TODO
-			me.loadInstall = me.loadEnable = false;
+			me.loadInstall = false;
 		});
 	}
 

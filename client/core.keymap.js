@@ -234,13 +234,13 @@ cxl.extend(KeyboardManager.prototype, {
 
 });
 
-function KeyMap(editor)
+function KeyMap(editor, defaultKeymap)
 {
 	this.editor = editor;
 	this.states = {};
 
-	if (editor && editor.keymap)
-		this.state = editor.keymap;
+	if (defaultKeymap)
+		this.state = defaultKeymap;
 }
 
 cxl.extend(KeyMap.prototype, {

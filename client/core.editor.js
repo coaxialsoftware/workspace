@@ -4,6 +4,17 @@
 
 var editorId = 1;
 
+const rgba = cxl.css.rgba;
+
+cxl.css.extend({
+	colors: {
+		surface: rgba(0, 0, 0, 0),
+		onSurface: rgba(255, 255, 255, 1),
+		primary: rgba(52, 152, 219, 1),
+		elevation: rgba(0, 100, 159)
+	}
+});
+
 /**
  * A feature defines a set of functions and commands for an Editor.
  */
@@ -89,7 +100,7 @@ class EditorHeader extends Feature {
 	$onClose(ev)
 	{
 		ev.preventDefault(); ev.stopPropagation();
-		ide.workspace.remove(this);
+		this.quit();
 	}
 
 	$createTag(id)
@@ -280,7 +291,7 @@ class InsertFeature extends Feature {
 	read(file)
 	{
 		//file = file || ide.editor.file.filename;
-		cxl.ajax.get('/file?p=' + ide.project.id + '&n=' + file)
+		cxl.ajax.get('file?p=' + ide.project.id + '&n=' + file)
 			.then(function(content) {
 				if (content.new)
 					ide.notify('File does not exist.');
@@ -602,7 +613,7 @@ class Editor {
 
 		// TODO ?
 		this.el.$editor = this;
-		this.keymap = new ide.KeyMap(this);
+		this.keymap = new ide.KeyMap(this, p.keymap);
 		this.command = p.command;
 		this.arguments = p.arguments;
 		this.features = {};
@@ -748,7 +759,7 @@ class Editor {
 	 */
 	quit()
 	{
-		ide.workspace.remove(ide.editor);
+		ide.workspace.remove(this);
 		this.destroy();
 	}
 

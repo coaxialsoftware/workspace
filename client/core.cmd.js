@@ -291,7 +291,7 @@ ide.plugins.register('core', {
 
 	commands: {
 
-		browse: function(url)
+		browse(url)
 		{
 			var BROWSER_REGEX = /^\w:\/\//;
 
@@ -318,7 +318,7 @@ ide.plugins.register('core', {
 
 		},
 
-		keymap: function()
+		keymap()
 		{
 			var editor = new ide.ListEditor({
 				command: 'keymap', plugin: this
@@ -330,7 +330,7 @@ ide.plugins.register('core', {
 			return editor;
 		},
 
-		log: function()
+		log()
 		{
 			return new ide.ListEditor({
 				children: ide.logger.items,
@@ -338,7 +338,7 @@ ide.plugins.register('core', {
 			});
 		},
 
-		help: function(topic)
+		help(topic)
 		{
 			var url = ide.project.get('help.url') + (topic ? '#' + topic : '');
 
@@ -351,7 +351,7 @@ ide.plugins.register('core', {
 		 * Edits file with registered plugins.
 		 * @param {string} ... Files to open.
 		 */
-		edit: function() {
+		edit() {
 			if (arguments.length)
 				for (var i=0; i<arguments.length; i++)
 					ide.open({ file: new ide.File(arguments[i]) });
@@ -359,8 +359,8 @@ ide.plugins.register('core', {
 				ide.open({});
 		},
 
-		plugins: function() {
-		var
+		plugins() {
+		const
 			l = new ide.ListEditor({
 				plugin: this,
 				title: 'plugins',
@@ -368,7 +368,7 @@ ide.plugins.register('core', {
 				file: 'list'
 			})
 		;
-			cxl.ajax.get('/plugins').then(function(all) {
+			cxl.ajax.get('plugins').then(function(all) {
 				var a, i, items=[], item;
 
 				if (!all)
@@ -397,7 +397,7 @@ ide.plugins.register('core', {
 					progress: 0
 				});
 
-				return cxl.ajax.post('/plugins/install', {
+				return cxl.ajax.post('plugins/install', {
 					project: ide.project.id,
 					id: id
 				}).catch(() => ide.error(`Error installing ${id} extension`))
@@ -416,7 +416,7 @@ ide.plugins.register('core', {
 					className: 'success',
 					progress: 0
 				});
-				return cxl.ajax.post('/plugins/uninstall', {
+				return cxl.ajax.post('plugins/uninstall', {
 					project: ide.project.id,
 					id: id
 				}).catch(() => ide.error(`Error installing ${id} extension`))
@@ -427,12 +427,12 @@ ide.plugins.register('core', {
 			icon: 'cog'
 		},
 
-		tabe: function(name)
+		tabe(name)
 		{
 			ide.openTab(name);
 		},
 
-		close: function()
+		close()
 		{
 			window.close();
 		},
@@ -449,10 +449,7 @@ ide.plugins.register('core', {
 			if (!editor)
 				return window.close();
 
-			const msg = editor.quit();
-
-			if (msg && window.confirm(msg))
-				editor.quit(true);
+			editor.quit();
 		},
 
 		qa()
@@ -480,7 +477,7 @@ ide.plugins.register('core', {
 			description: 'Edit global settings'
 		},
 
-		version: function()
+		version()
 		{
 			var p = ide.project;
 

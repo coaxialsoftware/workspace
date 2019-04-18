@@ -403,7 +403,9 @@ ide.Bar.Command = class extends Bar {
 		hints = inline.hints,
 		i = this.selectedHint
 	;
-		if (i===null)
+		if (inline.visible)
+			return inline.accept();
+		if (i === null)
 			i = hints.indexOf(inline.selected);
 		if (i === -1)
 			return;

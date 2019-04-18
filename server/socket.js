@@ -71,6 +71,7 @@ plugin.extend({
 	{
 		project.configuration['socket.port'] = plugin.port;
 		project.configuration['socket.secure'] = !!plugin.secure;
+		project.configuration['socket.proxy'] = ide.configuration['socket.proxy'];
 	},
 
 	createWebSocketServer: function()
@@ -109,7 +110,6 @@ var
 	me = this,
 	server = this.createWebSocketServer()
 ;
-	// TODO add support for https
 	server.listen(this.port, this.host, function() {
 		var a = server.address();
 		me.port = a.port;
@@ -124,14 +124,12 @@ var
 	});
 
 	this.ws.on('request', function(request) {
-
 		if (ide.authenticationAgent && !ide.authenticationAgent.onSocketRequest(request))
 			return request.reject(401);
 
 		var client = request.accept('workspace', request.origin);
 		me.log(`Client connected ${client.remoteAddress}`);
 
-		// TODO is this safe?
 		me.clients[(client.id=id++)] = client;
 		me.clients.length++;
 

@@ -5,7 +5,7 @@ var loginForm;
 
 function createProject()
 {
-	return cxl.ajax.post('/project', { path: ide.project.id }).then(function() {
+	return cxl.ajax.post('project', { path: ide.project.id }).then(function() {
 		return ide.project.fetch();
 	});
 }
@@ -75,7 +75,7 @@ ide.Project = class Project {
 
 	url()
 	{
-		return '/project' + (this.id ? '?n=' + this.id : '');
+		return 'project' + (this.id ? '?n=' + this.id : '');
 	}
 
 	loadTheme(css)
@@ -194,7 +194,7 @@ class ProjectList extends ide.ListEditor {
 
 	_loadProjects()
 	{
-		cxl.ajax.get('/projects').then(this._renderProjects.bind(this));
+		cxl.ajax.get('projects').then(this._renderProjects.bind(this));
 	}
 
 	_renderProjects(projects)

@@ -54,7 +54,7 @@ cxl.extend(InlineAssist.prototype, {
 	/// Selected hint value
 	selectedValue: null,
 
-	onClick: function(ev)
+	onClick(ev)
 	{
 		var hint, el=ev.target;
 
@@ -70,12 +70,12 @@ cxl.extend(InlineAssist.prototype, {
 		}
 	},
 
-	forceRequest: function()
+	forceRequest()
 	{
 		ide.assist._requestHints(ide.editor, true);
 	},
 
-	clearHints: function(editor)
+	clearHints(editor)
 	{
 		if (this.hints.length)
 			this.hints = [];
@@ -88,7 +88,7 @@ cxl.extend(InlineAssist.prototype, {
 		ide.keymap.setUIState(null);
 	},
 
-	calculateLeft: function(editor)
+	calculateLeft(editor)
 	{
 	var
 		pos = this.pos = editor.token.current.getCoordinates(),
@@ -101,7 +101,7 @@ cxl.extend(InlineAssist.prototype, {
 		this.leftPos = Math.round(pos.left);
 	},
 
-	calculateTop: function()
+	calculateTop()
 	{
 	var
 		el = this.el, pos = this.pos,
@@ -114,7 +114,7 @@ cxl.extend(InlineAssist.prototype, {
 			this.el.style.transform = this.translateStr = translate;
 	},
 
-	addHints: function(hints)
+	addHints(hints)
 	{
 		var i = 0, l=hints.length;
 
@@ -127,13 +127,13 @@ cxl.extend(InlineAssist.prototype, {
 		this.render();
 	},
 
-	add: function(hint)
+	add(hint)
 	{
 		hint = hint instanceof ide.Hint ? hint : new ide.Hint(hint);
 		this.hints.push(hint);
 	},
 
-	copyFont: function(el)
+	copyFont(el)
 	{
 		// TODO optimize?
 		var style = window.getComputedStyle(el);
@@ -141,7 +141,7 @@ cxl.extend(InlineAssist.prototype, {
 		this.el.style.fontSize = style.fontSize;
 	},
 
-	show: function()
+	show()
 	{
 		if (!this.visible)
 		{
@@ -152,7 +152,7 @@ cxl.extend(InlineAssist.prototype, {
 		}
 	},
 
-	select: function(hint)
+	select(hint)
 	{
 		if (this.selected && this.selected!== hint)
 			this.selected.el.classList.remove('selected');
@@ -163,7 +163,7 @@ cxl.extend(InlineAssist.prototype, {
 		this.selectedValue = hint.value;
 	},
 
-	renderHint: function(hint, i)
+	renderHint(hint, i)
 	{
 		var el = hint.render();
 
@@ -180,7 +180,7 @@ cxl.extend(InlineAssist.prototype, {
 		this.hintsContainer.appendChild(el);
 	},
 
-	hide: function()
+	hide()
 	{
 		ide.keymap.setUIState(null);
 
@@ -192,19 +192,19 @@ cxl.extend(InlineAssist.prototype, {
 		}
 	},
 
-	sortFn: function(A, B)
+	sortFn(A, B)
 	{
 		return A.priority===B.priority ?
 			(A.value>B.value ? 1 : -1) :
 			(A.priority>B.priority ? 1 : -1);
 	},
 
-	sort: function()
+	sort()
 	{
 		return (this.hints = this.hints.sort(this.sortFn));
 	},
 
-	_renderDown: function(el, hints, i, l)
+	_renderDown(el, hints, i, l)
 	{
 		if (this.visibleStart>0)
 			el.appendChild(this.scrollUpEl);
@@ -216,7 +216,7 @@ cxl.extend(InlineAssist.prototype, {
 			el.appendChild(this.scrollDownEl);
 	},
 
-	_renderUp: function(el, hints, i, l)
+	_renderUp(el, hints, i, l)
 	{
 		if (this.visibleEnd<this.hints.length)
 			el.appendChild(this.scrollUpEl);
@@ -228,7 +228,7 @@ cxl.extend(InlineAssist.prototype, {
 			el.appendChild(this.scrollDownEl);
 	},
 
-	_render: function()
+	_render()
 	{
 	var
 		i = this.visibleStart,
@@ -257,7 +257,7 @@ cxl.extend(InlineAssist.prototype, {
 			this.select(this.hints[this.visibleStart]);
 	},
 
-	_goNext: function(dir)
+	_goNext(dir)
 	{
 	var
 		selected = this.selected,
@@ -280,24 +280,24 @@ cxl.extend(InlineAssist.prototype, {
 	},
 
 	/** Go to next suggestion */
-	next: function()
+	next()
 	{
-		var result = this._goNext();
+		const result = this._goNext();
 
 		// TODO ?
 		if (result===ide.Pass && ide.editor && ide.editor.cursor)
 			ide.editor.cursor.goDown();
 	},
 
-	previous: function()
+	previous()
 	{
-		var result = this._goNext('previousSibling');
+		const result = this._goNext('previousSibling');
 
 		if (result===ide.Pass && ide.editor && ide.editor.cursor)
 			ide.editor.cursor.goUp();
 	},
 
-	doAccept: function()
+	doAccept()
 	{
 	var
 		token = ide.assist.editor.token.current,
@@ -309,7 +309,7 @@ cxl.extend(InlineAssist.prototype, {
 		this.hide();
 	},
 
-	accept: function()
+	accept()
 	{
 		var token = ide.assist.editor.token.current;
 
@@ -685,7 +685,7 @@ ide.keymap.registerKeys({
 		down: 'assist.inlineNext',
 		up: 'assist.inlinePrevious',
 		enter: 'assist.inlineAccept',
-		tab: 'assist.inlineAccept',
+		//tab: 'assist.inlineAccept',
 		esc: 'assist.inlineHide'
 
 	}
