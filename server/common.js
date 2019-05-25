@@ -1,4 +1,3 @@
-
 const
 	fs = require('fs'),
 	cp = require('child_process'),
@@ -272,9 +271,9 @@ class File {
 	{
 		this.content = content;
 
-		const resolve = ide.plugins.emit('file.beforewrite', this);
+		const resolve = ide.plugins.emitAndCollect('file.beforewrite', this);
 
-		return Promise.resolve(resolve)
+		return Promise.all(resolve)
 			.then(() => cxl.file.write(this.path, this.content, { encoding: null }))
 			.then(() => {
 				ide.plugins.emit('file.write', this);
@@ -496,11 +495,14 @@ class FileManager {
 
 class AssistServer {
 
-	static CanAssistMime(mimeRegex) {
-		return function(request)
-		{
-			return request.features.file && mimeRegex.test(request.features.file.mime);
-		};
+	static CanAssistMime(mimeRegex)
+	{
+		return request => this.testMime(request, mimeRegex);
+	}
+
+	static testMime(request, mime)
+	{
+		return request.features.file && mime.test(request.features.file.mime);
 	}
 
 	constructor()
@@ -974,6 +976,8 @@ class Process {
 
 	$spawn(command, parameters, options)
 	{
+		ide.module.dbg(`spawn: ${command} ${parameters.join(' ')}`);
+
 		return cp.spawn(command, parameters, options);
 	}
 

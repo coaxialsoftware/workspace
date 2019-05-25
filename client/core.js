@@ -186,8 +186,6 @@ ide.open = function(options)
 
 function _start()
 {
-	cxl.dom.root = document.body;
-
 	ide.ready = true;
 	ide.logger = new ide.Logger();
 	ide.workspace = new ide.Workspace();

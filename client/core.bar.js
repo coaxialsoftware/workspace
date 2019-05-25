@@ -332,6 +332,12 @@ ide.Bar.Command = class extends Bar {
 		});
 	}
 
+	show()
+	{
+		super.show();
+		this.history_index = 0;
+	}
+
 	onError(err)
 	{
 		ide.error(err);

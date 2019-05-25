@@ -52,7 +52,11 @@ cxl.extend(CommandParser.prototype, {
 
 	parseRegex(args, state)
 	{
-		this.parseUntil(args, state, /([^\\]\/[gimy]*)/g, sandbox);
+		try {
+			this.parseUntil(args, state, /([^\\]\/[gimy]*)/g, sandbox);
+		} catch (e) {
+			this.parseUntil(args, state, /$/g);
+		}
 	},
 
 	parseJS(args, state)
@@ -90,7 +94,9 @@ cxl.extend(CommandParser.prototype, {
 		{
 			switch(args[state.i]) {
 			case '"': this.parseString(args, state); break;
-			case '/': this.parseRegex(args, state); break;
+			case '/':
+				this.parseRegex(args, state);
+				break;
 			case '`': this.parseJS(args, state); break;
 			default: this.parsePath(args, state); break;
 			}

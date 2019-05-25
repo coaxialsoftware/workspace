@@ -676,13 +676,16 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 	{
 	var
 		cm = this.editor.editor,
+		pos = { line: row, ch: column },
 		token
 	;
 		// TODO replace getTokenAt
-		token = cm.getTokenAt({ line: row, ch: column }, true);
+		token = cm.getTokenAt(pos, true);
 
 		result = result || new SourceToken(this.editor);
 
+		// TODO measure performance
+		result.index = cm.doc.indexFromPos(pos);
 		// Token Value is constant
 		result.row = result.endRow = row;
 		result.column = token.start;
@@ -708,6 +711,7 @@ class SourceTokenFeature extends ide.feature.TokenFeature {
 		t.type = c.type;
 		t.value = c.value;
 		t.cursorValue = c.cursorValue;
+		t.index = c.index;
 	}
 
 	_onCursorActivity()
