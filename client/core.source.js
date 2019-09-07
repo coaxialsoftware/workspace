@@ -87,6 +87,15 @@ class SourceHintsFeature extends ide.feature.HintsFeature {
 			this.__createMark(line, h.handle));
 	}
 
+	__getLineFromIndex(range)
+	{
+		const pos = this.editor.editor.posFromIndex(range.index);
+		range.row = pos.line;
+		range.column = pos.ch;
+
+		return pos && pos.line;
+	}
+
 	remove(hint)
 	{
 		// TODO use custom hint class
@@ -98,7 +107,8 @@ class SourceHintsFeature extends ide.feature.HintsFeature {
 	{
 	var
 		el = document.createElement('DIV'),
-		line = hint.range.row,
+		range = hint.range,
+		line = range.index ? this.__getLineFromIndex(range) : range.row,
 		marker = this.__getMarker(line)
 	;
 		// Invalid line?
