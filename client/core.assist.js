@@ -470,7 +470,7 @@ class Assist {
 
 	constructor()
 	{
-		this.delay = 100;
+		this.delay = 200;
 		this.version = 0;
 		this.assistData = { project: ide.project.id };
 
@@ -570,8 +570,8 @@ class Assist {
 
 	onResponse(data)
 	{
-		if (data.$ !== this.version)
-			return;
+		/*if (data.$ !== this.version)
+			return;*/
 	var
 		feature = this.editor[data.feature],
 		method = feature && feature[data.method]

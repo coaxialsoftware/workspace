@@ -11,11 +11,19 @@ const
 	FileWatch = require('@cxl/filewatch').FileWatch,
 	DirectoryWatch = require('@cxl/filewatch').DirectoryWatch,
 
-	cwd = process.cwd()
+	cwd = process.cwd(),
+
+		ENTITIES_REGEX = /[&<>]/g,
+		ENTITIES_MAP = {
+			'&': '&amp;',
+			'<': '&lt;',
+			'>': '&gt;'
+		}
 ;
 
 mime.define({ 'application/typescript': [ 'ts' ]}, true);
 mime.define({ 'application/x-python': [ 'py' ]}, true);
+mime.define({ 'text/jsx': [ 'tsx', 'jsx' ] }, true);
 
 function getMime(path)
 {
@@ -1295,6 +1303,12 @@ module.exports = {
 				resolve(stdout);
 			});
 		});
+	},
+
+	escapeHtml(str) {
+		return (
+			str && str.replace(ENTITIES_REGEX, e => ENTITIES_MAP[e])
+		);
 	},
 
 	extend(obj, p)

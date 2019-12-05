@@ -173,6 +173,7 @@ class HintsFeature extends Feature {
 	{
 		super(e);
 		this.hints = [];
+		this.updateEditorTags = cxl.debounceRender(this.$updateEditorTags);
 	}
 
 	render()
@@ -197,9 +198,25 @@ class HintsFeature extends Feature {
 		hints.forEach(this.add.bind(this));
 	}
 
+	$updateEditorTags()
+	{
+		for (const tag in this.tags)
+			this.editor.header.setTag(tag, '');
+
+		const tags = this.tags = { };
+		this.hints.forEach(hint => tags[hint.code] = (tags[hint.code] || 0) + 1);
+
+		for (const tag in tags)
+			this.editor.header.setTag(tag,
+				`<span title="${tag}: ${tags[tag]}">${tag}: ${tags[tag]}</span>`,
+				'error'
+			);
+	}
+
 	clear(code)
 	{
 		this.get(code).forEach(this.remove.bind(this));
+		this.updateEditorTags();
 	}
 
 	get(code)
