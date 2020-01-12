@@ -25,6 +25,64 @@ mime.define({ 'application/typescript': [ 'ts' ]}, true);
 mime.define({ 'application/x-python': [ 'py' ]}, true);
 mime.define({ 'text/jsx': [ 'tsx', 'jsx' ] }, true);
 
+class EventEmitter {
+	    on(type, callback, scope) {
+		            return this.addEventListener(type, callback, scope);
+		        }
+	    off(type, callback, scope) {
+		            return this.removeEventListener(type, callback, scope);
+		        }
+	    addEventListener(type, callback, scope) {
+		            if (!this.__handlers)
+			                this.__handlers = {};
+		            if (!this.__handlers[type])
+			                this.__handlers[type] = [];
+		            this.__handlers[type].push({ fn: callback, scope: scope });
+		            return { unsubscribe: this.off.bind(this, type, callback, scope) };
+		        }
+	    removeEventListener(type, callback, scope) {
+		            const handlers = this.__handlers && this.__handlers[type];
+		            if (!handlers)
+			                throw new Error('Invalid arguments');
+		            const h = handlers &&
+			                handlers.find(h => h.fn === callback && h.scope === scope), i = handlers.indexOf(h);
+		            if (i === -1)
+			                throw new Error('Invalid listener');
+		            handlers.splice(i, 1);
+		        }
+	    $eachHandler(type, fn) {
+		            if (this.__handlers && this.__handlers[type])
+			                this.__handlers[type].forEach(handler => {
+						                try {
+									                    fn(handler);
+									                }
+						                catch (e) {
+									                    if (type !== 'error')
+										                        this.trigger('error', e);
+									                    else
+										                        throw e;
+									                }
+						            });
+		        }
+	    emit(type, ...args) {
+		            this.$eachHandler(type, handler => handler.fn.call(handler.scope, ...args));
+		        }
+	    emitAndCollect(type, ...args) {
+		            const result = [];
+		            this.$eachHandler(type, handler => result.push(handler.fn.call(handler.scope, ...args)));
+		            return result;
+		        }
+	    trigger(type, ...args) {
+		            return this.emit(type, ...args);
+		        }
+	    once(type, callback, scope) {
+		            const subscriber = this.on(type, (...args) => {
+				                subscriber.unsubscribe();
+				                return callback.call(scope, ...args);
+				            });
+		        }
+}
+
 function getMime(path)
 {
 	return mime.getType(path) || 'text/plain';
@@ -1124,6 +1182,7 @@ module.exports = {
 	Configuration: Configuration,
 	Error: WorkspaceError,
 
+	EventEmitter,
 	File: File,
 	FileWatch: FileWatch,
 	DirectoryWatch: DirectoryWatch,

@@ -23,6 +23,7 @@
 		"@cxl/build": "*",
 		"@cxl/docs": "*",
 		"@cxl/ui": "*",
+		"@types/node": "^13.1.1",
 		"codemirror": "^5.42.0",
 		"font-awesome": "*",
 		"qunit": "^2.6.2",

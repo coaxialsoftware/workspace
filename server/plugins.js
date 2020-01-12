@@ -5,7 +5,6 @@ const
 	UglifyJS = require('uglify-es'),
 
 	FileWatch = require('@cxl/filewatch').FileWatch,
-	EventEmitter = require('@cxl/rx').EventEmitter,
 	plugin = module.exports = cxl('workspace.plugins'),
 	NPM = ide.NPM
 ;
@@ -141,11 +140,10 @@ class Plugin {
 		return json;
 	}
 }
-
 /**
  * Plugin Manager
  */
-class PluginManager extends EventEmitter {
+class PluginManager extends ide.EventEmitter {
 
 	constructor()
 	{
@@ -336,7 +334,7 @@ class PluginManager extends EventEmitter {
 
 	compileSources()
 	{
-		return plugin.operation('Compiling Plugin Sources', () => {
+		/*return plugin.operation('Compiling Plugin Sources', () => {
 			var result = UglifyJS.minify(this.cachedSources, {
 				compress: false,
 				mangle: true
@@ -350,7 +348,7 @@ class PluginManager extends EventEmitter {
 
 			this.cachedSources = result.code;
 			this.sourcesUpdated();
-		});
+		});*/
 	}
 
 	getSources()

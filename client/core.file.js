@@ -454,6 +454,7 @@ class FileFeature extends ide.Feature {
 		data.path = this.$file.path;
 		data.mime = this.$file.mime;
 		data.changed = this.hasChanged();
+		data.mtime = this.stat && this.stat.mtime;
 
 		return this.diff().then(diff => {
 			data.diffChanged = this.$diff.diffChanged;

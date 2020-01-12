@@ -474,10 +474,14 @@ class Assist {
 		this.version = 0;
 		this.assistData = { project: ide.project.id };
 
-		this.requestHints = cxl.debounce(this._requestHints, this.delay);
+		this._debouncedRequest = cxl.debounce(this._requestHints, this.delay);
 
 		this.panel = new AssistPanel();
 		this.inline = new InlineAssist();
+	}
+
+	requestHints(editor, forceInline) {
+		this._debouncedRequest(editor, forceInline);
 	}
 
 	/**
@@ -492,7 +496,7 @@ class Assist {
 	cancel()
 	{
 		this.version++;
-		this.requestHints.cancel();
+		this._debouncedRequest.cancel();
 	}
 
 	_doRequestNow(features)
@@ -542,7 +546,7 @@ class Assist {
 
 	onResponseInline(version, hints)
 	{
-		if (version !== ide.assist.version || !hints ||
+		if (/*version !== ide.assist.version || */!hints ||
 			(ide.assist.editor.insert && !ide.assist.editor.insert.enabled))
 			return;
 
@@ -556,7 +560,7 @@ class Assist {
 	{
 		var me = ide.assist;
 
-		if (version!==me.version || !me.panel.visible || !hints)
+		if (/*version!==me.version ||*/ !me.panel.visible || !hints)
 			return;
 
 		if (Array.isArray(hints))

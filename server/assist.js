@@ -6,6 +6,7 @@
 "use strict";
 var
 	fs = require('fs'),
+	fsPromise = fs.promises,
 
 	plugin = module.exports = cxl('workspace.assist')
 ;
@@ -36,7 +37,7 @@ class AssistRequest
 
 	respond(feature, method, data)
 	{
-		if (plugin.version===this.$)
+		// if (plugin.version===this.$)
 			ide.socket.respond(this.client, 'assist', {
 				$: this.$,
 				feature: feature,
@@ -47,7 +48,7 @@ class AssistRequest
 
 	respondExtended(hints)
 	{
-		if (plugin.version===this.$ && hints.length)
+		// if (plugin.version===this.$ && hints.length)
 			ide.socket.respond(this.client, 'assist.extended', {
 				$: this.$,
 				hints: hints
@@ -56,7 +57,7 @@ class AssistRequest
 
 	respondInline(hints)
 	{
-		if (plugin.version===this.$ && hints.length)
+		// if (plugin.version===this.$ && hints.length)
 			ide.socket.respond(this.client, 'assist.inline', {
 				$: this.$,
 				hints: hints
@@ -67,12 +68,13 @@ class AssistRequest
 
 plugin.extend({
 
-	onMessage: function(client, data)
+	onMessage(client, data)
 	{
 	var
 		f = data.features,
 		me=this,
-		request = new AssistRequest(data, client)
+		request = new AssistRequest(data, client),
+		filePath = f.file && f.file.path
 	;
 		me.version = data.$;
 
@@ -80,15 +82,17 @@ plugin.extend({
 		{
 			ide.plugins.emit('assist', request);
 		}
+		if (filePath)
+			return Promise.all([
+				fsPromise.stat(filePath).catch(() => null),
+				fsPromise.readFile(filePath, 'utf8').catch(() => '')
+			]).then(([stat, content]) => {
 
-		if (f.file && f.file.path)
-			return fs.readFile(f.file.path, 'utf8', function(err, file) {
-				if (err)
-					file = '';
-
-				f.file.content = f.file.diff ? ide.File.patch(file, f.file.diff) : file;
+				f.file.content = f.file.diff && (!stat || f.file.mtime === stat.mtime.toISOString()) ? ide.File.patch(content, f.file.diff) : content;
 
 				trigger();
+			}, (e) => {
+				console.log(e);
 			});
 		else
 			trigger();
