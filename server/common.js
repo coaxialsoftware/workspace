@@ -1335,7 +1335,7 @@ module.exports = {
 	 *
 	 * options:
 	 *
-	 * timeout  Default 5 seconds.
+	 * timeout  Default 10 seconds.
 	 * cwd      Working Directory
 	 * plugin   Plugin to use for logging
 	 */
@@ -1343,7 +1343,7 @@ module.exports = {
 	{
 		return new Q(function(resolve, reject) {
 			options = Object.assign({
-				timeout: 5000,
+				timeout: 10000,
 				maxBuffer: 1024 * 500,
 				plugin: ide.module
 			}, options);

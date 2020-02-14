@@ -87,7 +87,6 @@ plugin.extend({
 				fsPromise.stat(filePath).catch(() => null),
 				fsPromise.readFile(filePath, 'utf8').catch(() => '')
 			]).then(([stat, content]) => {
-
 				f.file.content = f.file.diff && (!stat || f.file.mtime === stat.mtime.toISOString()) ? ide.File.patch(content, f.file.diff) : content;
 
 				trigger();
