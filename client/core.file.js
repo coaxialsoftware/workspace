@@ -368,9 +368,15 @@ class FileDiff {
 		return this.$file.content !== this.originalContent;
 	}
 
+	reset()
+	{
+		this.diffValue = this.$file.content;
+		this.lastDiff = [];
+	}
+
 	diff()
 	{
-	var
+	const
 		old = this.originalContent,
 		cur = this.$file.content,
 		changed = this.diffChanged = this.diffValue !== cur
@@ -446,6 +452,7 @@ class FileFeature extends ide.Feature {
 			this.update();
 		}
 
+		this.$diff.reset();
 		ide.plugins.trigger('file.parse', this);
 	}
 
