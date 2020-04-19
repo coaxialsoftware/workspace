@@ -20,7 +20,7 @@ plugin.extend({
 	{
 	},
 
-	payload: function(plugin, data)
+	payload(plugin, data)
 	{
 		try {
 			return JSON.stringify({ plugin: plugin, data: data });
@@ -30,7 +30,7 @@ plugin.extend({
 		}
 	},
 
-	closeAll: function(reasonCode)
+	closeAll(reasonCode)
 	{
 		for (var i in this.clients)
 			if (this.clients[i].close)
@@ -43,7 +43,7 @@ plugin.extend({
 	 * @param data Payload
 	 * @param clients Optional array of socket clients to send data.
 	 */
-	broadcast: function(plugin, data, clients)
+	broadcast(plugin, data, clients)
 	{
 	var
 		payload = this.payload(plugin, data),
@@ -51,8 +51,6 @@ plugin.extend({
 		i
 	;
 		clients = clients || this.clients;
-
-		this.dbg(`Broadcasting ${payload} (${size} bytes) to ${clients.length} client(s).`);
 
 		for (i in clients)
 			if (clients[i].send)

@@ -179,7 +179,12 @@ class ProjectFileManager extends ide.FileManager
 		this.$ignore.push(
 			this.project.configuration.ignore || [ '**/.*', 'node_modules', 'bower_components' ]);
 		// TODO See if we can remove this
-		this.project.configuration.$set('ignore.regex', this.$ignore.build());
+		try {
+			const regex = this.$ignore.build()
+			this.project.configuration.$set('ignore.regex', regex);
+		} catch (e) {
+			this.error(e);
+		}
 	}
 
 	ignore(pattern)

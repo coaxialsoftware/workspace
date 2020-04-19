@@ -454,13 +454,9 @@ class FileMatcher {
 
 			this.source = '^' +
 				this.$patterns.map(function(glob) {
-				try {
 					const regex = micromatch.makeRe(glob).source;
 					return regex.substr(1, regex.length-2);
-				} catch(e) {
-					this.error(`Invalid ignore parameter: "${glob}"`);
-				}
-			}, this).join('|');
+				}, this).join('|');
 
 			this.dirty = false;
 		}
@@ -502,7 +498,7 @@ class FileManagerWatcher
 
 	destroy()
 	{
-		this.$watchers.forEach(w => w.unsubscribe());
+		this.$watchers.forEach(w => w && w.unsubscribe());
 	}
 }
 
