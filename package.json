@@ -10,6 +10,7 @@
 		"@cxl/cxl": "^2.2.0",
 		"@cxl/filewatch": "*",
 		"@cxl/rx": "*",
+		"@cxl/diff": "*",
 		"colors": "*",
 		"compression": "^1.7.3",
 		"micromatch": "^3.1.5",
@@ -23,10 +24,12 @@
 		"@cxl/build": "*",
 		"@cxl/docs": "*",
 		"@cxl/ui": "*",
-		"@types/node": "^13.1.1",
-		"codemirror": "^5.42.0",
+		"@types/node": "^13.13.9",
+		"codemirror": "^5.54.0",
 		"font-awesome": "*",
 		"qunit": "^2.6.2",
+		"source-map-support": "^0.5.19",
+		"typescript": "^3.9.3",
 		"xterm": "^=3.8.1"
 	},
 	"files": [
@@ -36,6 +39,7 @@
 	],
 	"scripts": {
 		"build-sources": "node scripts/build.js",
+		"build-server": "tsc -b server/tsconfig.json",
 		"build-html": "node scripts/build-html",
 		"build-resources": "node scripts/build-resources",
 		"build": "node scripts/build-html; node scripts/build-resources; node scripts/build.js",

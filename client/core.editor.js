@@ -1,935 +1,895 @@
-
 ((ide, cxl, XTerminal) => {
-"use strict";
+	'use strict';
 
-var editorId = 1;
+	var editorId = 1;
 
-const rgba = cxl.css.rgba;
+	const rgba = cxl.css.rgba;
 
-cxl.css.extend({
-	colors: {
-		surface: rgba(0, 0, 0, 0),
-		onSurface: rgba(255, 255, 255, 1),
-		primary: rgba(52, 152, 219, 1),
-		elevation: rgba(0, 100, 159)
-	}
-});
+	cxl.css.extend({
+		colors: {
+			surface: rgba(0, 0, 0, 0),
+			onSurface: rgba(255, 255, 255, 1),
+			primary: rgba(52, 152, 219, 1),
+			elevation: rgba(0, 100, 159),
+		},
+	});
 
-/**
- * A feature defines a set of functions and commands for an Editor.
- */
-class Feature {
+	/**
+	 * A feature defines a set of functions and commands for an Editor.
+	 */
+	class Feature {
+		constructor(editor) {
+			var name = this.constructor.featureName;
 
-	constructor(editor)
-	{
-		var name = this.constructor.featureName;
-
-		this.editor = editor;
-		editor.$assistData[name] = true;
-		editor[name] = this;
-	}
-
-	destroy()
-	{
-	}
-
-}
-
-XTerminal.prototype.addEventListener = XTerminal.prototype.on;
-XTerminal.prototype.removeEventListener = XTerminal.prototype.off;
-XTerminal.applyAddon(window.fit);
-
-
-class EditorHeader extends Feature {
-
-	constructor(e)
-	{
-		super(e);
-
-		var el = this.el = document.createElement('ide-editor-header');
-
-		this.tags = {};
-
-		el.innerHTML = '<div class="project"></div>' +
-			'<div class="modified"></div>' +
-			'<div class="title"></div>' +
-			'<div class="tags"></div>' +
-			'<div class="close"></div>';
-
-		this.$close = el.childNodes[4];
-		this.$tags = el.childNodes[3];
-		this.$changed = el.childNodes[1];
-		this.$project = el.childNodes[0];
-		this.$title = el.childNodes[2];
-		this._title = '';
-		this.changed = false;
-	}
-
-	render()
-	{
-		this.editor.el.appendChild(this.el);
-		this.editor.listenTo(this.$close, 'click', this.$onClose);
-		this.$project.innerHTML = ide.project.id || '';
-	}
-
-	set title(title)
-	{
-		if (this._title!==title)
-			this.$title.title = this.$title.innerHTML = this._title = title;
-	}
-
-	get title()
-	{
-		return this._title;
-	}
-
-	set changed(val)
-	{
-		if (this._changed!==val)
-		{
-			this._changed = val;
-			this.$changed.style.display = val ? 'inline' : 'none';
+			this.editor = editor;
+			editor.$assistData[name] = true;
+			editor[name] = this;
 		}
+
+		destroy() {}
 	}
 
-	get changed()
-	{
-		return this._changed;
-	}
+	XTerminal.prototype.addEventListener = XTerminal.prototype.on;
+	XTerminal.prototype.removeEventListener = XTerminal.prototype.off;
+	XTerminal.applyAddon(window.fit);
 
-	$onClose(ev)
-	{
-		ev.preventDefault(); ev.stopPropagation();
-		this.quit();
-	}
+	class EditorHeader extends Feature {
+		constructor(e) {
+			super(e);
 
-	$createTag(id)
-	{
-		var tag = this.tags[id] = {
-			el: document.createElement('ide-tag')
-		};
+			var el = (this.el = document.createElement('ide-editor-header'));
 
-		this.$tags.appendChild(tag.el);
+			this.tags = {};
 
-		return tag;
-	}
+			el.innerHTML =
+				'<div class="project"></div>' +
+				'<div class="modified"></div>' +
+				'<div class="title"></div>' +
+				'<div class="tags"></div>' +
+				'<div class="close"></div>';
 
-	setTag(id, text, kls)
-	{
-		var el = this.tags[id];
-
-		if (!el)
-			el = this.$createTag(id);
-
-		if (text !== undefined && el.text !== text)
-			el.el.innerHTML = el.text = text;
-
-		if (kls !== undefined && kls !== el.kls)
-		{
-			el.kls = kls;
-			el.el.className = (kls || '');
+			this.$close = el.childNodes[4];
+			this.$tags = el.childNodes[3];
+			this.$changed = el.childNodes[1];
+			this.$project = el.childNodes[0];
+			this.$title = el.childNodes[2];
+			this._title = '';
+			this.changed = false;
 		}
-	}
 
-}
-
-EditorHeader.featureName = 'header';
-
-class CursorFeature extends Feature {}
-
-CursorFeature.featureName = 'cursor';
-CursorFeature.commands = {
-	'cursor.goUp': function() { this.cursor.goUp(); },
-	'cursor.goDown': function() { this.cursor.goDown(); },
-	'cursor.goForward': function() { this.cursor.goForward(); },
-	'cursor.goBackwards': function() { this.cursor.goBackwards(); },
-	'cursor.goStart' : function() { this.cursor.goStart(); },
-	'cursor.goEnd' : function() { this.cursor.goEnd(); },
-	'cursor.enter': function(shift, mod) { this.cursor.enter(shift, mod); }
-};
-
-class FoldFeature extends Feature {
-
-	toggle()
-	{
-		if (this.isFolded())
-			this.open();
-		else
-			this.close();
-	}
-
-}
-
-FoldFeature.featureName = 'fold';
-FoldFeature.commands = {
-	'fold.toggle': function() { this.fold.toggle(); },
-	'fold.open': function() { this.fold.open(); },
-	'fold.close': function() { this.fold.close(); }
-};
-
-class HintsFeature extends Feature {
-
-	constructor(e)
-	{
-		super(e);
-		this.hints = [];
-		this.updateEditorTags = cxl.debounceRender(this.$updateEditorTags);
-	}
-
-	render()
-	{
-		this.editor.listenTo(ide.plugins, 'assist', this.onAssist.bind(this));
-	}
-
-	onAssist(req)
-	{
-		var hints;
-
-		if (req.extended && req.editor===this.editor)
-		{
-			hints = this.getLine(req.editor.cursor.row);
-			req.respondExtended(hints);
+		render() {
+			this.editor.el.appendChild(this.el);
+			this.editor.listenTo(this.$close, 'click', this.$onClose);
+			this.$project.innerHTML = ide.project.id || '';
 		}
-	}
 
-	setHints(hints, id)
-	{
-		this.clear(id);
-		hints.forEach(this.add.bind(this));
-	}
+		set title(title) {
+			if (this._title !== title)
+				this.$title.title = this.$title.innerHTML = this._title = title;
+		}
 
-	$updateEditorTags()
-	{
-		for (const tag in this.tags)
-			this.editor.header.setTag(tag, '');
+		get title() {
+			return this._title;
+		}
 
-		const tags = this.tags = { };
-		this.hints.forEach(hint => tags[hint.code] = (tags[hint.code] || 0) + 1);
-
-		for (const tag in tags)
-			this.editor.header.setTag(tag,
-				`<span title="${tag}: ${tags[tag]}">${tag}: ${tags[tag]}</span>`,
-				'error'
-			);
-	}
-
-	clear(code)
-	{
-		this.get(code).forEach(this.remove.bind(this));
-		this.updateEditorTags();
-	}
-
-	get(code)
-	{
-		return code===undefined ? this.hints : this.hints.filter(function(h) {
-			return h.code===code;
-		});
-	}
-
-	// TODO add validation in debug module
-	add(hint)
-	{
-		if (!(hint instanceof ide.Item))
-			hint = new ide.Item(hint);
-
-		this.hints.push(hint);
-
-		return hint;
-	}
-
-	remove(hint)
-	{
-		hint.remove();
-		hint.destroy();
-		cxl.pull(this.hints, hint);
-	}
-
-	getLine(line, code)
-	{
-		return this.hints.filter(h => {
-			return (code===undefined || h.code===code) && h.range.row === line;
-		});
-	}
-
-}
-
-HintsFeature.featureName = 'hints';
-HintsFeature.commands = {
-	'hints': function(code) {
-	var
-		list = new ide.ListEditor({ }),
-		hints = this.hints.get(code)
-	;
-		list.add(hints.map(h => {
-			return {
-				code: h.code, title: h.title,
-				className: h.className,
-				tags: [ 'Line ' + h.range.row ],
-				enter: () => this.cursor.row = h.range.row
-			};
-		}));
-
-		return list;
-	},
-
-	'hints.next': function(code)
-	{
-	var
-		row = this.cursor.row,
-		next = this.hints.hints.find(function(h) {
-			return (code ? h.code===code : true) && (h.range.row > row);
-		})
-	;
-		if (next)
-			this.cursor.row = next.range.row;
-	},
-
-	'hints.previous': function(code)
-	{
-	var
-		row = this.cursor.row,
-		l = this.hints.hints.length,
-		h
-	;
-		while (l--)
-		{
-			h = this.hints.hints[l];
-			if ((code ? h.code===code : true) && (h.range.row < row))
-			{
-				this.cursor.row = h.range.row;
-				return;
+		set changed(val) {
+			if (this._changed !== val) {
+				this._changed = val;
+				this.$changed.style.display = val ? 'inline' : 'none';
 			}
 		}
-	}
-};
 
-class InsertFeature extends Feature {
+		get changed() {
+			return this._changed;
+		}
 
-	read(file)
-	{
-		//file = file || ide.editor.file.filename;
-		cxl.ajax.get('file?p=' + ide.project.id + '&n=' + file)
-			.then(function(content) {
-				if (content.new)
-					ide.notify('File does not exist.');
-				else
-					this.editor.insert(content.content.toString());
-			}, function(err) {
-				ide.error(err);
+		$onClose(ev) {
+			ev.preventDefault();
+			ev.stopPropagation();
+			this.quit();
+		}
+
+		$createTag(id) {
+			var tag = (this.tags[id] = {
+				el: document.createElement('ide-tag'),
 			});
-	}
 
-}
+			this.$tags.appendChild(tag.el);
 
-InsertFeature.featureName = 'insert';
-InsertFeature.commands = {
-	'insert.enable': function() { this.insert.enable(); },
-	'insert.disable': function() { this.insert.disable(); },
-	'insert.line': function() { this.insert.line(); },
-	'insert.tab': function() { this.insert.tab(); },
-	'insert.backspace': function() { this.insert.backspace(); },
-	'insert.del': function() { this.insert.del(); }
-};
+			return tag;
+		}
 
-class IndentFeature extends Feature {
+		setTag(id, text, kls) {
+			var el = this.tags[id];
 
-}
+			if (!el) el = this.$createTag(id);
 
-IndentFeature.featureName = 'indent';
-IndentFeature.commands = {
-	'indent.more': function() { this.indent.more(); },
-	'indent.less': function() { this.indent.less(); },
-	'indent.auto': function() { this.indent.auto(); }
-};
+			if (text !== undefined && el.text !== text)
+				el.el.innerHTML = el.text = text;
 
-class HashFeature extends Feature {
-
-	serializeArgs(args)
-	{
-		if (!args)
-			return '';
-
-		if (args.length===1)
-			return args[0]+'';
-
-		return JSON.stringify(args);
-	}
-
-	get()
-	{
-	var
-		editor = this.editor,
-		cmd = editor.command || '',
-		args = this.serializeArgs(editor.arguments)
-	;
-		return cmd + ':' + args;
-	}
-}
-
-HashFeature.featureName = 'hash';
-
-class SearchFeature extends Feature {
-
-	// search(pattern, str, options)
-
-	replaceNext(val, replace)
-	{
-		const range = this.search(val);
-		return range && range.replace(replace);
-	}
-
-	replaceRange(search, replace, range)
-	{
-		range = range || this.editor.document.getRange();
-		const newLine = range.value.replace(search, replace);
-		range.replace(newLine);
-	}
-
-}
-
-SearchFeature.featureName = 'search';
-SearchFeature.commands = {
-	'search.next'(val) { this.search.search(val); },
-	'search.previous'(val) { this.search.search(val, true); },
-	'search.replaceNext'(val, replace) { this.search.replaceNext(val, replace); },
-	'search.replace'(val, replace) { this.search.replaceRange(val, replace); },
-	'search': 'search.next'
-};
-
-class ScrollFeature extends Feature { }
-
-ScrollFeature.featureName = 'scroll';
-
-class SelectionFeature extends Feature {
-
-}
-
-SelectionFeature.featureName = 'selection';
-SelectionFeature.commands = {
-	'selection.begin'() { this.selection.begin(); },
-	'selection.end'() { this.selection.end(); },
-	'selection.clear'() { this.selection.clear(); },
-	'selection.remove'() { this.selection.remove(); },
-	'selection.selectAll'() { this.selection.selectAll(); }
-};
-
-class LineFeature extends Feature {
-
-	get columnStart()
-	{
-		return 0;
-	}
-
-	get current()
-	{
-		return this.editor.range.create(
-			this.rowStart, this.columnStart, this.rowEnd, this.columnEnd);
-	}
-
-	get value()
-	{
-		return this.current.value;
-	}
-
-	select()
-	{
-	}
-
-	goStart()
-	{
-		var e = this.editor;
-		e.cursor.go(this.row, this.column);
-	}
-
-	goEnd()
-	{
-		var e = this.editor;
-		e.cursor.go(this.rowEnd, this.columnEnd);
-	}
-
-	moveDown()
-	{
-	}
-
-	moveUp()
-	{
-	}
-
-}
-
-LineFeature.featureName = 'line';
-LineFeature.commands = {
-	'line.select': function() { this.line.select(); },
-	'line.goStart': function() { this.line.goStart(); },
-	'line.goEnd': function() { this.line.goEnd(); },
-	'line.remove': function() { this.line.remove(); },
-	'line.moveDown': function() { this.line.moveDown(); },
-	'line.moveUp': function() { this.line.moveUp(); }
-};
-
-// TODO
-class HistoryRecord {
-
-	constructor(type)
-	{
-		this.type = type;
-	}
-
-}
-
-class HistoryFeature extends Feature {
-
-	openHistory()
-	{
-	var
-		children = this.getAll().map(function(h) {
-			return { code: h.type };
-		}),
-		editor
-	;
-		editor = new ide.ListEditor({
-			title: 'history',
-			children: children
-		});
-
-		return editor;
-	}
-
-}
-
-HistoryFeature.featureName = 'history';
-HistoryFeature.commands = {
-	'history': function() { return this.history.openHistory(); },
-	'history.undo': function() { this.history.undo(); },
-	'history.redo': function() { this.history.redo(); },
-	'history.lastInsert': function() { return this.history.lastInsert; }
-};
-
-class WordFeature extends Feature {
-
-	goNext()
-	{
-		this.cursor.go(undefined, this.word.current.endColumn);
-		this.cursor.goForward();
-	}
-
-	goPrevious()
-	{
-		this.cursor.go(undefined, this.word.current.startColumn);
-	}
-
-}
-
-WordFeature.featureName = 'word';
-WordFeature.commands = {
-	'word.goNext': function() { return this.word.goNext(); },
-	'word.goPrevious': function() { return this.word.goPrevious(); },
-	'word.removeNext': function() {	return this.word.removeNext(); },
-	'word.removePrevious': function() { return this.word.removePrevious(); }
-};
-
-class PageFeature extends Feature {
-
-	goUp()
-	{
-		this.editor.cursor.go(this.current.row);
-	}
-
-	goDown()
-	{
-		this.editor.cursor.go(this.current.endRow);
-	}
-
-}
-
-PageFeature.featureName = 'page';
-PageFeature.commands = {
-	'page.goUp': function() { this.page.goUp(); },
-	'page.goDown': function() { this.page.goDown(); }
-};
-
-class TokenFeature extends Feature {
-
-	/** @abstract */
-	getToken()
-	{
-	}
-
-	get value()
-	{
-		return this.current && this.current.value;
-	}
-
-}
-
-TokenFeature.featureName = 'token';
-
-class RangeFeature extends Feature { }
-
-RangeFeature.featureName = 'range';
-
-class Range {
-	// row
-	// column
-	// endRow
-	// endColumn
-}
-
-class Token extends Range {
-
-	get cursorValue()
-	{
-		// TODO ?
-		return this.$cursorValue===undefined ?
-			(this.$cursorValue=this.value&&this.value.substr(0, this.cursorColumn-this.column)) :
-			this.$cursorValue
-		;
-	}
-
-	set cursorValue(val)
-	{
-		this.$cursorValue = val;
-	}
-
-	next()
-	{
-		return this.editor.token.getToken(this.endRow, this.endColumn+1);
-	}
-
-	previous()
-	{
-		return this.editor.token.getToken(this.row, this.column);
-	}
-
-	toJSON()
-	{
-		return {
-			row: this.row,
-			column: this.column,
-			cursorColumn: this.column,
-			cursorRow: this.row,
-			type: this.type,
-			value: this.value,
-			cursorValue: this.cursorValue
-		};
-	}
-
-}
-
-class Editor {
-
-	constructor(p)
-	{
-		this.id = editorId++;
-		this.bindings = [];
-		this.plugin = p.plugin;
-		this.el = document.createElement('DIV');
-
-		this.$assistData = {};
-		this.$assistPromises = [];
-
-		// TODO ?
-		this.el.$editor = this;
-		this.keymap = new ide.KeyMap(this, p.keymap);
-		this.command = p.command;
-		this.arguments = p.arguments;
-		this.features = {};
-
-		this.loadFeatures(p);
-
-		ide.plugins.trigger('editor.load', this);
-	}
-
-	static registerCommands(cmds)
-	{
-		var fn, i;
-
-		if (!this.hasOwnProperty('commands'))
-			this.commands = Object.assign({}, this.commands);
-
-		for (i in cmds)
-		{
-			fn = cmds[i];
-
-			if (typeof(fn)==='string')
-				fn = cmds[fn];
-
-			this.commands[i] = new ide.Command(i, fn);
+			if (kls !== undefined && kls !== el.kls) {
+				el.kls = kls;
+				el.el.className = kls || '';
+			}
 		}
 	}
 
-	static features()
-	{
-		if (!this.hasOwnProperty('$features'))
-			this.$features = Object.assign({}, this.$features);
+	EditorHeader.featureName = 'header';
 
-		for (var Feature of arguments)
-		{
-			this.$features[Feature.featureName] = Feature;
+	class CursorFeature extends Feature {}
 
-			if (Feature.commands)
-				this.registerCommands(Feature.commands);
+	CursorFeature.featureName = 'cursor';
+	CursorFeature.commands = {
+		'cursor.goUp': function () {
+			this.cursor.goUp();
+		},
+		'cursor.goDown': function () {
+			this.cursor.goDown();
+		},
+		'cursor.goForward': function () {
+			this.cursor.goForward();
+		},
+		'cursor.goBackwards': function () {
+			this.cursor.goBackwards();
+		},
+		'cursor.goStart': function () {
+			this.cursor.goStart();
+		},
+		'cursor.goEnd': function () {
+			this.cursor.goEnd();
+		},
+		'cursor.enter': function (shift, mod) {
+			this.cursor.enter(shift, mod);
+		},
+	};
+
+	class FoldFeature extends Feature {
+		toggle() {
+			if (this.isFolded()) this.open();
+			else this.close();
+		}
+	}
+
+	FoldFeature.featureName = 'fold';
+	FoldFeature.commands = {
+		'fold.toggle': function () {
+			this.fold.toggle();
+		},
+		'fold.open': function () {
+			this.fold.open();
+		},
+		'fold.close': function () {
+			this.fold.close();
+		},
+	};
+
+	class HintsFeature extends Feature {
+		constructor(e) {
+			super(e);
+			this.hints = [];
+			this.updateEditorTags = cxl.debounceRender(this.$updateEditorTags);
 		}
 
-		return this.$features;
-	}
+		render() {
+			this.editor.listenTo(
+				ide.plugins,
+				'assist',
+				this.onAssist.bind(this)
+			);
+		}
 
-	supports(featureName)
-	{
-		return featureName in this.features;
-	}
+		onAssist(req) {
+			var hints;
 
-	loadFeatures(p)
-	{
-		var features = this.constructor.$features, i;
-
-		for (i in features)
-			this.features[i] = new features[i](this, p);
-
-		this.render(p);
-
-		for (i in this.features)
-			if (this.features[i].render)
-				this.features[i].render();
-	}
-
-	getAssistData()
-	{
-	var
-		features = this.features,
-		data = this.$assistData,
-		promises = this.$assistPromises,
-		result, i, f
-	;
-		promises.length = 0;
-
-		for (i in features)
-		{
-			f = features[i];
-
-			if (f.assist)
-			{
-				result = f.assist(data[i]);
-				if (result)
-					promises.push(result);
+			if (req.extended && req.editor === this.editor) {
+				hints = this.getLine(req.editor.cursor.row);
+				req.respondExtended(hints);
 			}
 		}
 
-		return Promise.all(promises).then(() => data);
-	}
+		setHints(hints, id) {
+			this.clear(id);
+			hints.forEach(this.add, this);
+		}
 
-	/**
-	 * Render editor content.
-	 */
-	render(p)
-	{
-		var title = p.title || p.command;
+		$updateEditorTags() {
+			for (const tag in this.tags) this.editor.header.setTag(tag, '');
 
-		this.$content = document.createElement('ide-editor-content');
+			const tags = (this.tags = {});
+			this.hints.forEach(hint => {
+				const code = hint.code;
+				tags[code] = (tags[code] || 0) + 1;
+			});
 
-		this.el.appendChild(this.$content);
+			for (const tag in tags)
+				this.editor.header.setTag(
+					tag,
+					`<span title="${tag}: ${tags[tag]}">${tag}: ${tags[tag]}</span>`,
+					'error'
+				);
+		}
 
-		if (title)
-			this.header.title = title;
-	}
+		clear(code) {
+			this.get(code).forEach(this.remove.bind(this));
+			this.updateEditorTags();
+		}
 
-	focus()
-	{
-		ide.workspace.focusEditor(this);
-	}
+		get(code) {
+			return code === undefined
+				? this.hints
+				: this.hints.filter(function (h) {
+						return h.code === code;
+				  });
+		}
 
-	listenTo(el, event, cb)
-	{
-		const s = new cxl.EventListener(el, event, cb.bind(this));
+		// TODO add validation in debug module
+		add(hint) {
+			if (!(hint instanceof ide.Item)) hint = new ide.Item(hint);
 
-		this.bindings.push(s);
+			this.hints.push(hint);
 
-		return s;
-	}
+			return hint;
+		}
 
-	destroy()
-	{
-		this.bindings.forEach(b => (b.unsubscribe || b.destroy)());
+		remove(hint) {
+			hint.remove();
+			hint.destroy();
+			cxl.pull(this.hints, hint);
+		}
 
-		for (const f in this.features)
-			this.features[f].destroy();
-
-		this.bindings = null;
-		this.features = null;
-	}
-
-	/**
-	 * Handles a single command. Returns ide.Pass if command wasn't handled.
-	 *
-	 * @param name
-	 * @param args
-	 */
-	cmd(name, args)
-	{
-		var fn = this.constructor.commands && this.constructor.commands[name];
-
-		return fn ? fn.apply(this, args) : ide.Pass;
-	}
-
-	/**
-	 * Handles closing the editor. Return a string to confirm with user first.
-	 */
-	quit()
-	{
-		ide.workspace.remove(this);
-		this.destroy();
-	}
-
-}
-
-Editor.features(HashFeature, EditorHeader);
-
-class ComponentEditor extends Editor {
-
-	render(p)
-	{
-		super.render(p);
-
-		this.$component = this.$component || p.component();
-		this.$content.appendChild(this.$component);
-	}
-
-	destroy()
-	{
-		super.destroy();
-		cxl.dom.remove(this.$component);
-	}
-
-}
-
-class BrowserEditor extends Editor {
-
-	$updateTitle()
-	{
-		this.header.title = this.url = this.$iframe.src;
-	}
-
-	openURL(url)
-	{
-		this.$iframe.src = url;
-	}
-
-	render(p)
-	{
-		super.render(p);
-
-		this.$iframe = document.createElement('IFRAME');
-		this.$iframe.className = 'ide-browser';
-		this.$content.appendChild(this.$iframe);
-
-		this.listenTo(this.$iframe, 'load', this.$updateTitle);
-
-		if (p.url)
-			this.openURL(p.url);
-	}
-
-}
-
-class Terminal extends Editor {
-
-	$onFocus()
-	{
-		this.$onResize();
-		this.$term.focus();
-	}
-
-	$initTerminal(term)
-	{
-		// TODO add settings support
-		term.open(this.$content);
-		term.attachCustomKeyEventHandler(this.$onKey.bind(this));
-
-		this.$onResize = cxl.debounce(this.$onResize, 100);
-		this.listenTo(ide.plugins, 'workspace.resize', this.$onResize.bind(this));
-	}
-
-	$onResize()
-	{
-		if (this.$term.element)
-		{
-			this.header.setTag('size', this.$term.cols + 'x' + this.$term.rows);
-			// Force geometry update
-			this.$term.resize(this.$term.cols, this.$term.rows);
-			this.$term.fit();
+		getLine(line, code) {
+			return this.hints.filter(h => {
+				return (
+					(code === undefined || h.code === code) &&
+					h.range.row === line
+				);
+			});
 		}
 	}
 
-	$onKey(ev)
-	{
-		if (ev.type === 'keydown')
-		{
-			// TODO should we do this?
-			// Allow ctrl+tab and ctrl+shift+tab so we can switch browser tabs easily
-			if (ev.keyCode===9 && ev.ctrlKey)
-				return false;
+	HintsFeature.featureName = 'hints';
+	HintsFeature.commands = {
+		hints: function (code) {
+			var list = new ide.ListEditor({}),
+				hints = this.hints.get(code);
+			list.add(
+				hints.map(h => {
+					return {
+						code: h.code,
+						title: h.title,
+						className: h.className,
+						tags: ['Line ' + h.range.row],
+						enter: () => (this.cursor.row = h.range.row),
+					};
+				})
+			);
 
-			ide.keyboard.onKeyDown(ev);
+			return list;
+		},
 
-			// If the keyboard module handle the key event, then we return false
-			if (ev.defaultPrevented)
-				return false;
+		'hints.next': function (code) {
+			var row = this.cursor.row,
+				next = this.hints.hints.find(function (h) {
+					return (code ? h.code === code : true) && h.range.row > row;
+				});
+			if (next) this.cursor.row = next.range.row;
+		},
+
+		'hints.previous': function (code) {
+			var row = this.cursor.row,
+				l = this.hints.hints.length,
+				h;
+			while (l--) {
+				h = this.hints.hints[l];
+				if ((code ? h.code === code : true) && h.range.row < row) {
+					this.cursor.row = h.range.row;
+					return;
+				}
+			}
+		},
+	};
+
+	class InsertFeature extends Feature {
+		read(file) {
+			//file = file || ide.editor.file.filename;
+			cxl.ajax.get('file?p=' + ide.project.id + '&n=' + file).then(
+				function (content) {
+					if (content.new) ide.notify('File does not exist.');
+					else this.editor.insert(content.content.toString());
+				},
+				function (err) {
+					ide.error(err);
+				}
+			);
 		}
 	}
 
-	$onTitle(title)
-	{
-		this.header.title = `shell: ${title}`;
-		this.header.setTag('shell.pid', 'PID ' + this.pid);
+	InsertFeature.featureName = 'insert';
+	InsertFeature.commands = {
+		'insert.enable': function () {
+			this.insert.enable();
+		},
+		'insert.disable': function () {
+			this.insert.disable();
+		},
+		'insert.line': function () {
+			this.insert.line();
+		},
+		'insert.tab': function () {
+			this.insert.tab();
+		},
+		'insert.backspace': function () {
+			this.insert.backspace();
+		},
+		'insert.del': function () {
+			this.insert.del();
+		},
+	};
+
+	class IndentFeature extends Feature {}
+
+	IndentFeature.featureName = 'indent';
+	IndentFeature.commands = {
+		'indent.more': function () {
+			this.indent.more();
+		},
+		'indent.less': function () {
+			this.indent.less();
+		},
+		'indent.auto': function () {
+			this.indent.auto();
+		},
+	};
+
+	class HashFeature extends Feature {
+		serializeArgs(args) {
+			if (!args) return '';
+
+			if (args.length === 1) return args[0] + '';
+
+			return JSON.stringify(args);
+		}
+
+		get() {
+			var editor = this.editor,
+				cmd = editor.command || '',
+				args = this.serializeArgs(editor.arguments);
+			return cmd + ':' + args;
+		}
 	}
 
-	render(p)
-	{
-		super.render(p);
+	HashFeature.featureName = 'hash';
 
-		const term = this.$term = new XTerminal({
-			allowTransparency: true,
-			fontSize: 16,
-			theme: { background: 'transparent' }
-		});
+	class SearchFeature extends Feature {
+		// search(pattern, str, options)
 
-		setTimeout(() => this.$initTerminal(term));
+		replaceNext(val, replace) {
+			const range = this.search(val);
+			return range && range.replace(replace);
+		}
 
-		this.keymap.setState('terminal');
-		this.listenTo(this.el, 'focus', this.$onFocus.bind(this));
-		this.listenTo(this.$term, 'title', this.$onTitle.bind(this));
+		replaceRange(search, replace, range) {
+			range = range || this.editor.document.getRange();
+			const newLine = range.value.replace(search, replace);
+			range.replace(newLine);
+		}
 	}
 
-}
+	SearchFeature.featureName = 'search';
+	SearchFeature.commands = {
+		'search.next'(val) {
+			this.search.search(val);
+		},
+		'search.previous'(val) {
+			this.search.search(val, true);
+		},
+		'search.replaceNext'(val, replace) {
+			this.search.replaceNext(val, replace);
+		},
+		'search.replace'(val, replace) {
+			this.search.replaceRange(val, replace);
+		},
+		search: 'search.next',
+	};
 
-Object.assign(ide, {
-	Feature: Feature,
-	HistoryRecord: HistoryRecord,
-	Token: Token,
-	Editor: Editor,
-	Range: Range,
-	ComponentEditor: ComponentEditor,
-	BrowserEditor: BrowserEditor,
-	Terminal: Terminal
-});
+	class ScrollFeature extends Feature {}
 
-ide.feature = {
-	EditorHeader: EditorHeader,
-	CursorFeature: CursorFeature,
-	FoldFeature: FoldFeature,
-	SearchFeature: SearchFeature,
-	HashFeature: HashFeature,
-	ScrollFeature: ScrollFeature,
-	SelectionFeature: SelectionFeature,
-	LineFeature: LineFeature,
-	HistoryFeature: HistoryFeature,
-	WordFeature: WordFeature,
-	PageFeature: PageFeature,
-	TokenFeature: TokenFeature,
-	InsertFeature: InsertFeature,
-	HintsFeature: HintsFeature,
-	IndentFeature: IndentFeature,
-	RangeFeature: RangeFeature
-};
+	ScrollFeature.featureName = 'scroll';
 
+	class SelectionFeature extends Feature {}
 
+	SelectionFeature.featureName = 'selection';
+	SelectionFeature.commands = {
+		'selection.begin'() {
+			this.selection.begin();
+		},
+		'selection.end'() {
+			this.selection.end();
+		},
+		'selection.clear'() {
+			this.selection.clear();
+		},
+		'selection.remove'() {
+			this.selection.remove();
+		},
+		'selection.selectAll'() {
+			this.selection.selectAll();
+		},
+	};
+
+	class LineFeature extends Feature {
+		get columnStart() {
+			return 0;
+		}
+
+		get current() {
+			return this.editor.range.create(
+				this.rowStart,
+				this.columnStart,
+				this.rowEnd,
+				this.columnEnd
+			);
+		}
+
+		get value() {
+			return this.current.value;
+		}
+
+		select() {}
+
+		goStart() {
+			var e = this.editor;
+			e.cursor.go(this.row, this.column);
+		}
+
+		goEnd() {
+			var e = this.editor;
+			e.cursor.go(this.rowEnd, this.columnEnd);
+		}
+
+		moveDown() {}
+
+		moveUp() {}
+	}
+
+	LineFeature.featureName = 'line';
+	LineFeature.commands = {
+		'line.select': function () {
+			this.line.select();
+		},
+		'line.goStart': function () {
+			this.line.goStart();
+		},
+		'line.goEnd': function () {
+			this.line.goEnd();
+		},
+		'line.remove': function () {
+			this.line.remove();
+		},
+		'line.moveDown': function () {
+			this.line.moveDown();
+		},
+		'line.moveUp': function () {
+			this.line.moveUp();
+		},
+	};
+
+	// TODO
+	class HistoryRecord {
+		constructor(type) {
+			this.type = type;
+		}
+	}
+
+	class HistoryFeature extends Feature {
+		openHistory() {
+			var children = this.getAll().map(function (h) {
+					return { code: h.type };
+				}),
+				editor;
+			editor = new ide.ListEditor({
+				title: 'history',
+				children: children,
+			});
+
+			return editor;
+		}
+	}
+
+	HistoryFeature.featureName = 'history';
+	HistoryFeature.commands = {
+		history: function () {
+			return this.history.openHistory();
+		},
+		'history.undo': function () {
+			this.history.undo();
+		},
+		'history.redo': function () {
+			this.history.redo();
+		},
+		'history.lastInsert': function () {
+			return this.history.lastInsert;
+		},
+	};
+
+	class WordFeature extends Feature {
+		goNext() {
+			this.cursor.go(undefined, this.word.current.endColumn);
+			this.cursor.goForward();
+		}
+
+		goPrevious() {
+			this.cursor.go(undefined, this.word.current.startColumn);
+		}
+	}
+
+	WordFeature.featureName = 'word';
+	WordFeature.commands = {
+		'word.goNext': function () {
+			return this.word.goNext();
+		},
+		'word.goPrevious': function () {
+			return this.word.goPrevious();
+		},
+		'word.removeNext': function () {
+			return this.word.removeNext();
+		},
+		'word.removePrevious': function () {
+			return this.word.removePrevious();
+		},
+	};
+
+	class PageFeature extends Feature {
+		goUp() {
+			this.editor.cursor.go(this.current.row);
+		}
+
+		goDown() {
+			this.editor.cursor.go(this.current.endRow);
+		}
+	}
+
+	PageFeature.featureName = 'page';
+	PageFeature.commands = {
+		'page.goUp': function () {
+			this.page.goUp();
+		},
+		'page.goDown': function () {
+			this.page.goDown();
+		},
+	};
+
+	class TokenFeature extends Feature {
+		/** @abstract */
+		getToken() {}
+
+		get value() {
+			return this.current && this.current.value;
+		}
+	}
+
+	TokenFeature.featureName = 'token';
+
+	class RangeFeature extends Feature {}
+
+	RangeFeature.featureName = 'range';
+
+	class Range {
+		// row
+		// column
+		// endRow
+		// endColumn
+	}
+
+	class Token extends Range {
+		get cursorValue() {
+			// TODO ?
+			return this.$cursorValue === undefined
+				? (this.$cursorValue =
+						this.value &&
+						this.value.substr(0, this.cursorColumn - this.column))
+				: this.$cursorValue;
+		}
+
+		set cursorValue(val) {
+			this.$cursorValue = val;
+		}
+
+		next() {
+			return this.editor.token.getToken(this.endRow, this.endColumn + 1);
+		}
+
+		previous() {
+			return this.editor.token.getToken(this.row, this.column);
+		}
+
+		toJSON() {
+			return {
+				row: this.row,
+				column: this.column,
+				cursorColumn: this.column,
+				cursorRow: this.row,
+				type: this.type,
+				value: this.value,
+				cursorValue: this.cursorValue,
+			};
+		}
+	}
+
+	class Editor {
+		constructor(p) {
+			this.id = editorId++;
+			this.bindings = [];
+			this.plugin = p.plugin;
+			this.el = document.createElement('DIV');
+
+			this.$assistData = {};
+			this.$assistPromises = [];
+
+			// TODO ?
+			this.el.$editor = this;
+			this.keymap = new ide.KeyMap(this, p.keymap);
+			this.command = p.command;
+			this.arguments = p.arguments;
+			this.features = {};
+
+			this.loadFeatures(p);
+
+			ide.plugins.trigger('editor.load', this);
+		}
+
+		static registerCommands(cmds) {
+			var fn, i;
+
+			if (!this.hasOwnProperty('commands'))
+				this.commands = Object.assign({}, this.commands);
+
+			for (i in cmds) {
+				fn = cmds[i];
+
+				if (typeof fn === 'string') fn = cmds[fn];
+
+				this.commands[i] = new ide.Command(i, fn);
+			}
+		}
+
+		static features() {
+			if (!this.hasOwnProperty('$features'))
+				this.$features = Object.assign({}, this.$features);
+
+			for (var Feature of arguments) {
+				this.$features[Feature.featureName] = Feature;
+
+				if (Feature.commands) this.registerCommands(Feature.commands);
+			}
+
+			return this.$features;
+		}
+
+		supports(featureName) {
+			return featureName in this.features;
+		}
+
+		loadFeatures(p) {
+			var features = this.constructor.$features,
+				i;
+
+			for (i in features) this.features[i] = new features[i](this, p);
+
+			this.render(p);
+
+			for (i in this.features)
+				if (this.features[i].render) this.features[i].render();
+		}
+
+		getAssistData() {
+			var features = this.features,
+				data = this.$assistData,
+				promises = this.$assistPromises,
+				result,
+				i,
+				f;
+			promises.length = 0;
+
+			for (i in features) {
+				f = features[i];
+
+				if (f.assist) {
+					result = f.assist(data[i]);
+					if (result) promises.push(result);
+				}
+			}
+
+			return Promise.all(promises).then(() => data);
+		}
+
+		/**
+		 * Render editor content.
+		 */
+		render(p) {
+			var title = p.title || p.command;
+
+			this.$content = document.createElement('ide-editor-content');
+
+			this.el.appendChild(this.$content);
+
+			if (title) this.header.title = title;
+		}
+
+		focus() {
+			ide.workspace.focusEditor(this);
+		}
+
+		listenTo(el, event, cb) {
+			const s = new cxl.EventListener(el, event, cb.bind(this));
+
+			this.bindings.push(s);
+
+			return s;
+		}
+
+		destroy() {
+			this.bindings.forEach(b => (b.unsubscribe || b.destroy)());
+
+			for (const f in this.features) this.features[f].destroy();
+
+			this.bindings = null;
+			this.features = null;
+		}
+
+		/**
+		 * Handles a single command. Returns ide.Pass if command wasn't handled.
+		 *
+		 * @param name
+		 * @param args
+		 */
+		cmd(name, args) {
+			var fn =
+				this.constructor.commands && this.constructor.commands[name];
+
+			return fn ? fn.apply(this, args) : ide.Pass;
+		}
+
+		/**
+		 * Handles closing the editor. Return a string to confirm with user first.
+		 */
+		quit() {
+			ide.workspace.remove(this);
+			this.destroy();
+		}
+	}
+
+	Editor.features(HashFeature, EditorHeader);
+
+	class ComponentEditor extends Editor {
+		render(p) {
+			super.render(p);
+
+			this.$component = this.$component || p.component();
+			this.$content.appendChild(this.$component);
+		}
+
+		destroy() {
+			super.destroy();
+			cxl.dom.remove(this.$component);
+		}
+	}
+
+	class BrowserEditor extends Editor {
+		$updateTitle() {
+			this.header.title = this.url = this.$iframe.src;
+		}
+
+		openURL(url) {
+			this.$iframe.src = url;
+		}
+
+		render(p) {
+			super.render(p);
+
+			this.$iframe = document.createElement('IFRAME');
+			this.$iframe.className = 'ide-browser';
+			this.$content.appendChild(this.$iframe);
+
+			this.listenTo(this.$iframe, 'load', this.$updateTitle);
+
+			if (p.url) this.openURL(p.url);
+		}
+	}
+
+	class Terminal extends Editor {
+		$onFocus() {
+			this.$onResize();
+			this.$term.focus();
+		}
+
+		$initTerminal(term) {
+			// TODO add settings support
+			term.open(this.$content);
+			term.attachCustomKeyEventHandler(this.$onKey.bind(this));
+
+			this.$onResize = cxl.debounce(this.$onResize, 100);
+			this.listenTo(
+				ide.plugins,
+				'workspace.resize',
+				this.$onResize.bind(this)
+			);
+		}
+
+		$onResize() {
+			if (this.$term.element) {
+				this.header.setTag(
+					'size',
+					this.$term.cols + 'x' + this.$term.rows
+				);
+				// Force geometry update
+				this.$term.resize(this.$term.cols, this.$term.rows);
+				this.$term.fit();
+			}
+		}
+
+		$onKey(ev) {
+			if (ev.type === 'keydown') {
+				// TODO should we do this?
+				// Allow ctrl+tab and ctrl+shift+tab so we can switch browser tabs easily
+				if (ev.keyCode === 9 && ev.ctrlKey) return false;
+
+				ide.keyboard.onKeyDown(ev);
+
+				// If the keyboard module handle the key event, then we return false
+				if (ev.defaultPrevented) return false;
+			}
+		}
+
+		$onTitle(title) {
+			this.header.title = `shell: ${title}`;
+			this.header.setTag('shell.pid', 'PID ' + this.pid);
+		}
+
+		render(p) {
+			super.render(p);
+
+			const term = (this.$term = new XTerminal({
+				allowTransparency: true,
+				fontSize: 16,
+				theme: { background: 'transparent' },
+			}));
+
+			setTimeout(() => this.$initTerminal(term));
+
+			this.keymap.setState('terminal');
+			this.listenTo(this.el, 'focus', this.$onFocus.bind(this));
+			this.listenTo(this.$term, 'title', this.$onTitle.bind(this));
+		}
+	}
+
+	Object.assign(ide, {
+		Feature: Feature,
+		HistoryRecord: HistoryRecord,
+		Token: Token,
+		Editor: Editor,
+		Range: Range,
+		ComponentEditor: ComponentEditor,
+		BrowserEditor: BrowserEditor,
+		Terminal: Terminal,
+	});
+
+	ide.feature = {
+		EditorHeader: EditorHeader,
+		CursorFeature: CursorFeature,
+		FoldFeature: FoldFeature,
+		SearchFeature: SearchFeature,
+		HashFeature: HashFeature,
+		ScrollFeature: ScrollFeature,
+		SelectionFeature: SelectionFeature,
+		LineFeature: LineFeature,
+		HistoryFeature: HistoryFeature,
+		WordFeature: WordFeature,
+		PageFeature: PageFeature,
+		TokenFeature: TokenFeature,
+		InsertFeature: InsertFeature,
+		HintsFeature: HintsFeature,
+		IndentFeature: IndentFeature,
+		RangeFeature: RangeFeature,
+	};
 })(this.ide, this.cxl, this.Terminal, this.fit);

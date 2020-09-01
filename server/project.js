@@ -3,22 +3,17 @@
  * workspace.project Plugin
  *
  */
-"use strict";
+'use strict';
 
-const
-	colors = require('colors/safe'),
-	plugin = module.exports = cxl('workspace.project')
-;
-
+const colors = require('colors/safe'),
+	plugin = (module.exports = cxl('workspace.project'));
 /**
  * Project Configuration (project.json)
  *
  * Avoid using mutable objects as values to speed up diff algorithm.
  */
-class ProjectConfiguration extends ide.Configuration
-{
-	constructor(p)
-	{
+class ProjectConfiguration extends ide.Configuration {
+	constructor(p) {
 		var c = ide.configuration;
 		super();
 
@@ -29,19 +24,17 @@ class ProjectConfiguration extends ide.Configuration
 		this.$set(p);
 
 		this.tags = {
-			workspace: this.loadFile(
-				this.path + '/project.json') && 'workspace'
+			workspace:
+				this.loadFile(this.path + '/project.json') && 'workspace',
 		};
 
 		this.loadFile(this.path + '/project.local.json');
 
 		this.icons = [];
 	}
-
 }
 
 Object.assign(ProjectConfiguration.prototype, {
-
 	/**
 	 * Project name
 	 */
@@ -60,41 +53,36 @@ Object.assign(ProjectConfiguration.prototype, {
 	/**
 	 * Project description.
 	 */
-	description: null
-
+	description: null,
 });
 
-class ProjectSocketManager
-{
-	constructor(project)
-	{
+class ProjectSocketManager {
+	constructor(project) {
 		this.project = project;
 		this.clients = [];
 	}
 
-	onMessage(client, data)
-	{
+	onMessage(client, data) {
 		const project = this.project;
 
-		if (!this.clients.includes(client))
-		{
+		if (!this.clients.includes(client)) {
 			project.log.dbg(`Registering client ${client.id}.`);
 
 			this.clients.push(client);
 
 			client.on('close', this.onSocketClientClose.bind(this, client));
 
+			ide.plugins.emit('project.connect', project, client);
+
 			if (project.ready && data.$ !== project.configuration.$)
 				ide.socket.respond(client, 'project', { reload: true });
 		}
 	}
 
-	onSocketClientClose(client)
-	{
+	onSocketClientClose(client) {
 		var i = this.clients.indexOf(client);
 
-		if (i!==-1)
-		{
+		if (i !== -1) {
 			this.clients.splice(i, 1);
 			this.project.log.dbg(`Closing socket client id: ${client.id}`);
 		}
@@ -103,28 +91,23 @@ class ProjectSocketManager
 	/**
 	 * Calls ide.notify in all clients
 	 */
-	notify(hint)
-	{
+	notify(hint) {
 		this.broadcast({ notify: hint });
 	}
 
 	/**
 	 * Broadcast data to all project clients.
 	 */
-	broadcast(data, plugin)
-	{
+	broadcast(data, plugin) {
 		ide.socket.broadcast(plugin || 'project', data, this.clients);
 	}
 }
 
-class ProjectFileManager extends ide.FileManager
-{
-	constructor(project)
-	{
+class ProjectFileManager extends ide.FileManager {
+	constructor(project) {
 		super(project.path);
 
-		if (project.path==='.')
-			this.recursive = false;
+		if (project.path === '.') this.recursive = false;
 
 		this.project = project;
 		this.$ignore = new ide.FileMatcher();
@@ -132,16 +115,18 @@ class ProjectFileManager extends ide.FileManager
 		this.buildFilesDebounced = cxl.debounce(this.buildFiles, 250);
 	}
 
-	onFileChange(ev)
-	{
-		this.project.socket.broadcast({
-			stat: {
-				f: ev.path, t: ev.stat && ev.stat.mtime.getTime()
-			}
-		}, 'file');
+	onFileChange(ev) {
+		this.project.socket.broadcast(
+			{
+				stat: {
+					f: ev.path,
+					t: ev.stat && ev.stat.mtime.getTime(),
+				},
+			},
+			'file'
+		);
 
-		if (ev.relativePath==='project.json')
-			this.project.reload();
+		if (ev.relativePath === 'project.json') this.project.reload();
 		// Handle files added
 		else if (ev.type !== 'change' || !this.includes(ev.relativePath))
 			this.buildFilesDebounced();
@@ -149,87 +134,84 @@ class ProjectFileManager extends ide.FileManager
 		ide.plugins.emit('project.filechange', this.project, ev);
 	}
 
-	onFileError(ev)
-	{
+	onFileError(ev) {
 		this.log.error(ev.type + ' ' + ev.path);
 	}
 
-	onEvent(ev)
-	{
+	onEvent(ev) {
 		this.log.dbg(ev.type + ' ' + ev.path);
 
-		if (ev.type==='error')
-			this.onFileError(ev);
-		else
-			this.onFileChange(ev);
+		if (ev.type === 'error') this.onFileError(ev);
+		else this.onFileChange(ev);
 	}
 
-	buildFiles()
-	{
+	buildFiles() {
 		this.log.dbg('Generating Project Files');
 		return this.build().then(result => {
-			this.project.configuration.set('files',
-				cxl.sortBy(result, 'filename'));
+			this.project.configuration.set(
+				'files',
+				cxl.sortBy(result, 'filename')
+			);
 		});
 	}
 
-	buildIgnore()
-	{
+	buildIgnore() {
 		this.log.dbg('Generating Ignore Regex');
 		this.$ignore.push(
-			this.project.configuration.ignore || [ '**/.*', 'node_modules', 'bower_components' ]);
+			this.project.configuration.ignore || [
+				'**/.*',
+				'node_modules',
+				'bower_components',
+			]
+		);
 		// TODO See if we can remove this
 		try {
-			const regex = this.$ignore.build()
+			const regex = this.$ignore.build();
 			this.project.configuration.$set('ignore.regex', regex);
 		} catch (e) {
 			this.error(e);
 		}
 	}
 
-	ignore(pattern)
-	{
+	ignore(pattern) {
 		this.$ignore.push(pattern);
 	}
 
-	load()
-	{
-		if (this.project.path==='.')
-			return;
+	load() {
+		if (this.project.path === '.') return;
 
 		this.buildIgnore();
 		return this.buildFiles();
 	}
 }
 
-class ThemeManager
-{
-	constructor(project)
-	{
+class ThemeManager {
+	constructor(project) {
 		this.project = project;
 	}
 
-	onThemeReload(theme)
-	{
+	onThemeReload(theme) {
 		this.project.configuration.set('theme.css', theme.source);
 	}
 
-	loadTheme(theme)
-	{
-		if (this.listener)
-			this.listener.unsubscribe();
+	loadTheme(theme) {
+		if (this.listener) this.listener.unsubscribe();
 
 		this.theme = theme;
-		this.listener = ide.plugins.on('themes.reload:' + theme.path, this.onThemeReload, this);
+		this.listener = ide.plugins.on(
+			'themes.reload:' + theme.path,
+			this.onThemeReload,
+			this
+		);
 		this.onThemeReload(theme);
 	}
 
-	load()
-	{
+	load() {
 		const config = this.project.configuration;
 
 		if (config.theme)
-			return ide.themes.load(config.theme)
+			return ide.themes
+				.load(config.theme)
 				.then(theme => this.loadTheme(theme));
 	}
 }
@@ -243,28 +225,24 @@ class ThemeManager
  * - project.ready
  */
 class Project {
-
-	constructor(path)
-	{
+	constructor(path) {
 		this.path = path;
 
 		this.log = new cxl.Logger(
-			colors.green('workspace.project') +
-			` ${colors.yellow(this.path)}`);
+			colors.green('workspace.project') + ` ${colors.yellow(this.path)}`
+		);
 
 		ide.plugins.on('workspace.reload', this.reload.bind(this));
 
 		this.create();
 	}
 
-	create()
-	{
+	create() {
 		this.configuration = new ProjectConfiguration({
 			path: this.path,
 			onUpdate: cxl.debounce(() => {
-				if (this.loaded)
-					this.socket.broadcast({ reload: true });
-			}, 100)
+				if (this.loaded) this.socket.broadcast({ reload: true });
+			}, 100),
 		});
 
 		this.loaded = false;
@@ -278,48 +256,49 @@ class Project {
 	/**
 	 * workspace.exec in project context
 	 */
-	exec(command, options)
-	{
-		return ide.exec(command, Object.assign({
-			cwd: this.path
-		}, options));
+	exec(command, options) {
+		return ide.exec(
+			command,
+			Object.assign(
+				{
+					cwd: this.path,
+				},
+				options
+			)
+		);
 	}
 
 	/**
 	 * Adds promises to be resolved on Project load.
 	 */
-	resolve(promise)
-	{
+	resolve(promise) {
 		if (this.loaded)
-			throw new Error("Cannot add resolves because project is already loaded.");
+			throw new Error(
+				'Cannot add resolves because project is already loaded.'
+			);
 
 		this.promises.push(promise.catch(err => this.log.error(err)));
 	}
 
-	reload()
-	{
+	reload() {
 		const loaded = this.loaded;
 
 		this.create();
 
-		if (loaded)
-		{
+		if (loaded) {
 			this.log('Reloading project.');
 			this.destroy();
 			this.doLoad();
 		}
 	}
 
-	doLoad(full)
-	{
+	doLoad(full) {
 		// Delay the most time consuming tasks
-		const onTimeout = () => Promise.all([
-			this.files.load(),
-			this.theme.load()
-		]).then(() => {
-			ide.plugins.emit('project.ready', this);
-			this.ready = true;
-		});
+		const onTimeout = () =>
+			Promise.all([this.files.load(), this.theme.load()]).then(() => {
+				ide.plugins.emit('project.ready', this);
+				this.ready = true;
+			});
 
 		// Object used by plugins to store data.
 		this.data = {};
@@ -327,23 +306,21 @@ class Project {
 
 		ide.plugins.emit('project.load', this);
 
-		return Promise.all(this.promises).then(() => {
+		return Promise.all(this.promises)
+			.then(() => {
+				this.loaded = true;
+				delete this.promises;
 
-			this.loaded = true;
-			delete this.promises;
-
-			return full ? onTimeout() : setImmediate(onTimeout);
-
-		}).then(() => this.configuration);
+				return full ? onTimeout() : setImmediate(onTimeout);
+			})
+			.then(() => this.configuration);
 	}
 
 	/**
 	 * Loads project. It should only run once, unlike doLoad()
 	 */
-	load(full)
-	{
-		if (this.loaded)
-			return Promise.resolve(this.configuration);
+	load(full) {
+		if (this.loaded) return Promise.resolve(this.configuration);
 
 		// Temporary Resources. Will be destroyed on project reload.
 		this.resources = new ide.ResourceManager();
@@ -354,162 +331,153 @@ class Project {
 		return this.doLoad(full);
 	}
 
-	toJSON()
-	{
+	toJSON() {
 		return this.configuration;
 	}
 
-	destroy()
-	{
+	destroy() {
 		this.resources.destroy();
 	}
-
 }
 
 class ProjectManager {
-
-	constructor()
-	{
+	constructor() {
 		this.path = '.';
 		ide.plugins.on('project.filechange', this.onFileChange.bind(this));
 		this.projects = {};
 	}
 
-	onFileChange(project)
-	{
-		if (project.path==='.')
-			this.findProjects();
+	onFileChange(project) {
+		if (project.path === '.') this.findProjects();
 	}
 
-	getProjectByName(name)
-	{
+	getProjectByName(name) {
 		for (var i in this.projects)
 			if (this.projects[i].configuration.name === name)
 				return this.projects[i];
 	}
 
-	getProject(path)
-	{
-		if (!path || path==='.')
-			return this.workspaceProject;
+	getProject(path) {
+		if (!path || path === '.') return this.workspaceProject;
 
-		return (this.projects[path] ||
-			(this.projects[path] = new Project(path)));
+		return this.projects[path] || (this.projects[path] = new Project(path));
 	}
 
-	load(path, full)
-	{
+	load(path, full) {
 		path = path || '.';
-		return cxl.file.stat(path).catch(e => {
-			var p = this.getProjectByName(path);
-			return p ? (path = p.path) : Promise.reject(e);
-		}).then(() => {
-			return this.getProject(path).load(full);
-		});
+		return cxl.file
+			.stat(path)
+			.catch(e => {
+				var p = this.getProjectByName(path);
+				return p ? (path = p.path) : Promise.reject(e);
+			})
+			.then(() => {
+				return this.getProject(path).load(full);
+			});
 	}
 
-	getProjectInformation(path)
-	{
+	getProjectInformation(path) {
 		// TODO better directory mime?
-		if ((path.mime !== 'text/directory') ||
-			path.filename.indexOf('.')===0 || path.filename==='node_modules')
+		if (
+			path.mime !== 'text/directory' ||
+			path.filename.indexOf('.') === 0 ||
+			path.filename === 'node_modules'
+		)
 			return;
 
-		if (this.projects[path.filename])
-			return this.projects[path.filename];
+		if (this.projects[path.filename]) return this.projects[path.filename];
 
 		this.projects[path.filename] = new Project(path.filename);
 	}
 
-	findProjects()
-	{
-		const p = this.workspaceProject = new Project('.');
+	findProjects() {
+		const p = (this.workspaceProject = new Project('.'));
 		p.load();
 
 		this.workspaceProject.log.dbg('Building project list');
 
-		return ide.File.list(this.path).then(list => {
-			list.forEach(this.getProjectInformation.bind(this));
-		}).then(() => {
-			var projects = Object.assign({}, this.projects);
-			delete projects['.'];
-			return projects;
-		});
+		return ide.File.list(this.path)
+			.then(list => {
+				list.forEach(this.getProjectInformation.bind(this));
+			})
+			.then(() => {
+				var projects = Object.assign({}, this.projects);
+				delete projects['.'];
+				return projects;
+			});
 	}
-
 }
 
-plugin.extend({
+plugin
+	.extend({
+		onMessage(client, data) {
+			if (!data.path) return;
 
-	onMessage(client, data)
-	{
-		if (!data.path)
-			return;
+			const project = this.projectManager.getProject(data.path);
 
-		const project = this.projectManager.getProject(data.path);
-
-		project.load(data.path)
-			.then(function() {
+			project.load(data.path).then(function () {
 				project.socket.onMessage(client, data);
 			});
-	},
+		},
 
-	onAssistInline(request)
-	{
-	var
-		projects=this.projectManager.projects,
-		token = request.features.token,
-		i, p, result, term
-	;
-		if (token && token.type==='project' && projects)
-		{
-			term = token.value;
-			result = [];
+		onAssistInline(request) {
+			var projects = this.projectManager.projects,
+				token = request.features.token,
+				i,
+				p,
+				result,
+				term;
+			if (token && token.type === 'project' && projects) {
+				term = token.value;
+				result = [];
 
-			for (p in projects)
-			{
-				i = p.indexOf(term);
+				for (p in projects) {
+					i = p.indexOf(term);
 
-				if (i!==-1)
-					result.push({
-						priority: i,
-						title: p,
-						icon: 'project',
-						matchStart: i,
-						matchEnd: i+term.length
-					});
+					if (i !== -1)
+						result.push({
+							priority: i,
+							title: p,
+							icon: 'project',
+							matchStart: i,
+							matchEnd: i + term.length,
+						});
+				}
+
+				request.respondInline(result);
 			}
+		},
 
-			request.respondInline(result);
-		}
-	},
+		onLoad() {
+			this.projectManager.findProjects();
+		},
+	})
+	.config(function () {
+		this.server = cxl('workspace').server;
+	})
+	.run(function () {
+		ide.projectManager = this.projectManager = new ProjectManager();
+		ide.plugins.on('socket.message.project', this.onMessage.bind(this));
 
-	onLoad()
-	{
-		this.projectManager.findProjects();
-	}
-})
-.config(function() {
-	this.server = cxl('workspace').server;
-})
-.run(function() {
-
-	ide.projectManager = this.projectManager = new ProjectManager();
-	ide.plugins.on('socket.message.project', this.onMessage.bind(this));
-
-	ide.plugins.on('assist', this.onAssistInline.bind(this));
-	ide.plugins.on('workspace.load', this.onLoad.bind(this));
-
-})
-.route('GET', '/projects', function(req, res) {
-	ide.ServerResponse.respond(res, this.projectManager.findProjects(), this);
-})
-.route('GET', '/project', function(req, res) {
-	ide.ServerResponse.respond(res, this.projectManager.load(req.query.n, req.query.full), this);
-})
-.route('POST', '/project', function(req, res) {
-	// Create project ?
-	var p = req.body.path;
-	ide.ServerResponse.respond(res, cxl.file.mkdir(p), this);
-})
-;
+		ide.plugins.on('assist', this.onAssistInline.bind(this));
+		ide.plugins.on('workspace.load', this.onLoad.bind(this));
+	})
+	.route('GET', '/projects', function (req, res) {
+		ide.ServerResponse.respond(
+			res,
+			this.projectManager.findProjects(),
+			this
+		);
+	})
+	.route('GET', '/project', function (req, res) {
+		ide.ServerResponse.respond(
+			res,
+			this.projectManager.load(req.query.n, req.query.full),
+			this
+		);
+	})
+	.route('POST', '/project', function (req, res) {
+		// Create project ?
+		var p = req.body.path;
+		ide.ServerResponse.respond(res, cxl.file.mkdir(p), this);
+	});
